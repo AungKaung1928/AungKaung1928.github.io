@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aung Kaung | Robotics Software Engineer</title>
+    <title>Aung Kaung Myat | Robotics Software Engineer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Aung Kaung</h1>
+        <h1>Aung Kaung Myat</h1>
         <nav>
             <a href="#about">About</a>
+            <a href="#skills">Skills</a>
             <a href="#projects">Projects</a>
             <a href="#contact">Contact</a>
         </nav>
@@ -18,27 +19,96 @@
 
     <section id="hero">
         <h2>Robotics Software Engineer</h2>
-        <p>ROS 2 | C++ | Python | Autonomous Mobile Robots</p>
+        <p>ROS2 • C++ • Python • Autonomous Mobile Robots</p>
+        <p class="subtitle">Building production-ready autonomous systems for industrial environments</p>
     </section>
 
     <section id="about">
         <h2>About Me</h2>
-        <p>Building autonomous systems for production environments.</p>
+        <p>Robotics Software Engineer with Mechanical Engineering background, developing autonomous mobile robots with ROS2. Focused on SLAM, path planning, sensor fusion, and building systems that actually work in production.</p>
+        <p><strong>Current Focus:</strong> Autonomous Mobile Robots for Industrial CPS • Advanced Navigation & Localization • Multi-Sensor Fusion • ML/DL Integration for Robotics</p>
+        <p><strong>Career Goal:</strong> Full-stack robotics engineer—combining low-level control, perception, ML/DL, and cloud integration to deliver high-impact robotic solutions.</p>
+    </section>
+
+    <section id="skills">
+        <h2>Technical Stack</h2>
+        <div class="skills-grid">
+            <div class="skill-category">
+                <h3>Core</h3>
+                <p>ROS2 (Humble) • C++ • Python • Linux</p>
+            </div>
+            <div class="skill-category">
+                <h3>Navigation</h3>
+                <p>Nav2 • SLAM • AMCL • GMapping • Cartographer</p>
+            </div>
+            <div class="skill-category">
+                <h3>Perception</h3>
+                <p>LiDAR • IMU • Camera • OpenCV • Sensor Fusion</p>
+            </div>
+            <div class="skill-category">
+                <h3>Manipulation</h3>
+                <p>MoveIt • Trajectory Planning • Motion Control</p>
+            </div>
+            <div class="skill-category">
+                <h3>ML/DL</h3>
+                <p>PyTorch • TensorFlow • CNN • YOLO • Object Detection</p>
+            </div>
+            <div class="skill-category">
+                <h3>Control</h3>
+                <p>PID Controllers • Path Planning • State Machines</p>
+            </div>
+        </div>
     </section>
 
     <section id="projects">
-        <h2>Projects</h2>
+        <h2>Key Projects</h2>
+        
         <div class="project">
-            <h3>Project Name</h3>
-            <p>Brief description of what you built.</p>
-            <a href="https://github.com/AungKaung1928/repo-name">View on GitHub</a>
+            <h3>Autonomous Navigation & Localization</h3>
+            <p><strong>Patrol Navigation Controller</strong> (C++ • ROS2 Nav2)</p>
+            <ul>
+                <li>Waypoint patrol with cyclical behavior and pose orientation handling</li>
+                <li>AMCL localization integration with callback-based asynchronous goal management</li>
+                <li>Production-ready implementation for industrial mobile robots</li>
+            </ul>
+            <p><strong>Random Explorer Bot</strong> (C++ • ROS2 Nav2) — Autonomous exploration with SLAM-based mapping</p>
+            <p><strong>Waypoint Navigation</strong> (Python • ROS2 Nav2) — Real-time navigation feedback and waypoint management</p>
+        </div>
+
+        <div class="project">
+            <h3>Wall Following Controller</h3>
+            <p><strong>Python & C++ Implementations</strong> (PID Control)</p>
+            <ul>
+                <li>LiDAR scan data processing with multi-zone collision detection</li>
+                <li>PID control for maintaining consistent wall distance</li>
+                <li>State machine: search → find wall → follow → escape</li>
+                <li>Adaptive speed control based on obstacle proximity</li>
+            </ul>
+        </div>
+
+        <div class="project">
+            <h3>MoveIt Pick & Place Demo</h3>
+            <p><strong>Python • MoveIt • OpenCV</strong></p>
+            <ul>
+                <li>Vision-based object detection and tracking</li>
+                <li>Arm trajectory planning and coordinated motion control</li>
+                <li>Pick-and-place operations with collision avoidance</li>
+            </ul>
         </div>
     </section>
 
     <section id="contact">
-        <h2>Contact</h2>
-        <p>GitHub: <a href="https://github.com/AungKaung1928">@AungKaung1928</a></p>
+        <h2>Let's Connect</h2>
+        <div class="contact-links">
+            <a href="https://github.com/AungKaung1928" target="_blank">GitHub</a>
+            <a href="https://www.linkedin.com/in/aung-kaung-myat-30943a215/" target="_blank">LinkedIn</a>
+            <a href="mailto:aungkaungmyattt1928@gmail.com">Email</a>
+        </div>
     </section>
+
+    <footer>
+        <p>&copy; 2024 Aung Kaung Myat | Robotics Software Engineer</p>
+    </footer>
 
     <script src="script.js"></script>
 </body>
