@@ -54,6 +54,16 @@ section {
     color: white;
 }
 
+.profile-pic {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 5px solid #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    margin-bottom: 1.5rem;
+}
+
 #hero h2 {
     font-size: 3rem;
     color: #ffffff;
