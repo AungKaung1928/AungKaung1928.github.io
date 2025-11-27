@@ -223,8 +223,8 @@ h2 {
 }
 
 .contact-links a:nth-child(1) {
-    background: #0A66C2;
-    border-color: #0A66C2;
+    background: #181717;
+    border-color: #181717;
 }
 
 .contact-links a:nth-child(1):hover {
@@ -235,8 +235,8 @@ h2 {
 }
 
 .contact-links a:nth-child(2) {
-    background: #181717;
-    border-color: #181717;
+    background: #0A66C2;
+    border-color: #0A66C2;
 }
 
 .contact-links a:nth-child(2):hover {
