@@ -51,13 +51,13 @@ themeToggle.addEventListener('click', () => {
     localStorage.setItem('theme', theme);
 });
 
-// Scroll Progress Indicator
-const scrollProgress = document.getElementById('scroll-progress');
+// Scroll Percentage Display
+const scrollPercentage = document.getElementById('scroll-percentage');
 
 window.addEventListener('scroll', () => {
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-    const scrollPercent = (scrollTop / scrollHeight) * 100;
+    const scrollPercent = Math.round((scrollTop / scrollHeight) * 100);
     
-    scrollProgress.style.width = scrollPercent + '%';
+    scrollPercentage.textContent = scrollPercent + '%';
 });
