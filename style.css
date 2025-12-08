@@ -19,9 +19,9 @@ body.dark-mode {
     --text-tertiary: #d0d0d0;
     --border-color: #3d3d3d;
     --border-secondary: #404040;
-    --accent-primary: #00a8cc;      
-    --accent-secondary: #00d4ff;    
-    --accent-hover: #0088aa;        
+    --accent-primary: #00a8cc;
+    --accent-secondary: #00d4ff;
+    --accent-hover: #0088aa;
 }
 
 * {
@@ -44,16 +44,21 @@ body {
     padding: 0 2rem;
 }
 
-/* Scroll Progress Bar */
-#scroll-progress {
+/* Scroll Percentage Display */
+#scroll-percentage {
     position: fixed;
-    top: 0;
-    left: 0;
-    height: 4px;
+    bottom: 30px;
+    right: 30px;
     background: var(--accent-primary);
-    width: 0%;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 700;
     z-index: 1000;
-    transition: width 0.1s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s;
+    font-family: 'JetBrains Mono', monospace;
 }
 
 /* Header */
@@ -442,6 +447,13 @@ footer {
 @media (max-width: 768px) {
     .container {
         padding: 0 1rem;
+    }
+    
+    #scroll-percentage {
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 16px;
+        font-size: 14px;
     }
     
     .header-content {
