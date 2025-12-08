@@ -16,7 +16,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Active nav on scroll
 const sections = document.querySelectorAll('section[id]');
-const navLinks = document.querySelectorAll('nav a');
+// Target only the anchor tags inside nav, excluding the theme button if it were inside
+const navLinks = document.querySelectorAll('nav a'); 
 window.addEventListener('scroll', () => {
     let current = '';
     
@@ -74,10 +75,13 @@ if (savedTheme) {
 }
 
 // Add event listener for the toggle button
-themeToggle.addEventListener('click', () => {
-    // Toggle the theme
-    setTheme(!body.classList.contains('dark-theme'));
-});
+if (themeToggle) { // Safety check to ensure the button exists before adding the listener
+    themeToggle.addEventListener('click', () => {
+        // Toggle the theme
+        setTheme(!body.classList.contains('dark-theme'));
+    });
+}
+
 
 // --- New Feature 2: Scroll Progress Bar Percentage ---
 
@@ -94,7 +98,9 @@ function updateScrollProgress() {
     const scrollPercentage = (scrollPosition / totalHeight) * 100;
     
     // Set the width of the progress bar
-    progressBar.style.width = scrollPercentage + '%';
+    if (progressBar) {
+        progressBar.style.width = scrollPercentage + '%';
+    }
 }
 
 // Initial call to set the progress bar for the top of the page (0%)
