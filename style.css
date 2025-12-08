@@ -19,9 +19,9 @@ body.dark-mode {
     --text-tertiary: #d0d0d0;
     --border-color: #3d3d3d;
     --border-secondary: #404040;
-    --accent-primary: #00d4d4;      
-    --accent-secondary: #00ffff;    
-    --accent-hover: #00b8b8;       
+    --accent-primary: #00a8cc;      
+    --accent-secondary: #00d4ff;    
+    --accent-hover: #0088aa;        
 }
 
 * {
