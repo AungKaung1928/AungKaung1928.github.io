@@ -50,6 +50,9 @@ body {
     padding: 0.5rem;
     margin-left: 1rem;
     transition: color 0.3s;
+    /* Ensure the button is visible and aligned */
+    display: flex; 
+    align-items: center; 
 }
 
 #theme-toggle:hover {
@@ -214,6 +217,7 @@ body.dark-theme .contact-card {
 
 body.dark-theme .contact-card:hover {
     border-color: var(--color-primary);
+    transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(0, 184, 230, 0.15);
 }
 
@@ -261,7 +265,7 @@ header h1 {
 nav {
     display: flex;
     gap: 2.5rem;
-    align-items: center; /* Align toggle button */
+    align-items: center; 
 }
 
 nav a {
@@ -598,10 +602,17 @@ footer {
     
     nav {
         gap: 1.5rem;
+        /* Ensure nav items and toggle button stay together */
+        width: 100%;
+        justify-content: space-around;
     }
     
     nav a {
         font-size: 0.9rem;
+    }
+
+    #theme-toggle {
+        margin-left: 0;
     }
     
     .hero-grid {
