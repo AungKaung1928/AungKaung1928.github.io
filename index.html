@@ -124,18 +124,19 @@
             <h2 class="section-title">Key Projects</h2>
             <div class="projects-grid">
                 <div class="project-card">
-                    <h3>Autonomous Navigation & Localization</h3>
+                    <h3>Random Explorer Bot</h3>
                     <div class="project-tech">
                         <span>C++</span>
                         <span>ROS2 Nav2</span>
+                        <span>SLAM</span>
                     </div>
                     
                     <ul>
-                        <li>Waypoint patrol with cyclical behavior and pose orientation handling</li>
-                        <li>AMCL localization integration with callback-based asynchronous goal management</li>
-                        <li>Production-ready implementation for industrial mobile robots</li>
+                        <li>Autonomous exploration system with dynamic SLAM mapping and random goal generation</li>
+                        <li>Smart goal validation against live map with distance constraints and unreachable goal timeout handling</li>
+                        <li>Continuous exploration with Nav2 integration for intelligent obstacle avoidance</li>
                     </ul>
-                    <a href="https://github.com/AungKaung1928/ros2-patrol-project-cpp" target="_blank" class="project-link">
+                    <a href="https://github.com/AungKaung1928/ROS2-Nav2-Random-Explorer-Bot" target="_blank" class="project-link">
                         View on GitHub →
                     </a>
                 </div>
@@ -145,32 +146,33 @@
                         <span>C++</span>
                         <span>TF2</span>
                         <span>Nav2</span>
+                        <span>pluginlib</span>
                     </div>
                     
                     <ul>
                         <li>Comprehensive TF2 frame transformation system with dynamic and static broadcasters</li>
-                        <li>SLAM mapping integration with slam_toolbox and Nav2 autonomous navigation stack</li>
-                        <li>Multi-sensor visualization including LaserScan, PointCloud2, and odometry tracking</li>
-                        <li>Recovery behavior implementation for obstacle handling and stuck detection</li>
+                        <li>Custom TFDiagnostics message type for transform health monitoring and anomaly detection</li>
+                        <li>Nav2 costmap plugin development using pluginlib for keepout zone implementation</li>
+                        <li>Autonomous patrol with random goal generation and recovery behavior handling</li>
                     </ul>
                     <a href="https://github.com/AungKaung1928/TF-Transform-Explorer" target="_blank" class="project-link">
                         View on GitHub →
                     </a>
                 </div>
                 <div class="project-card">
-                    <h3>MoveIt Pick & Place Demo</h3>
+                    <h3>Colored Object Picker</h3>
                     <div class="project-tech">
                         <span>Python</span>
-                        <span>MoveIt</span>
                         <span>OpenCV</span>
+                        <span>ROS2</span>
                     </div>
                     
                     <ul>
-                        <li>Vision-based object detection and tracking</li>
-                        <li>Arm trajectory planning and coordinated motion control</li>
-                        <li>Pick-and-place operations with collision avoidance</li>
+                        <li>Real-time 6-color detection system using HSV color space filtering with advanced validation</li>
+                        <li>3D pose publishing with pixel-to-world coordinate conversion for robotic manipulation</li>
+                        <li>Configurable YAML-based color ranges with morphological noise reduction</li>
                     </ul>
-                    <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" class="project-link">
+                    <a href="https://github.com/AungKaung1928/ros2-colored-object-picker" target="_blank" class="project-link">
                         View on GitHub →
                     </a>
                 </div>
