@@ -84,9 +84,9 @@
         <div class="container">
             <h2 class="section-title">About</h2>
             <div class="about-content">
-                <p>Robotics Software Engineer with a mechanical engineering background, developing autonomous mobile robots with ROS2. Focused on navigation, localization, and sensor integration for real-world robotic systems.</p>
-                <p><strong>Current Focus:</strong> ROS2 Navigation &amp; Localization · Sensor Integration &amp; Processing · Simulation (Gazebo) &amp; ML for Robotics</p>
-                <p><strong>Career Goal:</strong> Specializing in Sim-to-Real transfer, computer vision, and production ML deployment for autonomous systems.</p>
+                <p>Robotics Software Engineer with a mechanical engineering background, developing autonomous mobile robots and manipulation systems with ROS2. Focused on navigation, localization, sensor integration, and real hardware deployment.</p>
+                <p><strong>Current Focus:</strong> ROS2 Navigation &amp; Localization · LiDAR Perception &amp; PCL · Robot Manipulation (MoveIt2) · Simulation (Gazebo)</p>
+                <p><strong>Career Goal:</strong> Moving toward physical AI — Sim-to-Real transfer, legged robotics, and perception systems for autonomous robots in unstructured environments.</p>
             </div>
         </div>
     </section>
@@ -97,7 +97,7 @@
             <div class="skills-grid">
                 <div class="skill-category"><h3>Core</h3><p>ROS2 (Humble) · C++ · Python · Linux</p></div>
                 <div class="skill-category"><h3>Navigation</h3><p>Nav2 · SLAM · AMCL · GMapping · Cartographer</p></div>
-                <div class="skill-category"><h3>Perception</h3><p>LiDAR · IMU · Camera · OpenCV · Sensor Fusion</p></div>
+                <div class="skill-category"><h3>Perception</h3><p>LiDAR · IMU · Camera · OpenCV · PCL · Sensor Fusion</p></div>
                 <div class="skill-category"><h3>Manipulation</h3><p>MoveIt · Trajectory Planning · Motion Control</p></div>
                 <div class="skill-category"><h3>ML / DL</h3><p>PyTorch · TensorFlow · CNN · YOLO · Object Detection</p></div>
                 <div class="skill-category"><h3>Control</h3><p>PID Controllers · Path Planning · State Machines</p></div>
@@ -110,14 +110,24 @@
             <h2 class="section-title">Projects</h2>
             <div class="projects-grid">
                 <div class="project-card">
-                    <h3>Random Explorer Bot</h3>
-                    <div class="project-tech"><span>C++</span><span>ROS2 Nav2</span><span>SLAM</span></div>
+                    <h3>Go2 Perception Pipeline</h3>
+                    <div class="project-tech"><span>C++</span><span>ROS2</span><span>PCL</span><span>Unitree Go2</span></div>
                     <ul>
-                        <li>Autonomous exploration with dynamic SLAM mapping and random goal generation</li>
-                        <li>Smart goal validation against live map with distance constraints and timeout handling</li>
-                        <li>Continuous exploration with Nav2 integration for obstacle avoidance</li>
+                        <li>Custom LiDAR perception pipeline for the Unitree Go2 quadruped robot in Gazebo</li>
+                        <li>Ground plane removal via PCL PassThrough filter — publishes clean obstacle point clouds</li>
+                        <li>RViz visualization of raw vs filtered clouds; teleop-ready with custom world</li>
                     </ul>
-                    <a href="https://github.com/AungKaung1928/ROS2-Nav2-Random-Explorer-Bot" target="_blank" class="project-link">View on GitHub →</a>
+                    <a href="https://github.com/AungKaung1928/go2-perception-pipeline" target="_blank" class="project-link">View on GitHub →</a>
+                </div>
+                <div class="project-card">
+                    <h3>MoveIt2 Pick &amp; Place Demo</h3>
+                    <div class="project-tech"><span>Python</span><span>MoveIt2</span><span>ROS2</span><span>Franka Panda</span></div>
+                    <ul>
+                        <li>7-DOF Franka Panda arm with OMPL motion planning and constraint-based execution</li>
+                        <li>±1cm positioning accuracy; &gt;95% success rate with multi-attempt fallback strategies</li>
+                        <li>Production-grade safety: action server verification, velocity scaling, graceful recovery</li>
+                    </ul>
+                    <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" class="project-link">View on GitHub →</a>
                 </div>
                 <div class="project-card">
                     <h3>TF Transform Explorer</h3>
@@ -131,14 +141,14 @@
                     <a href="https://github.com/AungKaung1928/TF-Transform-Explorer" target="_blank" class="project-link">View on GitHub →</a>
                 </div>
                 <div class="project-card">
-                    <h3>Colored Object Picker</h3>
-                    <div class="project-tech"><span>Python</span><span>OpenCV</span><span>ROS2</span></div>
+                    <h3>Fleet Monitoring System</h3>
+                    <div class="project-tech"><span>Python</span><span>ROS2</span><span>Kafka</span><span>Docker</span></div>
                     <ul>
-                        <li>Real-time 6-color detection using HSV filtering with advanced validation</li>
-                        <li>3D pose publishing with pixel-to-world coordinate conversion</li>
-                        <li>Configurable YAML-based color ranges with morphological noise reduction</li>
+                        <li>Distributed multi-robot telemetry pipeline: ROS2 → Kafka → QuestDB time-series database</li>
+                        <li>Simulates production fleet infrastructure with multiple TurtleBot3 robots in Gazebo</li>
+                        <li>Containerized stack with Docker; real-time dashboard over PostgreSQL wire protocol</li>
                     </ul>
-                    <a href="https://github.com/AungKaung1928/ros2-colored-object-picker" target="_blank" class="project-link">View on GitHub →</a>
+                    <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" class="project-link">View on GitHub →</a>
                 </div>
             </div>
         </div>
