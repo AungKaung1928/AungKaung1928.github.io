@@ -142,11 +142,11 @@ body.dark-mode .moon-icon { display: block; }
 }
 
 .hero-title {
-    font-size: 3rem;
+    font-size: 2.4rem;
     color: var(--accent-primary);
     margin-bottom: 0.8rem;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.25;
     letter-spacing: -0.02em;
 }
 
@@ -223,8 +223,9 @@ body.dark-mode .moon-icon { display: block; }
 }
 
 .profile-pic {
-    width: 380px;
-    height: 380px;
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 1;
     border-radius: 50%;
     object-fit: cover;
     border: 3px solid var(--accent-primary);
