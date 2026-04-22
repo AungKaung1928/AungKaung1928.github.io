@@ -12,7 +12,7 @@
 <body>
     <!-- Scroll Percentage Display -->
     <div id="scroll-percentage">0%</div>
-    
+
     <header>
         <div class="container">
             <div class="header-content">
@@ -42,6 +42,7 @@
             </div>
         </div>
     </header>
+
     <section id="hero">
         <div class="container">
             <div class="hero-grid">
@@ -49,15 +50,22 @@
                     <div class="profile-pic-mobile">
                         <img src="profile.jpg" alt="Aung Kaung Myat">
                     </div>
+
+                    <div class="sys-badge">
+                        <span class="sys-dot"></span>
+                        <span class="sys-text">SYSTEMS ONLINE</span>
+                    </div>
+
                     <h2 class="hero-title">Robotics Software Engineer</h2>
-                    <p class="hero-desc">Building production-ready autonomous systems for industrial environments</p>
-                    
+                    <p class="hero-desc" id="hero-desc">Building production-ready autonomous systems for industrial environments</p>
+
                     <div class="tech-tags">
                         <span>ROS2</span>
                         <span>C++</span>
                         <span>Python</span>
                         <span>Autonomous Mobile Robots</span>
                     </div>
+
                     <div class="cta-buttons">
                         <a href="#projects" class="btn-primary">View Projects</a>
                         <a href="https://github.com/AungKaung1928" target="_blank" class="btn-secondary">
@@ -67,27 +75,33 @@
                             GitHub
                         </a>
                     </div>
+
+                    <div class="coord-display">
+                        <span><span class="axis">X</span> <span id="coord-x">0.000</span></span>
+                        <span><span class="axis">Y</span> <span id="coord-y">0.000</span></span>
+                        <span><span class="axis">θ</span> <span id="coord-theta">0.0°</span></span>
+                        <span><span class="axis">SYS</span> <span id="coord-sys">nav2/active</span></span>
+                    </div>
                 </div>
-                
+
                 <div class="hero-visual">
                     <img src="profile.jpg" alt="Aung Kaung Myat" class="profile-pic">
                 </div>
             </div>
         </div>
     </section>
+
     <section id="about" style="padding: 3rem 0;">
         <div class="container">
             <h2 class="section-title">About me</h2>
-            
             <div class="about-content">
                 <p>Robotics Software Engineer with mechanical engineering background, developing autonomous mobile robots with ROS2. Focused on navigation, localization, and sensor integration for real-world robotic systems.</p>
-                
-                <p><strong>Current Focus:</strong> ROS2 Navigation & Localization • Sensor Integration & Processing • Learning Simulation (Gazebo) & ML for Robotics</p>
-                
+                <p><strong>Current Focus:</strong> ROS2 Navigation &amp; Localization • Sensor Integration &amp; Processing • Learning Simulation (Gazebo) &amp; ML for Robotics</p>
                 <p><strong>Career Goal:</strong> Robotics software engineer specializing in Sim-to-Real transfer, computer vision, and production ML deployment for autonomous systems.</p>
             </div>
         </div>
     </section>
+
     <section id="skills" style="padding: 3rem 0;">
         <div class="container">
             <h2 class="section-title">Technical Stack</h2>
@@ -119,6 +133,7 @@
             </div>
         </div>
     </section>
+
     <section id="projects">
         <div class="container">
             <h2 class="section-title">Key Projects</h2>
@@ -130,7 +145,6 @@
                         <span>ROS2 Nav2</span>
                         <span>SLAM</span>
                     </div>
-                    
                     <ul>
                         <li>Autonomous exploration system with dynamic SLAM mapping and random goal generation</li>
                         <li>Smart goal validation against live map with distance constraints and unreachable goal timeout handling</li>
@@ -148,7 +162,6 @@
                         <span>Nav2</span>
                         <span>pluginlib</span>
                     </div>
-                    
                     <ul>
                         <li>Comprehensive TF2 frame transformation system with dynamic and static broadcasters</li>
                         <li>Custom TFDiagnostics message type for transform health monitoring and anomaly detection</li>
@@ -166,7 +179,6 @@
                         <span>OpenCV</span>
                         <span>ROS2</span>
                     </div>
-                    
                     <ul>
                         <li>Real-time 6-color detection system using HSV color space filtering with advanced validation</li>
                         <li>3D pose publishing with pixel-to-world coordinate conversion for robotic manipulation</li>
@@ -179,6 +191,7 @@
             </div>
         </div>
     </section>
+
     <section id="contact">
         <div class="container">
             <h2 class="section-title">Let's Connect</h2>
@@ -214,11 +227,13 @@
             </div>
         </div>
     </section>
+
     <footer>
         <div class="container">
             <p>&copy; Aung Kaung Myat | Robotics Software Engineer</p>
         </div>
     </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
