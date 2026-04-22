@@ -278,18 +278,6 @@ section { padding: 2rem 0; }
     overflow: hidden;
 }
 
-/* Subtle shimmer on hover — the one animation */
-.skill-category::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 30%, var(--glow-soft) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 1.2s ease;
-    pointer-events: none;
-}
-
-.skill-category:hover::before { transform: translateX(100%); }
 
 .skill-category:hover {
     border-color: var(--accent-secondary);
@@ -323,18 +311,6 @@ section { padding: 2rem 0; }
     overflow: hidden;
 }
 
-/* Same shimmer on project cards */
-.project-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 30%, var(--glow-soft) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 1.2s ease;
-    pointer-events: none;
-}
-
-.project-card:hover::before { transform: translateX(100%); }
 
 .project-card:hover {
     border-color: var(--accent-secondary);
@@ -415,17 +391,6 @@ section { padding: 2rem 0; }
     overflow: hidden;
 }
 
-.contact-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, transparent 30%, var(--glow-soft) 50%, transparent 70%);
-    transform: translateX(-100%);
-    transition: transform 1.2s ease;
-    pointer-events: none;
-}
-
-.contact-card:hover::before { transform: translateX(100%); }
 
 .contact-card:hover {
     border-color: var(--accent-primary);
