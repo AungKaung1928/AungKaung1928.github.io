@@ -171,7 +171,7 @@ header {
     min-height: 64px;
 }
 
-.brand { text-decoration: none; display: flex; flex-direction: column; line-height: 1.25; }
+.brand { text-decoration: none; display: inline-flex; align-items: center; }
 
 .brand-name {
     font-family: 'JetBrains Mono', monospace;
@@ -179,14 +179,6 @@ header {
     font-weight: 600;
     color: var(--ink);
     letter-spacing: -0.01em;
-}
-
-.brand-role {
-    font-size: 0.68rem;
-    font-weight: 500;
-    color: var(--ink-3);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
 }
 
 nav { display: flex; gap: 1.9rem; align-items: center; margin-left: auto; }
@@ -358,16 +350,28 @@ html.dark-mode .moon-icon { display: block; }
     transform: translateY(-1px);
 }
 
-.hero-visual { display: flex; justify-content: center; position: relative; }
+.hero-visual { display: flex; align-items: flex-start; justify-content: center; }
 
-.profile-pic {
+/* The flex item here is <picture>, not <img> — the image is one level down.
+ * Give the picture a real block box and a definite height on the image so
+ * nothing in the flex/grid chain can stretch the photo out of shape. */
+.hero-visual picture {
+    display: block;
     width: 100%;
-    max-width: 300px;
-    aspect-ratio: 1;
-    border-radius: 50%;
+    max-width: 330px;
+    align-self: flex-start;
+}
+
+/* 3:4 is the photo's own ratio, so nothing is cropped away. */
+.profile-pic {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
     object-fit: cover;
+    border-radius: var(--radius);
     border: 1px solid var(--border-strong);
-    box-shadow: 0 0 0 8px var(--accent-soft), var(--shadow-md);
+    box-shadow: var(--shadow-md);
 }
 
 /* ── Sections ────────────────────────────────────────────────────── */
@@ -702,12 +706,14 @@ html.reveal-ready .reveal.in {
     .hero-visual { display: none; }
     .profile-pic-mobile { display: block; margin-bottom: 1.6rem; }
     .profile-pic-mobile img {
+        display: block;
         width: 132px;
-        height: 132px;
-        border-radius: 50%;
+        height: auto;
+        aspect-ratio: 3 / 4;
         object-fit: cover;
+        border-radius: var(--radius);
         border: 1px solid var(--border-strong);
-        box-shadow: 0 0 0 6px var(--accent-soft);
+        box-shadow: var(--shadow-md);
     }
     .projects-grid { grid-template-columns: 1fr; }
     .spec-row { grid-template-columns: 1fr; gap: 0.35rem; }
@@ -716,7 +722,6 @@ html.reveal-ready .reveal.in {
 @media (max-width: 680px) {
     html { scroll-padding-top: 74px; }
     .header-content { min-height: 58px; gap: 0.75rem; }
-    .brand-role { display: none; }
     nav {
         gap: 1.1rem;
         overflow-x: auto;
