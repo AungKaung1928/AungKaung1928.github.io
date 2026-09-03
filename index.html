@@ -3,181 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aung Kaung Myat | Robotics Software Engineer</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="chat.css">
+
+    <title>Aung Kaung Myat — Robotics Software Engineer</title>
+    <meta name="description" content="Robotics software engineer building autonomous mobile robots and manipulation systems with ROS2 — navigation, LiDAR perception, MoveIt2, and deployment on real hardware.">
+    <meta name="author" content="Aung Kaung Myat">
+    <link rel="canonical" href="https://aungkaung1928.github.io/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aungkaung1928.github.io/">
+    <meta property="og:title" content="Aung Kaung Myat — Robotics Software Engineer">
+    <meta property="og:description" content="Autonomous mobile robots and manipulation systems with ROS2 — navigation, LiDAR perception, MoveIt2, real hardware.">
+    <meta property="og:image" content="https://aungkaung1928.github.io/profile.jpg">
+    <meta name="twitter:card" content="summary">
+
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f1417" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23005F73'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="chat.css">
+
+    <!-- Applied before first paint so dark-mode users never see a white flash. -->
+    <script>
+        try {
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark-mode');
+            }
+        } catch (e) {}
+    </script>
 </head>
 <body>
-    <div id="scroll-percentage">0%</div>
+    <a href="#main" class="skip-link">Skip to content</a>
+
+    <div id="scroll-percentage" aria-hidden="true">0%</div>
 
     <header>
+        <div class="progress-track"><div id="progress-bar"></div></div>
         <div class="container">
             <div class="header-content">
-                <h1>Aung Kaung Myat</h1>
-                <nav>
+                <a href="#top" class="brand">
+                    <span class="brand-name">Aung Kaung Myat</span>
+                    <span class="brand-role">Robotics Software Engineer</span>
+                </a>
+                <nav aria-label="Sections">
                     <a href="#about">About</a>
                     <a href="#skills">Skills</a>
                     <a href="#projects">Projects</a>
                     <a href="#contact">Contact</a>
-                    <button id="theme-toggle" aria-label="Toggle dark mode">
-                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="5"></circle>
-                            <line x1="12" y1="1" x2="12" y2="3"></line>
-                            <line x1="12" y1="21" x2="12" y2="23"></line>
-                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                            <line x1="1" y1="12" x2="3" y2="12"></line>
-                            <line x1="21" y1="12" x2="23" y2="12"></line>
-                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                        </svg>
-                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                        </svg>
-                    </button>
                 </nav>
+                <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
             </div>
         </div>
     </header>
 
-    <section id="hero">
-        <div class="container">
-            <div class="hero-grid">
-                <div class="hero-content">
-                    <div class="profile-pic-mobile">
-                        <img src="profile.jpg" alt="Aung Kaung Myat">
+    <main id="main">
+        <section id="top" class="hero">
+            <div class="container">
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="profile-pic-mobile">
+                            <picture>
+                                <source srcset="profile.webp" type="image/webp">
+                                <img src="profile.jpg" width="900" height="1200" alt="Aung Kaung Myat">
+                            </picture>
+                        </div>
+
+                        <p class="eyebrow">Autonomous Mobile Robots · Manipulation · Physical AI</p>
+
+                        <h1 class="hero-title">Robotics Software Engineer</h1>
+                        <p class="hero-desc">Building production-ready autonomous systems for industrial environments</p>
+
+                        <ul class="tech-tags" aria-label="Primary technologies">
+                            <li>ROS2</li>
+                            <li>C++</li>
+                            <li>Python</li>
+                            <li>Autonomous Mobile Robots</li>
+                        </ul>
+
+                        <div class="cta-buttons">
+                            <a href="#projects" class="btn btn-primary">View Projects</a>
+                            <a href="https://github.com/AungKaung1928" target="_blank" rel="noopener" class="btn btn-secondary">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                </svg>
+                                GitHub
+                            </a>
+                        </div>
                     </div>
 
-                    <span class="status-label">// Robotics Software Engineer</span>
-
-                    <h2 class="hero-title">Robotics Software Engineer</h2>
-                    <p class="hero-desc">Building production-ready autonomous systems for industrial environments</p>
-
-                    <div class="tech-tags">
-                        <span>ROS2</span>
-                        <span>C++</span>
-                        <span>Python</span>
-                        <span>Autonomous Mobile Robots</span>
-                    </div>
-
-                    <div class="cta-buttons">
-                        <a href="#projects" class="btn-primary">View Projects</a>
-                        <a href="https://github.com/AungKaung1928" target="_blank" class="btn-secondary">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                            </svg>
-                            GitHub
-                        </a>
+                    <div class="hero-visual">
+                        <picture>
+                            <source srcset="profile.webp" type="image/webp">
+                            <img src="profile.jpg" width="900" height="1200" alt="Aung Kaung Myat" class="profile-pic">
+                        </picture>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="hero-visual">
-                    <img src="profile.jpg" alt="Aung Kaung Myat" class="profile-pic">
+        <section id="about" class="reveal">
+            <div class="container">
+                <div class="section-head">
+                    <span class="section-num">01</span>
+                    <h2 class="section-title">About</h2>
+                </div>
+                <div class="about-content">
+                    <p class="lede">Robotics Software Engineer with a mechanical engineering background, developing autonomous mobile robots and manipulation systems with ROS2. Focused on navigation, localization, sensor integration, and real hardware deployment.</p>
+                    <dl class="spec-list">
+                        <div class="spec-row">
+                            <dt>Current Focus</dt>
+                            <dd>ROS2 Navigation &amp; Localization · LiDAR Perception &amp; PCL · Robot Manipulation (MoveIt2) · Simulation (Gazebo)</dd>
+                        </div>
+                        <div class="spec-row">
+                            <dt>Career Goal</dt>
+                            <dd>Moving toward physical AI — Sim-to-Real transfer, legged robotics, and perception systems for autonomous robots in unstructured environments.</dd>
+                        </div>
+                    </dl>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="about">
-        <div class="container">
-            <h2 class="section-title">About</h2>
-            <div class="about-content">
-                <p>Robotics Software Engineer with a mechanical engineering background, developing autonomous mobile robots and manipulation systems with ROS2. Focused on navigation, localization, sensor integration, and real hardware deployment.</p>
-                <p><strong>Current Focus:</strong> ROS2 Navigation &amp; Localization · LiDAR Perception &amp; PCL · Robot Manipulation (MoveIt2) · Simulation (Gazebo)</p>
-                <p><strong>Career Goal:</strong> Moving toward physical AI — Sim-to-Real transfer, legged robotics, and perception systems for autonomous robots in unstructured environments.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="skills">
-        <div class="container">
-            <h2 class="section-title">Technical Stack</h2>
-            <div class="skills-grid">
-                <div class="skill-category"><h3>Core</h3><p>ROS2 (Humble) · C++ · Python · Linux</p></div>
-                <div class="skill-category"><h3>Navigation</h3><p>Nav2 · SLAM · AMCL · GMapping · Cartographer</p></div>
-                <div class="skill-category"><h3>Perception</h3><p>LiDAR · IMU · Camera · OpenCV · PCL · Sensor Fusion</p></div>
-                <div class="skill-category"><h3>Manipulation</h3><p>MoveIt · Trajectory Planning · Motion Control</p></div>
-                <div class="skill-category"><h3>ML / DL</h3><p>PyTorch · TensorFlow · CNN · YOLO · Object Detection</p></div>
-                <div class="skill-category"><h3>Control</h3><p>PID Controllers · Path Planning · State Machines</p></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="projects">
-        <div class="container">
-            <h2 class="section-title">Projects</h2>
-            <div class="projects-grid">
-                <div class="project-card">
-                    <h3>Go2 Perception Pipeline</h3>
-                    <div class="project-tech"><span>C++</span><span>ROS2</span><span>PCL</span><span>Unitree Go2</span></div>
-                    <ul>
-                        <li>Custom LiDAR perception pipeline for the Unitree Go2 quadruped robot in Gazebo</li>
-                        <li>Ground plane removal via PCL PassThrough filter — publishes clean obstacle point clouds</li>
-                        <li>RViz visualization of raw vs filtered clouds; teleop-ready with custom world</li>
-                    </ul>
-                    <a href="https://github.com/AungKaung1928/go2-perception-pipeline" target="_blank" class="project-link">View on GitHub →</a>
+        <section id="skills" class="reveal">
+            <div class="container">
+                <div class="section-head">
+                    <span class="section-num">02</span>
+                    <h2 class="section-title">Technical Stack</h2>
                 </div>
-                <div class="project-card">
-                    <h3>MoveIt2 Pick &amp; Place Demo</h3>
-                    <div class="project-tech"><span>Python</span><span>MoveIt2</span><span>ROS2</span><span>Franka Panda</span></div>
-                    <ul>
-                        <li>7-DOF Franka Panda arm with OMPL motion planning and constraint-based execution</li>
-                        <li>±1cm positioning accuracy; &gt;95% success rate with multi-attempt fallback strategies</li>
-                        <li>Production-grade safety: action server verification, velocity scaling, graceful recovery</li>
-                    </ul>
-                    <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" class="project-link">View on GitHub →</a>
-                </div>
-                <div class="project-card">
-                    <h3>TF Transform Explorer</h3>
-                    <div class="project-tech"><span>C++</span><span>TF2</span><span>Nav2</span><span>pluginlib</span></div>
-                    <ul>
-                        <li>TF2 frame transformation system with dynamic and static broadcasters</li>
-                        <li>Custom TFDiagnostics message type for transform health monitoring</li>
-                        <li>Nav2 costmap plugin via pluginlib for keepout zone implementation</li>
-                        <li>Autonomous patrol with random goal generation and recovery behavior</li>
-                    </ul>
-                    <a href="https://github.com/AungKaung1928/TF-Transform-Explorer" target="_blank" class="project-link">View on GitHub →</a>
-                </div>
-                <div class="project-card">
-                    <h3>Fleet Monitoring System</h3>
-                    <div class="project-tech"><span>Python</span><span>ROS2</span><span>Kafka</span><span>Docker</span></div>
-                    <ul>
-                        <li>Distributed multi-robot telemetry pipeline: ROS2 → Kafka → QuestDB time-series database</li>
-                        <li>Simulates production fleet infrastructure with multiple TurtleBot3 robots in Gazebo</li>
-                        <li>Containerized stack with Docker; real-time dashboard over PostgreSQL wire protocol</li>
-                    </ul>
-                    <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" class="project-link">View on GitHub →</a>
+                <div class="skills-grid">
+                    <div class="skill-category">
+                        <h3>Core</h3>
+                        <ul><li>ROS2 (Humble)</li><li>C++</li><li>Python</li><li>Linux</li></ul>
+                    </div>
+                    <div class="skill-category">
+                        <h3>Navigation</h3>
+                        <ul><li>Nav2</li><li>SLAM</li><li>AMCL</li><li>GMapping</li><li>Cartographer</li></ul>
+                    </div>
+                    <div class="skill-category">
+                        <h3>Perception</h3>
+                        <ul><li>LiDAR</li><li>IMU</li><li>Camera</li><li>OpenCV</li><li>PCL</li><li>Sensor Fusion</li></ul>
+                    </div>
+                    <div class="skill-category">
+                        <h3>Manipulation</h3>
+                        <ul><li>MoveIt</li><li>Trajectory Planning</li><li>Motion Control</li></ul>
+                    </div>
+                    <div class="skill-category">
+                        <h3>ML / DL</h3>
+                        <ul><li>PyTorch</li><li>TensorFlow</li><li>CNN</li><li>YOLO</li><li>Object Detection</li></ul>
+                    </div>
+                    <div class="skill-category">
+                        <h3>Control</h3>
+                        <ul><li>PID Controllers</li><li>Path Planning</li><li>State Machines</li></ul>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="contact">
-        <div class="container">
-            <h2 class="section-title">Contact</h2>
-            <div class="contact-grid">
-                <a href="https://github.com/AungKaung1928" target="_blank" class="contact-card">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <div class="contact-info"><h4>GitHub</h4><p>AungKaung1928</p></div>
-                </a>
-                <a href="https://www.linkedin.com/in/aung-kaung-myat-30943a215/" target="_blank" class="contact-card">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                    <div class="contact-info"><h4>LinkedIn</h4><p>Aung Kaung Myat</p></div>
-                </a>
-                <a href="mailto:aungkaungmyattt1928@gmail.com" class="contact-card">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                    <div class="contact-info"><h4>Email</h4><p>aungkaungmyattt1928@gmail.com</p></div>
-                </a>
+        <section id="projects" class="reveal">
+            <div class="container">
+                <div class="section-head">
+                    <span class="section-num">03</span>
+                    <h2 class="section-title">Projects</h2>
+                </div>
+                <div class="projects-grid">
+                    <article class="project-card">
+                        <div class="project-index">01</div>
+                        <h3>Go2 Perception Pipeline</h3>
+                        <ul class="project-tech"><li>C++</li><li>ROS2</li><li>PCL</li><li>Unitree Go2</li></ul>
+                        <ul class="project-points">
+                            <li>Custom LiDAR perception pipeline for the Unitree Go2 quadruped robot in Gazebo</li>
+                            <li>Ground plane removal via PCL PassThrough filter — publishes clean obstacle point clouds</li>
+                            <li>RViz visualization of raw vs filtered clouds; teleop-ready with custom world</li>
+                        </ul>
+                        <a href="https://github.com/AungKaung1928/go2-perception-pipeline" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">→</span></a>
+                    </article>
+
+                    <article class="project-card">
+                        <div class="project-index">02</div>
+                        <h3>MoveIt2 Pick &amp; Place Demo</h3>
+                        <ul class="project-tech"><li>Python</li><li>MoveIt2</li><li>ROS2</li><li>Franka Panda</li></ul>
+                        <ul class="project-points">
+                            <li>7-DOF Franka Panda arm with OMPL motion planning and constraint-based execution</li>
+                            <li>±1cm positioning accuracy; &gt;95% success rate with multi-attempt fallback strategies</li>
+                            <li>Production-grade safety: action server verification, velocity scaling, graceful recovery</li>
+                        </ul>
+                        <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">→</span></a>
+                    </article>
+
+                    <article class="project-card">
+                        <div class="project-index">03</div>
+                        <h3>TF Transform Explorer</h3>
+                        <ul class="project-tech"><li>C++</li><li>TF2</li><li>Nav2</li><li>pluginlib</li></ul>
+                        <ul class="project-points">
+                            <li>TF2 frame transformation system with dynamic and static broadcasters</li>
+                            <li>Custom TFDiagnostics message type for transform health monitoring</li>
+                            <li>Nav2 costmap plugin via pluginlib for keepout zone implementation</li>
+                            <li>Autonomous patrol with random goal generation and recovery behavior</li>
+                        </ul>
+                        <a href="https://github.com/AungKaung1928/TF-Transform-Explorer" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">→</span></a>
+                    </article>
+
+                    <article class="project-card">
+                        <div class="project-index">04</div>
+                        <h3>Fleet Monitoring System</h3>
+                        <ul class="project-tech"><li>Python</li><li>ROS2</li><li>Kafka</li><li>Docker</li></ul>
+                        <ul class="project-points">
+                            <li>Distributed multi-robot telemetry pipeline: ROS2 → Kafka → QuestDB time-series database</li>
+                            <li>Simulates production fleet infrastructure with multiple TurtleBot3 robots in Gazebo</li>
+                            <li>Containerized stack with Docker; real-time dashboard over PostgreSQL wire protocol</li>
+                        </ul>
+                        <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">→</span></a>
+                    </article>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
+
+        <section id="contact" class="reveal">
+            <div class="container">
+                <div class="section-head">
+                    <span class="section-num">04</span>
+                    <h2 class="section-title">Contact</h2>
+                </div>
+                <div class="contact-grid">
+                    <a href="https://github.com/AungKaung1928" target="_blank" rel="noopener" class="contact-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        <div class="contact-info"><h4>GitHub</h4><p>AungKaung1928</p></div>
+                        <span class="contact-arrow" aria-hidden="true">→</span>
+                    </a>
+                    <a href="https://www.linkedin.com/in/aung-kaung-myat-30943a215/" target="_blank" rel="noopener" class="contact-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        <div class="contact-info"><h4>LinkedIn</h4><p>Aung Kaung Myat</p></div>
+                        <span class="contact-arrow" aria-hidden="true">→</span>
+                    </a>
+                    <a href="mailto:aungkaungmyattt1928@gmail.com" class="contact-card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        <div class="contact-info"><h4>Email</h4><p>aungkaungmyattt1928@gmail.com</p></div>
+                        <span class="contact-arrow" aria-hidden="true">→</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
 
     <footer>
-        <div class="container">
+        <div class="container footer-inner">
             <p>Aung Kaung Myat · Robotics Software Engineer</p>
+            <a href="#top" class="footer-top">Back to top ↑</a>
         </div>
     </footer>
 
