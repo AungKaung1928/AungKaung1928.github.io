@@ -16,12 +16,14 @@ const CHAT_ENDPOINT = '';   // e.g. 'https://portfolio-chat.<you>.workers.dev'
 
 const EMAIL = 'aungkaungmyattt1928@gmail.com';
 
-/* Words that mean "give me the long version". */
-const DEPTH_RE = /\b(detail|details|detailed|explain|elaborate|each|all|every|more|deep|deeper|fully|in depth|breakdown|walk me|tell me about|overview)\b/;
+/* Answers are thorough by default — the long form is what a visitor came
+ * for. These words are the opt-out. */
+const BRIEF_RE = /\b(short|shortly|brief|briefly|quick|quickly|tldr|tl;dr|one line|one-line|summary|summarise|summarize|in a sentence|keep it short|just the)\b/;
 
 /* ── Knowledge base ──────────────────────────────────────────────────
- * a     — standard answer
- * deep  — long answer, used when the question asks for detail
+ * a     — short answer, used when the visitor asks for "short" or "brief"
+ * deep  — long answer; this is the default, because a thorough reply is
+ *         what someone opening the widget is actually after
  * next  — follow-up questions offered as chips after this answer
  * label — shown in the "Topics" menu; `ask` is what that chip sends
  * ------------------------------------------------------------------ */
@@ -434,25 +436,492 @@ const TOPICS = [
            "For a CV, role details, availability, or anything this page does not cover, email is the right channel.",
         next: ['What is his experience?', 'Explain each project in detail', 'What is his stack?', 'Who is he?'],
     },
+    {
+        id: 'ros2',
+        label: 'ROS2 depth',
+        ask: 'How deep is his ROS2 knowledge?',
+        k: ['!ros2', '!ros', '!humble', '!pluginlib', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', '!custom message', '!message type', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
+        a: "## ROS2 — Humble, in C++ and Python\n" +
+           "He works inside ROS2's interfaces rather than only on top of them. Three concrete markers on this page:\n\n" +
+           "- A custom message type, TFDiagnostics, defined and published as a topic so transform health is monitorable\n" +
+           "- A Nav2 costmap plugin loaded through pluginlib, implementing keepout zones the planner has to respect\n" +
+           "- Action-server verification before execution in the MoveIt2 project, so a missing controller fails at startup instead of mid-motion\n\n" +
+           "Defining a message type and writing a pluginlib plugin is a different level from editing a YAML file — both require reading ROS2's own interfaces.\n\n" +
+           "Also on the page: TF2 dynamic and static broadcasters, perception topic design (raw cloud in, filtered obstacle cloud out), and Gazebo integration with a custom world.",
+        deep: "## The version and the languages\n" +
+           "ROS2 Humble, written in both C++ and Python, on Linux. C++ for the nodes that run per sensor frame or plug into someone else's C++ interface; Python where iteration speed matters more.\n" +
+           "## Where the depth actually shows\n" +
+           "- Custom interfaces — a TFDiagnostics message type, generated and published as a topic. Most people consume standard messages; defining one means dealing with interface packages, build dependencies and the code generation step.\n" +
+           "- pluginlib — a Nav2 costmap layer loaded as a plugin, implementing keepout zones. This is written against Nav2's C++ plugin API: you inherit from its layer class, respect its lifecycle, and get loaded by name at runtime.\n" +
+           "- TF2 — dynamic and static broadcasters, so moving joints and fixed mounts are both represented correctly in the frame tree.\n" +
+           "- Actions — the MoveIt2 project verifies its action server is up before commanding anything, which is the difference between a loud startup failure and a silent runtime one.\n" +
+           "- Topic design — the Go2 pipeline subscribes to a raw cloud and republishes a filtered obstacle cloud, keeping the perception boundary clean for downstream planners.\n" +
+           "## Where most portfolios stop\n" +
+           "Launch files, parameter YAML, and a tutorial-shaped node. Those are present here too, but they are not the interesting part. The interesting part is that two of the four projects extend ROS2 through its extension points instead of working around them.\n" +
+           "## What is not claimed\n" +
+           "This page does not show real-time executors, DDS QoS tuning, or micro-ROS work. Ask by email if that is what the role needs.",
+        next: ['Tell me about the TF Transform Explorer project', 'C++ or Python?', 'What is his stack?', 'How does he debug robot problems?'],
+    },
+    {
+        id: 'simtoreal',
+        label: 'Sim-to-real',
+        ask: 'What about sim-to-real transfer?',
+        k: ['!sim-to-real', '!sim to real', '!sim2real', '!reality gap', '!domain gap', '!simulation to reality', '!real world', '!transfer', '!does it work on real hardware'],
+        weight: 1.3,
+        a: "This is the direction he is aiming at, and the honest version matters more than the enthusiastic one.\n\n" +
+           "## What is on this page\n" +
+           "- Heavy simulation work: a custom Gazebo world for the Go2 perception pipeline, multiple TurtleBot3 robots running at once for the fleet project\n" +
+           "- Professional work that includes deployment onto real hardware, not simulation alone\n" +
+           "- A mechanical engineering background, which is where sim-to-real problems actually live: sensor mounting, actuator limits, friction, timing\n\n" +
+           "## What is not on this page\n" +
+           "A shipped sim-to-real result — a policy trained in simulation and measured on hardware. That is the stated goal, not a finished credential.\n\n" +
+           "If a role turns on that specifically, email him: " + EMAIL,
+        deep: "## Why he is pointed here\n" +
+           "His stated career direction is physical AI: learned behaviour running on real machines. Sim-to-real transfer is the gate every one of those systems has to pass, and it is a systems problem rather than a model problem — the failure is usually in the seams: frames, latency, sensor noise, actuator saturation, contact.\n" +
+           "## What the page supports today\n" +
+           "- Simulation depth — a custom Gazebo world with teleop for the Go2 perception pipeline; several TurtleBot3 robots simulated concurrently in the fleet project. He builds environments, not just runs stock ones.\n" +
+           "- Hardware exposure — the professional side of his work involves deployment onto real robots, which is where simulation-only engineers get caught out.\n" +
+           "- The measurement habit — RViz raw versus filtered side by side, positioning accuracy in centimetres, success rate as a percentage. Sim-to-real without measurement is guesswork.\n" +
+           "- A mechanical background — kinematics, sensors and failure modes of physical machines. The reality gap is mostly physics, and he read the physics first.\n" +
+           "## What is honestly missing\n" +
+           "- No trained policy on this page, in simulation or on hardware\n" +
+           "- No domain randomisation, system identification or residual-policy work published here\n" +
+           "- The four projects are classical robotics: filters, planners, state machines, infrastructure\n" +
+           "So the accurate read is: strong classical foundation plus the hardware instinct sim-to-real needs, aimed deliberately at learned control, without a shipped learned result yet.\n" +
+           "## The next step that would prove it\n" +
+           "A policy trained in Gazebo and measured on a real machine, with the gap quantified rather than described. That is the missing artefact, and he would tell you the same.",
+        next: ['What is he aiming for?', 'What legged robotics experience does he have?', 'Does he do machine learning?', 'What are the gaps in his experience?'],
+    },
+    {
+        id: 'legged',
+        label: 'Legged robotics',
+        ask: 'What legged robotics experience does he have?',
+        k: ['!legged', '!legged robotics', '!quadrupedal', '!four-legged', '!four legged', '!walking robot', '!gait', '!locomotion', '!dog robot'],
+        a: "## What exists\n" +
+           "The Go2 Perception Pipeline — a custom LiDAR perception pipeline for the Unitree Go2 quadruped, running in Gazebo. Ground-plane removal with a PCL PassThrough filter, clean obstacle clouds republished for planning, RViz showing raw versus filtered, teleop in a custom world.\n\n" +
+           "## What that is and is not\n" +
+           "It is perception for a legged platform: the sensing layer a walking robot needs before anything else works. It is not gait control, whole-body control, or a learned locomotion policy — none of that is on this page.\n\n" +
+           "Legged robotics is one of the three things he names as his direction, and the Go2 work is the first deliberate step toward it rather than the finished article.",
+        deep: "## The project\n" +
+           "Go2 Perception Pipeline — C++, ROS2, PCL, Unitree Go2 in Gazebo.\n" +
+           "- Raw LiDAR scans ground-plane filtered with a PCL PassThrough filter, so the floor stops being reported as an obstacle\n" +
+           "- The surviving obstacle cloud republished on its own topic for downstream planning\n" +
+           "- RViz displaying raw and filtered clouds side by side, which makes the filter's effect measurable rather than asserted\n" +
+           "- A custom world with teleop, so the robot can be driven through obstacles while the pipeline runs\n" +
+           "## Why perception first on a quadruped\n" +
+           "A legged robot's hardest problem is knowing what is under and in front of it. Ground-plane removal is not a toy step for a walking platform: the floor is exactly what a wheeled-robot filter would treat as an obstacle, and exactly what a quadruped has to walk on. Getting the obstacle definition right is a prerequisite for anything above it.\n" +
+           "## The honest boundary\n" +
+           "- No gait or whole-body control on this page\n" +
+           "- No reinforcement-learning locomotion policy\n" +
+           "- The Go2 work is in simulation, not on the physical dog\n" +
+           "## Why it is still the right first step\n" +
+           "The stated direction is physical AI with legged robotics as one of three pillars. Starting at the sensing layer of a real quadruped platform, in C++, with a measurable result, is a more defensible entry than a rebuilt tutorial policy.",
+        next: ['Tell me about the Go2 perception project', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
+    },
+    {
+        id: 'hardware',
+        label: 'Robots & sensors',
+        ask: 'Which robots and sensors has he worked with?',
+        k: ['!hardware', '!real robot', '!real robots', '!physical robot', '!physical hardware', '!which robots', '!what robots', '!robot platforms', '!platforms', '!actuator', '!actuators', '!motor', '!motors', '!sensor suite', '!sensors used', '!sensor stack', '!on real hardware'],
+        a: "## Platforms named on this page\n" +
+           "- Unitree Go2 quadruped — LiDAR perception pipeline, in Gazebo\n" +
+           "- Franka Panda, 7-DOF arm — full pick-and-place with MoveIt2\n" +
+           "- TurtleBot3, several at once — the fleet telemetry project, in Gazebo\n\n" +
+           "## Sensors\n" +
+           "LiDAR, IMU and camera, with sensor fusion across them. PCL for point clouds, OpenCV for images.\n\n" +
+           "## The honest split\n" +
+           "The four portfolio projects run in simulation. His professional work includes deployment onto real hardware — that is stated on the page, but the specific machines are not.\n\n" +
+           "For the real-hardware detail, employers and dates, email him: " + EMAIL,
+        deep: "## Platforms\n" +
+           "- Unitree Go2 — a quadruped, used for the C++ LiDAR perception pipeline in a custom Gazebo world with teleop\n" +
+           "- Franka Panda — a 7-DOF arm, used for OMPL-planned pick-and-place with constraint-based execution, velocity and acceleration scaling\n" +
+           "- TurtleBot3 — multiple units simulated simultaneously, producing concurrent telemetry for the Kafka and QuestDB pipeline\n" +
+           "## Sensors and the libraries around them\n" +
+           "- LiDAR — point-cloud filtering, ground-plane removal, obstacle extraction with PCL\n" +
+           "- IMU and camera, fused with the LiDAR data\n" +
+           "- OpenCV for image work; CNNs and YOLO on the learned side of detection\n" +
+           "## Simulation versus hardware, stated plainly\n" +
+           "The projects on this page are simulated. That is a deliberate choice for a public portfolio — a simulated stack is reproducible by whoever is reading it, and every claim can be re-run.\n" +
+           "The About section states that his professional work covers deployment on real hardware rather than simulation alone. The page does not name those robots, so neither will I.\n" +
+           "## Why the mechanical background matters here\n" +
+           "He came from mechanical engineering, so hardware is not an abstraction to him: mounting, alignment, actuator limits and mechanical failure modes are things he has designed around, not only read about. That is the part that decides whether working code survives contact with a real machine.\n" +
+           "## What to ask him directly\n" +
+           "Which physical platforms, at what scale, and for how long — email " + EMAIL + " for that.",
+        next: ['What about sim-to-real transfer?', 'Explain each project in detail', 'What numbers can he back up?', 'How do I contact him?'],
+    },
+    {
+        id: 'reliability',
+        label: 'Failure handling',
+        ask: 'How does he handle failure and recovery?',
+        k: ['!reliability', '!reliable', '!robust', '!robustness', '!recovery', '!recover', '!fallback', '!failure', '!failures', '!fail', '!safety', '!safe', '!error handling', '!graceful', '!edge case', '!edge cases', '!unattended', '!production ready', '!production-ready'],
+        weight: 1.1,
+        a: "This is the strongest single thread through the portfolio: failure paths are designed, not bolted on.\n\n" +
+           "- MoveIt2 pick & place — multi-attempt fallback rather than one optimistic plan, which is where the >95% success rate comes from. Action-server verification before execution, velocity and acceleration scaling, and a failed grasp that returns to a known state and resumes\n" +
+           "- TF Transform Explorer — recovery behaviour when navigation fails, so an autonomous patrol keeps operating instead of stopping; plus TFDiagnostics, which turns silent transform failures into a monitorable topic\n" +
+           "- Fleet Monitoring — Kafka between producers and consumers, so a slow or dead consumer does not take telemetry down with it\n\n" +
+           "The pattern: assume it breaks, decide what happens next, and make the breakage visible.",
+        deep: "## Why this is the thread worth following\n" +
+           "Any demo works once. The difference between a demo and something that runs unattended is entirely in what happens when a step fails — and three of the four projects address that explicitly.\n" +
+           "## MoveIt2 pick & place\n" +
+           "- Multi-attempt fallback: when a plan or an execution fails, the system retries with a different strategy instead of aborting. The >95% success rate is a consequence of this, not of a better planner\n" +
+           "- Action-server verification before anything is commanded, so a missing or unready controller fails loudly at startup rather than silently at runtime\n" +
+           "- Velocity and acceleration scaling, keeping a 7-DOF arm inside limits its situation allows\n" +
+           "- Graceful recovery: a failed grasp returns the arm to a known state and the run continues\n" +
+           "## TF Transform Explorer\n" +
+           "- Recovery behaviour when navigation fails, inside an autonomous patrol that generates its own goals — a robot that cannot recover is a robot someone has to babysit\n" +
+           "- A custom TFDiagnostics message publishing transform health as a topic. TF failures are usually silent: a stale transform, a missing frame, clock skew. This converts a debugging session into an alert\n" +
+           "- Keepout zones enforced in a costmap plugin, so a forbidden region is a planner constraint rather than an operator instruction\n" +
+           "## Fleet Monitoring\n" +
+           "- Kafka decouples producers from consumers, so a slow or failed consumer buffers instead of dropping telemetry\n" +
+           "- Containerised deployment, which removes the whole class of failures that begin with \"it worked on my machine\"\n" +
+           "## The underlying habit\n" +
+           "Design the failure path first, make the failure observable, and give the system a defined next move. That habit transfers directly to hardware, where failure is not hypothetical.",
+        next: ['Tell me about the MoveIt2 pick and place project', 'How does he debug robot problems?', 'What numbers can he back up?', 'How does he work?'],
+    },
+    {
+        id: 'metrics',
+        label: 'The numbers',
+        ask: 'What numbers can he back up?',
+        k: ['!metric', '!metrics', '!accuracy', '!success rate', '!numbers', '!measured', '!measurable', '!benchmark', '!benchmarks', '!precision', '!latency', '!throughput', '!fps', '!proof', '!evidence', '!quantify', '!quantified', '!results'],
+        a: "## Published on this page\n" +
+           "- ±1 cm positioning accuracy — MoveIt2 pick & place, 7-DOF Franka Panda\n" +
+           "- Above 95% success rate — same project, achieved through multi-attempt fallback\n" +
+           "- Multiple TurtleBot3 robots streaming telemetry concurrently — fleet project, so the pipeline is exercised with real concurrency rather than one stream\n" +
+           "- Raw versus filtered point clouds shown side by side in RViz — the Go2 filter's effect is observable, not asserted\n\n" +
+           "## Not published\n" +
+           "Per-frame latency, CPU and memory budgets, throughput figures, and localisation error over a run. Those numbers are not on this page, so I will not invent them.\n\n" +
+           "Every project links to its repository, and the code is the primary source. For measurements beyond the above, email " + EMAIL,
+        deep: "## The numbers that exist\n" +
+           "- ±1 cm positioning accuracy on the 7-DOF Franka Panda pick-and-place\n" +
+           "- Above 95% success rate on the same task, with the mechanism named: multi-attempt fallback, not a luckier planner\n" +
+           "- Concurrent multi-robot telemetry — several TurtleBot3 robots simulated at once through ROS2, Kafka and QuestDB\n" +
+           "- A measurable perception result: RViz displays the raw and the ground-plane-filtered cloud together, so the filter's effect can be inspected rather than trusted\n" +
+           "## Why those two numbers are the interesting ones\n" +
+           "A success rate is only meaningful with its mechanism attached. \">95% via multi-attempt fallback\" tells you the system was built around failure; \">95%\" alone tells you nothing. Same for ±1 cm: it is a claim you can re-run from the linked repository.\n" +
+           "## What is deliberately absent\n" +
+           "- No per-frame latency or CPU budget for the C++ perception pipeline\n" +
+           "- No localisation error figures for the navigation work\n" +
+           "- No end-to-end throughput number for the telemetry pipeline\n" +
+           "- No hardware-versus-simulation comparison\n" +
+           "That is a real gap for a performance-critical role, and the right answer is to ask him rather than to read an implied number into the page.\n" +
+           "## How to verify what is here\n" +
+           "All four projects are public on github.com/AungKaung1928. The claims above are reproducible from the code and the launch setup.",
+        next: ['Tell me about the MoveIt2 pick and place project', 'What are the gaps in his experience?', 'How does he handle failure and recovery?', 'How do I contact him?'],
+    },
+    {
+        id: 'deployment',
+        label: 'Deployment & packaging',
+        ask: 'How does he deploy and package his work?',
+        k: ['!deploy', '!deployment', '!deploying', '!packaging', '!containerised', '!containerized', '!reproducible', '!ship', '!shipping', '!ci', '!cd', '!build system', '!setup', '!install', '!run it', '!devops'],
+        a: "## Packaging\n" +
+           "The fleet monitoring stack is fully containerised with Docker — brokers, the time-series database, the dashboard and the ROS2 nodes. The whole system comes up as a unit rather than as a machine-specific ritual.\n\n" +
+           "## Why that matters\n" +
+           "A multi-robot telemetry stack has four or five moving services. Containerising it is the difference between a system somebody else can start and a system only its author can start.\n\n" +
+           "## Around it\n" +
+           "Linux throughout, ROS2 Humble as the runtime, Gazebo for simulation, and a real-time dashboard reading QuestDB over the PostgreSQL wire protocol — a deliberate choice to reuse standard tooling instead of writing a bespoke client.\n\n" +
+           "Not on this page: CI pipelines, cross-compilation, or edge-device images. Ask by email if the role needs those.",
+        deep: "## What is containerised\n" +
+           "The Fleet Monitoring System runs as a Docker stack: Kafka as the broker, QuestDB as the time-series store, the dashboard, and the ROS2 nodes producing telemetry. Bringing the stack up is one operation, and it comes up the same way on someone else's machine.\n" +
+           "## Why a portfolio project is the right place to prove this\n" +
+           "Anyone reading the repository can run it. That is the actual test of reproducibility, and it is the reason the fleet project is containerised rather than documented with a list of manual steps.\n" +
+           "## Interface choices worth noticing\n" +
+           "- QuestDB spoken over the PostgreSQL wire protocol, so the dashboard uses a standard client instead of a custom one\n" +
+           "- Kafka as the boundary between the robot network and everything downstream — ROS2's DDS transport is designed for a robot, not for a datacentre\n" +
+           "- ROS2 packages and launch setups for the robot-side work, with Gazebo worlds committed alongside the code\n" +
+           "## The runtime environment\n" +
+           "Linux throughout, ROS2 Humble, C++ and Python. Nothing exotic, which is the point: the stack is standard enough that a team could adopt it.\n" +
+           "## What is not claimed\n" +
+           "- No CI/CD pipeline shown on this page\n" +
+           "- No cross-compilation or edge-device image building\n" +
+           "- No orchestration beyond Docker\n" +
+           "Email " + EMAIL + " if a role depends on any of those.",
+        next: ['Tell me about the fleet monitoring project', 'What is his stack?', 'How does he work?', 'What are the gaps in his experience?'],
+    },
+    {
+        id: 'debug',
+        label: 'How he debugs',
+        ask: 'How does he debug robot problems?',
+        k: ['!debug', '!debugging', '!troubleshoot', '!troubleshooting', '!diagnose', '!root cause', '!failure analysis', '!goes wrong', '!something breaks', '!find bugs', '!fix bugs', '!observability', '!monitoring health'],
+        a: "Two habits show up repeatedly in the projects.\n\n" +
+           "## Start at the hardware end\n" +
+           "With a mechanical engineering background, the first question is not \"which node is wrong\" but \"is this a sensor mount, a frame definition, a controller limit — or genuinely the code\". That ordering saves the days most people lose.\n\n" +
+           "## Make the invisible observable\n" +
+           "- TFDiagnostics publishes transform health as a topic, because TF failures are silent by default\n" +
+           "- RViz shows raw and filtered clouds side by side, so a filter's effect is inspected rather than assumed\n" +
+           "- Action-server verification fails loudly at startup instead of silently at runtime\n\n" +
+           "The theme: turn a debugging session into a signal you can watch.",
+        deep: "## First principle — suspect the machine before the code\n" +
+           "He came into software from mechanical engineering, and it shapes the debugging order. When a robot misbehaves the candidate list starts with sensor mounting, frame definitions, controller limits and timing — then the algorithm. Engineers who arrive purely from software usually work that list in the opposite order and lose days to it.\n" +
+           "## Second principle — instrument the silent failures\n" +
+           "- TF: a custom TFDiagnostics message publishes transform health as a topic. Stale transforms, missing frames and clock skew produce no error by themselves; a navigation stack simply behaves strangely. Publishing health converts that into something monitorable\n" +
+           "- Perception: RViz renders the raw cloud and the ground-plane-filtered cloud together. The filter is then evaluated by looking at it, not by trusting the parameter\n" +
+           "- Manipulation: the action server is verified before execution, so an unready controller is a startup failure rather than a mysterious mid-motion stop\n" +
+           "- Fleet: telemetry from several robots lands in a time-series database with a live dashboard, which is what makes intermittent problems visible at all\n" +
+           "## Third principle — a defined next move\n" +
+           "Recovery behaviour after failed navigation, multi-attempt fallback after a failed grasp, and a return to a known state. Debugging is easier when the system's response to failure is deterministic instead of improvised.\n" +
+           "## What that adds up to\n" +
+           "Diagnostics as a first-class topic, comparisons rendered rather than argued, loud startup failures, and deterministic recovery. It is an unglamorous set of habits and it is exactly what separates a system that can be operated from one that has to be supervised.",
+        next: ['How does he handle failure and recovery?', 'Tell me about the TF Transform Explorer project', 'How does he work?', 'What is his experience?'],
+    },
+    {
+        id: 'kinematics',
+        label: 'Kinematics & maths',
+        ask: 'What is his kinematics and maths background?',
+        k: ['!kinematics', '!inverse kinematics', '!forward kinematics', '!dynamics', '!maths', '!mathematics', '!math background', '!linear algebra', '!transform math', '!mechanical engineering', '!mech eng', '!mechanical background', '!rotation', '!quaternion', '!quaternions', '!frames math'],
+        a: "## Where it comes from\n" +
+           "A mechanical engineering degree first, software afterwards. Kinematics, statics and machine behaviour were the original subject — not a library he picked up later.\n\n" +
+           "## Where it is applied on this page\n" +
+           "- A 7-DOF Franka Panda arm: OMPL motion planning, constraint-based execution, trajectory planning, velocity and acceleration scaling\n" +
+           "- TF2 frame trees with dynamic and static broadcasters — rigid-body transforms as a working tool rather than a diagram\n" +
+           "- PCL point-cloud geometry: ground-plane filtering, obstacle extraction\n" +
+           "- PID control and path planning\n\n" +
+           "The practical value: when a robot's pose is wrong, he can tell a frame error from a planner error from a mechanical one.",
+        deep: "## The origin\n" +
+           "Mechanical engineering was the degree; robotics software came after. So kinematics, rigid-body motion and the physical limits of machines are foundational for him rather than borrowed vocabulary.\n" +
+           "## Applied — manipulation\n" +
+           "A 7-DOF arm is a genuine kinematics problem: redundant degrees of freedom, joint limits, and a planner that has to respect both. The MoveIt2 project uses OMPL with constraint-based execution and scales velocity and acceleration, which means working with the arm's dynamic limits and not only its geometry.\n" +
+           "## Applied — transforms\n" +
+           "TF2 broadcasters, dynamic and static, with a diagnostics message for transform health. Every robotics pose bug is ultimately a transform composition problem; treating the frame tree as a first-class artefact is what makes those bugs findable.\n" +
+           "## Applied — geometry on sensor data\n" +
+           "Ground-plane removal with a PCL PassThrough filter, obstacle extraction from raw LiDAR returns. Point-cloud work is applied geometry with noise attached.\n" +
+           "## Applied — control\n" +
+           "PID controllers, path planning, and state machines to sequence them.\n" +
+           "## Why this matters more than a maths module\n" +
+           "The maths gets used where robots fail: a pose that is 16 cm off, a plan that clips a joint limit, a filter that removes the wrong plane. Coming from the mechanical side means the physical explanation is always a live hypothesis, not an afterthought.\n" +
+           "## Not on this page\n" +
+           "University, degree specifics and coursework. Email " + EMAIL + " for that.",
+        next: ['Tell me about the MoveIt2 pick and place project', 'Who is he?', 'What about navigation and SLAM?', 'How does he debug robot problems?'],
+    },
+    {
+        id: 'gaps',
+        label: 'Limits & gaps',
+        ask: 'What are the gaps in his experience?',
+        k: ['!weakness', '!weaknesses', '!gap', '!gaps', '!limitation', '!limitations', '!missing', '!concern', '!concerns', '!red flag', '!red flags', '!downside', '!risk', '!risks', '!not done', '!blind spot', '!what he cannot', '!honest assessment'],
+        weight: 1.2,
+        a: "Straight answer, because a recruiter asking this deserves one.\n\n" +
+           "- Early career. Depth in a narrow band, not a long track record\n" +
+           "- The four portfolio projects run in simulation. His professional work involves real hardware, but that work is not documented on this page\n" +
+           "- No shipped learned policy. Physical AI is the stated direction; the projects are classical robotics — filters, planners, state machines, infrastructure\n" +
+           "- No published performance numbers: no latency, CPU or throughput figures\n" +
+           "- Employers, dates and role scope are not on the page at all\n\n" +
+           "What is genuinely strong: ROS2 internals — a custom message type and a pluginlib plugin — plus failure handling with numbers attached, and a mechanical background that makes hardware debugging natural.\n\n" +
+           "For anything in the first list, email " + EMAIL,
+        deep: "## The gaps, plainly\n" +
+           "- Early career. The claim is depth in a narrow band, not seniority. He would say the same\n" +
+           "- Simulation-weighted portfolio. Go2, Franka Panda and TurtleBot3 all appear in Gazebo. Real-hardware deployment is stated as part of his professional work but is not shown here\n" +
+           "- No learned policy shipped. The direction is physical AI and sim-to-real, and the ML toolset is listed — PyTorch, TensorFlow, CNNs, YOLO — but no trained model appears in the four projects\n" +
+           "- No performance figures. No per-frame latency for the C++ perception pipeline, no CPU or memory budget, no throughput number for the telemetry stack\n" +
+           "- No employment detail on the page: no employers, no dates, no team size, no role scope\n" +
+           "- Nothing published here on CI/CD, cross-compilation or edge-device deployment\n" +
+           "## What that leaves genuinely strong\n" +
+           "- ROS2 internals: a custom message type and a Nav2 costmap plugin through pluginlib — extension points, not configuration\n" +
+           "- Failure handling as a design habit, with ±1 cm and >95% attached to it\n" +
+           "- Breadth across the stack: sensor, perception, planning, control, fleet infrastructure\n" +
+           "- A mechanical engineering foundation, which is the part that makes hardware debugging instinctive\n" +
+           "## How to read the combination\n" +
+           "Strong classical robotics engineer, early in the career, deliberately pointed at physical AI, with the systems instincts that direction needs and without the learned-control credential yet.\n" +
+           "## What to ask him\n" +
+           "Real-hardware scope, employers and dates, and any measurements beyond the two published numbers: " + EMAIL,
+        next: ['What is his strongest project?', 'What about sim-to-real transfer?', 'What roles is he a fit for?', 'How do I contact him?'],
+    },
+    {
+        id: 'fit',
+        label: 'Role fit',
+        ask: 'What roles is he a fit for?',
+        k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
+        a: "## Direct fits\n" +
+           "- Robotics software engineer on a ROS2 autonomy stack — navigation, localization, perception, manipulation\n" +
+           "- Perception engineering at the sensor layer: LiDAR and point-cloud processing in C++\n" +
+           "- Physical-AI-track roles where the team wants systems instincts now and learned control grown into\n" +
+           "- Robot infrastructure adjacent work: telemetry, fleet observability, containerised deployment\n\n" +
+           "## Poor fits\n" +
+           "- ML research positions — the ML is a toolset here, not a publication record\n" +
+           "- Pure cloud or web engineering\n" +
+           "- Roles needing a long track record; he is early career and does not pretend otherwise\n\n" +
+           "For scope, availability and the CV: " + EMAIL,
+        deep: "## Where he lines up well\n" +
+           "- ROS2 autonomy — Nav2, SLAM, AMCL, TF2, with plugin-level work rather than parameter tuning. He has written a costmap layer and a custom message type\n" +
+           "- LiDAR and point-cloud perception in C++ — the Go2 pipeline is exactly this, per-frame filtering with PCL\n" +
+           "- Manipulation with MoveIt2 — a 7-DOF arm, OMPL, constraints, velocity scaling, and a recovery-first state machine\n" +
+           "- Physical AI as a growth track — the classical foundation and hardware instinct are in place; the learned-control experience is the part a team would be growing\n" +
+           "- Robot-adjacent infrastructure — Kafka, QuestDB, Docker, live dashboards. Useful on a team that has robots but no telemetry layer\n" +
+           "## Where he would be the wrong hire\n" +
+           "- ML research or applied-science roles measured in publications and benchmark results\n" +
+           "- Pure cloud, backend or web engineering — not what the page is about\n" +
+           "- A senior or lead position requiring years of shipped hardware programmes\n" +
+           "- A role needing an existing sim-to-real portfolio today rather than in a year\n" +
+           "## The one-line version\n" +
+           "Early-career robotics software engineer with unusual depth in ROS2 internals and failure design, a mechanical engineering foundation, and a deliberate trajectory toward physical AI.\n" +
+           "## Next step\n" +
+           "Email " + EMAIL + " for the CV, availability and role scope — none of that is published here.",
+        next: ['What are the gaps in his experience?', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
+    },
+    {
+        id: 'workstyle',
+        label: 'How he works',
+        ask: 'How does he work?',
+        k: ['!how does he work', '!work style', '!workstyle', '!approach', '!process', '!methodology', '!philosophy', '!principles', '!way of working', '!engineering approach', '!habits', '!standards', '!code quality'],
+        a: "Four habits are visible across the four projects.\n\n" +
+           "- Full pipelines, not isolated algorithms. Every project runs end to end — sensor in, result out — because the interesting failures live in the seams\n" +
+           "- Failure paths designed first. Multi-attempt fallback, recovery behaviours, action-server verification, graceful returns to a known state\n" +
+           "- Make the effect measurable. Raw versus filtered clouds in RViz, ±1 cm, >95% success, telemetry into a time-series database\n" +
+           "- Right language for the job. C++ for per-frame and plugin work, Python for research, ML and glue\n\n" +
+           "And one structural choice: the four projects deliberately spread across the stack — perception, manipulation, ROS2 internals, fleet infrastructure — rather than repeating one idea four times.",
+        deep: "## Full pipelines over isolated pieces\n" +
+           "Each project runs end to end. The Go2 work goes from raw LiDAR to a republished obstacle cloud with visualisation; the fleet project goes from ROS2 topics through Kafka and QuestDB to a live dashboard. This is deliberate — in robotics the failure is usually in the seams: frames, timing, sensor noise, recovery. A clever algorithm in isolation does not expose any of that.\n" +
+           "## Failure first\n" +
+           "Multi-attempt fallback, recovery behaviour after failed navigation, action-server verification before commanding motion, velocity and acceleration scaling, graceful return to a known state. The >95% success rate is the visible result of this habit, not of planner tuning.\n" +
+           "## Measure the effect, do not assert it\n" +
+           "RViz renders raw and filtered clouds together. Positioning accuracy is quoted in centimetres. Telemetry lands in a time-series store with a dashboard on top. Where a number is not available, the page does not imply one.\n" +
+           "## Language discipline\n" +
+           "C++ for anything running per sensor frame or plugging into a C++ interface — the perception pipeline, the TF2 and Nav2 plugin work. Python where iteration speed dominates — the MoveIt2 demo, the telemetry glue. That split is a decision he can defend project by project.\n" +
+           "## Hardware-first debugging\n" +
+           "From the mechanical engineering background: suspect mounting, frames, limits and timing before suspecting the algorithm.\n" +
+           "## Portfolio as an argument\n" +
+           "Four projects across sensor, perception, planning, control and fleet infrastructure — chosen to demonstrate spread, with every repository public so the claims can be checked.",
+        next: ['How does he handle failure and recovery?', 'How does he debug robot problems?', 'What is his strongest project?', 'Explain each project in detail'],
+    },
+];
+
+/* Long forms added after the fact, kept out of the literal above so the
+ * table stays readable. Merged in below — same effect as writing `deep:`
+ * inside each entry. */
+const DEEP_EXTRA = {
+    help:
+        "## What I cover\n" +
+        "Everything published on this page, in as much depth as you want. Answers default to the long form; add \"short\" or \"brief\" to any question if you would rather have the summary.\n" +
+        "## Background\n" +
+        "- Who he is, and the mechanical engineering route into robotics software\n" +
+        "- Experience level, stated honestly, and how he works day to day\n" +
+        "- Where he is heading: physical AI, sim-to-real transfer, legged robotics\n" +
+        "- Kinematics and the maths that actually gets used\n" +
+        "## Skills\n" +
+        "- The full stack, or any layer of it\n" +
+        "- C++ versus Python and the rule he applies\n" +
+        "- ROS2 depth — custom message types, pluginlib plugins, TF2, actions\n" +
+        "- Navigation: Nav2, SLAM, AMCL, GMapping, Cartographer\n" +
+        "- Perception: LiDAR, PCL, OpenCV, IMU, camera, sensor fusion\n" +
+        "- Manipulation, control, ML/DL, Docker and deployment\n" +
+        "## Projects\n" +
+        "- All four together, or any one by name\n" +
+        "- Go2 perception pipeline · MoveIt2 pick & place · TF Transform Explorer · Fleet monitoring\n" +
+        "- The numbers behind them, and which numbers do not exist\n" +
+        "## How he works\n" +
+        "- Failure handling and recovery design\n" +
+        "- How he debugs a misbehaving robot\n" +
+        "- Which robots and sensors appear on the page\n" +
+        "## Hiring\n" +
+        "- Which roles fit and which do not\n" +
+        "- The honest gaps in his experience\n" +
+        "- Email, GitHub, LinkedIn\n" +
+        "## Two things I will not do\n" +
+        "Invent facts that are not on this page, and pad an answer when the honest reply is \"that is not published, email him\".",
+    control:
+        "## Control\n" +
+        "- PID controllers\n" +
+        "- Path planning, with Nav2's planners on the navigation side\n" +
+        "- State machines to sequence behaviour\n" +
+        "The state-machine part is the underrated one. The MoveIt2 project's above-95% success rate comes from an FSM with real recovery states — a failed grasp returns to a known state and the run resumes — rather than from a better planner. Velocity and acceleration scaling sit alongside it, keeping a 7-DOF arm inside sane limits.\n" +
+        "## Simulation — Gazebo\n" +
+        "- A custom Gazebo world for the Go2 perception pipeline, teleop-ready so the robot can be driven through obstacles while the pipeline runs\n" +
+        "- Multiple TurtleBot3 robots simulated simultaneously for the fleet project, which exercises the telemetry pipeline with concurrent producers instead of one stream\n" +
+        "He builds environments rather than only running stock ones — that is the difference between a simulation user and someone using simulation as a test rig.\n" +
+        "## Visualisation — RViz\n" +
+        "Used throughout, and used as a measurement tool: raw and ground-plane-filtered clouds displayed side by side so the filter's effect is inspected rather than assumed.\n" +
+        "## How simulation is positioned\n" +
+        "As a step toward hardware, not a destination. The stated goal is sim-to-real transfer, and the whole point of a custom world with teleop is to break the pipeline before a real machine does.",
+    strongest:
+        "Depends what you are hiring for. Four honest readings:\n\n" +
+        "## Hardest engineering — MoveIt2 Pick & Place\n" +
+        "A 7-DOF Franka Panda, OMPL planning with constraint-based execution, ±1 cm positioning and above 95% success. The success rate comes from multi-attempt fallback, action-server verification and graceful recovery — failure handling, not a luckier planner. It is the only project with numbers attached.\n" +
+        "## Most telling about ROS2 depth — TF Transform Explorer\n" +
+        "A custom TFDiagnostics message type, a Nav2 costmap plugin loaded through pluginlib for keepout zones, dynamic and static TF2 broadcasters, and autonomous patrol with recovery. Unglamorous, and exactly where most ROS2 systems quietly break. Defining a message type and writing a plugin means reading ROS2's interfaces rather than its tutorials.\n" +
+        "## Widest scope — Fleet Monitoring System\n" +
+        "ROS2 to Kafka to QuestDB, several TurtleBot3 robots at once, fully containerised, live dashboard over the PostgreSQL wire protocol. It shows he can build the layer around the robots — one working robot is a project, a fleet you can observe is a product.\n" +
+        "## Closest to where he is heading — Go2 Perception Pipeline\n" +
+        "C++ point-cloud processing on a quadruped: ground-plane removal with PCL, clean obstacle clouds republished, raw versus filtered rendered side by side. The first deliberate step toward legged robotics and physical AI.\n" +
+        "## The common thread\n" +
+        "A mechanical engineering background plus full-pipeline thinking. Each project runs end to end rather than demonstrating one isolated algorithm, because in robotics the failure lives in the seams.",
+    contact:
+        "## Email — the fastest route\n" +
+        EMAIL + "\n" +
+        "Right channel for the CV, availability, role scope, employers and dates, real-hardware detail, and anything else this page does not publish.\n" +
+        "## GitHub\n" +
+        "github.com/AungKaung1928 — all four projects are public, and every claim on this page is checkable against the code:\n" +
+        "- go2-perception-pipeline\n" +
+        "- moveit_pickplace_demo\n" +
+        "- TF-Transform-Explorer\n" +
+        "- fleet_monitoring_ws\n" +
+        "## LinkedIn\n" +
+        "Linked in the Contact section of this page.\n" +
+        "## What to include if you are hiring\n" +
+        "The stack the role actually uses and whether it is simulation or hardware work. He is early career, aimed at physical AI, and specific about what he has and has not done — a specific question gets a specific answer.",
+};
+
+for (const t of TOPICS) {
+    if (!t.deep && DEEP_EXTRA[t.id]) t.deep = DEEP_EXTRA[t.id];
+}
+
+/* Topics menu layout. Any labelled topic missing here is appended under
+ * "More", so adding a topic above never silently drops it from the menu. */
+const TOPIC_GROUPS = [
+    { name: 'Background', ids: ['help', 'who', 'experience', 'goal', 'kinematics'] },
+    { name: 'Skills', ids: ['stack', 'languages', 'ros2', 'navigation', 'ml', 'control', 'deployment'] },
+    { name: 'Projects', ids: ['projects', 'perception', 'manipulation', 'tf', 'fleet', 'metrics', 'hardware'] },
+    { name: 'Approach', ids: ['workstyle', 'reliability', 'debug', 'simtoreal', 'legged'] },
+    { name: 'Hiring', ids: ['strongest', 'fit', 'gaps', 'contact'] },
+];
+
+/* Rotated four at a time when a conversation starts, so the widget does not
+ * look like it only knows four questions. */
+const STARTERS = [
+    'Who is Aung Kaung Myat?',
+    'What is his experience?',
+    'Explain each project in detail',
+    'What is his full technical stack?',
+    'How deep is his ROS2 knowledge?',
+    'C++ or Python — which does he use?',
+    'What about navigation and SLAM?',
+    'Tell me about the Go2 perception project',
+    'Tell me about the MoveIt2 pick and place project',
+    'Tell me about the TF Transform Explorer project',
+    'Tell me about the fleet monitoring project',
+    'What about sim-to-real transfer?',
+    'What legged robotics experience does he have?',
+    'Which robots and sensors has he worked with?',
+    'How does he handle failure and recovery?',
+    'How does he debug robot problems?',
+    'What numbers can he back up?',
+    'What are the gaps in his experience?',
+    'What roles is he a fit for?',
+    'What is his strongest project?',
+    'How does he work?',
+    'How do I contact him?',
 ];
 
 /* Questions the page genuinely cannot answer — say so instead of guessing. */
 const NOT_COVERED = {
-    k: ['salary', 'pay', 'rate', 'age', 'old', 'married', 'visa', 'sponsor', 'relocate', 'relocation', 'notice period', 'address', 'phone', 'live', 'lives', 'located', 'location', 'city', 'country', 'nationality', 'university', 'school', 'degree', 'graduated', 'gpa', 'certification', 'certificate'],
-    a: "That is not on this page, and I do not guess about it.\n\n" +
+    k: ['salary', 'pay', 'rate', 'age', 'old', 'married', 'visa', 'sponsor', 'relocate', 'relocation', 'remote', 'onsite', 'on-site', 'notice period', 'start date', 'address', 'phone', 'live', 'lives', 'located', 'location', 'city', 'country', 'nationality', 'citizenship', 'university', 'school', 'degree', 'graduated', 'gpa', 'certification', 'certificate', 'employer', 'employers', 'company', 'companies', 'references', 'hobby', 'hobbies', 'family', 'religion', 'politics', 'japanese', 'english level'],
+    a: "That is not published on this page, and I do not guess about it — inventing a detail about someone's employment or personal life would be worse than not answering.\n\n" +
+       "Things that genuinely are not here: employers, dates, location, visa and salary, university and grades, availability.\n\n" +
        "Email him directly and he will answer: " + EMAIL,
     next: ['What is his experience?', 'What is his stack?', 'Explain each project', 'How do I contact him?'],
 };
 
-const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project', 'How do I contact him?'];
+const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project in detail', 'What roles is he a fit for?'];
 
 const FALLBACK =
-    "I did not catch that one. I only cover Aung's robotics work — background, experience, technical stack, the four projects, and contact details.\n\n" +
-    "Try one of these:\n" +
+    "I did not catch that one. I cover Aung's robotics work only — background, experience, the technical stack, the four projects, how he works, and contact details.\n\n" +
+    "Questions I answer well:\n" +
     "- \"what is his experience\"\n" +
     "- \"explain each project in detail\"\n" +
+    "- \"how deep is his ROS2 knowledge\"\n" +
     "- \"what about navigation and SLAM\"\n" +
-    "- \"how do I contact him\"";
+    "- \"how does he handle failure and recovery\"\n" +
+    "- \"what numbers can he back up\"\n" +
+    "- \"what are the gaps in his experience\"\n" +
+    "- \"how do I contact him\"\n\n" +
+    "Tap the list icon in the header for every topic I hold.";
 
 const OFF_TOPIC_RE = /\b(recipe|weather|joke|poem|bitcoin|crypto|football|movie|song|translate|homework|write me|code for me|stock|news)\b/;
 
@@ -505,7 +974,7 @@ function scoreTopics(q) {
 /* Returns { text, next } so the UI can offer relevant follow-ups. */
 function localAnswer(raw) {
     const q = raw.toLowerCase();
-    const deep = DEPTH_RE.test(q);
+    const brief = BRIEF_RE.test(q);
     const scored = scoreTopics(q);
 
     // Drop the greeting once any real topic also matched.
@@ -527,12 +996,14 @@ function localAnswer(raw) {
         return { text: NOT_COVERED.a, next: NOT_COVERED.next };
     }
 
-    const parts = [deep && top.t.deep ? top.t.deep : top.t.a];
+    const parts = [!brief && top.t.deep ? top.t.deep : top.t.a];
 
     // Multi-topic question ("stack and projects") — add a comparable runner-up.
     const second = picked[1];
     if (second && second.score >= top.score * 0.6 && second.t.id !== 'greeting') {
-        parts.push(deep && second.t.deep ? second.t.deep : second.t.a);
+        // Short form for the runner-up: two long answers stacked is a wall,
+        // and the follow-up chips can take the visitor to the long version.
+        parts.push(second.t.a);
     }
 
     // Follow-ups: the top topic's, minus anything it just answered.
@@ -544,60 +1015,197 @@ function localAnswer(raw) {
 
 /* ── Answer rendering ────────────────────────────────────────────── */
 /* Plain text in, structured DOM out. Supports "## heading", "- bullet"
- * and "1. numbered". textContent everywhere, so nothing can inject HTML. */
+ * and "1. numbered". textContent everywhere, so nothing can inject HTML.
+ *
+ * The text is parsed into blocks once, and the same block list feeds both
+ * renderers: the instant one (replayed history) and the typewriter (a live
+ * answer). One parser, two speeds — they can never drift apart. */
 
 function stripMd(s) {
     return s.replace(/\*\*/g, '').replace(/`/g, '').trim();
 }
 
-function renderAnswer(text) {
-    const frag = document.createDocumentFragment();
-    let list = null;
+function parseBlocks(text) {
+    const blocks = [];
 
     for (const rawLine of text.split('\n')) {
         const line = rawLine.trim();
 
-        if (!line) { list = null; continue; }
+        if (!line) { blocks.push({ kind: 'gap' }); continue; }
 
         const heading = line.match(/^#{1,3}\s+(.*)$/);
-        if (heading) {
-            list = null;
-            const h = document.createElement('p');
-            h.className = 'ans-h';
-            h.textContent = stripMd(heading[1]);
-            frag.appendChild(h);
-            continue;
-        }
+        if (heading) { blocks.push({ kind: 'h', text: stripMd(heading[1]) }); continue; }
+
+        const numbered = line.match(/^(\d+)[.)]\s+(.*)$/);
+        if (numbered) { blocks.push({ kind: 'li', num: numbered[1], text: stripMd(numbered[2]) }); continue; }
 
         const bullet = line.match(/^[-•·]\s+(.*)$/);
-        const numbered = line.match(/^(\d+)[.)]\s+(.*)$/);
+        if (bullet) { blocks.push({ kind: 'li', text: stripMd(bullet[1]) }); continue; }
 
-        if (bullet || numbered) {
-            if (!list) {
-                list = document.createElement('ul');
-                list.className = 'ans-list';
-                frag.appendChild(list);
-            }
-            const li = document.createElement('li');
-            if (numbered) {
-                const n = document.createElement('span');
-                n.className = 'ans-num';
-                n.textContent = numbered[1];
-                li.appendChild(n);
-                li.classList.add('numbered');
-            }
-            li.appendChild(document.createTextNode(stripMd(numbered ? numbered[2] : bullet[1])));
-            list.appendChild(li);
-            continue;
-        }
-
-        list = null;
-        const p = document.createElement('p');
-        p.textContent = stripMd(line);
-        frag.appendChild(p);
+        blocks.push({ kind: 'p', text: stripMd(line) });
     }
 
+    return blocks;
+}
+
+/* Appends blocks into a container and returns the empty text node each one
+ * is to be filled with — so the caller decides whether that happens all at
+ * once or a word at a time. */
+function makeRenderer(container) {
+    let list = null;
+
+    return {
+        add(b) {
+            if (b.kind === 'gap') { list = null; return null; }
+
+            if (b.kind === 'li') {
+                if (!list) {
+                    list = document.createElement('ul');
+                    list.className = 'ans-list';
+                    container.appendChild(list);
+                }
+                const li = document.createElement('li');
+                if (b.num) {
+                    const n = document.createElement('span');
+                    n.className = 'ans-num';
+                    n.textContent = b.num;
+                    li.appendChild(n);
+                    li.classList.add('numbered');
+                }
+                const t = document.createTextNode('');
+                li.appendChild(t);
+                list.appendChild(li);
+                return t;
+            }
+
+            list = null;
+            const el = document.createElement('p');
+            if (b.kind === 'h') el.className = 'ans-h';
+            const t = document.createTextNode('');
+            el.appendChild(t);
+            container.appendChild(el);
+            return t;
+        },
+    };
+}
+
+function renderAnswer(text) {
+    const frag = document.createDocumentFragment();
+    const render = makeRenderer(frag);
+    for (const b of parseBlocks(text)) {
+        const node = render.add(b);
+        if (node) node.textContent = b.text;
+    }
     return frag;
+}
+
+/* ── Typewriter ──────────────────────────────────────────────────── */
+/* Blocks appear in order; words stream into the current one, with a short
+ * pause between blocks and a longer one before a heading, so a structured
+ * answer arrives the way it reads. Speed scales with length — a two-line
+ * reply is not worth watching slowly, a 2,000-character breakdown must not
+ * take a minute.
+ *
+ * Returns { promise, finish }: finish() dumps the remainder immediately,
+ * which is what the Stop button and Escape do. */
+
+const CARET_MIN_SPEED = 340;   // characters per second, short answers
+const CARET_MAX_SPEED = 900;   // characters per second, long answers
+
+function streamAnswer(container, text) {
+    const blocks = parseBlocks(text);
+    const render = makeRenderer(container);
+    const chars = blocks.reduce((n, b) => n + (b.text ? b.text.length : 0), 0);
+    const speed = Math.min(CARET_MAX_SPEED, Math.max(CARET_MIN_SPEED, CARET_MIN_SPEED + chars / 6));
+
+    const caret = document.createElement('span');
+    caret.className = 'chat-caret';
+    caret.setAttribute('aria-hidden', 'true');
+
+    let bi = 0;          // next block
+    let ti = 0;          // next token inside the current block
+    let tokens = [];
+    let node = null;     // text node being filled
+    let budget = 0;      // characters owed for the elapsed time
+    let last = 0;
+    let raf = 0;
+    let timer = 0;
+    let over = false;
+    let resolve;
+    const promise = new Promise((r) => { resolve = r; });
+
+    function done() {
+        if (over) return;
+        over = true;
+        caret.remove();
+        resolve();
+    }
+
+    /* Creates the next block's element. Blank lines carry no text — they only
+     * break a bullet list — so they are skipped without a pause. */
+    function openBlock() {
+        while (bi < blocks.length) {
+            const b = blocks[bi++];
+            node = render.add(b);
+            if (!node) continue;
+            tokens = b.text.match(/\S+\s*/g) || [b.text];
+            ti = 0;
+            node.parentNode.appendChild(caret);
+            return true;
+        }
+        return false;
+    }
+
+    function startBlock() {
+        timer = 0;
+        if (over) return;
+        if (!openBlock()) { done(); return; }
+        budget = 0;
+        last = 0;
+        raf = requestAnimationFrame(tick);
+    }
+
+    function tick(now) {
+        raf = 0;
+        if (over) return;
+        if (!last) last = now;
+        budget += ((now - last) * speed) / 1000;
+        last = now;
+
+        while (budget >= 1 && ti < tokens.length) {
+            const token = tokens[ti++];
+            node.textContent += token;
+            budget -= token.length;
+        }
+        keepScrolled();
+
+        if (ti >= tokens.length) {
+            const pause = blocks[bi] && blocks[bi].kind === 'h' ? 180 : 70;
+            timer = setTimeout(startBlock, pause);
+            return;
+        }
+        raf = requestAnimationFrame(tick);
+    }
+
+    function finish() {
+        if (over) return;
+        if (raf) cancelAnimationFrame(raf);
+        if (timer) clearTimeout(timer);
+        raf = 0;
+        timer = 0;
+
+        if (node && ti < tokens.length) node.textContent = tokens.join('');
+        while (bi < blocks.length) {
+            const b = blocks[bi++];
+            const n = render.add(b);
+            if (n) n.textContent = b.text;
+        }
+        done();
+        scrollLog();
+    }
+
+    startBlock();
+    return { promise, finish };
 }
 
 /* ── UI ──────────────────────────────────────────────────────────── */
@@ -628,7 +1236,7 @@ panel.innerHTML = `
             </div>
         </div>
         <div class="chat-actions">
-            <button id="chat-topics-btn" class="chat-icon-btn" aria-label="Show topics" title="Topics">
+            <button id="chat-topics-btn" class="chat-icon-btn" aria-label="Show topics" aria-expanded="false" title="Topics">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
                     <circle cx="3.5" cy="6" r="1.2" fill="currentColor" stroke="none"></circle>
@@ -643,17 +1251,36 @@ panel.innerHTML = `
             </button>
         </div>
     </div>
-    <div id="chat-topics" hidden>
-        <p class="chat-topics-title">Pick a topic</p>
-        <div class="chat-topics-list"></div>
+    <div class="chat-bar">
+        <select id="chat-convo" aria-label="Conversation history" title="Past conversations"></select>
+        <button id="chat-new" class="chat-icon-btn" aria-label="New conversation" title="New conversation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
+        <button id="chat-del" class="chat-icon-btn" aria-label="Delete this conversation" title="Delete this conversation">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <path d="M10 11v6M14 11v6"></path>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            </svg>
+        </button>
     </div>
-    <div id="chat-log" role="log" aria-live="polite"></div>
+    <div id="chat-topics" hidden>
+        <div class="chat-topics-body"></div>
+    </div>
+    <div id="chat-log" role="log"></div>
+    <p id="chat-live" class="chat-sr" aria-live="polite"></p>
     <div class="chat-suggestions"></div>
     <div class="chat-input-row">
         <textarea id="chat-input" rows="1" maxlength="500" placeholder="Ask about his stack, a project, experience…" aria-label="Your question"></textarea>
-        <button id="chat-send" aria-label="Send">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button id="chat-send" aria-label="Send" title="Send">
+            <svg class="send-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            <svg class="stop-icon" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="6" y="6" width="12" height="12" rx="2"></rect>
             </svg>
         </button>
     </div>
@@ -662,36 +1289,157 @@ panel.innerHTML = `
 document.body.append(fab, panel);
 
 const log = panel.querySelector('#chat-log');
+const liveRegion = panel.querySelector('#chat-live');
 const input = panel.querySelector('#chat-input');
 const sendBtn = panel.querySelector('#chat-send');
 const suggestionBar = panel.querySelector('.chat-suggestions');
 const topicsPane = panel.querySelector('#chat-topics');
-const topicsList = panel.querySelector('.chat-topics-list');
+const topicsBody = panel.querySelector('.chat-topics-body');
 const topicsBtn = panel.querySelector('#chat-topics-btn');
+const convoSelect = panel.querySelector('#chat-convo');
+const newBtn = panel.querySelector('#chat-new');
+const delBtn = panel.querySelector('#chat-del');
 
-const history = [];   // {role, text} — sent only in endpoint mode
-let busy = false;
+const reducedMotion = typeof matchMedia === 'function'
+    && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Conversation store ──────────────────────────────────────────── */
+/* Kept in localStorage so a visitor who comes back still has what they
+ * asked. Conversation shape:
+ *   { id, title, messages: [{ role: 'user'|'bot'|'error', text }], next: [] }
+ * `next` is the follow-up chip set, stored so switching conversations
+ * restores the whole view rather than half of it. */
+
+const STORE_KEY = 'akm-chat-v1';
+const MAX_CONVOS = 20;
+const MAX_MSGS = 80;
+const TITLE_MAX = 44;
+
+let conversations = [];
+let activeId = null;
+
+function newId() {
+    return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function active() {
+    return conversations.find((c) => c.id === activeId) || null;
+}
+
+/* localStorage is user-writable, so everything read back is re-checked
+ * before it goes anywhere near the DOM. */
+function loadStore() {
+    let data;
+    try {
+        data = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+    } catch (e) {
+        return;
+    }
+    if (!data || data.v !== 1 || !Array.isArray(data.conversations)) return;
+
+    conversations = data.conversations
+        .filter((c) => c && typeof c.id === 'string' && Array.isArray(c.messages))
+        .slice(0, MAX_CONVOS)
+        .map((c) => ({
+            id: c.id,
+            title: typeof c.title === 'string' && c.title ? c.title.slice(0, TITLE_MAX) : null,
+            messages: c.messages
+                .filter((m) => m && typeof m.text === 'string')
+                .slice(-MAX_MSGS)
+                .map((m) => ({
+                    role: m.role === 'user' ? 'user' : m.role === 'error' ? 'error' : 'bot',
+                    text: m.text,
+                })),
+            next: Array.isArray(c.next) ? c.next.filter((s) => typeof s === 'string').slice(0, 4) : [],
+        }));
+
+    activeId = conversations.some((c) => c.id === data.activeId)
+        ? data.activeId
+        : (conversations[0] ? conversations[0].id : null);
+}
+
+function saveStore() {
+    const write = (list) => localStorage.setItem(
+        STORE_KEY, JSON.stringify({ v: 1, activeId, conversations: list }),
+    );
+    try {
+        write(conversations);
+    } catch (e) {
+        // Quota or private-mode storage. Try to keep at least the open
+        // conversation; if even that fails, the session runs in memory.
+        try { write(conversations.filter((c) => c.id === activeId)); }
+        catch (e2) { console.warn('chat history not saved:', e2); }
+    }
+}
+
+function titleFor(c) {
+    return c.title || 'New conversation';
+}
+
+function setTitleFrom(text) {
+    const c = active();
+    if (!c || c.title) return;
+    const one = text.replace(/\s+/g, ' ').trim();
+    c.title = one.length > TITLE_MAX ? one.slice(0, TITLE_MAX - 1) + '…' : one;
+    renderConvoOptions();
+}
+
+function record(role, text) {
+    const c = active();
+    if (!c) return;
+    c.messages.push({ role, text });
+    if (c.messages.length > MAX_MSGS) c.messages = c.messages.slice(-MAX_MSGS);
+    if (role === 'user') setTitleFrom(text);
+    saveStore();
+}
+
+function renderConvoOptions() {
+    convoSelect.innerHTML = '';
+    for (const c of conversations) {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = titleFor(c);
+        convoSelect.appendChild(o);
+    }
+    if (activeId) convoSelect.value = activeId;
+}
+
+/* ── Log rendering ───────────────────────────────────────────────── */
+
+function nearBottom() {
+    return log.scrollHeight - log.scrollTop - log.clientHeight < 140;
+}
 
 function scrollLog() {
     log.scrollTop = log.scrollHeight;
 }
 
-function addMsg(text, cls) {
+function keepScrolled() {
+    if (nearBottom()) scrollLog();
+}
+
+function addMsg(text, cls, instant) {
+    const stick = nearBottom();
     const el = document.createElement('div');
     el.className = `chat-msg ${cls}`;
-    if (cls === 'bot') el.appendChild(renderAnswer(text));
-    else el.textContent = text;
+    if (instant) el.classList.add('no-anim');
+    if (cls === 'bot') {
+        if (text) el.appendChild(renderAnswer(text));
+    } else {
+        el.textContent = text;
+    }
     log.appendChild(el);
-    scrollLog();
+    if (stick || cls === 'user') scrollLog();
     return el;
 }
 
 function addTyping() {
+    const stick = nearBottom();
     const el = document.createElement('div');
     el.className = 'chat-msg bot chat-typing';
     el.innerHTML = '<span></span><span></span><span></span>';
     log.appendChild(el);
-    scrollLog();
+    if (stick) scrollLog();
     return el;
 }
 
@@ -707,27 +1455,92 @@ function renderSuggestions(items) {
     }
 }
 
+function setSuggestions(items) {
+    const c = active();
+    if (c) { c.next = items || []; saveStore(); }
+    renderSuggestions(items);
+}
+
+function renderLog() {
+    log.innerHTML = '';
+    liveRegion.textContent = '';
+    const c = active();
+    if (!c) { renderSuggestions([]); return; }
+    for (const m of c.messages) addMsg(m.text, m.role, true);
+    renderSuggestions(c.next);
+    scrollLog();
+}
+
+/* ── Topics menu ─────────────────────────────────────────────────── */
+
 function buildTopicsMenu() {
-    topicsList.innerHTML = '';
-    for (const t of TOPICS) {
-        if (!t.label) continue;
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.textContent = t.label;
-        b.addEventListener('click', () => {
-            topicsPane.hidden = true;
-            topicsBtn.setAttribute('aria-expanded', 'false');
-            ask(t.ask);
-        });
-        topicsList.appendChild(b);
+    topicsBody.innerHTML = '';
+
+    const byId = new Map(TOPICS.filter((t) => t.label && t.ask).map((t) => [t.id, t]));
+    const groups = TOPIC_GROUPS.map((g) => ({
+        name: g.name,
+        items: g.ids.map((id) => byId.get(id)).filter(Boolean),
+    }));
+    for (const g of groups) for (const t of g.items) byId.delete(t.id);
+    if (byId.size) groups.push({ name: 'More', items: [...byId.values()] });
+
+    for (const g of groups) {
+        if (!g.items.length) continue;
+
+        const head = document.createElement('p');
+        head.className = 'chat-topics-title';
+        head.textContent = g.name;
+        topicsBody.appendChild(head);
+
+        const row = document.createElement('div');
+        row.className = 'chat-topics-list';
+        for (const t of g.items) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = t.label;
+            b.addEventListener('click', () => { closeTopics(); ask(t.ask); });
+            row.appendChild(b);
+        }
+        topicsBody.appendChild(row);
     }
+}
+
+function closeTopics() {
+    topicsPane.hidden = true;
+    topicsBtn.setAttribute('aria-expanded', 'false');
+}
+
+/* ── Starter chips ───────────────────────────────────────────────── */
+
+function starterSet() {
+    const pool = STARTERS.slice();
+    const picked = ['What can I ask you?'];
+    while (picked.length < 4 && pool.length) {
+        picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+    }
+    return picked;
+}
+
+/* ── Endpoint mode ───────────────────────────────────────────────── */
+
+function endpointHistory() {
+    const c = active();
+    if (!c) return [];
+    const msgs = c.messages.filter((m) => m.role !== 'error');
+    // The trailing entry is the question being asked right now; the worker
+    // receives that separately as `message`.
+    if (msgs.length && msgs[msgs.length - 1].role === 'user') msgs.pop();
+    return msgs.slice(-8).map((m) => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        text: m.text,
+    }));
 }
 
 async function askEndpoint(text) {
     const res = await fetch(CHAT_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, history: history.slice(-8) }),
+        body: JSON.stringify({ message: text, history: endpointHistory() }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -735,65 +1548,203 @@ async function askEndpoint(text) {
     return data.reply;
 }
 
-function ask(text) {
-    input.value = text;
-    send();
-}
-
-async function send() {
-    const text = input.value.trim();
-    if (!text || busy) return;
-
-    input.value = '';
-    input.style.height = 'auto';
-    addMsg(text, 'user');
-    renderSuggestions([]);
-
-    busy = true;
-    sendBtn.disabled = true;
-
-    // Always compute the local match — in endpoint mode it still supplies
-    // the follow-up chips, which the model does not produce.
-    const local = localAnswer(text);
-
-    const finish = () => { busy = false; sendBtn.disabled = false; input.focus(); };
-
-    if (!CHAT_ENDPOINT) {
-        const typing = addTyping();
-        setTimeout(() => {
-            typing.remove();
-            addMsg(local.text, 'bot');
-            renderSuggestions(local.next);
-            finish();
-        }, 340);
-        return;
-    }
-
-    const typing = addTyping();
-    try {
-        const reply = await askEndpoint(text);
-        typing.remove();
-        addMsg(reply, 'bot');
-        history.push({ role: 'user', text }, { role: 'model', text: reply });
-    } catch (err) {
-        typing.remove();
-        addMsg(local.text, 'bot');
-        addMsg('Live assistant unreachable — answered from the local profile instead.', 'error');
-        console.warn('chat endpoint failed:', err);
-    } finally {
-        renderSuggestions(local.next);
-        finish();
-    }
-}
+/* ── Ask / answer flow ───────────────────────────────────────────── */
 
 const OPENING =
-    "Hi — I answer questions about Aung Kaung Myat's robotics work.\n\n" +
-    "I can cover:\n" +
-    "- Background and experience, and where he is heading\n" +
-    "- The technical stack: navigation, perception, manipulation, ML\n" +
-    "- Any of the four projects, one at a time or all together\n" +
-    "- How to reach him\n\n" +
-    "Add the word \"detail\" to any question and I will go long. Tap the list icon above for every topic.";
+    "Ask me about Aung Kaung Myat's robotics work — skills, projects, how he works.\n\n" +
+    "Answers are detailed by default; add \"short\" for a summary. List icon for all topics."
+
+let phase = 'idle';      // idle | thinking | streaming
+let streamCtl = null;
+let pending = null;
+
+function wait(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+}
+
+function setPhase(p) {
+    phase = p;
+    const working = p !== 'idle';
+    sendBtn.classList.toggle('stopping', p === 'streaming');
+    sendBtn.disabled = p === 'thinking';
+    sendBtn.setAttribute('aria-label', p === 'streaming' ? 'Stop typing' : 'Send');
+    sendBtn.title = p === 'streaming' ? 'Stop' : 'Send';
+    convoSelect.disabled = working;
+    newBtn.disabled = working;
+    delBtn.disabled = working;
+}
+
+async function showBot(text) {
+    record('bot', text);
+    const el = addMsg('', 'bot');
+
+    if (reducedMotion) {
+        el.appendChild(renderAnswer(text));
+        scrollLog();
+    } else {
+        el.setAttribute('aria-busy', 'true');
+        setPhase('streaming');
+        streamCtl = streamAnswer(el, text);
+        try { await streamCtl.promise; } finally { streamCtl = null; }
+        el.removeAttribute('aria-busy');
+    }
+
+    // Announced once, complete — streaming into a live region would read
+    // the answer out word by word.
+    liveRegion.textContent = text;
+}
+
+async function run(text) {
+    try {
+        setPhase('thinking');
+        record('user', text);
+        addMsg(text, 'user');
+        setSuggestions([]);
+
+        const local = localAnswer(text);
+        let reply = local.text;
+        let fellBack = false;
+
+        const dots = addTyping();
+        try {
+            if (CHAT_ENDPOINT) {
+                try {
+                    reply = await askEndpoint(text);
+                } catch (err) {
+                    fellBack = true;
+                    console.warn('chat endpoint failed:', err);
+                }
+            } else {
+                // A beat of thinking before the answer starts, scaled a
+                // little by how much there is to say.
+                await wait(Math.min(1000, 420 + Math.round(local.text.length / 14)));
+            }
+        } finally {
+            dots.remove();
+        }
+
+        await showBot(reply);
+
+        if (fellBack) {
+            const note = 'Live assistant unreachable — answered from the local profile instead.';
+            record('error', note);
+            addMsg(note, 'error');
+        }
+        setSuggestions(local.next);
+    } finally {
+        setPhase('idle');
+        if (panel.classList.contains('open')) input.focus();
+    }
+}
+
+async function ask(raw) {
+    const text = String(raw).trim();
+    if (!text) return;
+
+    // A chip pressed mid-answer finishes that answer first, so the log
+    // never has two things typing into it.
+    if (streamCtl) streamCtl.finish();
+    if (pending) { try { await pending; } catch (e) {} }
+    if (phase !== 'idle') return;
+
+    pending = run(text);
+    try { await pending; } catch (e) { console.warn('chat failed:', e); } finally { pending = null; }
+}
+
+async function greet() {
+    try {
+        setPhase('thinking');
+        const dots = addTyping();
+        await wait(360);
+        dots.remove();
+        await showBot(OPENING);
+        setSuggestions(starterSet());
+    } finally {
+        setPhase('idle');
+    }
+}
+
+function submit() {
+    if (phase === 'streaming') {
+        if (streamCtl) streamCtl.finish();
+        return;
+    }
+    if (phase !== 'idle') return;
+
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    input.style.height = 'auto';
+    ask(text);
+}
+
+/* ── Conversation controls ───────────────────────────────────────── */
+
+function newConversation(force) {
+    const c = active();
+    // An untouched conversation is already a new one — don't stack empties.
+    if (!force && c && !c.messages.some((m) => m.role === 'user')) {
+        input.focus();
+        return;
+    }
+    if (streamCtl) streamCtl.finish();
+
+    const fresh = { id: newId(), title: null, messages: [], next: [] };
+    conversations.unshift(fresh);
+    if (conversations.length > MAX_CONVOS) conversations.length = MAX_CONVOS;
+    activeId = fresh.id;
+
+    renderConvoOptions();
+    renderLog();
+    saveStore();
+    greet();
+}
+
+let confirmTimer = 0;
+
+function resetConfirm() {
+    if (confirmTimer) clearTimeout(confirmTimer);
+    confirmTimer = 0;
+    delBtn.classList.remove('confirm');
+    delBtn.title = 'Delete this conversation';
+    delBtn.setAttribute('aria-label', 'Delete this conversation');
+}
+
+/* Two presses, because one press should not be able to destroy the log. */
+function onDelete() {
+    if (!delBtn.classList.contains('confirm')) {
+        delBtn.classList.add('confirm');
+        delBtn.title = 'Press again to delete';
+        delBtn.setAttribute('aria-label', 'Press again to delete this conversation');
+        confirmTimer = setTimeout(resetConfirm, 3200);
+        return;
+    }
+    resetConfirm();
+
+    conversations = conversations.filter((c) => c.id !== activeId);
+    if (!conversations.length) {
+        activeId = null;
+        newConversation(true);
+        return;
+    }
+    activeId = conversations[0].id;
+    renderConvoOptions();
+    renderLog();
+    saveStore();
+}
+
+function switchConversation(id) {
+    if (id === activeId) return;
+    if (!conversations.some((c) => c.id === id)) return;
+    if (streamCtl) streamCtl.finish();
+    activeId = id;
+    renderLog();
+    saveStore();
+    if (!active().messages.length) greet();
+    else input.focus();
+}
+
+/* ── Panel ───────────────────────────────────────────────────────── */
 
 function toggle(open) {
     const willOpen = open ?? !panel.classList.contains('open');
@@ -802,21 +1753,30 @@ function toggle(open) {
     fab.setAttribute('aria-expanded', String(willOpen));
 
     if (willOpen) {
-        if (!log.children.length) {
-            addMsg(OPENING, 'bot');
-            renderSuggestions(['What is his experience?', 'Explain each project in detail', 'What is his stack?', 'How do I contact him?']);
-        }
+        const c = active();
+        if (!c) newConversation(true);
+        else if (!c.messages.length) greet();
         input.focus();
     } else {
+        resetConfirm();
+        closeTopics();
         fab.focus();
     }
 }
 
+loadStore();
 buildTopicsMenu();
+if (conversations.length) {
+    renderConvoOptions();
+    renderLog();
+}
 
 fab.addEventListener('click', () => toggle());
 panel.querySelector('#chat-close').addEventListener('click', () => toggle(false));
-sendBtn.addEventListener('click', send);
+sendBtn.addEventListener('click', submit);
+newBtn.addEventListener('click', () => newConversation(false));
+delBtn.addEventListener('click', onDelete);
+convoSelect.addEventListener('change', () => switchConversation(convoSelect.value));
 
 topicsBtn.addEventListener('click', () => {
     const show = topicsPane.hidden;
@@ -825,7 +1785,7 @@ topicsBtn.addEventListener('click', () => {
 });
 
 input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
 });
 
 input.addEventListener('input', () => {
@@ -835,10 +1795,8 @@ input.addEventListener('input', () => {
 
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
-    if (!topicsPane.hidden) {
-        topicsPane.hidden = true;
-        topicsBtn.setAttribute('aria-expanded', 'false');
-    } else if (panel.classList.contains('open')) {
-        toggle(false);
-    }
+    if (streamCtl) { streamCtl.finish(); return; }
+    if (delBtn.classList.contains('confirm')) { resetConfirm(); return; }
+    if (!topicsPane.hidden) { closeTopics(); return; }
+    if (panel.classList.contains('open')) toggle(false);
 });
