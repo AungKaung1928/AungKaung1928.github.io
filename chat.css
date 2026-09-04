@@ -124,7 +124,12 @@ html.dark-mode {
     transition: color 0.15s, background 0.15s;
 }
 
-.chat-icon-btn:hover { color: var(--chat-accent); background: var(--chat-soft); }
+.chat-icon-btn:hover:not(:disabled) { color: var(--chat-accent); background: var(--chat-soft); }
+.chat-icon-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* Second press deletes — see onDelete() in chat.js. */
+.chat-icon-btn.confirm,
+.chat-icon-btn.confirm:hover { color: #fff; background: #c0392b; }
 
 /* ── Topics menu ─────────────────────────────────────────────────── */
 
@@ -133,6 +138,11 @@ html.dark-mode {
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     flex-shrink: 0;
+    max-height: 46%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
 }
 
 .chat-topics-title {
@@ -143,6 +153,9 @@ html.dark-mode {
     color: var(--ink-3);
     margin-bottom: 8px;
 }
+
+.chat-topics-body .chat-topics-title { margin-top: 12px; }
+.chat-topics-body .chat-topics-title:first-child { margin-top: 0; }
 
 .chat-topics-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -360,6 +373,10 @@ html.dark-mode {
 #chat-send:hover:not(:disabled) { background: var(--chat-accent-hover); }
 #chat-send:disabled { opacity: 0.4; cursor: default; }
 
+#chat-send .stop-icon { display: none; }
+#chat-send.stopping .send-icon { display: none; }
+#chat-send.stopping .stop-icon { display: block; }
+
 .chat-foot {
     padding: 0 14px 10px;
     font-size: 0.65rem;
@@ -388,6 +405,87 @@ html.dark-mode {
     30%           { opacity: 1; }
 }
 
+/* ── Conversation bar ────────────────────────────────────────────── */
+/* Past conversations, a new one, and delete. The select is the history:
+ * every conversation is titled by its first question. */
+
+.chat-bar {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 11px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+}
+
+#chat-convo {
+    flex: 1;
+    min-width: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: var(--ink-2);
+    background-color: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa5ac' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 7px center;
+    background-size: 13px 13px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 6px 26px 6px 9px;
+    cursor: pointer;
+    text-overflow: ellipsis;
+}
+
+#chat-convo:focus {
+    outline: none;
+    border-color: var(--chat-accent);
+    box-shadow: 0 0 0 3px var(--chat-soft);
+}
+
+#chat-convo:disabled { opacity: 0.5; cursor: default; }
+#chat-convo option { color: var(--ink); background: var(--bg); }
+
+/* ── Typewriter caret ────────────────────────────────────────────── */
+
+.chat-caret {
+    display: inline-block;
+    width: 6px;
+    height: 0.95em;
+    margin-left: 2px;
+    vertical-align: -0.14em;
+    background: var(--chat-accent);
+    opacity: 0.85;
+    animation: chat-caret-blink 1s steps(1) infinite;
+}
+
+@keyframes chat-caret-blink {
+    0%, 49%   { opacity: 0.85; }
+    50%, 100% { opacity: 0; }
+}
+
+/* Replayed history should not animate in — restoring a long conversation
+ * would cascade twenty entry animations at once. */
+.chat-msg.no-anim { animation: none; }
+
+/* ── Screen-reader only ──────────────────────────────────────────── */
+/* The log itself is not a live region: an answer arriving word by word
+ * would be read out word by word. The finished answer lands here instead. */
+
+.chat-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────── */
 
 @media (max-width: 520px) {
@@ -405,4 +503,5 @@ html.dark-mode {
 @media (prefers-reduced-motion: reduce) {
     .chat-msg { animation: none; }
     .chat-typing span { animation: none; opacity: 0.5; }
+    .chat-caret { animation: none; }
 }
