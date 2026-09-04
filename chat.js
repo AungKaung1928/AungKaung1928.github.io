@@ -848,10 +848,10 @@ const DEEP_EXTRA = {
         "Right channel for the CV, availability, role scope, employers and dates, real-hardware detail, and anything else this page does not publish.\n" +
         "## GitHub\n" +
         "github.com/AungKaung1928 — all four projects are public, and every claim on this page is checkable against the code:\n" +
-        "- go2-perception-pipeline\n" +
-        "- moveit_pickplace_demo\n" +
-        "- TF-Transform-Explorer\n" +
-        "- fleet_monitoring_ws\n" +
+        "- Go2 Perception Pipeline: https://github.com/AungKaung1928/go2-perception-pipeline\n" +
+        "- MoveIt2 Pick & Place Demo: https://github.com/AungKaung1928/moveit_pickplace_demo\n" +
+        "- TF Transform Explorer: https://github.com/AungKaung1928/TF-Transform-Explorer\n" +
+        "- Fleet Monitoring System: https://github.com/AungKaung1928/fleet_monitoring_ws\n" +
         "## LinkedIn\n" +
         "Linked in the Contact section of this page.\n" +
         "## What to include if you are hiring\n" +

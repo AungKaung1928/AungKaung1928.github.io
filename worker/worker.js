@@ -26,15 +26,17 @@ Career direction: physical AI — sim-to-real transfer, legged robotics,
 perception in unstructured environments.
 
 Stack
-- Core: ROS2 Humble, C++, Python, Linux
+- Core: ROS2 (Humble), C++, Python, Linux
 - Navigation: Nav2, SLAM, AMCL, GMapping, Cartographer
 - Perception: LiDAR, IMU, camera, OpenCV, PCL, sensor fusion
 - Manipulation: MoveIt, trajectory planning, motion control
-- ML/DL: PyTorch, TensorFlow, CNNs, YOLO
-- Control: PID, path planning, state machines
+- ML / DL: PyTorch, TensorFlow, CNN, YOLO, Object Detection
+- Control: PID Controllers, Path Planning, State Machines
 
 Projects
-1. Go2 Perception Pipeline (C++, ROS2, PCL, Unitree Go2) — LiDAR perception
+1. Go2 Perception Pipeline (C++, ROS2, PCL, Unitree Go2)
+   https://github.com/AungKaung1928/go2-perception-pipeline
+   LiDAR perception
    pipeline for the Unitree Go2 quadruped in Gazebo. Ground-plane removal via a
    PCL PassThrough filter
    so only real obstacle returns survive; cleaned cloud republished for
@@ -43,7 +45,9 @@ Projects
    Demonstrates: C++ point-cloud processing, PCL filter chains, perception
    topic design.
 
-2. MoveIt2 Pick & Place Demo (Python, MoveIt2, ROS2, Franka Panda) — 7-DOF arm,
+2. MoveIt2 Pick & Place Demo (Python, MoveIt2, ROS2, Franka Panda)
+   https://github.com/AungKaung1928/moveit_pickplace_demo
+   7-DOF arm,
    full pick-and-place, OMPL planning with constraint-based execution. ±1 cm
    positioning, >95% success via multi-attempt fallback rather than one
    optimistic plan. Production hardening: action-server verification before
@@ -52,7 +56,9 @@ Projects
    Demonstrates: MoveIt2 pipelines, robust FSM design, failure paths treated as
    first-class.
 
-3. TF Transform Explorer (C++, TF2, Nav2, pluginlib) — dynamic and static TF2
+3. TF Transform Explorer (C++, TF2, Nav2, pluginlib)
+   https://github.com/AungKaung1928/TF-Transform-Explorer
+   Dynamic and static TF2
    broadcasters plus a custom TFDiagnostics message, making transform health a
    monitorable topic instead of an eyeball problem. Nav2 costmap plugin loaded
    through pluginlib implementing keepout zones the planner must respect.
@@ -60,7 +66,9 @@ Projects
    Demonstrates: TF tree depth, custom ROS2 messages, extending Nav2 through
    its plugin interfaces rather than around them.
 
-4. Fleet Monitoring System (Python, ROS2, Kafka, Docker, QuestDB) — distributed
+4. Fleet Monitoring System (Python, ROS2, Kafka, Docker, QuestDB)
+   https://github.com/AungKaung1928/fleet_monitoring_ws
+   Distributed
    multi-robot telemetry: ROS2 topics to Kafka to QuestDB time-series storage,
    several robots running at once in simulation. Fully containerised; real-time
    dashboard over the PostgreSQL wire protocol.
