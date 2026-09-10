@@ -1,0 +1,26 @@
+name: Cancel stuck Pages deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Pages build version (full SHA) to cancel
+        required: true
+        default: 78317c97f6c7ec3e8932726939d8f35a8b3635fd
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel the stuck deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pages/deployments/${{ inputs.sha }}/cancel"
+          echo "cancel request sent for ${{ inputs.sha }}"
