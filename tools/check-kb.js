@@ -122,5 +122,5 @@ if (!missing.length && !stale.length) {
 }
 
 console.log(`\n${missing.length} missing, ${new Set(stale.map((s) => s.url)).size} stale.`);
-console.log('Fix: update TOPICS in chat.js and PROFILE in worker/worker.js, or tell Claude to sync the KB.');
+console.log('Fix: update TOPICS in chat.js and PROFILE in worker/worker.js so the KB matches the page.');
 process.exit(1);
