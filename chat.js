@@ -73,11 +73,11 @@ const TOPICS = [
         label: 'Who is he?',
         ask: 'Who is Aung Kaung Myat?',
         k: ['who', 'about him', '!about aung', 'background', 'yourself', 'introduce', 'bio', 'summary', 'profile', 'himself'],
-        a: "Aung Kaung Myat is a robotics software engineer working on learned perception and control for physical machines — models trained in simulation, measured against a classical baseline that had to be beaten, and exported to run on device.\n\n" +
+        a: "Aung Kaung Myat is a robotics software engineer. His day job is ROS2, C++ and LiDAR perception on real mobile robots. The projects on this page are personal work on learned perception and control — trained in simulation, measured against a classical baseline that had to be beaten, and exported to run on device.\n\n" +
            "ROS2 and C++ carry the systems layer; PyTorch carries the learning. The pattern across every project is the same: build the hand-written method first, measure it, then find out whether the learned one is actually worth its cost.\n\n" +
            "His direction is physical AI: sim-to-real transfer, legged locomotion, and perception that survives outside a staged scene.",
         deep: "## Short version\n" +
-           "Robotics software engineer. Learned perception and control for real machines, built on ROS2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
+           "Robotics software engineer, working on real mobile robots professionally — ROS2, C++, navigation and LiDAR perception. This page is his personal work: learned perception and control, built on ROS2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
            "## What he actually builds\n" +
            "Six projects, split across two tracks. Four of them are robot learning — an object detector, a pose-regression CNN, PPO written from scratch, and a locomotion policy for a small biped — all trained and measured on a laptop with no GPU. Two are ROS2 systems: a closed-loop pick-and-place stack on a Franka Panda, and a containerised multi-robot telemetry pipeline.\n\n" +
            "## The habit worth noticing\n" +
@@ -163,17 +163,17 @@ const TOPICS = [
         ask: 'What is his full technical stack?',
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
         a: "## Core\n" +
-           "ROS2 (Humble) · C++ · Python · Linux\n" +
+           "ROS2 (Humble) · C++ · Python · Linux · Docker\n" +
            "## Robot Learning\n" +
-           "PPO · Reward design · Domain randomisation · System identification · Sim-to-real transfer\n" +
+           "PPO · LQR · Domain randomisation · System identification · Sim-to-real transfer\n" +
            "## ML / DL\n" +
            "PyTorch · CNN · Object detection · Pose regression · ONNX Runtime\n" +
-           "## Simulation\n" +
-           "MuJoCo · Gazebo · RViz · Synthetic data\n" +
            "## Perception\n" +
-           "LiDAR · IMU · Camera · OpenCV · PCL · Sensor fusion\n" +
-           "## Manipulation\n" +
-           "MoveIt2 · OMPL · Trajectory planning · Motion control\n" +
+           "LiDAR · IMU · Sensor fusion · OpenCV · PCL\n" +
+           "## Navigation & Manipulation\n" +
+           "Nav2 · SLAM · MoveIt2 · OMPL\n" +
+           "## Simulation\n" +
+           "MuJoCo · Gazebo · RViz\n" +
            "## Navigation\n" +
            "Nav2 · SLAM · AMCL · Cartographer\n" +
            "## Control\n" +
@@ -626,7 +626,7 @@ const TOPICS = [
            "## Sensors\n" +
            "LiDAR, IMU and camera, with sensor fusion across them. PCL for point clouds, OpenCV for images — used both as a tool and as the baseline the learned models have to beat.\n\n" +
            "## The honest split\n" +
-           "Every project on this page runs in simulation. His professional work includes deployment onto real hardware; the specific machines are not published here.\n\n" +
+           "He works on real robot hardware professionally — mobile platforms, navigation, LiDAR perception. Every project on this page is personal work and runs in simulation; the machines from his job are not published here.\n\n" +
            "For the real-hardware detail, employers and dates, email him: " + EMAIL,
         deep: "## Platforms\n" +
            "- Microduck — a 25 cm, 737 g open-source biped with 14 position-controlled servos, simulated in MuJoCo at 500 Hz physics with 50 Hz control\n" +

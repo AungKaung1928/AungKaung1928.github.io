@@ -17,10 +17,12 @@ const MAX_HISTORY_TURNS = 8;
 // Edit freely. Everything here is public information from the portfolio page.
 const PROFILE = `
 Aung Kaung Myat — Robotics Software Engineer.
-Works on learned perception and control for physical machines: models trained
-in simulation, measured against a hand-written classical baseline that was
-built first, and exported to run on device. ROS2 and C++ for the systems
-layer, PyTorch for the learning. Early career.
+Professionally he works on real mobile robots: ROS2, C++, navigation, LiDAR
+perception and system integration. The six projects below are personal work,
+not job work: learned perception and control, trained in simulation, measured
+against a hand-written classical baseline that was built first, and exported
+to run on device. ROS2 and C++ for the systems layer, PyTorch for the
+learning. Early career.
 
 Current focus: robot learning on CPU — detection, pose regression, RL policies;
 sim-to-real method (domain randomisation, system identification, ONNX export);
@@ -35,15 +37,13 @@ the models are small and why every project opens with a feasibility or
 verification measurement.
 
 Stack
-- Core: ROS2 (Humble), C++, Python, Linux
-- Robot Learning: PPO, Reward design, Domain randomisation, System
-  identification, Sim-to-real transfer
+- Core: ROS2 (Humble), C++, Python, Linux, Docker
+- Robot Learning: PPO, LQR, Domain randomisation, System identification,
+  Sim-to-real transfer
 - ML / DL: PyTorch, CNN, Object detection, Pose regression, ONNX Runtime
-- Simulation: MuJoCo, Gazebo, RViz, Synthetic data
-- Perception: LiDAR, IMU, Camera, OpenCV, PCL, Sensor fusion
-- Manipulation: MoveIt2, OMPL, Trajectory planning, Motion control
-- Navigation: Nav2, SLAM, AMCL, Cartographer
-- Control: LQR, PID controllers, State machines, Path planning
+- Perception: LiDAR, IMU, Sensor fusion, OpenCV, PCL
+- Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL
+- Simulation: MuJoCo, Gazebo, RViz
 
 Projects — six, in two tracks. Four robot learning, two ROS2 systems.
 

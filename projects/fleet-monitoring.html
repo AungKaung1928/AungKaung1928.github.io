@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watching a Robot Fleet — Aung Kaung Myat</title>
+<meta name="description" content="Three simulated robots stream position into Kafka; one service stores it, another notices when a robot stops moving and opens an alert that can be closed. Generated from one config file, proved by CI on every push.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/fleet-monitoring.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/fleet-monitoring.html">
+<meta property="og:title" content="Watching a Robot Fleet">
+<meta property="og:description" content="Three simulated robots stream position into Kafka; one service stores it, another notices when a robot stops moving and opens an alert that can be closed.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%238f6486'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#faf7f9;
+  --paper2:#f2ecf0;
+  --ink:#1e1720;
+  --ink2:#4a4048;
+  --muted:#7b7079;
+  --line:#eae2e7;
+  --line2:#d9ccd5;
+  --accent:#8f6486;
+  --accent-deep:#734b6a;
+  --accent-soft:#f8f2f6;
+  --accent-line:#e0cddb;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--bad)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox.todo{background:var(--paper)}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox.todo .sn{color:var(--muted)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+.stepbox.todo .sr{color:var(--muted);font-weight:400}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fdfaFc}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+.obsbar{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+.obsseg{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px;flex:1 1 130px}
+.obsseg .od{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--accent);line-height:1}
+.obsseg .on{font-family:var(--disp);font-size:.85rem;font-weight:600}
+.obsseg .os{font-size:.78rem;color:var(--muted);line-height:1.35}
+.obsseg.drop{background:var(--paper)}
+.obsseg.drop .od{color:var(--bad);text-decoration:line-through}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">ROS 2 · infrastructure · repo <code style="background:none;padding:0;color:inherit">fleet_monitoring_ws</code></div>
+    <h1>Watching a Robot Fleet</h1>
+    <p class="deck">Three simulated robots publish where they are. A message bus carries it, one service files it into a
+      time-series database, and another one notices when a robot has stopped moving and opens an alert that a human can
+      acknowledge and close. The whole fleet is described in a single configuration file, and a job on every push proves
+      the chain works end to end.</p>
+    <div class="chips">
+      <span class="chip">ROS 2 Humble</span><span class="chip">Gazebo Harmonic</span><span class="chip">Apache Kafka (KRaft)</span>
+      <span class="chip">QuestDB</span><span class="chip">PostgreSQL</span><span class="chip">Grafana</span>
+      <span class="chip">Docker Compose</span><span class="chip">GitHub Actions</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Robots</dt><dd><em>3</em>, defined in one file</dd></div>
+      <div class="fact"><dt>Databases</dt><dd>2, different jobs</dd></div>
+      <div class="fact"><dt>Stuck rule</dt><dd>variance &lt; <em>0.001</em> m²</dd></div>
+      <div class="fact"><dt>CI assertions</dt><dd><em>4 of 4</em> pass</dd></div>
+      <div class="fact"><dt>Smoke run</dt><dd>369 rows in 25 s</dd></div>
+      <div class="fact"><dt>Python</dt><dd>≈1 330 lines</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#path">The data path</a>
+    <a href="#files">Every file</a>
+    <a href="#config">One file defines the fleet</a>
+    <a href="#databases">Two databases</a>
+    <a href="#detector">The stuck detector</a>
+    <a href="#failure">When something breaks</a>
+    <a href="#ci">What CI proves</a>
+    <a href="#limits">What this does not do</a>
+    <a href="#run">Running it</a>
+    <a href="#short">The short version</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the project is, and what problem it exists to solve.</p></div>
+  <div class="stack prose">
+    <p>One robot is easy to watch. You look at it, or you open a terminal and read its messages. Ten robots in a building
+      are not: nobody is looking at any individual one, and the interesting question stops being <em>what is this robot
+      doing</em> and becomes <em>which of these robots needs a human right now</em>.</p>
+    <p>This project builds the plumbing that answers the second question. Robots publish their position continuously.
+      That stream is collected, stored, and watched by a rule. When a robot has not moved for a while, the system files
+      an alert with the robot's identifier and its last known position. The alert stays open until either a person closes
+      it or the robot starts moving again, at which point it closes itself.</p>
+    <div class="note key">
+      <span class="note-label">The thing that makes it more than a demo</span>
+      <p>Nothing here is hand-wired. The fleet is described once, in <code>config/fleet.yaml</code>. The simulation world,
+        the visualiser layout, the launch file, the message producers, the driving patterns and the tests all read that
+        same file. Adding a fourth robot is five lines of configuration and one regeneration command — no code changes
+        anywhere. A continuous-integration job refuses the change if the generated files and the configuration have
+        drifted apart.</p>
+    </div>
+    <h3>Why it sits alongside the learning projects</h3>
+    <p>The other projects on this site are about making a model that works. This one is about the layer underneath that:
+      the part that has to keep running while nobody is watching it, notice something is wrong, and still be inspectable
+      afterwards. It is deliberately the infrastructure slot rather than the main line of work, and it is built the way
+      that layer has to be built — every service restartable, every failure visible, every claim checked by a test.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>odometry</b><span>A robot's own running estimate of where it is and how fast it is going, computed from its wheels and sensors.</span></div>
+    <div class="gterm"><b>message bus</b><span>A service that takes messages from producers and hands them to any number of independent consumers. Here, Apache Kafka.</span></div>
+    <div class="gterm"><b>topic</b><span>A named channel on the bus. Producers write to it, consumers read from it, and neither knows the other exists.</span></div>
+    <div class="gterm"><b>time-series database</b><span>A database built for append-only data stamped with a time. Fast to write, fast to query over a window, bad at changing rows after the fact.</span></div>
+    <div class="gterm"><b>dead-letter queue</b><span>A separate topic where messages that could not be processed are parked, with the reason, instead of being dropped or crashing the reader.</span></div>
+    <div class="gterm"><b>sliding window</b><span>The last N samples, with the oldest falling off as each new one arrives. The detector's memory.</span></div>
+    <div class="gterm"><b>edge-triggered</b><span>Acting on the moment a condition changes, not on every sample while it holds. One alert per event, not one per message.</span></div>
+    <div class="gterm"><b>healthcheck</b><span>A command a container runs on itself so the orchestrator can tell "started" apart from "actually ready to serve".</span></div>
+    <div class="gterm"><b>TF frame</b><span>A named coordinate system in ROS 2. Two robots publishing the same frame name in one scene collide; prefixes keep them apart.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="path">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The data path</h2><p class="sec-sub">One position reading, from the simulated robot to the alert on a dashboard.</p></div>
+  <div class="stack">
+    <div class="steps">
+      <div class="stepbox"><span class="sn">stage 1</span><span class="st">Gazebo Harmonic</span>
+        <span class="sd">Three TurtleBot3 models drive in the generated world. <code>ros_gz_bridge</code> carries odometry, velocity commands, joint states, transforms and the clock across to ROS 2.</span>
+        <span class="sr">/tb1/odom · /tb2/odom · /tb3/odom</span></div>
+      <div class="stepbox"><span class="sn">stage 2</span><span class="st">Producer node</span>
+        <span class="sd">A ROS 2 node subscribes to every robot's odometry topic and re-publishes each reading as one JSON message.</span>
+        <span class="sr">kafka_producer.py · 79 lines</span></div>
+      <div class="stepbox"><span class="sn">stage 3</span><span class="st">Kafka</span>
+        <span class="sd">The bus. Two topics: the odometry stream, and a dead-letter topic for anything unreadable.</span>
+        <span class="sr">robot_odom · robot_odom_dlq</span></div>
+      <div class="stepbox"><span class="sn">stage 4a</span><span class="st">Storage consumer</span>
+        <span class="sd">Reads the stream, writes each valid reading into QuestDB over the line protocol, and updates the robot's heartbeat in Postgres at most once every five seconds.</span>
+        <span class="sr">kafka_consumer.py · 104 lines</span></div>
+      <div class="stepbox"><span class="sn">stage 4b</span><span class="st">Detector</span>
+        <span class="sd">Reads the same stream independently, keeps a sliding window of positions per robot, and opens or resolves alerts on transitions.</span>
+        <span class="sr">anomaly_detector.py · 124 lines</span></div>
+      <div class="stepbox"><span class="sn">stage 5</span><span class="st">Grafana + CLI</span>
+        <span class="sd">Dashboards load themselves from the repository. A command-line tool lists robots and alerts and closes them.</span>
+        <span class="sr">localhost:3000 · fleet_cli.py</span></div>
+    </div>
+    <div class="note">
+      <span class="note-label">Why two independent readers</span>
+      <p>Storage and detection are separate Kafka consumer groups reading the same topic. Neither blocks the other, either
+        can be restarted alone, and the detector can be changed without any risk to the data being recorded. That
+        separation is the entire reason a bus is in the design rather than a direct database write from the robot.</p>
+    </div>
+  </div>
+</section>
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file</h2><p class="sec-sub">The whole repository, with line counts. Generated files are marked.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>config/fleet.yaml</td><td class="num">46</td><td>The single source of truth: robots, spawn poses, colours, drive patterns, endpoints, detector thresholds.</td></tr>
+          <tr><td>scripts/generate_fleet.py</td><td class="num">284</td><td>Reads the yaml, writes the simulation world and the visualiser layout.</td></tr>
+          <tr><td>worlds/fleet.sdf</td><td class="num">420</td><td><em>Generated.</em> The Gazebo world — ground plane, lighting, one model per robot at its spawn pose.</td></tr>
+          <tr><td>config/fleet.rviz</td><td class="num">127</td><td><em>Generated.</em> RViz layout with one display group per robot.</td></tr>
+          <tr><td>launch/multi_robot.launch.py</td><td class="num">104</td><td>Starts the simulator, the bridge, one state publisher per robot, the static transforms, and optionally RViz.</td></tr>
+          <tr><td>pipeline/common.py</td><td class="num">181</td><td>Shared plumbing: config loading, endpoint resolution, retrying connections, the QuestDB writer, the Postgres store.</td></tr>
+          <tr><td>pipeline/kafka_producer.py</td><td class="num">79</td><td>ROS 2 node. Every robot's odometry topic to one Kafka topic, as JSON.</td></tr>
+          <tr class="hl"><td>pipeline/kafka_consumer.py</td><td class="num">104</td><td>Kafka to QuestDB, with the dead-letter path and the registry heartbeat.</td></tr>
+          <tr class="hl"><td>pipeline/anomaly_detector.py</td><td class="num">124</td><td>Sliding-window stuck detection and the full alert lifecycle.</td></tr>
+          <tr><td>pipeline/mock_producer.py</td><td class="num">77</td><td>Synthetic fleet emitting the identical message schema, so the pipeline runs with no simulator at all.</td></tr>
+          <tr><td>scripts/smoke_test.py</td><td class="num">96</td><td>Starts the three services, runs them for 25 seconds, then asserts four things about the databases.</td></tr>
+          <tr><td>scripts/fleet_cli.py</td><td class="num">91</td><td>List robots, list alerts, acknowledge one, resolve one.</td></tr>
+          <tr><td>scripts/drive_fleet.py</td><td class="num">56</td><td>Publishes each robot's configured drive pattern to its velocity topic.</td></tr>
+          <tr><td>dashboard/monitor.py</td><td class="num">138</td><td>Terminal dashboard, querying QuestDB over the Postgres wire protocol.</td></tr>
+          <tr><td>docker-compose.yml</td><td class="num">106</td><td>Kafka, QuestDB, Postgres and Grafana, each with a healthcheck.</td></tr>
+          <tr><td>docker/postgres/init.sql</td><td class="num">27</td><td>Two tables: the robot registry and the alert lifecycle, with their indexes.</td></tr>
+          <tr><td>docker/grafana/</td><td class="num">166</td><td>Datasources and the Fleet Overview dashboard, provisioned from the repository.</td></tr>
+          <tr><td>.github/workflows/ci.yml</td><td class="num">45</td><td>Lint, a drift check on the generated files, then the smoke test against the real container stack.</td></tr>
+          <tr><td>Makefile</td><td class="num">51</td><td>The short commands: up, sim, rviz, pipeline, mock, drive, test, down, clean.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose" style="font-size:.92rem;color:var(--muted)">Roughly 1 330 lines of Python across the pipeline,
+      scripts, dashboard and launch file. The two highlighted service files are where all the interesting behaviour is.</p>
+  </div>
+</section>
+
+<section id="config">
+  <div class="sec-head"><span class="sec-num">04</span><h2>One file defines the fleet</h2><p class="sec-sub">Why a configuration file generates the world instead of a human editing XML.</p></div>
+  <div class="stack">
+    <p class="prose">A robot in this system exists in six places at once: as a model in the simulation world, as a display
+      group in the visualiser, as a state publisher and a static transform in the launch file, as a topic subscription in
+      the producer, as an entry in the synthetic fleet, and as a target in the driver. Keeping six hand-written places in
+      agreement is the kind of job that quietly stops being done.</p>
+    <p class="prose">So one file holds it, and the two file formats nobody wants to hand-edit are generated from it:</p>
+    <pre><code>robots:
+  - id: tb1
+    model: turtlebot3_burger
+    color: "0.9 0.5 0.0 1"
+    spawn: {x: 0.0, y: 1.0, yaw: 0.0}
+    drive: {linear: 0.15, angular: 0.3}    # drives a circle
+  - id: tb2
+    spawn: {x: 0.0, y: -1.0, yaw: 0.0}
+    drive: null                            # never moves — the alert case
+  - id: tb3
+    spawn: {x: 0.0, y: 3.0, yaw: 1.57}
+    drive: {linear: 0.1, angular: -0.5}    # circles the other way</code></pre>
+    <div class="pair">
+      <dt>generate_fleet.py</dt><dd>Emits <code>worlds/fleet.sdf</code> (420 lines) and <code>config/fleet.rviz</code> (127 lines). Both carry a "do not edit" header.</dd>
+      <dt>launch, pipeline, driver</dt><dd>Read the same yaml directly at start-up. No generation step, no duplication.</dd>
+      <dt>detector thresholds</dt><dd>Window size, variance threshold and minimum sample count live in the same file, under <code>detector:</code>.</dd>
+      <dt>endpoints</dt><dd>Kafka, QuestDB and Postgres addresses resolve environment variable first, yaml second — so a container overrides them without a code change.</dd>
+    </div>
+    <div class="note key">
+      <span class="note-label">The check that makes it hold</span>
+      <p>Generated files drift the moment somebody edits the yaml and forgets to regenerate. So CI regenerates them and
+        runs <code>git diff --exit-code</code> on the results. If the committed world does not match the committed
+        configuration, the build fails with the command needed to fix it. The guarantee is not "we remembered" — it is
+        "the build will not pass if we did not".</p>
+    </div>
+    <p class="prose">One robot in the fleet has <code>drive: null</code>. That is not an oversight — it is the test
+      fixture. A robot that never moves is exactly the condition the detector exists to catch, so the default
+      configuration always contains one, and the smoke test refuses to run if none is present.</p>
+  </div>
+</section>
+
+<section id="databases">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Two databases, on purpose</h2><p class="sec-sub">Telemetry and state are different problems, so they get different stores.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th></th><th>QuestDB</th><th>PostgreSQL</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Holds</strong></td><td>Every position reading, and every alert event as it happened</td><td>The robot registry and the current state of each alert</td></tr>
+          <tr><td><strong>Shape</strong></td><td>Append-only, time-stamped, never updated</td><td>Rows that change: <code>open → acknowledged → resolved</code></td></tr>
+          <tr><td><strong>Written by</strong></td><td>Line protocol over a raw TCP socket, port 9009</td><td><code>psycopg2</code>, port 5432</td></tr>
+          <tr><td><strong>Read by</strong></td><td>Grafana and the terminal dashboard, over the Postgres wire protocol on 8812</td><td>Grafana and <code>fleet_cli.py</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">The split is the point. A time-series database is built to accept a very high rate of immutable
+      rows; asking it to update one row from <em>open</em> to <em>resolved</em> is using it against its design. A
+      relational database handles that update trivially but is the wrong shape for tens of readings per second per
+      robot, forever.</p>
+    <p class="prose">So the alert exists twice, deliberately, in two different senses. QuestDB records that a stuck
+      event <em>happened</em> at a particular instant, and that record never changes. Postgres records that an alert
+      <em>is currently open</em>, and that row is the one a human acts on.</p>
+    <pre><code>CREATE TABLE alerts (
+    id              BIGSERIAL PRIMARY KEY,
+    robot_id        TEXT NOT NULL REFERENCES robots (robot_id),
+    alert_type      TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'open'
+                    CHECK (status IN ('open', 'acknowledged', 'resolved')),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    acknowledged_at TIMESTAMPTZ,
+    resolved_at     TIMESTAMPTZ
+);</code></pre>
+    <p class="prose">The <code>CHECK</code> constraint is doing real work: the set of legal states is enforced by the
+      database, not by the Python that writes to it. A future service with a bug cannot put an alert into a state the
+      rest of the system does not understand.</p>
+    <p class="prose">Grafana reads QuestDB through its Postgres wire protocol on port 8812, which means one datasource
+      type covers both stores and no plugin is needed. Datasources and the dashboard are provisioned from files in the
+      repository, so bringing the stack up produces working dashboards with nothing clicked.</p>
+  </div>
+</section>
+<section id="detector">
+  <div class="sec-head"><span class="sec-num">06</span><h2>The stuck detector</h2><p class="sec-sub">One rule, one state machine, and the two database writes it triggers.</p></div>
+  <div class="stack">
+    <p class="prose">The rule is deliberately simple, and simple is the right choice here: a robot that is not moving
+      has a position that is not changing, and "not changing" is measurable as variance.</p>
+    <div class="obsbar">
+      <div class="obsseg"><span class="od">10</span><span class="on">window size</span><span class="os">The last ten positions per robot, oldest dropped as each arrives.</span></div>
+      <div class="obsseg"><span class="od">5</span><span class="on">minimum samples</span><span class="os">Below this, the detector returns nothing — a robot that just appeared is not yet stuck.</span></div>
+      <div class="obsseg"><span class="od">0.001</span><span class="on">variance threshold, m²</span><span class="os">Population variance of x plus variance of y. Below it, the robot is considered stuck.</span></div>
+    </div>
+    <pre><code>xs, ys      = positions in the window
+variance    = ( Σ(x − x̄)² + Σ(y − ȳ)² ) / n
+is_stuck    = variance &lt; 0.001
+
+moving → stuck      : QuestDB event + open an alert row in Postgres
+stuck  → moving     : QuestDB event + resolve that alert row
+otherwise           : nothing at all</code></pre>
+    <h3>Edge-triggered, not level-triggered</h3>
+    <p class="prose">The detector keeps a set of robot identifiers it currently believes are stuck. An alert fires on
+      the transition <em>into</em> that set and a resolution fires on the transition <em>out</em> of it. A robot that
+      stays stuck for an hour produces exactly one alert, not one per message. This is the difference between a system
+      somebody watches and a system somebody mutes.</p>
+    <h3>Two layers of duplicate protection</h3>
+    <p class="prose">The in-memory set survives only as long as the process. If the detector restarts while a robot is
+      still stuck, it will see the transition again and try to open a second alert. So the database refuses:</p>
+    <pre><code>INSERT INTO alerts (robot_id, alert_type, severity, pos_x, pos_y)
+SELECT %s, %s, %s, %s, %s
+WHERE NOT EXISTS (
+    SELECT 1 FROM alerts
+    WHERE robot_id = %s AND alert_type = %s AND status &lt;&gt; 'resolved');</code></pre>
+    <p class="prose">One unresolved alert per robot per alert type, enforced in the write itself rather than by a
+      read-then-write that two processes could interleave. Resolution is the mirror image — a single <code>UPDATE</code>
+      over every unresolved alert for that robot, returning the number of rows it actually changed, which is what gets
+      logged.</p>
+    <div class="note">
+      <span class="note-label">A detail that shows in the code</span>
+      <p>The detector skips malformed messages with a bare <code>continue</code> and a comment saying the consumer
+        service dead-letters them. That is correct while both services run — but it does mean that running the detector
+        alone, without the storage consumer, silently discards bad messages instead of parking them. The division of
+        responsibility is real, and it is a coupling worth knowing about.</p>
+    </div>
+  </div>
+</section>
+
+<section id="failure">
+  <div class="sec-head"><span class="sec-num">07</span><h2>When something breaks</h2><p class="sec-sub">Four failure modes that were designed for rather than discovered.</p></div>
+  <div class="stack">
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>A malformed message arrives</h4>
+        <p>Parsing is a single function that raises on anything unexpected. The caller catches it, forwards the raw
+          bytes plus the error text to <code>robot_odom_dlq</code>, logs a running count, and carries on. The poison
+          message is inspectable afterwards; the consumer does not die.</p>
+        <p style="color:var(--muted);font-size:.88rem">This one is not hypothetical. The synthetic producer once emitted
+          different key names for velocity and timestamp, and it crashed the consumer. The dead-letter path is the fix
+          that came out of it.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>A database or the bus is not up yet</h4>
+        <p>Every connection helper retries instead of failing: Kafka thirty times at two-second intervals, QuestDB and
+          Postgres twenty times at three. Services can be started in any order, and a slow container start is not a
+          crash.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>The QuestDB socket dies mid-run</h4>
+        <p>The writer holds a raw TCP socket for the line protocol. A write that raises <code>BrokenPipeError</code> or
+          <code>OSError</code> triggers a reconnect and one retry of that same line, so a database restart costs at most
+          a reading rather than the process.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>The stack is "started" but not ready</h4>
+        <p>Every container declares a healthcheck and the stack is brought up with <code>--wait</code>, which blocks
+          until they pass. Nothing in the scripts or CI sleeps for an arbitrary number of seconds and hopes.</p>
+      </div></div>
+    </div>
+    <div class="note">
+      <span class="note-label">Also worth naming</span>
+      <p>Both consumers use <code>auto_offset_reset="latest"</code>. That is the right choice for live monitoring — a
+        service that restarts should show what is happening now, not replay an hour of history — but it does mean a
+        consumer started after a producer misses whatever went past in between. The smoke test starts its consumers
+        before its producer for exactly this reason.</p>
+    </div>
+  </div>
+</section>
+
+<section id="ci">
+  <div class="sec-head"><span class="sec-num">08</span><h2>What CI actually proves</h2><p class="sec-sub">The four assertions, the numbers they produced, and what they leave untested.</p></div>
+  <div class="stack">
+    <p class="prose">Every push brings up the real container stack — Kafka, QuestDB, Postgres, Grafana — runs the
+      synthetic fleet for 25 seconds at five messages per second per robot, then queries both databases and asserts
+      four things.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Assertion</th><th>Query</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Odometry was stored</td><td><code>count() FROM robot_odom</code></td><td class="num">369 rows</td></tr>
+          <tr><td>A stuck event was recorded</td><td><code>count() FROM robot_alerts WHERE event = 'stuck'</code></td><td class="num">≥ 1</td></tr>
+          <tr><td>An open alert exists for the idle robot</td><td><code>alerts WHERE status = 'open'</code></td><td class="num">≥ 1</td></tr>
+          <tr><td>Every robot registered itself</td><td><code>count(*) FROM robots</code></td><td class="num">3 of 3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Three robots at five hertz for 25 seconds is 375 expected readings; 369 landed. The shortfall is
+      the start-up and shutdown edges of a timed run, and it is the reason the assertion is <em>greater than zero</em>
+      rather than an exact count — a test that demands 375 would fail on a slow runner for no useful reason.</p>
+    <p class="prose">The job also runs <code>ruff</code> over every Python directory, regenerates the world and RViz
+      files and fails on any diff, dumps the last hundred lines of every service log if anything fails, and tears the
+      stack down with its volumes whatever the outcome. Fifteen-minute timeout.</p>
+    <div class="note warnbox">
+      <span class="note-label">What it does not prove</span>
+      <p>CI exercises the Gazebo-free path only: synthetic producer to Kafka to both databases. The simulator, the
+        bridge, the real ROS 2 producer node and the visualiser are not in CI and are not covered by any assertion.
+        The end-to-end claim this project can make is about the data pipeline, not about the robots.</p>
+    </div>
+  </div>
+</section>
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">09</span><h2>What this does not do</h2><p class="sec-sub">The honest boundary of the project, stated before anyone finds it themselves.</p></div>
+  <div class="stack">
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>The simulator has never been watched running</h4>
+        <p>The launch file has been validated by inspection only — the three-robot fleet has not been brought up in
+          Gazebo and RViz and observed. Every claim on this page about the data pipeline is backed by a test; the
+          claims about the simulation layer are backed by code review and nothing else.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>Nothing is measured for speed</h4>
+        <p>There is no latency figure from robot to database, no throughput ceiling, and no answer to how many robots
+          this handles. The Kafka topic is single-partition with one consumer per group; partitioning by robot
+          identifier is designed but not built, and the "50+ robots" question is open.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>One detector, one rule</h4>
+        <p>Position variance catches a robot that has stopped. It does not catch a robot moving wrongly, a velocity
+          spike, or a robot that has gone silent — dropout detection needs a timer over absence of messages, which is a
+          different structure and is not written.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>Three simulated robots, no hardware</h4>
+        <p>No physical robot has ever connected to this pipeline. The message schema is what a ROS 2 odometry topic
+          provides, so a real robot would fit — but that has not been demonstrated here.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">05</span><div class="fbody">
+        <h4>The producer is Python</h4>
+        <p>The odometry bridge is a Python ROS 2 node. For a node in the hot path of every robot's sensor stream, C++
+          with <code>librdkafka</code> is the correct language, and rewriting it with a latency comparison against the
+          Python version is the first item on the project's own list.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">Two paths: the full simulator, or the pipeline alone on any machine.</p></div>
+  <div class="stack">
+    <h3>Full stack</h3>
+    <pre><code>./scripts/start_all.sh          # everything
+
+# or step by step
+make up                         # Kafka, QuestDB, Postgres, Grafana — waits for healthchecks
+make rviz                       # Gazebo Harmonic + RViz with the generated fleet
+make pipeline                   # producer, consumer, detector
+make drive                      # drive the robots per their configured patterns</code></pre>
+    <h3>No simulator needed</h3>
+    <pre><code>make up
+make mock                                 # synthetic fleet into Kafka
+python3 pipeline/kafka_consumer.py        # separate terminal
+python3 pipeline/anomaly_detector.py      # separate terminal</code></pre>
+    <p class="prose">This second path is the one CI uses and the one that runs anywhere Docker does. It needs no ROS 2
+      installation and no simulator.</p>
+    <h3>Watching and closing alerts</h3>
+    <pre><code>python3 scripts/fleet_cli.py robots              # registry and online status
+python3 scripts/fleet_cli.py alerts --status open
+python3 scripts/fleet_cli.py ack 3
+python3 scripts/fleet_cli.py resolve 3</code></pre>
+    <div class="pair">
+      <dt>Grafana</dt><dd><code>localhost:3000</code> — the Fleet Overview dashboard loads itself.</dd>
+      <dt>QuestDB console</dt><dd><code>localhost:9000</code> — raw SQL over the telemetry.</dd>
+      <dt>make test</dt><dd>The same four assertions CI runs, locally.</dd>
+      <dt>make clean</dt><dd>Stops everything and deletes the volumes for a full reset.</dd>
+    </div>
+  </div>
+</section>
+
+<section id="short">
+  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">What to take away in four sentences.</p></div>
+  <div class="stack prose">
+    <p>Three simulated robots publish their position; a message bus carries it to two independent readers, one that
+      stores every reading and one that watches for a robot that has stopped, and an alert opened by the second can be
+      acknowledged by a human or closed automatically when the robot moves again.</p>
+    <p>The fleet is described in one configuration file that generates the simulation world and the visualiser layout,
+      and continuous integration fails the build if the generated files and the configuration have drifted apart.</p>
+    <p>Telemetry and state live in different databases because they are different problems, malformed messages are
+      parked in a dead-letter topic rather than dropped, and every service reconnects rather than dying when something
+      it depends on is not ready.</p>
+    <p>What is proved is the data pipeline, by four assertions against the real container stack on every push. What is
+      not proved is the simulator layer, the latency, or anything about scale — and those are stated on the page
+      because a reviewer would find them anyway.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>fleet_monitoring_ws</code> — <code>README.md</code>, <code>fleet.yaml</code>,
+  <code>generate_fleet.py</code>, <code>common.py</code>, <code>kafka_producer.py</code>,
+  <code>kafka_consumer.py</code>, <code>anomaly_detector.py</code>, <code>mock_producer.py</code>,
+  <code>smoke_test.py</code>, <code>fleet_cli.py</code>, <code>init.sql</code>, <code>docker-compose.yml</code>
+  and <code>ci.yml</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

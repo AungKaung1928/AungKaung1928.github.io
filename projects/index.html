@@ -185,8 +185,8 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
 
   <section class="track">
     <div class="track-head">
-      <h2>ROS 2 · manipulation</h2>
-      <span class="track-note">Perception driving a real motion-planning stack.</span>
+      <h2>ROS 2 · systems</h2>
+      <span class="track-note">Perception driving a motion-planning stack, and the infrastructure layer under a fleet.</span>
     </div>
     <div class="cards">
 
@@ -202,6 +202,23 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
           <div class="links">
             <a class="primary" href="moveit-pickplace.html">Read the walkthrough →</a>
             <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" style="--h:#8f6486">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>Watching a Robot Fleet</h3>
+            <span class="repo">fleet_monitoring_ws</span></div>
+          <p>Three simulated robots publish where they are. A message bus carries it to two independent
+            readers — one stores every reading, one notices when a robot has stopped and opens an alert
+            a human can close. The whole fleet is described in one configuration file, and a job on every
+            push brings the real container stack up and proves the chain end to end.</p>
+          <div class="tech"><span>ROS 2 Humble</span><span>Apache Kafka</span><span>QuestDB</span><span>PostgreSQL</span><span>Docker</span></div>
+          <div class="links">
+            <a class="primary" href="fleet-monitoring.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener">Repository ↗</a>
           </div>
         </div>
       </article>
