@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microduck on a CPU — Aung Kaung Myat</title>
+<meta name="description" content="Training a walking policy for a small biped entirely on a laptop CPU: the feasibility measurement, the 48-dimensional environment contract, and the PD baseline to beat.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/microduck-rl-cpu.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/microduck-rl-cpu.html">
+<meta property="og:title" content="Microduck on a CPU">
+<meta property="og:description" content="Training a walking policy for a small biped entirely on a laptop CPU: the feasibility measurement, the 48-dimensional environment contract, and the PD baseline to beat.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%238c6e33'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#faf9f4;
+  --paper2:#f2efe6;
+  --ink:#1e1b13;
+  --ink2:#4a4433;
+  --muted:#7b7362;
+  --line:#eae5d9;
+  --line2:#d8d1c0;
+  --accent:#8c6e33;
+  --accent-deep:#6a5222;
+  --accent-soft:#f8f3e7;
+  --accent-line:#ddcda6;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--bad)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox.todo{background:var(--paper)}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox.todo .sn{color:var(--muted)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+.stepbox.todo .sr{color:var(--muted);font-weight:400}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fdfcf8}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+.obsbar{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+.obsseg{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px;flex:1 1 130px}
+.obsseg .od{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--accent);line-height:1}
+.obsseg .on{font-family:var(--disp);font-size:.85rem;font-weight:600}
+.obsseg .os{font-size:.78rem;color:var(--muted);line-height:1.35}
+.obsseg.drop{background:var(--paper)}
+.obsseg.drop .od{color:var(--bad);text-decoration:line-through}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/microduck-rl-cpu" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · project 3 · repo <code style="background:none;padding:0;color:inherit">microduck-rl-cpu</code></div>
+    <h1>Microduck on a CPU</h1>
+    <p class="deck">A 25 cm, 737 g open-source biped with fourteen servos. Upstream trains it on a GPU cluster.
+      This does it on a laptop with no graphics card — and the two finished steps are almost entirely about
+      proving, with numbers, that the machine and the environment are trustworthy enough to train on at all.</p>
+    <div class="chips">
+      <span class="chip">MuJoCo 3.12</span><span class="chip">NumPy</span><span class="chip">multiprocessing</span>
+      <span class="chip">14-DOF biped</span><span class="chip">sim-to-sim transfer</span>
+      <span class="chip">no CUDA anywhere</span><span class="chip">8 of 14 threads</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Status</dt><dd>Steps 1–2 done</dd></div>
+      <div class="fact"><dt>Observation</dt><dd><em>48</em> dims, all real sensors</dd></div>
+      <div class="fact"><dt>Action</dt><dd>14 residuals, ±0.35 rad</dd></div>
+      <div class="fact"><dt>Training rate</dt><dd>≈13 300 env-steps/s</dd></div>
+      <div class="fact"><dt>PD baseline</dt><dd>108.7 ± 2.9 of 500</dd></div>
+      <div class="fact"><dt>Contract tests</dt><dd>27, plus 5 silent defects found</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#steps">The five steps</a>
+    <a href="#files">Every file</a>
+    <a href="#gate">The feasibility gate</a>
+    <a href="#model">Three model findings</a>
+    <a href="#drop">Drop tests</a>
+    <a href="#contract">The environment</a>
+    <a href="#baseline">The PD baseline</a>
+    <a href="#defects">Five silent defects</a>
+    <a href="#risks">Three open risks</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">Training a walking policy for a small biped on a laptop CPU — after checking that it is possible at all.</p></div>
+  <div class="stack prose">
+    <p>The Microduck is a small open-source walking robot. Its authors publish the physics model, the meshes,
+      and a training setup — which requires a CUDA GPU, because that is how modern robot-learning frameworks
+      run thousands of simulated robots in parallel.</p>
+    <p>There is no GPU here and no hardware to buy. So this project runs the same physics model in plain CPU
+      MuJoCo, parallel across <em>processes</em> instead of GPU threads, inside a budget of eight of the
+      machine's fourteen cores, on a laptop that has other work to do.</p>
+    <p>Two steps are finished, and neither of them trains anything. That is deliberate.</p>
+    <div class="note key">
+      <span class="note-label">What the first two steps are for</span>
+      <p><strong>Step 1 is a feasibility gate:</strong> is this machine fast enough to train a policy at all,
+        and what is the honest number to budget against? <strong>Step 2 is the environment contract:</strong>
+        what does the policy see, what does it emit, when does an episode end, and what number does it have to
+        beat? Both were written before any learning code, because a training run that fails is uninterpretable
+        if you cannot rule out the machine and the environment first.</p>
+    </div>
+    <h3>Why "sim-to-sim" is the real target</h3>
+    <p>The robot's authors ship <strong>four</strong> physics variants of the same robot — including one with a
+      passive backlash joint inserted in series with every actuated joint, which is a much more realistic model
+      of a cheap hobby servo's slop. All four expose the same fourteen actuators, in the same order, under the
+      same names.</p>
+    <p>That means a policy trained on one variant can be run on another with no remapping at all. The held-out
+      physics is supplied by the robot's own authors rather than invented here — a far stronger position than
+      randomising some parameters and then testing on the same randomisation, which is the standard and much
+      weaker version of this experiment.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>policy</b><span>The function mapping what the robot senses to what it commands. This is the thing being learned.</span></div>
+    <div class="gterm"><b>observation</b><span>The vector the policy reads each control step — here 48 numbers: joint positions and velocities, the previous action, the gyro, and gravity in body frame.</span></div>
+    <div class="gterm"><b>action scale</b><span>How far one policy output is allowed to move a joint away from its neutral position. Too large and the robot thrashes.</span></div>
+    <div class="gterm"><b>PD controller</b><span>A fixed control law: command proportional to position error plus a term proportional to how fast that error is changing. No learning.</span></div>
+    <div class="gterm"><b>env-steps/s</b><span>Simulation throughput. It is the number that decides whether training takes an hour or a week.</span></div>
+    <div class="gterm"><b>domain randomisation</b><span>Varying physics and appearance during training so the policy is not tuned to one exact model of the robot.</span></div>
+    <div class="gterm"><b>system ID</b><span>Measuring the real actuator to find out how it actually behaves, which then sets an honest range to randomise over.</span></div>
+    <div class="gterm"><b>sim-to-real</b><span>The gap between a policy that works in simulation and one that works on the hardware. The whole point of the exercise.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="steps">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The five steps</h2><p class="sec-sub">The five steps of the project, and which two are finished.</p></div>
+  <div class="stack">
+    <div class="steps">
+      <div class="stepbox"><span class="sn">step 1 · done</span><span class="st">Feasibility gate</span>
+        <span class="sd">Asset fetch, model inspection, CPU throughput scaling, sustained-load decay, drop tests.</span>
+        <span class="sr">PASS · budget ≈13 300 steps/s</span></div>
+      <div class="stepbox"><span class="sn">step 2 · done</span><span class="st">Environment contract</span>
+        <span class="sd">48-dim observation, 14-dim action, 50 Hz, fixed-length episodes with seeded pushes, multiprocess vector env.</span>
+        <span class="sr">27 tests · PD baseline 108.7</span></div>
+      <div class="stepbox todo"><span class="sn">step 3</span><span class="st">PPO against the baseline</span>
+        <span class="sd">Reusing the implementation from the previous project. Metric: recovery rate under randomised pushes, n = 100.</span>
+        <span class="sr">opens on the reward decision</span></div>
+      <div class="stepbox todo"><span class="sn">step 4</span><span class="st">Domain randomisation</span>
+        <span class="sd">Over the four measured actuator classes, evaluated on the backlash variant as held-out physics. Report the gap.</span>
+        <span class="sr">not started</span></div>
+      <div class="stepbox todo"><span class="sn">step 5</span><span class="st">ONNX export</span>
+        <span class="sd">Single-thread latency, verified against PyTorch two ways.</span>
+        <span class="sr">not started</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>common.py</td><td class="num">203</td>
+            <td>The shared contract. The four variant filenames; the fourteen actuator names <em>written out</em>
+              rather than read from the model, so a test can catch an upstream reordering that would silently
+              permute every action a trained policy emits; the 500 Hz / 50 Hz timing; the four measured actuator
+              classes; and — critically — <code>actuated_qpos_index()</code>, which computes the strided joint
+              index instead of assuming a contiguous slice.</td></tr>
+          <tr class="hl"><td>env.py</td><td class="num">323</td>
+            <td>The environment. The 48-dim observation layout and its per-group scaling, the residual action
+              mapping, the six-term reward, the push schedule, episode bookkeeping, and the
+              <code>mj_forward</code> that keeps every observation channel on one timestamp.</td></tr>
+          <tr><td>vec_env.py</td><td class="num">190</td>
+            <td>A hand-written multiprocess vector environment. Forks N workers over pipes, one environment each,
+              capped at the eight-thread budget. Environment <em>i</em> is seeded <code>seed + i</code>, and a
+              test asserts that N workers reproduce N sequential environments <strong>bit for bit</strong> — so a
+              result cannot quietly depend on how it was parallelised.</td></tr>
+          <tr><td>baseline.py</td><td class="num">180</td>
+            <td>Runs the shipped PD controller commanded to hold the standing pose over twenty seeds of the full
+              task, and writes <code>runs/baseline.json</code>. Also measures the three open risks step 3
+              inherits.</td></tr>
+          <tr class="hl"><td>bench.py</td><td class="num">466</td>
+            <td>The CPU benchmark and the most defensive file here. Brackets every configuration with a
+              single-process reference window and refuses to certify a table if that reference drifts more than
+              10 %; samples <code>/proc/&lt;pid&gt;/stat</code> twice to measure what <em>else</em> is on the box
+              right now; refuses more than eight processes without an explicit flag; and tests a sustained curve
+              for a plateau in both directions rather than only checking whether it fell.</td></tr>
+          <tr><td>bench_wrapper.py</td><td class="num">97</td>
+            <td>Measures the Python environment wrapper's cost against a bare <code>mj_step</code> loop doing the
+              same substeps, back to back in one process so the comparison is clean.</td></tr>
+          <tr><td>drop_test.py</td><td class="num">159</td>
+            <td>Two physics sanity tests — a limp ragdoll drop and a commanded pose hold — with a settle detector
+              and a rendered filmstrip.</td></tr>
+          <tr><td>inspect_model.py</td><td class="num">92</td>
+            <td>Dumps what each MJCF variant actually contains: degree-of-freedom counts, joints, actuators,
+              sensors, contact masks.</td></tr>
+          <tr><td>test_model.py</td><td class="num">161</td>
+            <td>The MJCF contract. Catches a reordered action space, a passive joint shifting the state vector,
+              a contact bitmask that drops the robot through the floor, and an upstream refit of a servo class.
+              None of those raise on their own.</td></tr>
+          <tr><td>test_env.py</td><td class="num">263</td>
+            <td>Twenty-seven environment checks, including the one that rebuilds the observation from its five
+              sources and asserts a bit-for-bit match, and the one that runs the observation builder on the
+              held-out backlash model against the obvious shortcut.</td></tr>
+          <tr><td>fetch_assets.sh</td><td class="num">53</td>
+            <td>Pulls the MJCF and 86 STL meshes from a pinned upstream commit. Nothing under
+              <code>assets/</code> is committed: the 3D files are Creative Commons BY-SA-NC, and a pinned fetch
+              script makes clear where the robot came from in a way that vendoring 23 MB of someone else's
+              binaries would not.</td></tr>
+          <tr><td>verify.sh</td><td class="num">97</td>
+            <td>Six tiers. The first five are cheap and check every structural claim in a few minutes; tier 6 is
+              the benchmark and is the only part that needs the machine to itself. Prints the resolved
+              interpreter, because <code>nice</code> reports a missing interpreter as
+              <code>No such file or directory</code>, which reads like a missing script.</td></tr>
+          <tr><td>runs/ · out/ · assets/</td><td class="num">—</td>
+            <td>Benchmark JSON (including both the contaminated and the clean latency runs), the baseline file,
+              drop-test filmstrips, and the fetched upstream model.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="gate">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Step 1 — the feasibility gate, and four wrong answers</h2><p class="sec-sub">The throughput measurement that decides whether the project is feasible, and the four wrong numbers before the right one.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>The unit, and the gate</h3>
+      <p>One <strong>environment step</strong> is one 50 Hz control decision, which is ten physics steps at the
+        model's 500 Hz timestep. Reinforcement-learning budgets are quoted in environment steps, so the gate is
+        written in them, and it was set <em>before</em> measuring:</p>
+      <div class="note">
+        <span class="note-label">The gate, fixed in advance</span>
+        <p>Below 5 000 environment-steps per second at eight processes, walking leaves the scope and the project
+          becomes stand-only.</p>
+      </div>
+      <p>MuJoCo's step for a sixteen-body model is single-threaded and small enough to stay in cache, so
+        parallelism has to come from <em>processes</em>. Every worker sets <code>OMP_NUM_THREADS=1</code> before
+        MuJoCo loads, or the workers each spawn a thread pool and fight each other.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Scaling, 20 s per configuration</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="num">Processes</th><th class="num">env-steps/s</th><th class="num">Per process</th><th class="num">Speed-up</th><th class="num">Efficiency</th></tr></thead>
+          <tbody>
+            <tr><td class="num">1</td><td class="num">6 521</td><td class="num">6 521</td><td class="num">1.00×</td><td class="num">100 %</td></tr>
+            <tr><td class="num">2</td><td class="num">12 555</td><td class="num">6 278</td><td class="num">1.93×</td><td class="num">96 %</td></tr>
+            <tr><td class="num">4</td><td class="num">21 424</td><td class="num">5 356</td><td class="num">3.29×</td><td class="num">82 %</td></tr>
+            <tr class="hl"><td class="num">8</td><td class="num">28 749</td><td class="num">3 594</td><td class="num">4.41×</td><td class="num">55 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose"><strong>Gate: PASS, 5.7× over.</strong> The single-process reference window between
+        configurations held to within 6 % across the whole sweep, so the four rows were measured on the same
+        machine as each other. Run twice, seven minutes apart: the eight-process row came back 28 960 and
+        28 749 — 0.7 % apart.</p>
+    </div>
+
+    <div class="stack">
+      <h3>The first set of numbers, and why they are the interesting ones</h3>
+      <div class="prose stack">
+        <p>Step 1 originally certified a different table: 6 666 / 9 801 / 14 275 / 20 474 — same code, same
+          variant, same thread budget, same laptop on mains power. The difference is a host state the guest
+          cannot read.</p>
+        <p><strong>Read the shape rather than the totals, because the shape is the diagnosis.</strong>
+          Single-process is flat within run-to-run spread; every multi-process row is roughly a third lower.
+          Thermal throttling decays with time under load and would have moved the reference windows
+          <em>within</em> the sweep. Another process competing for CPU depresses every row, the single-process
+          one included. A sustained all-core power limit does exactly this and nothing else — single-core turbo
+          never depended on the all-core budget, every additional core did.</p>
+      </div>
+      <div class="note warnbox">
+        <span class="note-label">The tell that should have caught it at the time</span>
+        <p>Two processes on a fourteen-core machine returned <strong>74 % efficiency</strong>. There is no
+          core-count explanation for that — two workers cannot contend for cores when twelve are idle. It was
+          read as a property of the chip, and a scaling story was built on top of it. It was a property of the
+          machine's power state that afternoon.</p>
+      </div>
+      <div class="prose stack">
+        <p>There was a deeper excursion in the same window: the single-process rate fell to 3 069 env-steps/s —
+          46 % of certified — with the box idle. The benchmark's reference bracket called that run <em>stable</em>,
+          and it was right to: the tool detects a reference that <em>moves during a sweep</em>, and this was a
+          machine that was uniformly slow for the whole sweep. That is a real limitation of the method —
+          <strong>a drift guard cannot catch a bias that is already in place when the first window opens.</strong>
+          The only defence is an absolute expectation, which is what the certified table now provides.</p>
+        <p>Both recovered after a check on the Windows side. <em>Which</em> setting changed is not recorded, and
+          that is the finding rather than a hole in it: a WSL2 guest cannot read power mode, charger wattage,
+          package power or core frequency, so host state is unrecoverable after the fact and has to be written
+          down at measurement time or lost.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>What a training run actually gets — three reasons it is not 28 749</h3>
+      <div class="prose stack">
+        <p><strong>First, the sweep pauses and a training run does not.</strong> The sweep brackets every
+          configuration with a reference window, which lets the processor package cool. Holding eight processes
+          flat out for four minutes:</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="num">Elapsed</th><th class="num">env-steps/s</th><th class="num">vs peak</th></tr></thead>
+          <tbody>
+            <tr><td class="num">20 s</td><td class="num">33 349</td><td class="num">—</td></tr>
+            <tr><td class="num">60 s</td><td class="num">≈30 900</td><td class="num">−7 %</td></tr>
+            <tr><td class="num">120 s</td><td class="num">27 313</td><td class="num">−18 %</td></tr>
+            <tr><td class="num">180 s</td><td class="num">≈24 600</td><td class="num">−26 %</td></tr>
+            <tr class="hl"><td class="num">240 s</td><td class="num">19 256</td><td class="num">−42 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose stack">
+        <p>Monotonic in all twelve windows, and the final step is −1.0 %, so the curve has just about flattened.
+          Run in the reduced-power state, the same test read 27 905 in its first window and then eleven windows
+          at 20 152 ± 287 — a 5 % spread with no trend. <strong>The two runs are worth more together than
+          separately: their floors agree to 3.9 %.</strong> The host power state changed how much burst the
+          machine had to spend, not where it ended up.</p>
+        <p><strong>Second, the benchmark does not measure the thing that gets trained.</strong> Its worker is a
+          bare <code>mj_step</code> loop on the <code>walk</code> variant. The task runs the Python environment
+          wrapper on <code>groundcontact</code>, and both of those cost:</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Single process, 10 s windows</th><th class="num">Bare <code>mj_step</code></th><th class="num">Through the wrapper</th><th class="num">Wrapper cost</th></tr></thead>
+          <tbody>
+            <tr><td><code>walk</code></td><td class="num">7 505</td><td class="num">5 692</td><td class="num">32 %</td></tr>
+            <tr class="hl"><td><code>groundcontact</code></td><td class="num">5 223</td><td class="num">4 175</td><td class="num"><strong>25 %</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose stack">
+        <p>About seven points of that 25 % is a <em>correctness fix</em> rather than overhead — see the defect
+          list below — and it is explicitly not an optimisation target.</p>
+        <p><strong>Third, <code>groundcontact</code> does not scale like <code>walk</code>.</strong> The variant
+          with five times the ground-collidable geometry loses efficiency earlier and ends thirteen points lower
+          at eight processes: 42 % against 55 %. That is the signature of a shared resource <em>outside</em> the
+          core — cache or memory bandwidth — and against a performance-core/efficiency-core split, which would
+          not care how much contact solving each process does.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>The number a training run should be budgeted on</h3>
+      <div class="prose stack">
+        <p>Measured directly, on the variant that gets trained, under the load it gets trained at, over eighteen
+          windows. The shape is <em>not</em> the <code>walk</code> shape: <code>groundcontact</code> undershoots
+          at window 11 and then climbs back for six windows, ending 11 % above its minimum and still rising
+          +0.6 % at the last window. So this is not a steady state either, and eighteen windows found the dip
+          rather than the floor.</p>
+        <p>Window 11, the global minimum, is <strong>contaminated</strong> — a ten-second two-process benchmark
+          of the author's own overlapped it — and is excluded. Excluding it, the last nine windows run
+          <strong>15 806 to 17 266, a 9 % band, mean 16 590.</strong> That band is the honest uncertainty, and
+          the budget uses its middle rather than its top.</p>
+        <pre><code>16 590 × 0.799 (wrapper) = ~13 300 env-steps/s
+range 12 600 – 13 800 across the band</code></pre>
+      </div>
+      <div class="note key">
+        <span class="note-label">The correction that went the other way — and it is the most reusable finding here</span>
+        <p>The tally for this one number is <strong>28 749 → 18 400 → 8 000 → 13 300</strong>. Three corrections
+          downward from unmeasured optimism, and then one <em>upward</em>, because the 8 000 figure had been
+          built by multiplying an already-depressed measurement by a sustained derate borrowed from a different
+          variant — <strong>the derate was counted twice</strong>.</p>
+        <p>Being conservative is not free and it is not automatically honest. An unmeasured pessimistic
+          assumption is the same error as an unmeasured optimistic one, and it costs real scope. The fix in both
+          directions was identical: measure the thing itself instead of composing estimates of its parts.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Training budget</th><th class="num">Wall time at ≈13 300 steps/s</th></tr></thead>
+          <tbody>
+            <tr><td>10 M — hyperparameter probe</td><td class="num">13 min</td></tr>
+            <tr class="hl"><td>50 M — stand + push recovery, expected</td><td class="num"><strong>1.0 h</strong></td></tr>
+            <tr><td>100 M — stand, generous</td><td class="num">2.1 h → 2 chunks</td></tr>
+            <tr><td>400 M — walking gait, upstream-scale</td><td class="num">8.4 h → 5 chunks</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose"><strong>Scope conclusion: stand-and-recover is one comfortable sitting; walking is five
+        chunks.</strong> That was the question the gate had to answer, and it survived all four revisions of the
+        number — which is the only reason the revisions were tolerable.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Why efficiency falls to 55 %, and what could not be determined</h3>
+      <p>The chip is an Intel Core Ultra 5 225H: fourteen cores, no hyperthreading, heterogeneous — performance
+        cores alongside efficiency cores. The obvious hypothesis is that workers 5–8 land on the slower ones.
+        Pinning four workers to CPUs 0–3 and then to CPUs 10–13 gave a 15 % difference under load and 6 %
+        single-threaded — far too small for a performance/efficiency split, which would show roughly 2×.</p>
+      <p>The explanation is that <strong>CPU affinity inside WSL2 does not pin to a physical core.</strong>
+        <code>sched_setaffinity</code> binds the process to a <em>virtual</em> CPU, and the hypervisor schedules
+        virtual CPUs onto physical cores on its own. So that experiment cannot answer the question, and neither
+        can any other experiment run from inside the guest.</p>
+      <p><strong>Pinning was the wrong instrument. Changing the workload worked.</strong> The
+        <code>groundcontact</code> sweep loses efficiency earlier and ends thirteen points lower on the same
+        cores in the same session, and a core-type split cannot produce that — which physical core a process
+        lands on does not depend on how much contact solving it does. That points at cache and memory bandwidth
+        over the other candidates. It is one comparison between two variants, not a proof, and it is recorded as
+        unresolved rather than resolved with the plausible-sounding answer. What matters operationally is
+        settled anyway: eight processes is the right choice, because it delivers the most total throughput even
+        at 55 % efficiency.</p>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Three things about the model that changed the plan</h2><p class="sec-sub">Three properties of the robot model that forced the plan to change.</p></div>
+  <div class="findings">
+    <div class="finding"><span class="fnum">01</span><div class="fbody">
+      <h4>On the <code>walk</code> model, only the feet can touch the ground</h4>
+      <p>MuJoCo lets two geometries collide only if one's <code>contype</code> shares a bit with the other's
+        <code>conaffinity</code>. In the walking model the floor is 1/1 and the two foot geometries are 1/1 —
+        but <strong>every other body and limb geometry is 2/2</strong>. Two and one share no bits, so the trunk,
+        head and legs cannot touch the floor at all.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Variant</th><th class="num">Geometries that can touch the floor</th><th class="num">Trunk at rest</th></tr></thead>
+        <tbody>
+          <tr class="bad"><td><code>walk</code></td><td class="num">2 (the feet)</td><td class="num"><strong>−10.5 cm — through the floor</strong></td></tr>
+          <tr class="hl"><td><code>groundcontact</code></td><td class="num">10</td><td class="num">+3.2 cm — resting on it</td></tr>
+        </tbody>
+      </table></div>
+      <p>This is deliberate upstream: a walking task ends the episode the instant the robot falls, so what
+        happens afterwards never has to be physical, and dropping the collision geometry makes the simulation
+        faster. It makes <code>walk</code> the wrong model for anything involving lying on the ground or getting
+        back up. <strong>The failure is silent</strong> — nothing raises, no contact is reported, the robot just
+        sinks, and a reward function reading trunk height would have been quietly rewarded for falling through
+        the world. <em>Decision: the task uses <code>groundcontact</code>.</em></p>
+    </div></div>
+    <div class="finding"><span class="fnum">02</span><div class="fbody">
+      <h4>The backlash variant renumbers the state vector — and it is the evaluation model</h4>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Variant</th><th class="num">nq</th><th class="num">nv</th><th class="num">Passive joints</th><th>Action space</th></tr></thead>
+        <tbody>
+          <tr><td><code>walk</code></td><td class="num">21</td><td class="num">20</td><td class="num">0</td><td>identical</td></tr>
+          <tr><td><code>groundcontact</code></td><td class="num">21</td><td class="num">20</td><td class="num">0</td><td>identical</td></tr>
+          <tr><td><code>rollers</code></td><td class="num">25</td><td class="num">24</td><td class="num">4</td><td>identical</td></tr>
+          <tr class="hl"><td><code>walk_backlash</code></td><td class="num">35</td><td class="num">34</td><td class="num">14</td><td>identical</td></tr>
+        </tbody>
+      </table></div>
+      <p>That the action space is identical across all four is what makes the sim-to-sim step possible. But
+        <code>walk_backlash</code> inserts a passive joint in series with <em>every</em> actuated joint, and
+        those passive joints interleave: the actuated joint angles sit at state indices 7, 9, 11 … 33, not the
+        contiguous 7…20 they occupy elsewhere.</p>
+      <p>Any observation builder that hard-codes <code>qpos[7:21]</code> reads a mixture of joint angles and
+        backlash deflections on the evaluation model — plausible numbers, wrong meaning, no error. Measured, the
+        shortcut is <strong>wrong on 13 of 14 joints, by up to 0.938 rad</strong>. Everything here goes through
+        <code>common.actuated_qpos_index()</code> instead, and a test asserts the stride.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">03</span><div class="fbody">
+      <h4>Joint friction is the parameter the hardware people disagree about by 6.7×</h4>
+      <p>The upstream properties file ships four fitted actuator classes for the <em>same</em> servo — different
+        people, different benches, all left in the file.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Class</th><th class="num">Damping</th><th class="num">Friction loss</th><th class="num">Armature</th><th class="num">kp</th><th class="num">Force limit</th></tr></thead>
+        <tbody>
+          <tr><td><code>chosen_actuator</code></td><td class="num">0.053</td><td class="num">0.0048</td><td class="num">0.0018</td><td class="num">0.550</td><td class="num">0.96</td></tr>
+          <tr><td><code>chosen_actuator_old</code></td><td class="num">0.048</td><td class="num">0.0060</td><td class="num">0.0020</td><td class="num">0.520</td><td class="num">0.91</td></tr>
+          <tr><td><code>chosen_actuator_new</code></td><td class="num">0.041</td><td class="num">0.0320</td><td class="num">0.0020</td><td class="num">0.386</td><td class="num">0.67</td></tr>
+          <tr><td><code>chosen_actuator_antoine</code></td><td class="num">0.044</td><td class="num">0.0130</td><td class="num">0.0017</td><td class="num">0.430</td><td class="num">0.75</td></tr>
+          <tr class="hl"><td><strong>spread (max/min)</strong></td><td class="num">1.29×</td><td class="num"><strong>6.67×</strong></td><td class="num">1.18×</td><td class="num">1.42×</td><td class="num">1.43×</td></tr>
+        </tbody>
+      </table></div>
+      <p>Damping, armature, gain and torque limit agree to within about 40 %. Friction loss disagrees by a factor
+        of seven. This is a <em>measured</em> parameter uncertainty, not a guess, and it is the honest place to
+        get a domain-randomisation range from — rather than the usual ±20 % around a nominal, chosen because it
+        sounds reasonable. It also says where to spend the randomisation budget: wide on friction, narrow on
+        everything else. A test parses the XML and fails if upstream refits a servo.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="drop">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Do the physics behave? Two drop tests</h2><p class="sec-sub">Two physics checks confirming the model falls, settles and collides the way it should.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Limp — a ragdoll from 25 cm</h3>
+      <p>Actuator gains and biases zeroed so the robot has no muscle at all. Note that commanding
+        <code>ctrl = 0</code> does <em>not</em> do this: a MuJoCo position actuator produces
+        <code>gain·ctrl + bias₁·qpos + bias₂·qvel</code>, so a zero command is a stiff hold at the zero pose. All
+        three coefficients have to go.</p>
+      <p>It falls, lands, and comes to rest at trunk height 3.0 cm with 14 contacts and a maximum joint speed of
+        0.09 rad/s. No sinking, no jitter, no explosion.</p>
+    </div>
+    <div class="stack prose">
+      <h3>Hold — commanded to the standing pose</h3>
+      <p>The actuators are commanded to the STAND keyframe, which is where every training episode will begin.
+        It holds for <strong>0.79 s</strong>, then topples, and settles face-down at 4.30 s.</p>
+      <div class="note key">
+        <span class="note-label">Why that number matters</span>
+        <p>The shipped PD controller at kp = 0.55 does not hold the pose. So STAND is an <em>unstable
+          equilibrium</em>, standing is a real balancing problem rather than a pose hold, and the baseline the
+          learned policy has to beat is easy to state: <em>falls over in 0.79 s</em>.</p>
+      </div>
+      <p>The same test on <code>walk</code> topples at the identical 0.79 s — the dynamics match until the body
+        reaches the floor — and then sinks to −10.5 cm, which is the contact-mask finding again, visible as a
+        number.</p>
+    </div>
+  </div>
+</section>
+
+<section id="contract">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Step 2 — the environment contract</h2><p class="sec-sub">The 48-dimensional observation, the action scaling, and the six reward terms.</p></div>
+  <div class="stack-lg">
+    <div class="stack">
+      <h3>The observation is 48-dim. Step 1 said 61, and 61 was wrong</h3>
+      <div class="prose stack">
+        <p>61 is everything the <em>simulator</em> knows about the robot. 48 is everything the <em>robot</em>
+          knows about itself. The difference is thirteen numbers that are free in MuJoCo and do not exist on
+          hardware.</p>
+      </div>
+      <div class="obsbar">
+        <div class="obsseg"><span class="od">14</span><span class="on">joint position</span><span class="os">servo present-position</span></div>
+        <div class="obsseg"><span class="od">14</span><span class="on">joint velocity</span><span class="os">servo present-velocity — real, and noisy. Included because the servos report it, not because it is clean</span></div>
+        <div class="obsseg"><span class="od">14</span><span class="on">previous action</span><span class="os">the policy's own last output; it is in RAM</span></div>
+        <div class="obsseg"><span class="od">3</span><span class="on">gyro</span><span class="os">IMU rate gyro</span></div>
+        <div class="obsseg"><span class="od">3</span><span class="on">projected gravity</span><span class="os">world −Z in the trunk frame — the observable part of attitude</span></div>
+      </div>
+      <div class="obsbar" style="margin-top:14px">
+        <div class="obsseg drop"><span class="od">3</span><span class="on">IMU linear velocity</span><span class="os">a velocimeter. There is no state estimator on the robot, so base linear velocity is not measurable</span></div>
+        <div class="obsseg drop"><span class="od">3</span><span class="on">trunk position</span><span class="os">world-frame xyz — same problem, and no external tracking rig in the loop</span></div>
+        <div class="obsseg drop"><span class="od">4</span><span class="on">full orientation quaternion</span><span class="os">yaw is not observable from a gyro and an accelerometer; the model declares no magnetometer, so heading can only be integrated, and drifts</span></div>
+        <div class="obsseg drop"><span class="od">3</span><span class="on">root angular momentum</span><span class="os">a MuJoCo computation over the body tree, not a sensor</span></div>
+      </div>
+      <div class="prose stack">
+        <div class="note key">
+          <span class="note-label">Why cut them before training rather than after</span>
+          <p>A policy that reads those learns to depend on them and then has nothing to run on. Since the only
+            claim this project can honestly make is about transfer, the observation is cut down to sensors the
+            robot carries <em>before</em> any training happens. It costs nothing now and cannot be retrofitted
+            later.</p>
+        </div>
+        <p>One further detail: the gyro is read from the <code>angular-velocity</code> sensor rather than its
+          twin <code>imu_ang_vel</code>. Both sit on the same site and read identically today, because MuJoCo
+          applies a sensor's declared noise only when a flag is set and it is not set here. But
+          <code>angular-velocity</code> is the one upstream put <code>noise="0.005"</code> on — so step 4 flips
+          the flag and gets the noise magnitude the robot's authors chose, instead of one invented to look
+          reasonable.</p>
+        <p>A test rebuilds the observation from those five sources and asserts the environment's output matches
+          bit for bit. That is the only way to prove nothing simulator-only leaked in — and it separately checks
+          that the <em>excluded</em> velocimeter is reading a live non-zero signal, so the exclusion is a real
+          one rather than a channel that happens to be zero.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Actions, and a trap in the model file</h3>
+      <p>Fourteen outputs in [−1, 1], applied as residuals around the standing pose:</p>
+      <pre><code>target = STAND_pose + 0.35 * action        then clipped to the joint limits</code></pre>
+      <p>A saturated action moves a joint 0.35 rad — about 22 % of the median joint range — in one 20 ms
+        decision. That number is a hyperparameter, not a derived quantity, and step 3 is set up to report what
+        happens at 0.2 and 0.5.</p>
+      <div class="note warnbox">
+        <span class="note-label">The clip is not decoration</span>
+        <p><code>ctrlrange</code> on all fourteen actuators is <strong>[−10, 10] rad</strong>, while the tightest
+          joint limit — hip roll — is <strong>±0.384 rad</strong>. Handing a position actuator a 10 rad target
+          raises nothing: it saturates against the joint stop and spends the entire force range holding there.
+          Nothing in the model prevents this and nothing reports it.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Episodes and pushes</h3>
+      <p>250 steps at 50 Hz — five seconds — <strong>fixed length with no early termination</strong>. The usual
+        locomotion setup ends the episode the moment the robot falls. That is right for walking and wrong here:
+        recovery is half the task, and terminating on a fall makes falling unrecoverable by construction. It also
+        keeps returns comparable — every episode is the same length, so a baseline that topples early gets a low
+        return rather than a short episode that looks cheap.</p>
+      <p>Three pushes per episode, drawn from the episode seed: magnitude uniform in 0.15–0.45 m/s applied to
+        the trunk's linear velocity, direction uniform in azimuth, timing uniform but held half a second clear
+        of both ends. A push at t = 0 is an initial condition rather than a disturbance, and one at the buzzer is
+        never recovered from inside the episode.</p>
+    </div>
+
+    <div class="stack">
+      <h3>The reward — six terms, all logged separately</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Term</th><th class="num">Weight</th><th>Shape</th></tr></thead>
+          <tbody>
+            <tr><td>upright</td><td class="num">+1.0</td><td>trunk z-axis against world up, floored at 0</td></tr>
+            <tr><td>height</td><td class="num">+1.0</td><td>Gaussian on trunk height about 0.12 m, σ = 3 cm</td></tr>
+            <tr><td>posture</td><td class="num">−0.10</td><td>mean squared joint deviation from STAND</td></tr>
+            <tr><td>action rate</td><td class="num">−0.05</td><td>mean squared change in action</td></tr>
+            <tr><td>joint velocity</td><td class="num">−2e−4</td><td>mean squared joint velocity</td></tr>
+            <tr><td>effort</td><td class="num">−0.02</td><td>mean squared actuator force</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">A perfectly held stand scores 2.0 per step, so <strong>500 is the episode ceiling</strong>.
+        Each term is logged separately in the step info so step 3 can show which one is doing the work, rather
+        than reporting a single scalar and calling it tuned.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Observation scaling, and the vector environment</h3>
+      <p>Each group is divided down so no input dominates by unit choice alone: joint positions and projected
+        gravity are already order 1, joint velocity reaches ~20 rad/s in a fall and is scaled by 0.05, and the
+        gyro by 0.25. Whether those scales are right is one of the three open risks below — they are not.</p>
+      <p><code>vec_env.py</code> forks N workers over pipes, one environment each, capped at eight. Environment
+        <em>i</em> is seeded <code>seed + i</code>, and a test asserts that N workers reproduce N sequential
+        environments bit for bit — so a run is reproducible at any worker count, and a result cannot quietly
+        depend on how it was parallelised.</p>
+    </div>
+  </div>
+</section>
+
+<section id="baseline">
+  <div class="sec-head"><span class="sec-num">08</span><h2>The number a learned policy has to beat</h2><p class="sec-sub">The hand-tuned PD controller that any learned policy has to beat.</p></div>
+  <div class="stack">
+    <p class="prose">The shipped PD controller commanded to hold STAND — which is exactly what a zero action
+      emits — over twenty seeds of the full task, pushes and initial-state noise included.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Measurement</th><th class="num">Value</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>return</td><td class="num"><strong>108.7 ± 2.9</strong> of a 500 ceiling</td></tr>
+          <tr><td>fraction of the episode on the floor</td><td class="num">54 %</td></tr>
+          <tr><td>starts to tilt (upright cos &lt; 0.9)</td><td class="num">0.65 s</td></tr>
+          <tr><td>trunk reaches the floor (height &lt; 4 cm)</td><td class="num">2.28 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose stack">
+      <p>The last two reconcile the drop test with this one: 0.79 s was the toppling threshold, 2.28 s is ground
+        contact. Same event, measured at two points on the way down.</p>
+      <div class="note">
+        <span class="note-label">Why this file exists at all</span>
+        <p>The first version of these numbers — 108.9 ± 2.8, with a ground-contact time of 2.54 s against a
+          threshold that was never written down — came from an ad-hoc script that was not kept. The return
+          survived re-measurement to within the noise it already reported. The contact time did not, and there is
+          now no way to tell whether that is the correctness fix or a different threshold. That is the argument
+          for a tracked script and a JSON file rather than a number in a notebook.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="defects">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Five silent defects the tests did not catch</h2><p class="sec-sub">Defects the test suite passed over, and what each would have cost during training.</p></div>
+  <div class="stack">
+    <p class="prose">Step 2 closed by reviewing the environment against <em>the thing that is about to consume
+      it</em> — a PPO loop — rather than against its own tests. Twenty-seven contract tests had passed. Five
+      defects came out of that review, all silent, all now fixed with a test that fails without the fix.</p>
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>The observation mixed two instants</h4>
+        <p><code>mj_step</code> integrates position and velocity to t+1 but leaves sensor data and body
+          positions at t — so the gyro was 2 ms older than the joint angles beside it. Every number was
+          plausible. Measured, it was 0.054 rad/s on the gyro and 1.4 mm on trunk height against a 30 mm reward
+          sigma. It attacks the one claim this project makes — that every observation channel is one real
+          hardware could produce — and no IMU disagrees with its own encoders by a timestep. Fixed by calling
+          <code>mj_forward</code> before reading anything, which costs 7 % of throughput and is a correctness
+          cost, not overhead.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>The reset clamp never executed</h4>
+        <p><code>np.clip(qpos[idx], lo, hi, out=qpos[idx])</code> with an integer index array writes into a
+          <em>temporary copy</em> — fancy indexing does not produce a view. Latent at the default initialisation
+          noise, because the tightest joint sits 0.297 rad clear of its limit. At the larger noise step 4 will
+          use, two joints of fourteen start 0.086 rad outside their range and MuJoCo applies a limit impulse at
+          t = 0.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>The done flag carried no truncation information</h4>
+        <p>Every episode ends on the step limit and none on a terminal state. A stock GAE loop zeroes the
+          bootstrap at <code>done</code>, which at γ = 0.99 corrupts the value target about a hundred steps back
+          into a 250-step episode. The training curve still goes up. This is the same bug the previous project
+          in this track designed its environment specifically to make impossible.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>A dead worker reported nothing useful</h4>
+        <p>A worker that died gave the parent a bare <code>EOFError</code> naming neither the worker nor the
+          cause, and bad environment arguments failed the same way out of the constructor. The child's traceback
+          does reach stderr — but in a redirected training log it is nowhere near the failure.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">05</span><div class="fbody">
+        <h4>Stepping before resetting produced a valid-looking, push-free episode</h4>
+        <p>And the vector environment's constructor raising a validation error emitted an unrelated
+          <code>AttributeError</code> from its destructor on top of it. One test in this repository was doing
+          exactly the first thing and discarding the result.</p>
+      </div></div>
+    </div>
+    <div class="note key">
+      <span class="note-label">The point of listing these</span>
+      <p>Twenty-seven contract tests say the environment does what it claims. A review against its consumer
+        found five things the tests did not. Neither can say the task is <em>learnable</em> — that is what step 3
+        is for.</p>
+    </div>
+  </div>
+</section>
+
+<section id="risks">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Three open risks — decisions, not bugs</h2><p class="sec-sub">Choices still open, listed as decisions rather than as bugs.</p></div>
+  <div class="stack-lg">
+    <div class="stack">
+      <h3>1 — Three of the four reward penalties are numerically dead</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Term</th><th class="num">Weight</th><th class="num">PD baseline</th><th class="num">Random actions</th></tr></thead>
+          <tbody>
+            <tr><td>upright</td><td class="num">+1.0</td><td class="num">70.0</td><td class="num">67.9</td></tr>
+            <tr><td>height</td><td class="num">+1.0</td><td class="num">38.8</td><td class="num">40.8</td></tr>
+            <tr><td>action_rate</td><td class="num">−0.05</td><td class="num">0.00</td><td class="num">−8.33</td></tr>
+            <tr class="bad"><td>posture</td><td class="num">−0.10</td><td class="num">−0.15</td><td class="num">−0.22</td></tr>
+            <tr class="bad"><td>effort</td><td class="num">−0.02</td><td class="num">−0.01</td><td class="num">−0.07</td></tr>
+            <tr class="bad"><td>joint_vel</td><td class="num">−2e−4</td><td class="num">−0.00</td><td class="num">−0.04</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose"><code>action_rate</code> is zero for the PD baseline only because a constant action has no
+        rate — it is live. The other three are under 0.25 % of the return under both policies.
+        <code>joint_vel</code>'s weight was chosen for the ~20 rad/s of a fall, and measured joint speed is under
+        1 rad/s — 400× smaller once squared. So the plan to report which penalty is doing the work would report
+        three zeros, and <em>effort and velocity regularisation, which is usually what governs whether a policy
+        transfers, is absent in practice.</em> Reweighting changes the baseline, so it is a step-3 decision rather
+        than a step-2 edit.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>2 — The reward is informative about standing and nearly flat about getting up</h3>
+      <p>Per-step reward while upright (cos &gt; 0.9) is 1.92 ± 0.05; while down (cos &lt; 0.3) it is
+        0.12 ± 0.04. The level gap is 16×, so the <em>return</em> clearly prefers standing and the task is not
+        degenerate. But <code>upright</code> is floored at 0 past 90°, and <code>height</code> is a 3 cm Gaussian
+        worth about 1e−3 at floor level — so inside the fallen region the reward barely says which way is up.
+        Expect exploration, not reward shape, to decide whether recovery is learned, and expect <em>fall slowly
+        and stay tilted</em> as the competing local optimum.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>3 — The observation scaling is a guess, and the measurement says it guessed wrong</h3>
+      <p>Group RMS under random actions: projected gravity 0.577, previous action 0.575, gyro 0.211, joint
+        position 0.094, joint velocity 0.044. A 13× spread — with <strong>the 28 dimensions that describe the
+        body's configuration carrying the least variance of all</strong>, so an unnormalised first layer attends
+        mostly to the policy's own previous output. Step 3 needs a running observation normaliser rather than a
+        better fixed guess.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Scope, now that the gate has been measured</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th>Item</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td><strong>In</strong></td><td>Stand and recover from pushes, on <code>groundcontact</code>, ~50 M environment steps — 1.0 h at the measured rate. One comfortable sitting, checkpointed anyway.</td></tr>
+            <tr class="hl"><td><strong>In</strong></td><td>Domain randomisation over the four measured actuator classes, evaluated on <code>walk_backlash</code> as held-out physics.</td></tr>
+            <tr><td><strong>In</strong> (was deferred)</td><td>A walking gait, 400 M steps — 8.4 h in five chunks of ≤2 h, against the 36 h that had put it out of reach.</td></tr>
+            <tr class="bad"><td><strong>Out</strong></td><td>Anything requiring mjlab, MuJoCo Warp, or a GPU.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>What steps 1 and 2 do not prove</h3>
+      <ul class="tight">
+        <li><strong>Nothing here trains anything.</strong> Throughput is measured with random actions around
+          STAND. A real training loop adds policy forward passes, advantage computation and optimiser steps on
+          top, so the measured rate is an upper bound on the rollout half only.</li>
+        <li><strong>The training-rate figure has one inherited factor.</strong> The wrapper cost was measured
+          single-core on an idle box, not under eight-process load.</li>
+        <li><strong>Neither sustained run reached a steady state.</strong> One was still falling 1.0 % per window
+          after twelve; the other bottomed out at window 11 and was still climbing 0.6 % after eighteen. The 9 %
+          plateau band is the honest uncertainty on the budget rate.</li>
+        <li><strong>The throughput figure has been wrong four times.</strong> Treat any number here as provisional
+          until a script in the repository reproduces it.</li>
+        <li><strong>The 0.79 s fall time is one deterministic rollout</strong> from one keyframe. It is a baseline
+          to beat, not a distribution — the 108.7 ± 2.9 return over twenty seeds is the distributional version.</li>
+        <li><strong>The reward has never had anything optimise against it.</strong> Three of its four penalties
+          are measurably inert and the fallen region is nearly flat; both are written up rather than quietly
+          retuned, because changing either invalidates the baseline they would be measured against.</li>
+        <li><strong>No observation noise, no domain randomisation, no actuator variation.</strong> One nominal
+          physics model. Step 4 adds the spread.</li>
+        <li><strong>Run-to-run spread is about 1 %</strong> from two runs seven minutes apart — not enough samples
+          to call it a distribution, and it says nothing about spread across days, where the host power state is
+          the dominant term and has already moved these numbers by 40 %. Two significant figures is all any of
+          this supports.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="stack">
+    <pre><code>git clone https://github.com/AungKaung1928/microduck-rl-cpu.git
+cd microduck-rl-cpu
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+
+./fetch_assets.sh        # pinned upstream commit, ~24 MB, gitignored
+./verify.sh              # tiers 1-5 are cheap; tier 6 loads the box</code></pre>
+    <h3>The cheap checks, individually</h3>
+    <pre><code>python3 test_model.py     # the MJCF contract: variants, actuator order, classes
+python3 test_env.py       # 27 environment contract checks
+python3 inspect_model.py --all
+python3 drop_test.py --mode limp --z0 0.25 --seconds 5
+python3 baseline.py --seeds 20</code></pre>
+    <h3>The benchmark — needs the machine to itself</h3>
+    <pre><code>nice -n 10 python3 bench.py --seconds 20 --ref-seconds 10 --tag main
+nice -n 10 python3 bench.py --sustained 8 --seconds 20 --windows 12 --tag sustained
+nice -n 10 python3 bench_wrapper.py --seconds 12        # 1 core, no load</code></pre>
+    <div class="prose stack">
+      <p>The only hard dependencies are <code>mujoco</code> and <code>numpy</code>. Rendering is needed only by
+        the drop-test filmstrips and goes through whatever <code>MUJOCO_GL</code> names.</p>
+      <p><code>bench.py</code> refuses to run more than eight processes without an explicit flag, and refuses to
+        certify a table if its single-process reference drifts more than 10 % during the sweep.</p>
+      <h3>Licence</h3>
+      <p>Upstream code is Apache-2.0; the 3D model files are Creative Commons BY-SA-NC. <code>assets/</code> is
+        therefore gitignored and reproduced by <code>fetch_assets.sh</code> from a pinned commit. Code in the
+        repository is the author's own.</p>
+      <h3>Measured environment</h3>
+      <p>Intel Core Ultra 5 225H, 14 cores, no hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2,
+        Ubuntu 22.04, Python 3.10, MuJoCo 3.12, software rendering through WSLg. No CUDA anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="stack prose">
+    <p>A balance-and-recover task for a 14-servo open-source biped, built to run entirely on a laptop CPU because
+      the upstream training stack requires CUDA. Step 1 is a feasibility gate whose answer arrived four times —
+      28 749, then 18 400, then 8 000, then 13 300 environment-steps per second — and the write-up keeps every
+      revision, including the one that was wrong in the <em>conservative</em> direction because a sustained
+      derate had been counted twice. Along the way it found that the walking model's contact bitmask lets the
+      robot fall through the floor, that the backlash variant renumbers the state vector so the obvious joint
+      slice is wrong on thirteen of fourteen joints, and that the robot's own authors disagree about joint
+      friction by 6.7× — which is where the domain-randomisation range will come from. Step 2 defines the
+      environment: a 48-dimensional observation cut down from 61 so that every channel is one real hardware
+      could produce, 14 residual actions with a clip that exists because the model's control range is 26× wider
+      than the tightest joint limit, fixed-length episodes with seeded pushes so recovery stays in scope, and a
+      six-term reward with a measured PD baseline of 108.7 ± 2.9 out of 500. A review of the environment against
+      its future consumer found five silent defects that twenty-seven passing contract tests had not, and three
+      open decisions — three dead penalties, a nearly flat reward in the fallen region, and an observation
+      scaling that measurement says is wrong — are documented rather than quietly retuned, because changing them
+      invalidates the baseline they would be measured against.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>microduck-rl-cpu</code> — <code>README.md</code>, <code>common.py</code>,
+  <code>env.py</code>, <code>vec_env.py</code>, <code>bench.py</code>, <code>bench_wrapper.py</code>,
+  <code>baseline.py</code>, <code>drop_test.py</code>, <code>test_model.py</code>, <code>test_env.py</code>,
+  <code>fetch_assets.sh</code> and <code>verify.sh</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

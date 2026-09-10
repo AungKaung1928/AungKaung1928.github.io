@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sub-Millimetre Cube Pose — Aung Kaung Myat</title>
+<meta name="description" content="A CPU-trained CNN recovering a cube's position and yaw from a single MuJoCo render, measured against two classical-vision baselines. Walkthrough of every file and result.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/cube-pose-cnn.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/cube-pose-cnn.html">
+<meta property="og:title" content="Sub-Millimetre Cube Pose">
+<meta property="og:description" content="A CPU-trained CNN recovering a cube's position and yaw from a single MuJoCo render, measured against two classical-vision baselines. Walkthrough of every file and result.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23527a6c'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#f7faf8;
+  --paper2:#ecf1ee;
+  --ink:#161d1a;
+  --ink2:#3d4a44;
+  --muted:#6d7873;
+  --line:#e2e9e5;
+  --line2:#cbd8d1;
+  --accent:#527a6c;
+  --accent-deep:#3a5b4f;
+  --accent-soft:#eff5f2;
+  --accent-line:#bdd3c9;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--warn)}
+.note p{font-size:.95rem}
+.pipe{display:flex;flex-wrap:wrap;margin-block:4px}
+.pnode{flex:1 1 160px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+.pnode + .pnode{border-left:0}
+.pn-name{font-family:var(--mono);font-size:.79rem;font-weight:600;word-break:break-word}
+.pn-role{font-size:.82rem;color:var(--muted);line-height:1.4}
+.pn-tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+@media (max-width:640px){.pnode+.pnode{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fbfdfc}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · block 1 · repo <code style="background:none;padding:0;color:inherit">mujoco-cube-pose-cnn</code></div>
+    <h1>Sub-Millimetre Cube Pose</h1>
+    <p class="deck">Given one 128×128 photograph of a cube on a table, where is it and which way is it turned?
+      A small convolutional network answers to <strong>0.59 mm</strong> and <strong>0.21°</strong>. The point of
+      the project is not that number — it is the four measurements around it that say how much of that win was
+      really the network, and how much was arithmetic anyone could have done by hand.</p>
+    <div class="chips">
+      <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
+      <span class="chip">ONNX Runtime</span><span class="chip">NumPy</span><span class="chip">no CUDA anywhere</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Best model</dt><dd><em>27 k</em> parameters</dd></div>
+      <div class="fact"><dt>Position error</dt><dd>0.59 mm median</dd></div>
+      <div class="fact"><dt>Latency</dt><dd>0.23 ms · 1 thread</dd></div>
+      <div class="fact"><dt>Training time</dt><dd>≈4 min per run</dd></div>
+      <div class="fact"><dt>Dataset</dt><dd>12 000 rendered images</dd></div>
+      <div class="fact"><dt>Hardware</dt><dd>laptop CPU, no GPU</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#task">The task</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#files">Every file</a>
+    <a href="#data">Making data</a>
+    <a href="#baseline">The baselines</a>
+    <a href="#model">The network</a>
+    <a href="#onnx">Export</a>
+    <a href="#results">Results</a>
+    <a href="#findings">What the numbers say</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">The problem in one picture: a rendered cube, and a network that has to say where it sits and how it is turned.</p></div>
+  <div class="stack prose">
+    <p>A robot that is going to pick something up needs to know exactly where that thing is and how it is
+      rotated. This project builds the smallest honest version of that problem: a single red-ish cube on a
+      flat table, one camera looking straight down, and the question "give me x, y and the rotation angle".</p>
+    <p>There are two obvious ways to answer it.</p>
+    <ol class="tight">
+      <li><strong>Write the rule yourself.</strong> The cube is a coloured blob on a plain table. Threshold the
+        image on colour, find the blob, take its centre, fit the smallest rectangle around it and read off the
+        angle. Thirty lines of OpenCV, no training, runs in 0.05 ms.</li>
+      <li><strong>Train a network.</strong> Render thousands of labelled images, feed them to a small
+        convolutional network, and let it learn the mapping.</li>
+    </ol>
+    <p>Almost every tutorial does option 2 and declares victory. This project does option 1 <em>first</em>, and
+      then does it a second time, better, before the network is allowed to compete. That ordering is the whole
+      experiment, and it changes the answer: the first hand-written baseline loses to the network by 4.5×, and
+      after one calibration constant is fitted to it, more than half of that gap disappears.</p>
+    <div class="note key">
+      <span class="note-label">The result the project exists to produce</span>
+      <p>Building the strong baseline <em>after</em> the model would have inflated the network's apparent
+        advantage by roughly 2×. What the network actually wins is not the typical case — it is the tail:
+        the classical method fails rarely and badly, the network fails never and mildly.</p>
+    </div>
+    <h3>Why simulation</h3>
+    <p>Labelling real photographs by hand is slow, and a human-placed label of "the cube centre is at
+      x = 4.2 cm" is not accurate to a millimetre. In MuJoCo the numbers go the other way: the position and
+      angle are <em>typed in</em>, and then the image is rendered from them. The label is not an annotation,
+      it is the input. Twelve thousand perfectly labelled images take about twelve seconds to generate.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>MuJoCo</b><span>The physics and rendering engine. Here it is used only to draw labelled images, not to simulate motion.</span></div>
+    <div class="gterm"><b>pose</b><span>Position plus orientation. For this cube that is x, y, z and a yaw angle.</span></div>
+    <div class="gterm"><b>yaw fold</b><span>A cube looks identical every 90 degrees, so yaw can only be defined modulo 90 — the metric has to fold before comparing.</span></div>
+    <div class="gterm"><b>spatial soft-argmax</b><span>A layer that converts a heatmap into an (x, y) coordinate while staying differentiable, so gradients still flow.</span></div>
+    <div class="gterm"><b>baseline</b><span>A simpler method the network has to beat. Without one, an error number means nothing.</span></div>
+    <div class="gterm"><b>MAE</b><span>Mean absolute error — the average size of the mistake, in millimetres or degrees.</span></div>
+    <div class="gterm"><b>val split</b><span>Data held back from training and looked at once, at the very end, so the number is not tuned against.</span></div>
+    <div class="gterm"><b>ONNX</b><span>A portable model format. The exported file runs without PyTorch, which is what deployment needs.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="task">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The task, defined precisely</h2><p class="sec-sub">What pose means here, what the network outputs, and the symmetry that makes yaw awkward.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Position</h3>
+      <p>The cube centre, in metres, in the table frame, sampled uniformly in ±0.075 m. The camera is directly
+        overhead and its image plane is parallel to the table, which means the mapping from pixels to metres is
+        exactly affine — no perspective correction, no distortion model. At 128 px the scale is
+        <strong>367.9 px/m</strong>, i.e. one pixel is 2.72 mm.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Rotation, and the trap in it</h3>
+      <div class="prose stack">
+        <p>A cube seen from directly above shows a square. A square looks identical at 5° and at 95°. So the
+          rotation is only observable <em>modulo 90°</em>, and asking a network for "the angle in degrees" is
+          asking it for something that does not exist.</p>
+        <p>Worse, regressing a raw angle puts a discontinuity in the middle of the label range: 89° and 1° are
+          nearly the same pose but numerically far apart, so the network hedges toward the middle and is
+          systematically wrong near the boundary. The fix used here — and it is standard practice in pose
+          estimation — is to predict a point on a circle instead of an angle:</p>
+        <pre><code>target = (sin 4θ, cos 4θ)          # YAW_FOLD = 4</code></pre>
+        <p>Multiplying by four folds a full turn onto four identical quarters, so θ and θ+90° map to exactly the
+          same target and there is no seam anywhere. Decoding runs it backwards:
+          <code>θ = atan2(s, c) / 4</code>, wrapped into [0°, 90°).</p>
+        <p>Crucially, OpenCV's <code>minAreaRect</code> has exactly the same ambiguity. Both methods are scored
+          under the same 90° fold, by the same function, so the comparison is fair by construction rather than
+          by assertion.</p>
+      </div>
+      <figure>
+        <svg viewBox="0 0 720 200" role="img" aria-label="Two diagrams: a raw angle label with a discontinuity at ninety degrees, and the sin four theta cos four theta encoding which is continuous.">
+          <rect width="720" height="200" fill="#f7faf8"/>
+          <text x="24" y="26" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="#161d1a">Raw angle target — a cliff at the fold</text>
+          <line x1="24" y1="150" x2="320" y2="150" stroke="#cbd8d1" stroke-width="1"/>
+          <line x1="24" y1="60" x2="24" y2="150" stroke="#cbd8d1" stroke-width="1"/>
+          <line x1="24" y1="150" x2="300" y2="60" stroke="#9c4a45" stroke-width="2"/>
+          <line x1="300" y1="60" x2="300" y2="150" stroke="#9c4a45" stroke-width="2" stroke-dasharray="3 3"/>
+          <line x1="300" y1="150" x2="320" y2="144" stroke="#9c4a45" stroke-width="2"/>
+          <text x="24" y="170" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">0°</text>
+          <text x="286" y="170" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">90°</text>
+          <text x="120" y="186" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#9c4a45">same pose, opposite ends of the range</text>
+
+          <text x="400" y="26" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="#161d1a">(sin 4θ, cos 4θ) — continuous, no seam</text>
+          <circle cx="520" cy="115" r="52" fill="none" stroke="#bdd3c9" stroke-width="1.5"/>
+          <line x1="452" y1="115" x2="592" y2="115" stroke="#e2e9e5" stroke-width="1"/>
+          <line x1="520" y1="47" x2="520" y2="183" stroke="#e2e9e5" stroke-width="1"/>
+          <circle cx="557" cy="78" r="5" fill="#527a6c"/>
+          <circle cx="483" cy="152" r="5" fill="#527a6c"/>
+          <line x1="520" y1="115" x2="557" y2="78" stroke="#527a6c" stroke-width="1.6"/>
+          <text x="600" y="82" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#3a5b4f">θ = 5°</text>
+          <text x="600" y="98" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#3a5b4f">θ = 95°</text>
+          <text x="600" y="114" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">land on the</text>
+          <text x="600" y="128" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">same point</text>
+        </svg>
+        <figcaption>Left: what a raw-degree target does to the loss surface. Right: the encoding actually used.</figcaption>
+      </figure>
+    </div>
+
+    <div class="stack prose">
+      <h3>Two appearance regimes</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Regime</th><th>What varies</th><th>What it tests</th></tr></thead>
+          <tbody>
+            <tr><td><code>easy</code></td><td>Nothing. Fixed cube colour, fixed light position and intensity, fixed table shade.</td><td>Whether a hand-written rule is simply the better engineering choice when the world is controlled.</td></tr>
+            <tr><td><code>hard</code></td><td>Cube hue uniform over the whole colour wheel, saturation and value randomised; table shade randomised; light position and intensity randomised.</td><td>Whether a fixed prior survives appearance change — the miniature version of the sim-to-real question.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Note what is <em>not</em> randomised: geometry, camera pose, object size. Only appearance moves. That
+        keeps the comparison to a single axis, so a result can be attributed.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pipeline">
+  <div class="sec-head"><span class="sec-num">03</span><h2>The pipeline</h2><p class="sec-sub">The order the programs run in, from scene file to exported model.</p></div>
+  <div class="stack">
+    <div class="pipe">
+      <div class="pnode"><span class="pn-tag">step 1</span><span class="pn-name">gen_dataset.py</span>
+        <span class="pn-role">Render scenes in MuJoCo, write labels straight out of simulator state.</span></div>
+      <div class="pnode"><span class="pn-tag">verify</span><span class="pn-name">view_dataset.py</span>
+        <span class="pn-role">Draw the labels back onto the images. If markers miss the cubes, everything downstream is meaningless.</span></div>
+      <div class="pnode"><span class="pn-tag">step 2</span><span class="pn-name">baseline_cv.py</span>
+        <span class="pn-role">Two hand-written OpenCV rules. No learning, no training data.</span></div>
+      <div class="pnode"><span class="pn-tag">step 3</span><span class="pn-name">model.py + train.py</span>
+        <span class="pn-role">One conv trunk, two competing heads. 40 epochs on 8 CPU threads.</span></div>
+      <div class="pnode"><span class="pn-tag">step 4</span><span class="pn-name">baseline_v2.py</span>
+        <span class="pn-role">Refit the classical method with one scalar learned on train — the fair fight.</span></div>
+      <div class="pnode"><span class="pn-tag">step 5</span><span class="pn-name">export_onnx.py</span>
+        <span class="pn-role">Export, then prove the export reproduces both the tensors and the task metrics.</span></div>
+    </div>
+    <div class="note">
+      <span class="note-label">Sequence matters here</span>
+      <p>Steps 2 and 4 are the same classical method. It appears twice on purpose — once before the network so
+        the network has a target, and once after so the network's win can be attributed. Step 4 is the one that
+        changed the conclusion.</p>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>common.py</td><td class="num">116</td>
+            <td><strong>The single source of truth.</strong> Scene constants that must match the MJCF; the yaw
+              fold and its inverse; the pixel↔world projection; the dataset loader; and — most importantly —
+              <code>pose_metrics()</code>, the one scoring function used by <em>every</em> method. If the
+              classical baseline and the network were scored by two implementations they would drift apart, and
+              the comparison the whole project exists to make would be worthless.</td></tr>
+          <tr><td>scene.xml</td><td class="num">24</td>
+            <td>The MuJoCo scene. A plane at z = 0, one light, one overhead camera at 0.45 m with a 45° vertical
+              field of view and axes aligned to the world, and a box of half-size 0.03 m on a free joint.
+              Shadows are switched off (<code>shadowsize="0"</code>) because shadow mapping is the expensive
+              part of software rendering.</td></tr>
+          <tr><td>gen_dataset.py</td><td class="num">132</td>
+            <td>Renders the dataset. Samples x, y and yaw, writes them into <code>qpos</code>, mutates the
+              cube/table colours and the light according to the regime, calls <code>mj_forward</code>, renders,
+              and stores the image into a memory-mapped <code>.npy</code> array. Writes a
+              <code>meta.json</code> recording image size, px/m, and the label column order. Train and
+              validation splits use different seed streams and are never mixed.</td></tr>
+          <tr><td>view_dataset.py</td><td class="num">52</td>
+            <td>Label verification. Projects each ground-truth label back into pixel space through the analytic
+              overhead projection and draws a marker. If the markers do not land on the cubes, the label
+              convention is wrong — and every number produced afterwards would be consistently, silently wrong.</td></tr>
+          <tr><td>baseline_cv.py</td><td class="num">101</td>
+            <td>Classical baseline, two variants. <code>--method red</code> is a fixed hue window — the naive
+              prior "the cube is red". <code>--method sat</code> keeps anything sufficiently saturated — the
+              weaker, more honest prior "the cube is the most colourful thing on a near-grey table". Both then
+              run: morphological open → largest contour → area floor → moments centroid +
+              <code>minAreaRect</code> angle → convert to world units.</td></tr>
+          <tr><td>baseline_v2.py</td><td class="num">60</td>
+            <td>The fair baseline. Runs the same detector over the <em>train</em> split, fits one scalar radial
+              correction by least squares, applies it unchanged to validation. One learned parameter against the
+              network's 27 000.</td></tr>
+          <tr><td>model.py</td><td class="num">86</td>
+            <td>Two heads on one convolutional trunk: a generic flatten head and a spatial soft-argmax keypoint
+              head. Described in detail below.</td></tr>
+          <tr><td>train.py</td><td class="num">145</td>
+            <td>The training loop. Normalises the four targets onto a common scale, uses SmoothL1 loss, AdamW at
+              2e-3 with a cosine schedule, batch 64, 40 epochs, no augmentation. Prints per-epoch throughput and
+              flags a sustained &gt;20 % drop, because this machine exposes no CPU temperature sensor. Reports the
+              <em>final</em> epoch and selects on nothing.</td></tr>
+          <tr><td>export_onnx.py</td><td class="num">100</td>
+            <td>Exports to ONNX and then proves the export three ways: max absolute tensor difference on a real
+              batch, the full task metrics recomputed through ONNX Runtime, and batch-1 latency at both 1 and 8
+              threads.</td></tr>
+          <tr><td>test_common.py</td><td class="num">67</td>
+            <td>Tier-1 tests. The yaw fold, the projection and the metric checked against values derived on
+              paper. Needs no dataset and no weights — it runs from a fresh clone in seconds.</td></tr>
+          <tr><td>verify.sh</td><td class="num">55</td>
+            <td>Reproduces the README's claims from a clean checkout, cheapest tier first. Pins
+              <code>MUJOCO_GL</code> and the thread count because both change the numbers, and skips the data
+              tiers with instructions rather than failing when <code>data/</code> is absent.</td></tr>
+          <tr><td>requirements.txt</td><td class="num">9</td>
+            <td>Explicit CPU wheels: <code>torch==2.14.0+cpu</code>. Pinned because every number in the README
+              was measured against them.</td></tr>
+          <tr><td>runs/ · out/ · data/</td><td class="num">—</td>
+            <td>Three run directories with tracked <code>final.pt</code> checkpoints and
+              <code>metrics.json</code>; qualitative PNG sheets; and the generated dataset, which is gitignored
+              at ~1.3 GB and regenerates in about 30 seconds.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="data">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Making the data</h2><p class="sec-sub">How the training images are generated in MuJoCo, and what is varied between them.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Where the label comes from</h3>
+      <p>The generator does not run physics. It writes the pose directly into the simulator's state vector and
+        calls <code>mj_forward</code>, which recomputes all the derived quantities without advancing time:</p>
+      <pre><code>data.qpos[:3]  = [x, y, CUBE_HALF]
+data.qpos[3:7] = [cos(yaw/2), 0, 0, sin(yaw/2)]     # quaternion about z
+mujoco.mj_forward(model, data)
+renderer.update_scene(data, camera="top")
+imgs[i] = renderer.render()
+labels[i] = [x, y, sin(4·yaw), cos(4·yaw), yaw]</code></pre>
+      <p>A quaternion about the z axis is <code>(cos(θ/2), 0, 0, sin(θ/2))</code> — the halved angle is the
+        standard quaternion convention and is the second most common place to introduce a silent factor-of-two
+        error in this kind of code. The label array keeps the raw yaw in a fifth column for debugging only;
+        nothing trains on it.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Randomising appearance</h3>
+      <p>On <code>hard</code>, four things move per image:</p>
+      <div class="pair">
+        <dt>cube hue</dt><dd>Uniform over the full wheel, converted through a hand-written HSV→RGB (six-case
+          piecewise function, six lines). Saturation 0.6–1.0, value 0.5–1.0 — vivid, but arbitrary in colour.</dd>
+        <dt>table shade</dt><dd>Grey level 0.25–0.85, with a slight independent tint per channel so it is
+          near-grey rather than exactly grey.</dd>
+        <dt>light position</dt><dd>x and y in ±0.5 m, height 0.9–1.4 m. This moves the shading direction on the
+          cube's side faces, which is what a global brightness change cannot imitate.</dd>
+        <dt>light intensity</dt><dd>Diffuse 0.4–1.0.</dd>
+      </div>
+      <p>These are written directly into <code>model.geom_rgba</code>, <code>model.light_pos</code> and
+        <code>model.light_diffuse</code> — fields of the compiled model, mutable at run time, so one XML covers
+        every appearance.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Memory-mapped storage</h3>
+      <p>Twelve thousand 128×128 RGB images is about 590 MB. The generator opens the array with
+        <code>np.lib.format.open_memmap</code> and writes into it row by row, so the whole set never has to fit
+        in RAM at once. Training loads it the same way and sorts each batch's indices before slicing, which
+        turns random access into sequential reads from the file — a small change that matters when the data is
+        on disk rather than in memory.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Cost, measured</h3>
+      <p>900–1080 images per second at 128 px, so 12 000 images takes about twelve seconds. Rendering is
+        <em>not</em> the bottleneck in this project, which is worth stating because it usually is: on this
+        machine OpenGL is software-rendered (llvmpipe under WSL) and shadows are disabled precisely to keep it
+        that way.</p>
+    </div>
+  </div>
+</section>
+
+<section id="baseline">
+  <div class="sec-head"><span class="sec-num">06</span><h2>The baselines — and why there are two of them</h2><p class="sec-sub">The classical-vision baseline, the bias found in it, and the one-line correction that removed it.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Version 1: two hand-written priors</h3>
+      <p>Both variants share the same pipeline and differ only in the mask:</p>
+      <pre><code>hsv = cvtColor(img, RGB2HSV)
+m   = MASKS[method](hsv)                       # 'red' or 'sat'
+m   = morphologyEx(m, MORPH_OPEN, ones(3,3))   # kill speckle
+c   = max(findContours(m), key=contourArea)    # largest blob
+if contourArea(c) &lt; 30: return None            # detection failed
+(u,v),(w,h),ang = minAreaRect(c)
+x, y = pixel_to_world(u, v, size)
+yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign flip</code></pre>
+      <p>The two priors behave very differently once appearance moves:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Prior</th><th class="num">Detection rate on <code>hard</code></th><th>What happened</th></tr></thead>
+          <tbody>
+            <tr><td><code>red</code> — fixed hue window</td><td class="num">10.9 %</td>
+              <td>Missed 89 % of the set, because the cube is no longer red. Its accuracy <em>on the 11 % it did find</em> is unchanged, so its own error metric looks perfectly healthy.</td></tr>
+            <tr><td><code>sat</code> — most saturated object</td><td class="num">100 %</td>
+              <td>Fully robust to the appearance shift, with the same error as on <code>easy</code>. No network involved.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warnbox">
+        <span class="note-label">The failure mode this exposes</span>
+        <p>A wrong prior does not raise an error. It returns fewer answers, and the answers it does return are
+          fine. Detection rate and accuracy have to be reported together or the failure is invisible — which is
+          exactly what happens when a paper reports only mean error.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>Version 2: one scalar, fitted honestly</h3>
+      <div class="prose stack">
+        <p>Version 1 has a <strong>systematic +2.98 mm radial bias</strong> — every prediction sits slightly
+          too far from the table centre. The cause is geometric, not statistical: an overhead camera does not
+          only see the cube's top face, it also sees the outward-facing side walls. The silhouette is therefore
+          wider on the outward side, and its centroid sits outside the true projected centre.</p>
+      </div>
+      <figure>
+        <svg viewBox="0 0 700 220" role="img" aria-label="Side view showing the camera above and off-axis from a cube, so the outward side wall is visible and the silhouette centroid sits radially outward of the true centre.">
+          <rect width="700" height="220" fill="#f7faf8"/>
+          <line x1="40" y1="176" x2="660" y2="176" stroke="#161d1a" stroke-width="1.6"/>
+          <text x="40" y="196" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">table, z = 0</text>
+          <!-- camera -->
+          <rect x="176" y="26" width="44" height="26" rx="3" fill="#527a6c"/>
+          <text x="132" y="20" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#3a5b4f">camera at table centre</text>
+          <line x1="198" y1="52" x2="198" y2="176" stroke="#bdd3c9" stroke-width="1" stroke-dasharray="4 4"/>
+          <!-- cube -->
+          <rect x="430" y="128" width="48" height="48" fill="#ffffff" stroke="#161d1a" stroke-width="1.6"/>
+          <polygon points="430,128 478,128 478,176 430,176" fill="#527a6c" fill-opacity="0.10"/>
+          <!-- side wall visible -->
+          <rect x="430" y="128" width="12" height="48" fill="#527a6c" fill-opacity="0.35"/>
+          <text x="300" y="112" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#3a5b4f">this wall is visible from here</text>
+          <line x1="198" y1="52" x2="430" y2="128" stroke="#527a6c" stroke-width="1.2"/>
+          <line x1="198" y1="52" x2="478" y2="128" stroke="#527a6c" stroke-width="1.2"/>
+          <!-- markers -->
+          <line x1="454" y1="128" x2="454" y2="196" stroke="#161d1a" stroke-width="1" stroke-dasharray="2 3"/>
+          <text x="440" y="212" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#161d1a">true centre</text>
+          <line x1="446" y1="120" x2="446" y2="100" stroke="#9c4a45" stroke-width="1.4"/>
+          <circle cx="446" cy="96" r="4" fill="#9c4a45"/>
+          <text x="470" y="96" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#9c4a45">silhouette centroid, +2.98 mm outward</text>
+        </svg>
+        <figcaption>Not noise — a repeatable geometric offset that grows with distance from the optical axis.
+          A hand-written centroid cannot know about it. A network trained on labels absorbs it for free.</figcaption>
+      </figure>
+      <div class="prose stack">
+        <p>That is not a fair fight. The network saw 12 000 labelled images; the baseline saw none. So the
+          baseline is given the <em>same privilege and no more</em>: fit exactly one number, a radial scale
+          correction, on the <strong>train</strong> split, and apply it unchanged to validation.</p>
+        <pre><code>k = argmin ‖ k·r_measured − r_true ‖     # closed form, one line
+  = (r_meas · r_true).sum() / (r_meas²).sum()
+  = 0.951                                  # a −4.9 % radial correction</code></pre>
+        <p>The bias goes from +2.98 mm to +0.01 mm, and the median error falls from 3.41 mm to
+          <strong>1.91 mm</strong> — 53 % of the whole gap to the network, closed by a single scalar and no
+          training loop.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="model">
+  <div class="sec-head"><span class="sec-num">07</span><h2>The network — two heads, one question</h2><p class="sec-sub">Two output heads compared on identical data — flatten against spatial soft-argmax.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Why the usual head cannot be used</h3>
+      <p>Nearly every image classifier ends with global average pooling: average the feature map over space,
+        then classify. That works because "is this a cat" does not depend on where the cat is —
+        translation invariance is a <em>feature</em>.</p>
+      <p>A pose regressor needs the opposite. The answer <em>is</em> the location. Average over space and you
+        have thrown away the thing you were asked for. So the head has to preserve spatial information, and
+        there are two ways to do that.</p>
+    </div>
+
+    <div class="stack">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Head</th><th>Trunk</th><th>Mechanism</th><th class="num">Params</th></tr></thead>
+          <tbody>
+            <tr><td><code>flat</code></td><td>4 stride-2 blocks, 128×128 → 8×8×128</td>
+              <td>Flatten the whole feature map to 8192 values and put a single linear layer on it. No prior at
+                all — the network has to discover the geometry of a raster from scratch.</td><td class="num">130 k</td></tr>
+            <tr class="hl"><td><code>softargmax</code></td><td>3 stride-2 blocks, 128×128 → 16×16×64</td>
+              <td>A 1×1 convolution produces 16 keypoint channels; each is turned into a probability map by a
+                spatial softmax; the expected (u, v) of that map is computed. The layer's <em>output is a
+                coordinate</em>.</td><td class="num"><strong>27 k</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose stack">
+        <p>Both then produce four numbers: normalised x, normalised y, sin 4θ, cos 4θ.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>How spatial soft-argmax works</h3>
+      <p>Given one feature channel of shape (H, W):</p>
+      <ol class="tight">
+        <li>Divide by a learned temperature and take a softmax over all H×W positions. The channel is now a
+          probability distribution over pixels — "where in this image is my feature".</li>
+        <li>Build two coordinate grids, u from −1 to 1 left-to-right and v from −1 to 1 top-to-bottom.</li>
+        <li>Take the expectation: <code>E[u] = Σ p·u</code>, <code>E[v] = Σ p·v</code>.</li>
+      </ol>
+      <p>The result is a differentiable, sub-pixel coordinate. The temperature is a learnable parameter stored
+        as its logarithm, so the exponential keeps it strictly positive without a constraint — a low temperature
+        gives a sharp, argmax-like peak; a high one averages broadly.</p>
+      <p>This is the keypoint front end used by visuomotor policies — the deep-spatial-autoencoder line of work
+        — and the reason to implement it here rather than read about it is that the project measures what the
+        prior is worth: <strong>5× fewer parameters, 2.6× faster, and more accurate, with a better tail.</strong></p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Training details that are load-bearing</h3>
+      <div class="pair">
+        <dt>target scaling</dt>
+        <dd>Position is divided by <code>XY_RANGE</code> so it lands in [−1, 1], matching the sine and cosine
+          which already do. Without this, 0.075 m of position error and 1.0 of sine error would be weighted a
+          thousand to one and the model would learn nothing but yaw.</dd>
+        <dt>SmoothL1(β=0.1)</dt>
+        <dd>Quadratic near zero, linear far from it. Less sensitive to outliers than mean squared error while
+          still having a well-behaved gradient at the minimum.</dd>
+        <dt>no augmentation</dt>
+        <dd>Deliberately absent. This run measures what the plain architecture does on the plain data, so that
+          a later augmentation result has something honest to be compared against.</dd>
+        <dt>final epoch reported</dt>
+        <dd>Not the best epoch. Selecting the lowest-validation epoch and then reporting that epoch's validation
+          number is a small but real leak — the split you choose on cannot also be the split you report on. With
+          a cosine schedule the last epoch is where the weights settle anyway.</dd>
+        <dt>throughput logging</dt>
+        <dd>WSL exposes no CPU temperature sensor, so the only available throttling signal is throughput decay.
+          The loop prints images per second every epoch and prints a warning when the rate falls more than 20 %
+          below epoch 1. Measured: ~1750 img/s early, decaying to ~1300 in the second half of a 40-epoch run.</dd>
+      </div>
+    </div>
+
+    <div class="note key">
+      <span class="note-label">A correction the author left in the README rather than deleting</span>
+      <p>The first version of <code>train.py</code> kept the lowest-validation epoch and reported it. Two of the
+        three runs had already settled on the final epoch, so their numbers were unchanged; the third was
+        retrained and moved from 0.47 mm to 0.48 mm. The leak cost nothing measurable — which is the point of
+        checking rather than assuming.</p>
+    </div>
+  </div>
+</section>
+
+<section id="onnx">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Export, and what counts as proving it</h2><p class="sec-sub">ONNX export, the numerical tolerance it is checked against, and what a passing check does not prove.</p></div>
+  <div class="stack prose">
+    <p>ONNX is a portable graph format: train in PyTorch, run anywhere — including a C++ node on an embedded
+      board, with no Python and no PyTorch installed. The file appearing on disk is not the finish line, though,
+      because a graph can be numerically close and still have a permuted output order, a wrong normalisation, or
+      a silently dropped layer.</p>
+    <p>So <code>export_onnx.py</code> checks three things:</p>
+    <ol class="tight">
+      <li><strong>Tensor agreement.</strong> A real 256-image batch through both engines. Max absolute
+        difference: <code>6.6e-7</code>.</li>
+      <li><strong>Task-level agreement.</strong> The full validation split decoded exactly as training decodes
+        it, scored by the same <code>pose_metrics</code>. Every figure identical to two decimals.</li>
+      <li><strong>Latency at batch 1</strong>, at both 1 and 8 threads. Batch 1 is the only batch size a real
+        perception node ever sees, and a ROS 2 node does not get the whole CPU.</li>
+    </ol>
+    <div class="note warnbox">
+      <span class="note-label">Environment note worth knowing</span>
+      <p>On torch 2.14 <code>torch.onnx.export</code> defaults to the dynamo exporter, which imports
+        <code>onnxscript</code> and fails if it is absent. Passing <code>dynamo=False</code> selects the
+        TorchScript exporter and needs no extra dependency — worth knowing before adding a package to a
+        locked-down machine for no reason.</p>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Results</h2><p class="sec-sub">The measured numbers: position error, yaw error, and runtime.</p></div>
+  <div class="stack">
+    <p class="prose">Validation split, n = 2000, independent seed stream, every row scored by the same
+      function. "p95" is the 95th percentile — the tail, not the typical case.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th>Method</th><th class="num">Params</th><th>Regime</th><th class="num">Detect</th>
+          <th class="num">Median xy</th><th class="num">p95 xy</th><th class="num">Median yaw</th>
+          <th class="num">p95 yaw</th><th class="num">Radial bias</th><th class="num">Latency</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>OpenCV, fixed red hue</td><td class="num">0</td><td><code>hard</code></td><td class="num" style="color:#9c4a45;font-weight:600">10.9 %</td><td class="num">3.48 mm</td><td class="num">6.07</td><td class="num">0.19°</td><td class="num">1.24</td><td class="num">+2.96 mm</td><td class="num">0.06 ms</td></tr>
+          <tr><td>OpenCV, saturation</td><td class="num">0</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">3.54 mm</td><td class="num">5.54</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+3.01 mm</td><td class="num">0.05 ms</td></tr>
+          <tr><td>OpenCV, saturation</td><td class="num">0</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">3.41 mm</td><td class="num">5.57</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+2.98 mm</td><td class="num">0.05 ms</td></tr>
+          <tr class="hl"><td>v2 · OpenCV + 1 calibrated scalar</td><td class="num">1</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">1.94 mm</td><td class="num">2.84</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+0.16 mm</td><td class="num">0.04 ms</td></tr>
+          <tr class="hl"><td>v2 · OpenCV + 1 calibrated scalar</td><td class="num">1</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">1.91 mm</td><td class="num">2.89</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+0.01 mm</td><td class="num">0.06 ms</td></tr>
+          <tr><td>CNN, flatten head</td><td class="num">130 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.75 mm</td><td class="num">2.00</td><td class="num">0.28°</td><td class="num">0.94</td><td class="num">+0.05 mm</td><td class="num">1.70 ms</td></tr>
+          <tr><td>CNN, soft-argmax head</td><td class="num">27 k</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">0.48 mm</td><td class="num">1.04</td><td class="num">0.16°</td><td class="num">0.51</td><td class="num">−0.01 mm</td><td class="num">0.65 ms</td></tr>
+          <tr class="hl"><td>CNN, soft-argmax head</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num"><strong>0.59 mm</strong></td><td class="num"><strong>1.32</strong></td><td class="num">0.21°</td><td class="num"><strong>0.66</strong></td><td class="num">−0.02 mm</td><td class="num">0.65 ms</td></tr>
+          <tr><td>same weights, ONNX Runtime, 1 thread</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.23 ms</strong></td></tr>
+          <tr><td>same weights, ONNX Runtime, 8 threads</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.12 ms</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <span class="note-label">Reading the pixel floor correctly</span>
+      <p>One pixel is 2.72 mm, and an early draft of the README wrote that down as a hard accuracy floor. It is
+        not. It bounds a <em>single-pixel</em> measurement — but the cube covers roughly 480 silhouette pixels,
+        and averaging over them shrinks the quantisation term by about √N, giving an aggregate floor near
+        0.12 mm. Both the calibrated baseline at 1.91 mm and the network at 0.59 mm legitimately sit below one
+        pixel. Sub-pixel accuracy from a many-pixel object is expected, not a bug; reasoning about a floor from
+        the wrong unit of measurement is how a correct result gets discarded as an error.</p>
+    </div>
+  </div>
+</section>
+
+<section id="findings">
+  <div class="sec-head"><span class="sec-num">10</span><h2>What the numbers actually say</h2><p class="sec-sub">Reading those results honestly — where the gain came from, and where it did not.</p></div>
+  <div class="findings">
+    <div class="finding"><span class="fnum">01</span><div class="fbody">
+      <h4>A wrong prior fails silently, and its own metric hides it</h4>
+      <p>"The cube is red" misses 89 % of <code>hard</code> while its accuracy on the surviving 11 % looks
+        unchanged. Detection rate and accuracy must always be reported together, or the failure is invisible.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">02</span><div class="fbody">
+      <h4>Robustness to appearance randomisation was free — and classical</h4>
+      <p>Swapping "red" for "most saturated thing on a near-grey table" gives 100 % detection on <code>hard</code>
+        with the same error as <code>easy</code>. Domain-randomisation robustness is therefore <em>not</em> what
+        justified the network here. Picking a better hand-written feature was cheaper, and it worked.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">03</span><div class="fbody">
+      <h4>Half the network's apparent win was calibration, not perception</h4>
+      <p>Fitting one scalar on the train split takes the baseline from 3.41 mm to 1.91 mm — 53 % of the gap,
+        closed by a single number. Building the strong baseline second would have inflated the network's result
+        by roughly 2×.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">04</span><div class="fbody">
+      <h4>What the network genuinely wins is the tail</h4>
+      <p>After calibration the baseline's <em>median</em> yaw error (0.19°) is slightly better than the network's
+        (0.21°) — <code>minAreaRect</code> is near-exact on a clean mask. But its p95 is 1.66° against 0.66°, and
+        p95 position is 2.89 mm against 1.32 mm. The classical method fails rarely and badly; the network fails
+        never and mildly. For anything feeding a controller, the tail is the number that matters.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">05</span><div class="fbody">
+      <h4>The architectural prior beat the parameter count</h4>
+      <p>Flatten head: 130 k parameters, 1.70 ms, 0.75 mm. Soft-argmax head: 27 k parameters, 0.65 ms, 0.59 mm
+        with a better tail. <strong>5× smaller, 2.6× faster, and more accurate.</strong> Handing the network a
+        coordinate beats making it learn what a coordinate is from a flattened grid.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">06</span><div class="fbody">
+      <h4>The classical method is still 11× faster</h4>
+      <p>0.06 ms against 0.65 ms per image. If 1.9 mm is inside tolerance, the network is the wrong engineering
+        choice regardless of being three times more accurate.</p>
+    </div></div>
+    <div class="finding"><span class="fnum">07</span><div class="fbody">
+      <h4>The runtime mattered more than the model</h4>
+      <p>Identical weights, identical outputs: PyTorch eager needs 0.65 ms on eight threads; ONNX Runtime needs
+        0.23 ms on <em>one</em> and 0.12 ms on eight. That is ~2.8× faster on one eighth of the cores, with
+        nothing about the network changed. Before optimising an architecture for edge latency, check whether the
+        framework is the cost. Here it was most of it — and the classical speed advantage shrinks from 11× to
+        3.8× as a result. A 116 KB ONNX file at 0.23 ms is a real deployment target for a C++ node.</p>
+    </div></div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="stack">
+    <pre><code>git clone https://github.com/AungKaung1928/mujoco-cube-pose-cnn.git
+cd mujoco-cube-pose-cnn
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+
+python gen_dataset.py --regime easy --n 12000     # ~12 s
+python gen_dataset.py --regime hard --n 12000
+python view_dataset.py --regime hard              # check the labels first
+
+python baseline_cv.py --regime hard --method red  # the naive prior
+python baseline_cv.py --regime hard --method sat  # the honest prior
+python baseline_v2.py --regime hard --method sat  # the calibrated one
+
+python train.py --regime hard --head softargmax --epochs 40
+python export_onnx.py --regime hard --head softargmax</code></pre>
+    <h3>Or check every claim without retraining</h3>
+    <pre><code>./verify.sh</code></pre>
+    <div class="prose stack">
+      <p>Three tiers, cheapest first. Tier 1 is <code>test_common.py</code> — the yaw fold, the projection and
+        the metric against paper-derived values, no data needed. Tiers 2 and 3 need <code>data/</code>
+        (gitignored, ~30 s to regenerate) and re-score the tracked checkpoints through both PyTorch and ONNX
+        Runtime. The script defaults <code>MUJOCO_GL</code> to <code>glfw</code> and pins the thread count,
+        because both change the numbers.</p>
+    </div>
+    <h3>Measured environment</h3>
+    <div class="prose stack">
+      <p>Intel Core Ultra 5 225H, 14 cores, no GPU, WSL2, software OpenGL (llvmpipe). Rendering 900–1080 img/s
+        at 128 px; training ~1750 img/s on 8 threads, decaying 25–35 % in the second half of a run as the CPU
+        hits its sustained power limit.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="stack prose">
+    <p>Estimate the planar pose of a cube from one 128×128 overhead render, and measure when a learned model
+      beats hand-written geometry and when it does not. Twelve thousand images per regime with labels read
+      straight out of MuJoCo. Two hand-written OpenCV baselines, then a third with one scalar calibrated on
+      train — which closes 53 % of the gap and shows the first baseline had been unfairly weak. A 27 k-parameter
+      soft-argmax keypoint head reaches 0.59 mm median and 1.32 mm p95 on randomised appearance, beating a
+      130 k-parameter flatten head on every axis. Exported to ONNX and verified twice — tensors and task
+      metrics — where the same weights run 2.8× faster on one thread than PyTorch eager on eight. Every claim
+      re-runnable from a clean clone through a tiered <code>verify.sh</code>, and the two corrections made along
+      the way are left in the record rather than edited out.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>mujoco-cube-pose-cnn</code> — <code>README.md</code>, <code>common.py</code>,
+  <code>model.py</code>, <code>gen_dataset.py</code>, <code>train.py</code>, <code>baseline_cv.py</code>,
+  <code>baseline_v2.py</code>, <code>export_onnx.py</code>, <code>scene.xml</code> and <code>verify.sh</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

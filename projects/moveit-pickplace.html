@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panda Pick-and-Place Pipeline — Aung Kaung Myat</title>
+<meta name="description" content="A ROS 2 Humble pick-and-place system where a simulated camera, an OpenCV detector and a C++ reach validator drive a Franka Panda arm. Walkthrough of every file and parameter.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/moveit-pickplace.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/moveit-pickplace.html">
+<meta property="og:title" content="Panda Pick-and-Place Pipeline">
+<meta property="og:description" content="A ROS 2 Humble pick-and-place system where a simulated camera, an OpenCV detector and a C++ reach validator drive a Franka Panda arm. Walkthrough of every file and parameter.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a2624a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#faf8f6;
+  --paper2:#f2eeea;
+  --ink:#1f1b18;
+  --ink2:#4b433d;
+  --muted:#7a7066;
+  --line:#e9e3dd;
+  --line2:#d6cec6;
+  --accent:#a2624a;
+  --accent-deep:#7a4632;
+  --accent-soft:#f9f1ec;
+  --accent-line:#e2cabd;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:var(--body);font-size:17px;line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600;letter-spacing:-.004em}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);
+  padding:.1em .34em;border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);
+  border-radius:0 5px 5px 0;padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+
+/* header */
+header.top{border-bottom:1px solid var(--line);background:
+  linear-gradient(180deg,var(--accent-soft) 0%, var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+
+/* nav */
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* sections */
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+
+/* callouts */
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--warn)}
+.note p{font-size:.95rem}
+
+/* pipeline */
+.pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin-block:4px}
+.pnode{flex:1 1 168px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:11px 13px;display:flex;flex-direction:column;gap:4px}
+.pnode + .pnode{border-left:0}
+.pnode .pn-name{font-family:var(--mono);font-size:.79rem;font-weight:600;color:var(--ink);word-break:break-word}
+.pnode .pn-role{font-size:.82rem;color:var(--muted);line-height:1.4}
+.pnode .pn-lang{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.topics{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.topic{font-family:var(--mono);font-size:.72rem;border:1px dashed var(--line2);
+  padding:3px 8px;color:var(--ink2);background:var(--paper)}
+@media (max-width:640px){.pnode+.pnode{border-left:1px solid var(--line2);border-top:0}}
+
+/* tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600;position:sticky;top:0}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap;color:var(--ink)}
+tbody tr:nth-child(even){background:#fdfbf9}
+
+/* fsm strip */
+.fsm{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.state{font-family:var(--mono);font-size:.78rem;font-weight:600;padding:6px 11px;
+  border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep)}
+.state.alt{border-color:var(--line2);background:var(--paper);color:var(--ink2)}
+.arrowx{color:var(--muted);font-family:var(--mono)}
+
+/* misc lists */
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li{padding-left:.15em}
+ul.tight li::marker{color:var(--accent)}
+.pair{display:grid;grid-template-columns:minmax(140px,190px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">ROS 2 Humble · workspace <code style="background:none;padding:0;color:inherit">moveit_pickplace_demo</code></div>
+    <h1>Panda Pick-and-Place Pipeline</h1>
+    <p class="deck">A 7-axis Franka Panda arm clears seven red balls off a table and drops them into a box.
+      Nothing is hard-coded: a simulated camera renders the scene, an OpenCV node finds the balls in the
+      picture, a C++ node throws away anything the arm cannot reach, and a state machine picks up
+      <em>only</em> what survived that chain.</p>
+    <div class="chips">
+      <span class="chip">ROS 2 Humble</span><span class="chip">MoveIt 2</span><span class="chip">Python 3.10</span>
+      <span class="chip">C++17</span><span class="chip">OpenCV</span><span class="chip">ros2_control (mock)</span>
+      <span class="chip">RViz2</span><span class="chip">OMPL / RRTConnect</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Packages</dt><dd>2 (Python + C++)</dd></div>
+      <div class="fact"><dt>Nodes launched</dt><dd>11</dd></div>
+      <div class="fact"><dt>Hardware needed</dt><dd>None — mock</dd></div>
+      <div class="fact"><dt>Balls per run</dt><dd>7 of 7 placed</dd></div>
+      <div class="fact"><dt>Source lines</dt><dd>≈1 600</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#flow">Data flow</a>
+    <a href="#files">Every file</a>
+    <a href="#vision">The vision half</a>
+    <a href="#motion">The motion half</a>
+    <a href="#launch">The launch file</a>
+    <a href="#config">Parameters</a>
+    <a href="#decisions">Design decisions</a>
+    <a href="#honest">Limits</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the system does, and the one design choice that makes it more than a scripted animation.</p></div>
+  <div class="stack prose">
+    <p>Imagine a robot arm bolted to a table. Seven red balls are scattered in front of it and there is an
+      orange box off to one side. The job is: pick up every ball and put it in the box, without a human
+      telling the arm where anything is.</p>
+    <p>The naive way to build this is to write the seven ball positions into the code and command the arm
+      to those coordinates. That would work, and it would prove nothing — the arm would perform the same
+      dance whether the balls were there or not. This project deliberately does not do that.</p>
+    <p>Instead the positions travel a full loop. A fake camera <em>draws</em> a picture of the table. A
+      separate program looks at that picture, finds the red blobs, and converts pixel coordinates back into
+      metres. A third program (written in C++) checks whether the arm's joints can physically reach each of
+      those metre coordinates and drops the ones that fail. Only what comes out of the far end of that chain
+      is ever grasped. The arm literally does not know where the balls "really" are.</p>
+    <div class="note key">
+      <span class="note-label">The one sentence that describes the architecture</span>
+      <p>Perception drives motion — the ground-truth ball positions exist only to draw the picture, and the
+        state machine subscribes to the validator's output, never to the truth.</p>
+    </div>
+    <h3>Why a "fake" camera counts</h3>
+    <p>The camera node is not a real driver, it is an OpenCV drawing routine: grey background, grid lines, an
+      orange rectangle for the box, red filled circles for the balls. But it publishes on the exact same ROS 2
+      topic type a real camera driver uses (<code>sensor_msgs/Image</code>) with real intrinsics on
+      <code>/camera/camera_info</code>. So every node downstream of it is the code you would ship. Replacing
+      the simulator with a RealSense driver means changing one line in the launch file and nothing else.</p>
+    <p>What this <strong>does not</strong> give you is robustness. There is no sensor noise, no motion blur,
+      no lighting variation, no shadow. Detection here is HSV thresholding on a synthetic frame — it works
+      perfectly because the image is perfect. That limitation is stated in the repository's own README
+      rather than glossed over, and it is worth repeating here.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>node</b><span>One running program. A ROS 2 system is many small programs, each with one job.</span></div>
+    <div class="gterm"><b>topic</b><span>A named channel. One node publishes messages onto it; any number of nodes subscribe.</span></div>
+    <div class="gterm"><b>MoveIt 2</b><span>The motion-planning library. Given a target pose it returns a joint trajectory that avoids obstacles.</span></div>
+    <div class="gterm"><b>URDF / SRDF</b><span>URDF lists the robot's links and joints. SRDF adds joint groups and which link pairs can never collide.</span></div>
+    <div class="gterm"><b>planning scene</b><span>MoveIt's model of the world: the robot plus every obstacle it has to plan around.</span></div>
+    <div class="gterm"><b>ros2_control (mock)</b><span>The layer between a trajectory and motors. In mock mode it reports the commanded position back as if the motors had moved.</span></div>
+    <div class="gterm"><b>OMPL / RRTConnect</b><span>The sampling-based planner MoveIt calls. It grows two random trees, one from the start and one from the goal, until they meet.</span></div>
+    <div class="gterm"><b>back-projection</b><span>Turning a pixel back into a world coordinate. Possible here because the height of the table is known in advance.</span></div>
+    <div class="gterm"><b>TF</b><span>The transform tree — the running record of where every coordinate frame sits relative to every other.</span></div>
+    <div class="gterm"><b>pose</b><span>A position (x, y, z) plus an orientation, stored as a quaternion.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="flow">
+  <div class="sec-head"><span class="sec-num">02</span><h2>How data moves through the system</h2><p class="sec-sub">The five nodes, the topics between them, and the feedback loop that closes when a ball is removed.</p></div>
+  <div class="stack">
+    <p class="prose">Six programs run at once and talk over ROS 2 topics. Read the strip left to right —
+      each box is one node, and the labels underneath are the topics carrying data between them.</p>
+
+    <div class="pipe">
+      <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">scene_manager</span>
+        <span class="pn-role">Owns the truth: spawns collision balls, the table and the box into MoveIt's
+          planning scene, and publishes the ball layout once.</span></div>
+      <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">camera_simulator</span>
+        <span class="pn-role">Draws a 640×480 top-down BGR image of whatever balls it was told about, at 10 Hz.</span></div>
+      <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">vision_detector</span>
+        <span class="pn-role">HSV red mask → contours → centroid → pinhole back-projection onto the table plane.</span></div>
+      <div class="pnode"><span class="pn-lang">c++</span><span class="pn-name">workspace_validator</span>
+        <span class="pn-role">Rejects any detection outside the Panda's reachable cylinder. Publishes only survivors.</span></div>
+      <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">smart_pick_place</span>
+        <span class="pn-role">The state machine. Picks the nearest validated target, asks MoveIt for a path,
+          executes, repeats.</span></div>
+    </div>
+
+    <div class="topics">
+      <span class="topic">/scene_balls · PoseArray · latched</span>
+      <span class="topic">/camera/image_raw · Image</span>
+      <span class="topic">/camera/camera_info · CameraInfo</span>
+      <span class="topic">/detected_objects · MarkerArray</span>
+      <span class="topic">/validated_targets · PoseArray</span>
+      <span class="topic">/scene_object_updates · String</span>
+      <span class="topic">/pick_place_status · String</span>
+      <span class="topic">/detection_image · Image</span>
+    </div>
+
+    <div class="note">
+      <span class="note-label">The loop that closes</span>
+      <p>When a ball is grasped, the state machine publishes <code>remove:ball_3</code> on
+        <code>/scene_object_updates</code>. The camera simulator receives that and stops drawing ball 3. On the
+        next frame the detector sees six balls instead of seven, the validator forwards six, and the state
+        machine has one fewer target. That is what makes it a loop rather than a list — the picture changes
+        because the arm acted on it.</p>
+    </div>
+
+    <figure>
+      <svg viewBox="0 0 760 250" role="img" aria-label="Side view of the camera 0.8 metres above the table, looking down at a ball on the table plane, with the ray from the pixel back to the world point.">
+        <rect x="0" y="0" width="760" height="250" fill="#faf8f6"/>
+        <!-- table -->
+        <line x1="60" y1="200" x2="700" y2="200" stroke="#1f1b18" stroke-width="2"/>
+        <text x="60" y="221" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">table plane, z = 0</text>
+        <!-- base -->
+        <rect x="86" y="176" width="26" height="24" fill="#d6cec6" stroke="#1f1b18" stroke-width="1.2"/>
+        <text x="70" y="243" font-family="JetBrains Mono, monospace" font-size="11" fill="#4b433d">panda_link0</text>
+        <!-- camera -->
+        <rect x="330" y="46" width="52" height="30" rx="3" fill="#a2624a"/>
+        <polygon points="382,54 400,46 400,76 382,68" fill="#7a4632"/>
+        <text x="300" y="38" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#7a4632">camera_link · 0.40, 0.00, 0.80 m</text>
+        <!-- frustum -->
+        <polygon points="356,76 160,200 552,200" fill="#a2624a" fill-opacity="0.07" stroke="#e2cabd" stroke-width="1"/>
+        <!-- optical axis -->
+        <line x1="356" y1="76" x2="356" y2="200" stroke="#7a4632" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="362" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a4632">h = 0.80 m</text>
+        <!-- ball -->
+        <circle cx="470" cy="192" r="9" fill="#a2624a" stroke="#7a4632" stroke-width="1.2"/>
+        <line x1="356" y1="76" x2="470" y2="192" stroke="#a2624a" stroke-width="1.6"/>
+        <text x="452" y="176" font-family="JetBrains Mono, monospace" font-size="11" fill="#1f1b18">ball</text>
+        <!-- annotation -->
+        <text x="500" y="106" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4b433d">w&#8347; = c&#8347; + (u − c&#8339;)·h / f&#8339;</text>
+        <text x="500" y="124" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4b433d">w&#8339; = c&#8339; − (v − c&#8340;)·h / f&#8340;</text>
+        <text x="500" y="146" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">one pixel → one world point,</text>
+        <text x="500" y="162" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">because z is assumed to be 0</text>
+      </svg>
+      <figcaption>The whole depth problem, solved by an assumption. A single camera cannot measure distance —
+        a pixel corresponds to a <em>ray</em>, not a point. Assuming every ball sits on the table (z = 0) turns
+        that ray into exactly one intersection. Honest for a flat table, wrong the moment something is stacked.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file in both packages, how big it is, and the single job it owns.</p></div>
+  <div class="stack">
+    <p class="prose">A ROS 2 workspace has a fixed shape: source packages under <code>src/</code>, and
+      <code>build/</code>, <code>install/</code>, <code>log/</code> generated by the build tool
+      (<code>colcon</code>). Only <code>src/</code> is written by hand.</p>
+
+    <h3>Package 1 — <code>simple_moveit_demo</code> (Python, <code>ament_python</code>)</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>simple_moveit_demo/<wbr>camera_simulator.py</td><td class="num">149</td>
+            <td>The synthetic camera. Subscribes to <code>/scene_balls</code> (a latched topic, so it gets the
+              layout even if it started late) and to removal messages. Every 100 ms it composes a 640×480 image:
+              grey base, 40 px grid, the orange box outline, then one filled red circle per visible ball, and
+              publishes it together with a <code>CameraInfo</code> carrying <code>fx=fy=520</code>,
+              <code>cx=320</code>, <code>cy=240</code>. A <code>threading.Lock</code> guards the ball list because
+              subscription callbacks and the timer run on different threads.</td></tr>
+          <tr><td>simple_moveit_demo/<wbr>vision_detector.py</td><td class="num">144</td>
+            <td>The perception node. Converts the image to HSV, builds a red mask from <em>two</em> hue windows
+              (red wraps around the hue axis at 0/180, so one window cannot cover it), morphologically opens then
+              closes to remove speckle and fill holes, finds external contours, drops anything under 400 px²,
+              takes the image moments to get a sub-pixel centroid, and back-projects that centroid onto the table
+              plane. Publishes a <code>MarkerArray</code> of spheres plus an annotated debug image.</td></tr>
+          <tr><td>simple_moveit_demo/<wbr>smart_pick_place.py</td><td class="num">346</td>
+            <td>The controller and the biggest file. Declares all 28 parameters, builds the grasp planner and
+              scene manager, waits for MoveIt's action server, then runs the pick loop on a background thread.
+              Contains both motion strategies (Cartesian and OMPL), the trajectory retimer, and a generic
+              action-goal helper that turns ROS 2's callback-based action API into a blocking call.</td></tr>
+          <tr><td>simple_moveit_demo/<wbr>scene_manager.py</td><td class="num">190</td>
+            <td>Not a node — a plain class owned by the controller. Publishes <code>CollisionObject</code>
+              messages so MoveIt knows the table, the seven ball spheres and the five box panels are solid and
+              must be planned around. Also colours them via <code>PlanningScene</code> diffs, maps a detected
+              (x, y) back to a collision-object id by nearest neighbour within 8 cm, and re-adds a ball inside
+              the box after placement using a 2×2 slot grid that stacks into a second layer past four balls.</td></tr>
+          <tr><td>simple_moveit_demo/<wbr>grasp_planner.py</td><td class="num">67</td>
+            <td>Pure geometry, no ROS. Given an object at (x, y), returns three stamped poses: pre-grasp 20 cm
+              above, grasp at 4 cm above (floored at 16 cm so the wrist never dives into the table), and lift at
+              28 cm. Every pose carries roll = 180° so the gripper points straight down. Includes a hand-written
+              Euler-to-quaternion conversion rather than pulling in a transform library for four lines of algebra.</td></tr>
+          <tr><td>simple_moveit_demo/<wbr>image_utils.py</td><td class="num">61</td>
+            <td>A 40-line replacement for <code>cv_bridge</code>, the standard image conversion library.
+              Converts a NumPy array to <code>sensor_msgs/Image</code> and back for the single encoding this
+              package uses (<code>bgr8</code>). Handles the row-stride subtlety — publishers may pad rows, and
+              some leave <code>step</code> at 0 — and raises loudly on any other encoding.</td></tr>
+          <tr><td>launch/<wbr>smart_pick_place.launch.py</td><td class="num">198</td>
+            <td>Starts all eleven nodes in the right order with the right parameters. Described in full below.</td></tr>
+          <tr><td>config/<wbr>demo_params.yaml</td><td class="num">53</td>
+            <td>Ball layout, motion tuning, grasp geometry, box position, and the validator's reach bounds.</td></tr>
+          <tr><td>config/<wbr>camera.yaml</td><td class="num">35</td>
+            <td>Camera intrinsics, mount pose, ball render radius, and the two HSV red windows.</td></tr>
+          <tr><td>test/<wbr>test_image_utils.py</td><td class="num">92</td>
+            <td>Fifteen contract tests for the one file that reimplements a standard library: exact round-trip,
+              padded stride, zero stride, truncated buffer, wrong encoding. No node, no camera, pure NumPy.</td></tr>
+          <tr><td>rviz/<wbr>vision_moveit.rviz</td><td class="num">—</td>
+            <td>Saved RViz layout so the visualiser opens with the right displays already enabled.</td></tr>
+          <tr><td>setup.py · package.xml</td><td class="num">36 · 48</td>
+            <td>Build metadata. <code>setup.py</code> declares the three console entry points that become
+              <code>ros2 run</code> executables and installs launch/config/rviz files into the share directory;
+              <code>package.xml</code> declares the dependency list that <code>rosdep</code> resolves.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Package 2 — <code>moveit_grasp_utils</code> (C++, <code>ament_cmake</code>)</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>include/…/<wbr>workspace_validator.hpp</td>
+            <td>A header-only class with no ROS dependency at all — just <code>&lt;cmath&gt;</code> and
+              <code>&lt;string&gt;</code>. Holds four bounds in a <code>Params</code> struct and exposes
+              <code>is_reachable(x, y, z)</code> (marked <code>noexcept</code>) plus
+              <code>rejection_reason(...)</code> which returns a human-readable string for the log. Separating
+              the geometry from the node means the rule can be unit-tested or reused without spinning ROS.</td></tr>
+          <tr><td>src/<wbr>workspace_validator_node.cpp</td>
+            <td>The ROS wrapper. Declares the four bounds as parameters, subscribes to
+              <code>/detected_objects</code>, filters, publishes <code>/validated_targets</code>, and on a 2-second
+              timer draws two translucent cylinders in RViz so you can see the reachable shell and the excluded
+              inner column.</td></tr>
+          <tr><td>CMakeLists.txt · package.xml</td>
+            <td>C++17, <code>-Wall -Wextra -Wpedantic</code>, one executable, install rules for the binary and the
+              public header, and the ament linters wired into <code>BUILD_TESTING</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Workspace root</h3>
+    <dl class="pair">
+      <dt>README.md</dt><dd>The accurate, current description of the system — architecture diagram, decision table, parameters, and the honest-simulation note.</dd>
+      <dt>CONTEXT.md</dt><dd>A running work log: current status, verified run, and a newest-first list of solved problems. Useful because it records what was <em>removed</em>, not just what was added.</dd>
+      <dt>build/ install/ log/</dt><dd>Generated by <code>colcon</code>. <code>install/setup.bash</code> is the file you source to make the packages visible to <code>ros2 run</code> and <code>ros2 launch</code>.</dd>
+      <dt>src/simple_moveit_demo/README.md</dt><dd>Stale. It documents an older, larger version of this package — YOLOv8, ArUco markers, a depth estimator, colour-sorted bins, a seven-state machine. All of that was deliberately deleted (see the log in <code>CONTEXT.md</code>). Read the root README instead.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="vision">
+  <div class="sec-head"><span class="sec-num">04</span><h2>The vision half, step by step</h2><p class="sec-sub">From a drawn image to a metre coordinate — HSV masking, contour filtering, and the pinhole back-projection.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Why red is detected with two hue ranges, not one</h3>
+      <p>HSV separates colour (hue) from brightness and vividness, which is why it is used for colour
+        thresholding instead of raw RGB — a red ball in shadow and the same ball in light have very different
+        RGB values but nearly the same hue. OpenCV stores hue as 0–179. Red sits at the seam: pure red is hue 0,
+        and slightly-purple red is hue 179. A single window <code>[0, 10]</code> would miss half of it. So the
+        node builds two masks and ORs them together:</p>
+      <pre><code>hsv_red_lo1: [0,   120, 80]     hsv_red_hi1: [10,  255, 255]
+hsv_red_lo2: [170, 120, 80]     hsv_red_hi2: [180, 255, 255]</code></pre>
+      <p>The second and third numbers matter as much as the hue: saturation ≥ 120 excludes washed-out greys
+        that happen to lean red, and value ≥ 80 excludes near-black pixels where hue is meaningless noise.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Open, then close</h3>
+      <p>The raw mask is noisy at the edges. Two morphological operations clean it with a 7×7 elliptical
+        kernel:</p>
+      <dl class="pair">
+        <dt>MORPH_OPEN</dt><dd>Erode then dilate. Removes isolated specks smaller than the kernel without shrinking the real blobs.</dd>
+        <dt>MORPH_CLOSE</dt><dd>Dilate then erode. Fills small holes inside a blob — such as the white outline stroke drawn around each rendered ball.</dd>
+      </dl>
+      <p>Order matters. Closing first would fuse two nearby specks into one fake object before opening had a
+        chance to delete them.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Centroid from image moments, not from the bounding box</h3>
+      <p>Once a contour survives the 400 px² area filter, the centre is computed from moments:
+        <code>u = m10/m00</code>, <code>v = m01/m00</code>. That is the area-weighted average pixel position —
+        a sub-pixel value, and it is robust to a ragged edge in a way that the centre of a bounding rectangle
+        is not. For a circular ball the difference is small; for a partly-clipped blob it is not.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Back-projection, and where the intrinsics come from</h3>
+      <p>The two lines that turn pixels into metres are, in the code:</p>
+      <pre><code>wy = cam_y + (u - cx) * cam_h / fx
+wx = cam_x - (v - cy) * cam_h / fy
+wz = 0.0        # DETECT_Z — the table plane assumption</code></pre>
+      <p>Note the sign flip and the axis swap. Image <code>u</code> grows to the right and maps to the robot's
+        <em>y</em>; image <code>v</code> grows <em>downward</em> and maps to the robot's <em>x</em> with a minus
+        sign. Getting this wrong produces a system that runs cleanly and reaches for the mirror image of every
+        ball, which is exactly the class of bug that never raises an exception.</p>
+      <p>The detector starts with hard-coded defaults for <code>fx, fy, cx, cy</code> but overwrites them the
+        moment a <code>CameraInfo</code> message arrives on <code>/camera/camera_info</code>. That is how a real
+        driver publishes calibration, so the node reads it the way it would read a real one. Only the
+        <em>extrinsics</em> — where the camera is mounted — come from the YAML, and they are shared with the
+        simulator so both ends agree by construction.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Why <code>cv_bridge</code> was replaced by 40 lines</h3>
+      <p><code>cv_bridge</code> is the standard ROS library for converting between OpenCV arrays and
+        <code>sensor_msgs/Image</code>. It exists to handle roughly twenty pixel encodings from C++, and it ships
+        as a compiled extension linked against a specific NumPy major version. In this package both ends of the
+        image path are internal and both are <code>bgr8</code>, so the conversion is a reshape and a copy.</p>
+      <p>The tricky part is <code>step</code>, the row stride in bytes. A publisher may pad rows, so
+        <code>step</code> is not always <code>width × 3</code>, and some publishers leave it at 0. The code
+        treats 0 as unpadded rather than dividing by it — dividing would reshape to a zero-width image and fail
+        much later with an error about something else entirely. It then validates that the stride is a whole
+        number of pixels and that the buffer is long enough, slices off the padding, and copies so OpenCV
+        receives a writable contiguous array.</p>
+      <div class="note">
+        <span class="note-label">The reasoning, stated honestly in the source</span>
+        <p>The trigger was a NumPy 2 incompatibility, but that error will not appear on a stock Humble install,
+          whose system NumPy is 1.x — so it is not the justification. The justification is that the workspace no
+          longer carries a compiled dependency, or a workspace-wide version pin, that it does not need. The file's
+          own docstring says <code>cv_bridge</code> should come back the moment a real camera does, because most
+          drivers publish <code>rgb8</code> and RealSense depth is <code>16UC1</code>.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>The C++ reachability filter</h3>
+      <p>A Franka Panda cannot reach everywhere. The validator approximates its workspace as a cylinder and
+        applies four bounds plus one extra rule:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Test</th><th class="num">Bound</th><th>Reason</th></tr></thead>
+          <tbody>
+            <tr><td>height</td><td class="num">−0.05 … 0.98 m</td><td>Below the table surface or above the arm's vertical span.</td></tr>
+            <tr><td>horizontal radius</td><td class="num">0.18 … 0.82 m</td><td>√(x² + y²) from the base axis. Too close is folded onto itself; too far is simply out of reach.</td></tr>
+            <tr><td>singularity column</td><td class="num">r &lt; 0.08 m</td><td>Directly above the base the wrist axes line up and inverse kinematics becomes ill-conditioned — many joint solutions map to nearly the same pose, and the planner produces wild motions.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Rejections are logged with a reason string rather than silently dropped, and the surviving points are
+        republished as a <code>PoseArray</code> with identity orientation — the validator has an opinion about
+        <em>where</em>, not about <em>how</em>. The two RViz cylinders it draws every two seconds are the same
+        bounds made visible, so an out-of-reach ball is obvious on screen before you read a log line.</p>
+      <p>This node exists in C++ rather than Python for a stated reason: it runs on every camera frame at 10 Hz
+        and must never become the reason the controller waits. It is also the natural place to demonstrate a
+        multi-language workspace, which is what real ROS 2 systems are.</p>
+    </div>
+  </div>
+</section>
+
+<section id="motion">
+  <div class="sec-head"><span class="sec-num">05</span><h2>The motion half, step by step</h2><p class="sec-sub">How a validated coordinate becomes a grasp: pose construction, Cartesian planning, the fallback, and the state machine.</p></div>
+  <div class="stack-lg">
+    <div class="stack">
+      <h3>The state machine</h3>
+      <div class="fsm">
+        <span class="state alt">IDLE</span><span class="arrowx">→</span>
+        <span class="state">GRASPING</span><span class="arrowx">→</span>
+        <span class="state">PLACING</span><span class="arrowx">→</span>
+        <span class="state alt">next ball…</span><span class="arrowx">→</span>
+        <span class="state alt">DONE</span>
+        <span class="arrowx" style="margin-left:12px">on failure →</span>
+        <span class="state alt">HOMING</span>
+        <span class="arrowx">·</span>
+        <span class="state alt">ERROR</span>
+      </div>
+      <div class="prose stack">
+        <p>Five real states plus a fatal one. The loop lives in a <code>while</code> inside
+          <code>_run()</code>, not in recursion — a recursive state machine that runs for seven balls and several
+          retries would grow a stack frame per transition for no reason.</p>
+        <p>Each cycle: wait for a validated target that maps to a ball still on the table (with an eight-second
+          grace period, after which any remaining unreachable balls are reported and the run ends cleanly),
+          build the three grasp poses, show a "ghost" marker, remove the collision ball, move, place, repeat.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>The ghost-ball trick</h3>
+      <p>There is a genuine conflict here. MoveIt refuses to plan a path that ends inside a collision object —
+        and the grasp pose is, by definition, at the ball. Attaching the ball to the gripper
+        (<code>AttachedCollisionObject</code>, the textbook answer) was tried and caused self-collision failures
+        against <code>panda_link7</code> plus a green sphere artefact stuck to the gripper.</p>
+      <p>The solution splits the ball into two things. The <em>collision</em> ball is removed just before the
+        approach so the planner has a clear goal. A <em>visual</em> ball — an RViz <code>Marker</code>, which has
+        no physics and no collision meaning — is shown in the same place so the operator still sees it during
+        the approach, then deleted the instant the gripper arrives. After the place motion succeeds, a fresh
+        collision sphere is added inside the box. The result on screen is what a viewer expects, and the planner
+        never fights an obstacle that is about to be picked up.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Cartesian first, OMPL second</h3>
+      <p>Two ways to get the gripper from A to B:</p>
+      <dl class="pair">
+        <dt>Cartesian path</dt>
+        <dd>Service <code>/compute_cartesian_path</code>. Interpolates the end-effector along a straight line in
+          1 cm steps and solves inverse kinematics at each one. Predictable, human-legible motion — glide over the
+          ball, straight down; straight up, across to the box. Returns a <code>fraction</code>: how much of the
+          requested path it actually managed. Below 0.95 the result is rejected.</dd>
+        <dt>OMPL RRTConnect</dt>
+        <dd>Action <code>/move_action</code>. A sampling-based planner that finds <em>some</em> collision-free
+          path through joint space. It will always find one if it exists, but the path can include large,
+          alarming wrist excursions because nothing in the objective asks for a tidy route. Used only as a
+          fallback.</dd>
+      </dl>
+      <p>The controller tries Cartesian, and on failure falls back with the same target expressed as a
+        constrained OMPL goal. That ordering is why the demo looks deliberate rather than chaotic.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Retiming the trajectory afterwards</h3>
+      <p>The OMPL path lets you request <code>max_velocity_scaling_factor</code>. Humble's
+        <code>GetCartesianPath</code> service has no such field — it returns a trajectory timed at full speed.
+        So the code stretches the timing after planning:</p>
+      <pre><code>t_new       = t_old / scale
+velocities  ×= scale
+accelerations ×= scale²</code></pre>
+      <p>With <code>cartesian_speed_scale = 0.5</code> everything takes twice as long. The acceleration term is
+        squared because acceleration has units of distance per time <em>squared</em> — scaling only the velocities
+        would hand the controller a trajectory whose numbers contradict each other, and a well-behaved controller
+        will reject it.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>The goal constraints</h3>
+      <p>An OMPL goal is not a pose, it is a set of constraints. The controller builds two:</p>
+      <ul class="tight">
+        <li><strong>Position</strong> — a box-shaped region 4 cm on a side for a grasp, 6 cm for a place,
+          centred on the target, attached to link <code>panda_link8</code>. A tolerance region rather than a
+          point, because demanding an exact pose from a 7-axis arm makes the IK solver work far harder for no
+          benefit.</li>
+        <li><strong>Orientation</strong> — tilt tolerance 0.25 rad on the x and y axes so the gripper stays
+          pointing down, but <strong>3.14 rad on z</strong>, which is to say free. A sphere looks identical from
+          every angle of wrist rotation, so constraining that rotation only removes solutions the planner could
+          have used.</li>
+      </ul>
+      <p>All grasps use yaw = 0° so the wrist keeps the same orientation from grasp to place to the next grasp,
+        which gives OMPL simpler joint-space paths to find.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Making an asynchronous action look synchronous</h3>
+      <p>ROS 2 actions are two-stage and callback-driven: send a goal, get a handle telling you whether it was
+        accepted, then register another callback for the result. Written literally, a five-step pick sequence
+        becomes five levels of nested callbacks. <code>_send_goal()</code> collapses that using a
+        <code>threading.Event</code> and a one-element list to smuggle the result out of the closure, then blocks
+        with a 60-second timeout. The state machine reads as straight-line code.</p>
+      <p>This only works because the node spins on a <code>MultiThreadedExecutor</code> with the action clients
+        in a <code>ReentrantCallbackGroup</code>, and because the pick loop runs on its own thread. On a
+        single-threaded executor the blocking wait would prevent the very callback it is waiting for from ever
+        running — a classic ROS 2 deadlock.</p>
+    </div>
+  </div>
+</section>
+
+<section id="launch">
+  <div class="sec-head"><span class="sec-num">06</span><h2>The launch file, line by line</h2><p class="sec-sub">What the launch file starts, in what order, and why each delay exists.</p></div>
+  <div class="stack">
+    <p class="prose">One command starts eleven processes. A ROS 2 launch file is Python that returns a
+      <code>LaunchDescription</code> — a list of things to start, in order, with parameters.</p>
+
+    <h3>1 — Domain isolation, first</h3>
+    <div class="stack prose">
+      <pre><code>domain_id_arg = DeclareLaunchArgument('domain_id', default_value='42')
+set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('domain_id'))</code></pre>
+      <p>ROS 2 nodes discover each other over the network automatically. A simulation left on the default domain
+        will find — and be found by — a real robot on the same network. Domain 42 walls this off. It must come
+        before every <code>Node</code> action in the returned list, or nodes launch before the variable is set.
+        To inspect topics from another terminal you need the same domain:
+        <code>ROS_DOMAIN_ID=42 ros2 topic list</code>.</p>
+    </div>
+
+    <h3>2 — Building the MoveIt configuration</h3>
+    <div class="stack prose">
+      <pre><code>MoveItConfigsBuilder("moveit_resources_panda",
+    package_name="moveit_resources_panda_moveit_config")
+  .robot_description(file_path="config/panda.urdf.xacro",
+      mappings={"ros2_control_hardware_type": "mock_components"})
+  .robot_description_semantic(file_path="config/panda.srdf")
+  .robot_description_kinematics()
+  .trajectory_execution(file_path="config/moveit_controllers.yaml")
+  .planning_pipelines(pipelines=["ompl"])
+  .joint_limits()
+  .to_moveit_configs()</code></pre>
+      <p>MoveIt needs roughly a dozen separate parameter sets. <code>MoveItConfigsBuilder</code> assembles them
+        from the community Panda configuration package. Two pieces are worth naming:</p>
+      <dl class="pair">
+        <dt>URDF</dt><dd>The physical robot: links, joints, limits, meshes.</dd>
+        <dt>SRDF</dt><dd>The <em>semantic</em> layer: which joints form the group named <code>panda_arm</code>,
+          which link pairs can never collide, what named poses exist. Planning needs both.</dd>
+        <dt>mock_components</dt><dd>A <code>ros2_control</code> hardware plugin that reports back whatever
+          position it was commanded, instantly. The controller stack, the action interfaces and the state
+          publishing are all real; only the physics is absent. Swapping this string for a Gazebo or a real
+          hardware interface changes nothing above it.</dd>
+      </dl>
+    </div>
+
+    <h3>3 — The eleven nodes</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Node</th><th class="num">Delay</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><code>move_group</code></td><td class="num">0 s</td><td>The MoveIt planning server. Holds the planning scene, runs OMPL, serves the Cartesian-path service, executes trajectories. The heaviest process — takes 5–10 s to load.</td></tr>
+          <tr><td><code>robot_state_publisher</code></td><td class="num">0 s</td><td>Reads <code>/joint_states</code> and publishes the resulting TF transform tree so every node agrees where each link is.</td></tr>
+          <tr><td><code>static_transform_publisher</code></td><td class="num">0 s</td><td>Ties <code>world</code> to <code>panda_link0</code> at the identity transform.</td></tr>
+          <tr><td><code>camera_tf</code></td><td class="num">0 s</td><td>A second static transform placing <code>camera_link</code> at (0.40, 0, 0.80) with roll = π, i.e. looking straight down. Matches <code>camera.yaml</code> exactly.</td></tr>
+          <tr><td><code>ros2_control_node</code></td><td class="num">0 s</td><td>The controller manager. Loads the mock hardware and hosts the controllers.</td></tr>
+          <tr><td><code>joint_state_broadcaster</code></td><td class="num">2 s</td><td>Publishes <code>/joint_states</code> from the hardware interface.</td></tr>
+          <tr><td><code>panda_arm_controller</code></td><td class="num">3 s</td><td>The joint-trajectory controller that MoveIt sends executions to.</td></tr>
+          <tr><td><code>rviz2</code></td><td class="num">0 s</td><td>Visualisation, loaded with the saved layout.</td></tr>
+          <tr><td><code>camera_simulator</code></td><td class="num">0 s</td><td>Parameters from <code>camera.yaml</code>.</td></tr>
+          <tr><td><code>vision_detector</code></td><td class="num">0 s</td><td>Parameters from <code>camera.yaml</code> — same file as the simulator, so intrinsics and mount cannot drift apart.</td></tr>
+          <tr><td><code>workspace_validator</code></td><td class="num">0 s</td><td>Parameters from <code>demo_params.yaml</code> (the <code>workspace_validator:</code> block).</td></tr>
+          <tr><td><code>smart_pick_place</code></td><td class="num">4 s</td><td>Parameters from <code>demo_params.yaml</code>. Delayed so MoveIt and the controllers have a head start; it also polls for the action server every second regardless, so the delay is an optimisation, not the safety mechanism.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Why the delays are marked "do not touch"</span>
+      <p>The 2 / 3 / 4 second sequence is not arbitrary — a spawner that runs before its controller manager
+        exists fails permanently rather than retrying, and both spawners must be up before the controller can
+        accept a trajectory. The repository's own notes flag this ordering as tested and not to be adjusted
+        casually.</p>
+    </div>
+  </div>
+</section>
+
+<section id="config">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Every tunable number</h2><p class="sec-sub">The two YAML files that hold every parameter, with what each one changes if you touch it.</p></div>
+  <div class="stack">
+    <p class="prose">Nothing numeric is hard-coded in the nodes. Every value below is declared as a ROS 2
+      parameter with a default and loaded from YAML at launch, which means it can also be overridden on the
+      command line without a rebuild.</p>
+
+    <h3>Motion — <code>demo_params.yaml</code></h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>planning_attempts</code></td><td class="num">20</td><td>OMPL is randomised; 20 independent tries, best one kept.</td></tr>
+          <tr><td><code>planning_time_s</code></td><td class="num">10.0</td><td>Per-segment budget.</td></tr>
+          <tr><td><code>velocity_scaling</code> / <code>acceleration_scaling</code></td><td class="num">0.2 / 0.2</td><td>20 % of the arm's limits on OMPL paths.</td></tr>
+          <tr><td><code>cartesian_eef_step</code></td><td class="num">0.01 m</td><td>Interpolation step along the straight line.</td></tr>
+          <tr><td><code>cartesian_min_fraction</code></td><td class="num">0.95</td><td>Below this the Cartesian result is discarded and OMPL takes over.</td></tr>
+          <tr><td><code>cartesian_speed_scale</code></td><td class="num">0.5</td><td>Post-planning time stretch (see retiming, above).</td></tr>
+          <tr><td><code>grasp_pos_tol</code> / <code>place_pos_tol</code></td><td class="num">0.04 / 0.06 m</td><td>Side length of the goal tolerance box.</td></tr>
+          <tr><td><code>orient_tol_rad</code></td><td class="num">0.25</td><td>Tilt tolerance ≈ 14°, keeps the gripper down.</td></tr>
+          <tr><td><code>orient_yaw_tol_rad</code></td><td class="num">3.14</td><td>Wrist spin left completely free.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Geometry — <code>demo_params.yaml</code></h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>ball_x</code> / <code>ball_y</code></td><td class="num">7 pairs</td><td>Ground-truth layout, all inside reach, inside the camera view, clear of the box.</td></tr>
+          <tr><td><code>ball_radius</code> / <code>ball_z</code></td><td class="num">0.03 / 0.025 m</td><td>Sphere size and resting height.</td></tr>
+          <tr><td><code>approach_clearance</code></td><td class="num">0.20 m</td><td>Height of the pre-grasp hover.</td></tr>
+          <tr><td><code>grasp_clearance</code> / <code>min_grasp_z</code></td><td class="num">0.04 / 0.16 m</td><td>Gripper stops 4 cm above the object, never below 16 cm absolute.</td></tr>
+          <tr><td><code>lift_height</code></td><td class="num">0.28 m</td><td>Straight-up retreat before crossing to the box.</td></tr>
+          <tr><td><code>box_x</code> / <code>box_y</code> / <code>box_drop_z</code></td><td class="num">0.55 / 0.25 / 0.30 m</td><td>Container position and release height.</td></tr>
+          <tr><td><code>home_x/y/z</code></td><td class="num">0.3 / 0.0 / 0.6 m</td><td>Recovery pose, used only after a planning failure.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Camera — <code>camera.yaml</code></h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><code>publish_rate</code></td><td class="num">10 Hz</td><td>Frame rate of the synthetic camera.</td></tr>
+          <tr><td><code>image_width</code> / <code>image_height</code></td><td class="num">640 × 480</td><td>Frame size.</td></tr>
+          <tr><td><code>fx</code> / <code>fy</code></td><td class="num">520 / 520</td><td>Focal length in pixels. Equal, so pixels are square.</td></tr>
+          <tr><td><code>cx</code> / <code>cy</code></td><td class="num">320 / 240</td><td>Principal point — exactly the image centre, no lens offset.</td></tr>
+          <tr><td><code>cam_x</code> / <code>cam_y</code> / <code>cam_h</code></td><td class="num">0.40 / 0.00 / 0.80 m</td><td>Mount pose in the robot base frame. Shared by simulator and detector.</td></tr>
+          <tr><td><code>min_contour_area_px</code></td><td class="num">400</td><td>Anything smaller is noise, not a ball.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Decisions worth defending</h2><p class="sec-sub">Places where a different choice was available, and the reason this one was taken.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Decision</th><th>Reasoning</th></tr></thead>
+        <tbody>
+          <tr><td>Reachability filter in C++, everything else Python</td>
+            <td>It runs per frame and sits between perception and the controller, so it must never be the thing that stalls. Python is the right language for orchestration and for OpenCV work where the heavy lifting is already in C.</td></tr>
+          <tr><td>The state machine subscribes to <code>/validated_targets</code></td>
+            <td>An earlier version published that topic and never read it — the arm used ground truth while a validator ran decoratively alongside. Closing that loop is the difference between a system and a demonstration of one.</td></tr>
+          <tr><td>Ghost marker instead of <code>AttachedCollisionObject</code></td>
+            <td>The textbook approach produced <code>panda_link7</code> self-collision failures and a visual artefact. Separating "what the planner must avoid" from "what the operator sees" solved both.</td></tr>
+          <tr><td>Cartesian first, OMPL as fallback</td>
+            <td>Straight-line end-effector motion is predictable and inspectable. RRTConnect is a safety net, not the default.</td></tr>
+          <tr><td>Yaw unconstrained at the goal</td>
+            <td>A sphere has no observable orientation. Constraining wrist spin removes valid IK solutions and buys nothing.</td></tr>
+          <tr><td>Retiming after planning</td>
+            <td>Works around a genuine gap in Humble's Cartesian-path service rather than accepting full-speed motion.</td></tr>
+          <tr><td>All values in YAML</td>
+            <td>Retuning the demo is a text edit and a relaunch, not a rebuild. It also makes the tuning legible in one place.</td></tr>
+          <tr><td><code>ROS_DOMAIN_ID=42</code> in the launch file</td>
+            <td>A simulation on a shared network must not discover, or be discovered by, real hardware.</td></tr>
+          <tr><td>Fifteen tests on <code>image_utils.py</code> only</td>
+            <td>It is the one file that reimplements a standard library, so it is the one file that has to prove it round-trips and fails loudly on anything unsupported.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="honest">
+  <div class="sec-head"><span class="sec-num">09</span><h2>What this does not demonstrate</h2><p class="sec-sub">The limits of a mock-hardware, synthetic-image system, stated plainly.</p></div>
+  <div class="stack prose">
+    <p>Stating the boundary is part of the work. The following are true and are not hidden in the repository
+      either.</p>
+    <ul class="tight">
+      <li><strong>No sensor realism.</strong> The images are drawn, not captured. No noise, no blur, no
+        exposure variation, no shadows, no lens distortion. HSV thresholding succeeds here because the
+        problem was made easy on purpose; on a real camera it would be the first thing to break.</li>
+      <li><strong>No depth.</strong> Positions come from a plane assumption, not from measurement. Stack two
+        balls and the upper one is reported at the wrong place with full confidence.</li>
+      <li><strong>No physics.</strong> <code>mock_components</code> reports back whatever it is commanded.
+        There is no gravity, no contact, no gripper force — the "grasp" is a pose the arm reaches, and the
+        ball is teleported into the box by the scene manager.</li>
+      <li><strong>No learned component.</strong> Everything is classical: thresholding, contours, moments,
+        pinhole geometry, sampling-based planning. That is the correct engineering choice for detecting red
+        spheres on a plain table, and it means this project does not itself demonstrate a trained model.</li>
+      <li><strong>The reachability model is a cylinder</strong>, not the Panda's actual workspace, which is a
+        complicated shape with orientation-dependent boundaries. It is a conservative approximation and is
+        labelled as one.</li>
+      <li><strong>The inner package README is out of date</strong> and describes a deleted version of the
+        system. Only the root README tracks what is actually built.</li>
+    </ul>
+    <div class="note key">
+      <span class="note-label">The stated next steps</span>
+      <p>Swap <code>mock_components</code> for Gazebo Ignition with a Panda plugin — the perception and planning
+        stack needs no changes. Then add a learned component where the problem is genuinely hard — grasp pose
+        and orientation prediction for non-spherical objects — and export it to ONNX and TensorRT for a Jetson.
+        Detection stays HSV; a neural network for red spheres would be the wrong tool.</p>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Building and running it</h2><p class="sec-sub">Dependencies, the build command, and what a correct run looks like on screen.</p></div>
+  <div class="stack">
+    <div class="stack prose">
+      <h4>System dependencies</h4>
+      <pre><code>sudo apt install ros-humble-moveit ros-humble-ros2-control \
+    ros-humble-ros2-controllers ros-humble-moveit-ros-move-group \
+    ros-humble-moveit-planners-ompl</code></pre>
+      <h4>Build</h4>
+      <pre><code>mkdir -p ~/moveit_project_ws/src
+cd ~/moveit_project_ws/src
+git clone https://github.com/AungKaung1928/moveit_pickplace_demo.git .
+
+cd ~/moveit_project_ws
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
+source install/setup.bash</code></pre>
+      <h4>Run</h4>
+      <pre><code>ros2 launch simple_moveit_demo smart_pick_place.launch.py</code></pre>
+      <p><code>--symlink-install</code> links Python sources into the install space instead of copying them,
+        so editing a node does not require a rebuild. <code>rosdep</code> reads every
+        <code>package.xml</code> and installs the declared dependencies.</p>
+    </div>
+
+    <h3>What you should see</h3>
+    <ul class="tight prose">
+      <li>RViz opens immediately; the arm starts moving after 5–10 seconds of MoveIt warm-up.</li>
+      <li>Seven red balls on a brown table, one orange box.</li>
+      <li>The ball stays visible while the arm approaches, and disappears the moment the gripper arrives.</li>
+      <li>Straight-line motion: glide over the ball → straight down; straight up → across to the box. No
+        return to a home pose in between.</li>
+      <li>The ball reappears inside the box in a 2×2 grid, stacking into a second layer for balls 5 to 7.</li>
+      <li>Two translucent cylinders showing the reachable workspace, refreshed every two seconds.</li>
+    </ul>
+
+    <h3>Inspecting it while it runs</h3>
+    <pre><code>ROS_DOMAIN_ID=42 ros2 topic echo /pick_place_status     # IDLE / GRASPING / PLACING / DONE
+ROS_DOMAIN_ID=42 ros2 topic echo /validated_targets     # what the FSM is allowed to pick
+ROS_DOMAIN_ID=42 ros2 topic hz /camera/image_raw        # should read ~10 Hz
+ROS_DOMAIN_ID=42 ros2 node list</code></pre>
+
+    <h3>Known harmless shutdown noise</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Message</th><th>Cause</th></tr></thead>
+        <tbody>
+          <tr><td><code>rviz2 exit code -11</code></td><td>A known MoveIt 2 Humble segfault in a destructor. Shutdown only.</td></tr>
+          <tr><td><code>move_group SIGKILL after 10 s</code></td><td>A known Humble shutdown race. Shutdown only.</td></tr>
+          <tr><td>Arm never leaves IDLE</td><td>Nothing is arriving on <code>/validated_targets</code> — check that the camera and detector started cleanly, and that the domain id matches.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="stack prose">
+    <p>A two-package ROS 2 Humble workspace in which a Franka Panda clears seven balls into a box using only
+      what a camera saw. A Python node renders a synthetic 640×480 top-down frame; a second Python node finds
+      the balls by HSV thresholding and recovers their table-plane positions by exact pinhole back-projection;
+      a C++ node filters those positions against the arm's reachable cylinder; a Python state machine picks up
+      only what survived, preferring straight-line Cartesian motion and falling back to OMPL, retiming the
+      Cartesian trajectory by hand because Humble's service does not expose velocity scaling. Every tunable
+      number lives in two YAML files. The one file that reimplements a standard library carries fifteen
+      contract tests. The simulation boundary — drawn images, a plane assumption, mock hardware — is documented
+      rather than implied.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>moveit_pickplace_demo</code> — root <code>README.md</code>,
+  <code>CONTEXT.md</code>, both <code>package.xml</code> files, the launch file, both YAML configs,
+  all seven Python modules, the C++ header and node, and the test suite.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

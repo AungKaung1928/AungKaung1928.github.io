@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tabletop Clutter Detector — Aung Kaung Myat</title>
+<meta name="description" content="An anchor-free object detector for a cluttered tabletop, scored with a hand-written COCO mAP implementation and compared against a classical baseline. Full walkthrough.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/clutter-detect.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/clutter-detect.html">
+<meta property="og:title" content="Tabletop Clutter Detector">
+<meta property="og:description" content="An anchor-free object detector for a cluttered tabletop, scored with a hand-written COCO mAP implementation and compared against a classical baseline. Full walkthrough.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236a6fa8'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#f8f8fc;
+  --paper2:#eeeef5;
+  --ink:#191a22;
+  --ink2:#414356;
+  --muted:#6f7186;
+  --line:#e5e5ee;
+  --line2:#d0d0de;
+  --accent:#6a6fa8;
+  --accent-deep:#4a4f83;
+  --accent-soft:#f1f1f9;
+  --accent-line:#c6c8e4;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--warn)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 168px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.75rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fbfbfe}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · block 2 · repo <code style="background:none;padding:0;color:inherit">mujoco-clutter-detect</code></div>
+    <h1>Tabletop Clutter Detector</h1>
+    <p class="deck">Three to six objects of three kinds, jumbled on a table, seen from a tilted camera. Find all
+      of them and say what each one is. A hand-written scoring harness, a fully fitted classical pipeline, and
+      a 381 k-parameter anchor-free network — built in that order so the network's win could be attributed
+      rather than assumed.</p>
+    <div class="chips">
+      <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
+      <span class="chip">ONNX Runtime</span><span class="chip">COCO mAP, hand-written</span>
+      <span class="chip">domain randomisation</span><span class="chip">no CUDA anywhere</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Classical pipeline</dt><dd>mAP 0.532</dd></div>
+      <div class="fact"><dt>Learned detector</dt><dd><em>mAP 0.911</em></dd></div>
+      <div class="fact"><dt>Parameters</dt><dd>380 631</dd></div>
+      <div class="fact"><dt>End-to-end latency</dt><dd>1.20 ms · ONNX, 8 thr</dd></div>
+      <div class="fact"><dt>Dataset</dt><dd>28 000 images · 2.9 GB</dd></div>
+      <div class="fact"><dt>Metric tests</dt><dd>15, derived on paper</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#steps">The five steps</a>
+    <a href="#files">Every file</a>
+    <a href="#scene">Scene &amp; labels</a>
+    <a href="#metric">The AP metric</a>
+    <a href="#classical">Classical baseline</a>
+    <a href="#detector">The detector</a>
+    <a href="#ablation">Augmentation study</a>
+    <a href="#latency">Latency</a>
+    <a href="#limits">Limits</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">The task: find every object on a cluttered table, in images where objects hide each other.</p></div>
+  <div class="stack prose">
+    <p>Object detection is a harder question than it sounds. It is not "is there a box in this picture" — it is
+      "draw a rectangle around every object, say what each one is, and give me a confidence for each". The
+      number of answers is not fixed, some objects hide behind others, and a detector can be wrong in four
+      different ways at once: miss an object, invent one, put the rectangle in the wrong place, or put the
+      right rectangle on the wrong label.</p>
+    <p>This project builds that from nothing, in a simulator, on a laptop with no graphics card. Three object
+      kinds — <code>box</code>, <code>cylinder</code>, <code>sphere</code> — three to six per scene, in a
+      192×192 image from a camera tilted 39° above the table.</p>
+    <h3>Why the order of the work is the design</h3>
+    <p>The tempting sequence is: train a detector, compute a score, write it down. That sequence cannot tell you
+      whether the score is good, because there is nothing to compare it to and no proof the scorer is correct.
+      So this project runs the reverse:</p>
+    <ol class="tight">
+      <li><strong>Build the dataset and check the labels are right</strong> before anything reads them.</li>
+      <li><strong>Build the metric and prove it</strong> against fifteen cases derived on paper — before there
+        is anything to score.</li>
+      <li><strong>Build the strongest classical pipeline you can</strong>, including a fitted classifier, and
+        record its number.</li>
+      <li><strong>Then</strong> train the network, and report the difference.</li>
+    </ol>
+    <div class="note key">
+      <span class="note-label">Why that order, specifically</span>
+      <p>The previous project in this track found that half a network's apparent advantage was a single
+        calibration constant its baseline had never been given. Building the strong baseline second inflates
+        the model. So here the baseline gets everything a classical pipeline can fairly have — including a
+        fitted classifier and its own tuning done on the training split — before the network is allowed to
+        compete.</p>
+    </div>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>occlusion</b><span>One object hiding part of another. The reason a clutter dataset is harder than a tidy one.</span></div>
+    <div class="gterm"><b>IoU</b><span>Intersection over union — overlap of two boxes divided by their combined area. The standard test for whether a prediction matches a label.</span></div>
+    <div class="gterm"><b>mAP@[.5:.95]</b><span>Average precision averaged over ten IoU thresholds from 0.50 to 0.95. Strict: a loose box scores at the low thresholds only.</span></div>
+    <div class="gterm"><b>anchor-free</b><span>Predicts object centres directly on a grid, instead of scoring thousands of pre-set candidate boxes.</span></div>
+    <div class="gterm"><b>stride 4</b><span>The output grid is one quarter of the input resolution — one cell per 4x4 pixel block.</span></div>
+    <div class="gterm"><b>focal loss</b><span>A loss that down-weights the easy, empty background cells so they cannot drown out the few cells holding objects.</span></div>
+    <div class="gterm"><b>NMS</b><span>Non-maximum suppression — discarding duplicate boxes that fire on the same object.</span></div>
+    <div class="gterm"><b>domain randomisation</b><span>Varying colours, lighting and textures while rendering, so the model cannot learn to depend on any of them.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="steps">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The five steps and what each one produced</h2><p class="sec-sub">The five build steps, and the concrete artefact each one produced.</p></div>
+  <div class="stack">
+    <div class="steps">
+      <div class="stepbox"><span class="sn">step 1</span><span class="st">Scene &amp; dataset</span>
+        <span class="sd">Two cameras, exact labels read out of the renderer's segmentation buffer, occlusion measured by a pruned second pass.</span>
+        <span class="sr">28 000 images · 2.9 GB · 108 s per 12 k</span></div>
+      <div class="stepbox"><span class="sn">step 2a</span><span class="st">The AP metric</span>
+        <span class="sd">COCO-style AP@[.5:.95] written by hand, not imported. Fifteen paper-derived unit cases plus end-to-end controls.</span>
+        <span class="sr">436 ms for 2000 images</span></div>
+      <div class="stepbox"><span class="sn">step 2b</span><span class="st">Classical baseline</span>
+        <span class="sd">Background estimate → threshold → seed-counted watershed → nine shape features → multinomial logistic regression.</span>
+        <span class="sr">mAP 0.532 · 2.02 ms</span></div>
+      <div class="stepbox"><span class="sn">step 3</span><span class="st">Anchor-free detector</span>
+        <span class="sd">Centre heatmap + size + offset at stride 4, read by peak-picking. No anchors, no IoU suppression.</span>
+        <span class="sr">mAP 0.911 · 381 k params</span></div>
+      <div class="stepbox"><span class="sn">step 4</span><span class="st">Augmentation ablation</span>
+        <span class="sd">Two regimes × four augmentations, one identical budget, every cell scored on both validation sets.</span>
+        <span class="sr">+0.0007 mAP · 96 min</span></div>
+      <div class="stepbox"><span class="sn">step 5</span><span class="st">ONNX &amp; latency</span>
+        <span class="sd">Export, verify end to end through the same metric, then time on an idle box — and throw away the first measurement.</span>
+        <span class="sr">1.20 ms vs classical 2.13 ms</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="stack">
+    <h3>Core</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>common.py</td><td class="num">139</td>
+            <td>Scene constants, the class list, the yaw fold carried over from the previous project, the
+              overhead projection, IoU between box sets, mask→box conversion, the HSV→RGB helper, the split
+              loader, and the label column order. Also two thresholds that decide what counts as a target at
+              all: <code>MIN_VISIBLE_PX = 12</code> and <code>MIN_VISIBLE_FRAC = 0.10</code>.</td></tr>
+          <tr><td>scene.xml</td><td class="num">39</td>
+            <td>The MuJoCo scene. A 1.5 m table plane, one light, two cameras, and six static object slots with
+              no joints. Shape, size, colour and pose are all <code>mjModel</code> fields, so one XML covers
+              every class and every appearance — unused slots are parked 10 m away, outside both fields of view.</td></tr>
+          <tr><td>gen_dataset.py</td><td class="num">239</td>
+            <td>Renders the four splits. Rejection-samples object positions at least 0.075 m apart, writes shape
+              and colour into the model, renders RGB, renders again with segmentation enabled, converts each
+              instance mask to a tight box, and computes <code>visible_frac</code> with a pruned second pass.</td></tr>
+          <tr><td>view_dataset.py</td><td class="num">69</td>
+            <td>Draws the labels back onto sample images (<code>out/labels.png</code>) so a human can confirm
+              the boxes land where they should before anything trains on them.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Metric</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>ap.py</td><td class="num">212</td>
+            <td>The AP implementation. Ten IoU thresholds from 0.50 to 0.95, 101 recall levels, greedy matching
+              that cannot cross image boundaries, ignore semantics, per-class averaging with absent classes
+              excluded rather than scored zero. Also size-stratified AP and recall-by-visibility.</td></tr>
+          <tr><td>test_ap.py</td><td class="num">125</td>
+            <td>Fifteen unit cases. Every expected value derived on paper — a test that records whatever the
+              code printed last time proves only that the code is deterministic.</td></tr>
+          <tr><td>sanity_ap.py</td><td class="num">116</td>
+            <td>End-to-end controls on real data: feed ground truth back as detections (must be exactly 1.0),
+              shuffle the classes, randomise the boxes, keep a known fraction of hits, shift every box by a
+              known pixel count.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Classical baseline</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>baseline_cv.py</td><td class="num">383</td>
+            <td>Three segmenters (<code>otsu</code>, <code>bgsub</code>, <code>bgsub+ws</code>), a
+              seed-counting watershed splitter, a nine-feature region descriptor, and a class-balanced
+              multinomial logistic regression with a fourth <em>background</em> class so the pipeline can
+              suppress its own false positives. Deliberately linear.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Learned detector</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>detector.py</td><td class="num">227</td>
+            <td>The architecture and the target encoding. Gaussian radius, Gaussian splatting, encode, focal
+              loss, masked L1 for the regression heads, the encoder–decoder network, and the decode function
+              whose 3×3 max-pool <em>is</em> the entire non-maximum suppression.</td></tr>
+          <tr><td>train_det.py</td><td class="num">273</td>
+            <td>The training loop. Holds 1500 images out of <em>train</em> as a tune split so validation is
+              touched exactly once, at the end. Adam + OneCycle, 25 epochs, 34 minutes at 112–128 img/s on
+              8 threads. Contains the photometric and geometric augmentation implementations.</td></tr>
+          <tr><td>test_detector.py</td><td class="num">106</td>
+            <td>Proves <code>encode</code> and <code>decode</code> are exact inverses <em>before</em> any
+              training. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
+              place. Also measures worst-case centre error at 2.00 px, which at stride 4 is exactly the
+              quantisation the offset head exists to undo.</td></tr>
+          <tr><td>run_ablation.py</td><td class="num">81</td>
+            <td>Drives the 2×4 grid: two training regimes × four augmentation settings, one identical budget per
+              cell, every model scored on both validation splits.</td></tr>
+          <tr><td>export_onnx.py</td><td class="num">188</td>
+            <td>Exports at fixed batch 1, checks max absolute difference per head, re-runs the full detection
+              pipeline through ONNX Runtime and scores it with the same <code>ap.py</code>, and times model,
+              decode, and end-to-end at 1, 4 and 8 threads.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Inspection and reproduction</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td>view_detections.py · view_cnn.py</td>
+            <td>Qualitative figures. <code>view_cnn.py</code> pairs each image with the centre heatmap the boxes
+              were read from — an average cannot show a failure mode, it can only tell you one exists.</td></tr>
+          <tr><td>view_live.py · render_showcase.py</td>
+            <td>Open the scene in MuJoCo's interactive viewer with both cameras in the dropdown, and render
+              presentation stills with shadows and a textured floor. Shadows cost 6× throughput
+              (~130 img/s against 800+), which is why the dataset renders plain.</td></tr>
+          <tr><td>verify.sh</td>
+            <td>Five tiers, cheapest first. Tiers 1–2 need no dataset and no weights and run in under a minute;
+              the later tiers explain how to regenerate what they need rather than failing.</td></tr>
+          <tr><td>after_chain.sh · run_rest.sh</td>
+            <td>Job-chaining wrappers used to queue the long training runs on a shared machine.</td></tr>
+          <tr><td>requirements.txt</td>
+            <td>Pinned CPU wheels — <code>torch==2.14.0+cpu</code>, <code>mujoco==3.12.0</code>,
+              <code>onnxruntime==1.23.2</code>. The versions every number was measured on.</td></tr>
+          <tr><td>runs/ · out/ · data/</td>
+            <td>Everything the README quotes is tracked: metrics JSON, per-epoch transcripts, both checkpoints,
+              and <code>detector.onnx</code>. Only <code>data/</code> (2.9 GB) is gitignored.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="scene">
+  <div class="sec-head"><span class="sec-num">04</span><h2>The scene, and where the labels come from</h2><p class="sec-sub">How the MuJoCo scene is arranged, and why the labels are exact rather than drawn by hand.</p></div>
+  <div class="stack-lg">
+    <div class="stack">
+      <h3>Why the camera was tilted</h3>
+      <div class="prose stack">
+        <p>The previous project used an overhead camera, which was the right choice there — a top-down image has
+          an exact affine pixel-to-world map, ideal for regressing one pose precisely. But it makes
+          <em>detection</em> degenerate. Objects resting on a flat table can never overlap in a top-down image,
+          so there is no occlusion, no perspective, and no depth-dependent scale. A detector trained on that
+          view would learn none of the three things that make detection hard.</p>
+      </div>
+      <figure>
+        <svg viewBox="0 0 720 230" role="img" aria-label="Two views of the same three objects: from directly overhead they never overlap, from a tilted camera they occlude one another and change size with depth.">
+          <rect width="720" height="230" fill="#f8f8fc"/>
+          <text x="26" y="24" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="#191a22">Overhead — no overlap is possible</text>
+          <rect x="26" y="42" width="290" height="160" fill="#ffffff" stroke="#d0d0de"/>
+          <rect x="70" y="86" width="52" height="52" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
+          <circle cx="180" cy="112" r="26" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
+          <rect x="230" y="130" width="44" height="44" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
+          <text x="26" y="220" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">same size regardless of position · flat · separable by blob-finding</text>
+
+          <text x="400" y="24" font-family="Archivo, sans-serif" font-size="13" font-weight="600" fill="#191a22">Tilted 39° — occlusion and perspective return</text>
+          <rect x="400" y="42" width="290" height="160" fill="#ffffff" stroke="#d0d0de"/>
+          <rect x="430" y="60" width="34" height="34" fill="#6a6fa8" fill-opacity=".18" stroke="#6a6fa8"/>
+          <circle cx="530" cy="84" r="18" fill="#6a6fa8" fill-opacity=".18" stroke="#6a6fa8"/>
+          <rect x="486" y="120" width="66" height="60" fill="#6a6fa8" fill-opacity=".30" stroke="#4a4f83"/>
+          <circle cx="556" cy="148" r="32" fill="#6a6fa8" fill-opacity=".30" stroke="#4a4f83"/>
+          <text x="400" y="220" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">far objects smaller · near objects hide far ones · silhouettes change with yaw</text>
+        </svg>
+        <figcaption>The overhead camera is kept in the scene anyway — it is the only view with an exact
+          pixel↔world map, so it verifies the labels and supplies the world coordinates later blocks need.
+          Keeping both costs nothing and sets up a later experiment: train under one camera pose, evaluate
+          under another.</figcaption>
+      </figure>
+    </div>
+
+    <div class="stack prose">
+      <h3>Labels read out of the renderer, not annotated</h3>
+      <p>Each scene is rendered <em>twice</em>. The first pass produces the RGB image. The second runs with
+        <code>enable_segmentation_rendering()</code>, which returns, per pixel, which geometry won it. A tight
+        box around one instance mask is therefore already correct under perspective, already correct for the
+        silhouette of a rotated box, and already correct about what is hidden behind what.</p>
+      <p>This is the concrete reason robot-learning work starts in simulation. The label is not produced by a
+        human — it is read out.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>The occlusion label needs a third pass, and a pruning trick</h3>
+      <p>The segmentation buffer says which object won each pixel. It cannot say how many pixels an object
+        <em>would</em> have had alone — which is exactly what "what fraction of this object is visible" needs.
+        So each object is re-rendered with the others parked outside the frame, and the two counts are divided.</p>
+      <p>That is N extra renders per scene and it dominates the cost. The optimisation: skip any object whose
+        visible box intersects no other visible box — such an object is <em>provably</em> unoccluded, so the
+        pruning is exact rather than approximate. It cut the second pass from 4.50 solo renders per image to
+        2.19, removing 51 % of those renders and 35 % of the total generation cost.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Decisions frozen into the scene contract</h3>
+      <div class="pair">
+        <dt>only boxes get a yaw</dt>
+        <dd>A sphere has no observable orientation, and a cylinder's rotation about its own axis is unobservable
+          too. Labelling them would train the network to fit noise. <code>yaw</code> is <code>NaN</code> for both,
+          and the loss masks it.</dd>
+        <dt>192 px, not 128</dt>
+        <dd>Objects are a median 28 px on a side. At 128 px they would be ≈19 px — below COCO's "small object"
+          threshold, and the task would be measuring the renderer rather than the detector.</dd>
+        <dt>table half-size 1.5 m</dt>
+        <dd>Not 0.5 m. The tilted camera's top frame ray only meets the ground 1.15 m out; a smaller plane leaves
+          a constant black band across the top of every image — dead pixels, and a trivial cue for the network
+          to latch onto.</dd>
+        <dt>no physics</dt>
+        <dd>Objects are placed, not simulated. No <code>mj_step</code>; poses are written directly and
+          <code>mj_forward</code> recomputes the derived state.</dd>
+        <dt>0.075 m minimum separation</dt>
+        <dd>Objects can touch but not interpenetrate. This has a consequence used later: no two object centres
+          can land in the same stride-4 cell, which is what makes peak-picking exact.</dd>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>What was generated</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Split</th><th class="num">Images</th><th class="num">Objects</th><th class="num">Obj/img</th><th class="num">Occluded &lt;0.9</th><th class="num">&lt;0.5</th><th class="num">img/s</th></tr></thead>
+          <tbody>
+            <tr><td><code>hard/train</code></td><td class="num">12 000</td><td class="num">53 961</td><td class="num">4.50</td><td class="num">10.0 %</td><td class="num">0.6 %</td><td class="num">111.1</td></tr>
+            <tr><td><code>hard/val</code></td><td class="num">2 000</td><td class="num">8 992</td><td class="num">4.50</td><td class="num">10.2 %</td><td class="num">0.6 %</td><td class="num">115.1</td></tr>
+            <tr><td><code>easy/train</code></td><td class="num">12 000</td><td class="num">53 835</td><td class="num">4.49</td><td class="num">10.1 %</td><td class="num">0.5 %</td><td class="num">106.4</td></tr>
+            <tr><td><code>easy/val</code></td><td class="num">2 000</td><td class="num">9 049</td><td class="num">4.52</td><td class="num">9.8 %</td><td class="num">0.5 %</td><td class="num">103.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warnbox">
+        <span class="note-label">A limitation stated before any detector existed</span>
+        <p>Only 10 % of objects are occluded at all and 0.6 % past half. That is what a 39° elevation and a
+          0.075 m minimum separation produce. So mAP measured here is <em>not</em> stressed by occlusion, and
+          any claim that the detector "handles occlusion" would be unsupported by this dataset. The honest fix
+          is a lower camera and a regenerated set — not a softer sentence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="metric">
+  <div class="sec-head"><span class="sec-num">05</span><h2>The scoring metric, written by hand</h2><p class="sec-sub">COCO mAP implemented from scratch — ten IoU thresholds, 101 recall points, and the matching rule.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>What mAP@[.5:.95] actually is</h3>
+      <p>Step by step, because the name hides the mechanism:</p>
+      <ol class="tight">
+        <li><strong>IoU</strong> — intersection over union — measures how well a predicted box overlaps a true
+          one. 1.0 is perfect, 0 is no overlap.</li>
+        <li>Pick an IoU threshold, say 0.5. Sort all detections by confidence. Walk down the list; each one is
+          a true positive if it overlaps an unclaimed ground-truth box by at least the threshold, otherwise a
+          false positive. Matching is <em>greedy</em> and cannot cross image boundaries.</li>
+        <li>That walk traces a precision–recall curve. Average precision is the area under it, sampled at 101
+          fixed recall levels.</li>
+        <li>Repeat at ten thresholds from 0.50 to 0.95 and average. Repeat per class and average again. That is
+          mAP@[.5:.95].</li>
+      </ol>
+      <p><code>pycocotools</code> is one import away and is deliberately not used. Everything interesting about
+        detection evaluation lives inside those four steps; calling a library teaches none of it. The semantics
+        follow pycocotools closely enough to be comparable, and the places they differ are marked in the source.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Three unit cases that are counter-intuitive — and each one catches a real bug</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Case</th><th class="num">AP@0.5</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td>1 object, 1 correct hit, then 1 false positive</td><td class="num"><strong>1.000</strong></td>
+              <td>The false positive arrives <em>after</em> recall reached 1.0, so no recall level was ever achievable at lower precision. It costs nothing.</td></tr>
+            <tr><td>the same false positive placed <em>before</em> the hit</td><td class="num"><strong>0.500</strong></td>
+              <td>Identical detections, identical recall, half the AP. Ranking is part of the score.</td></tr>
+            <tr><td>1 of 2 objects found, no false positives</td><td class="num"><strong>0.5050</strong></td>
+              <td>Not 0.5 — 51 of the 101 recall levels are reachable, so it is 51/101.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Ignore semantics, and why they get their own test</h3>
+      <p>Stratified AP — "how well does it do on small objects only" — depends entirely on this. Ground truth
+        outside the stratum is marked <em>ignore</em>, not deleted. Deleting it turns every correct detection of
+        an out-of-stratum object into a false positive. The test shows the same data scoring
+        <strong>1.000 with ignore and 0.500 with deletion</strong>.</p>
+    </div>
+
+    <div class="stack">
+      <h3>End-to-end controls: known inputs have known outputs</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Input</th><th class="num">mAP</th><th>Expected</th></tr></thead>
+          <tbody>
+            <tr><td>ground truth fed back as detections</td><td class="num">1.0000</td><td>exactly 1</td></tr>
+            <tr><td>correct boxes, classes shuffled</td><td class="num">0.1130</td><td>≈ 1/9 — precision ⅓ × recall ⅓</td></tr>
+            <tr><td>random boxes, correct classes</td><td class="num">0.0000</td><td>0</td></tr>
+            <tr><td>keep 75 % / 50 % / 25 % of hits</td><td class="num">0.7492 / 0.4983 / 0.2541</td><td>≈ the fraction kept</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>Why the range of thresholds matters — a controlled degradation</h3>
+      <div class="prose stack">
+        <p>Shifting every box by <em>d</em> pixels in x gives an IoU of exactly <code>(w−d)/(w+d)</code>, so this
+          test has a predicted answer, not just an observed one.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="num">Shift</th><th class="num">Predicted IoU (w = 28)</th><th class="num">mAP</th><th class="num">AP50</th></tr></thead>
+          <tbody>
+            <tr><td class="num">0 px</td><td class="num">1.000</td><td class="num">1.0000</td><td class="num">1.0000</td></tr>
+            <tr><td class="num">2 px</td><td class="num">0.867</td><td class="num">0.7309</td><td class="num">1.0000</td></tr>
+            <tr><td class="num">4 px</td><td class="num">0.750</td><td class="num">0.4639</td><td class="num">1.0000</td></tr>
+            <tr><td class="num">7 px</td><td class="num">0.600</td><td class="num">0.1415</td><td class="num">0.6873</td></tr>
+            <tr><td class="num">12 px</td><td class="num">0.400</td><td class="num">0.0057</td><td class="num">0.0480</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note key">
+        <span class="note-label">The argument for AP@[.5:.95] in one row</span>
+        <p>At a 4 px shift, AP50 is still a perfect 1.0000 while mAP has already lost more than half its value.
+          AP50 alone cannot see localisation quality at all.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Two stratification decisions</h3>
+      <div class="pair">
+        <dt>size bands</dt>
+        <dd>Terciles of <em>this</em> dataset (cut at 25.5 and 31.9 px), not COCO's absolute 32/96 px, which were
+          chosen for ~640 px images. At 192 px every object here is "small" and COCO's stratification would carry
+          no information. The terciles show what a single number hides: a uniform 3 px shift costs mAP 0.517 on
+          the smallest third against 0.701 on the largest, because IoU is scale-relative.</dd>
+        <dt>visibility bands report recall, not AP</dt>
+        <dd>A visibility band can be applied to ground truth but not to a detection — the detector never says how
+          occluded it thought an object was. So unmatched detections cannot be attributed to a band, precision is
+          undefined, and an "AP for heavily occluded objects" computed this way would be an artefact of where the
+          <em>other</em> bands' false positives landed.</dd>
+      </div>
+      <p>Cost: 436 ms for 2000 images × 8992 objects × 3 classes × 10 thresholds. IoU is built once per image and
+        reused across all ten thresholds — the only optimisation the metric needs.</p>
+    </div>
+  </div>
+</section>
+
+<section id="classical">
+  <div class="sec-head"><span class="sec-num">06</span><h2>The classical baseline</h2><p class="sec-sub">The classical baseline: watershed segmentation, nine hand-designed shape features, and a linear classifier.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>The pipeline</h3>
+      <ol class="tight">
+        <li><strong>Estimate the table, per image.</strong> Either a heavily downsampled median filter or a
+          morphological opening — both produce "what this image would look like with no objects on it".</li>
+        <li><strong>Threshold the residual.</strong> What remains after subtracting that background is object.</li>
+        <li><strong>Split touching regions</strong> with a distance-transform watershed — but only where it is
+          needed (see below).</li>
+        <li><strong>Describe each region</strong> with nine hand-designed shape features: log area, scale, aspect
+          ratio, extent, circularity, solidity, normalised vertical position, top fill, elongation.</li>
+        <li><strong>Classify</strong> with a class-balanced multinomial logistic regression over those nine
+          features, with a fourth <em>background</em> class so the pipeline can suppress its own false
+          positives — a hand-built objectness. The confidence is the softmax probability of the chosen class.</li>
+      </ol>
+      <div class="note">
+        <span class="note-label">Why the classifier is linear on purpose</span>
+        <p>A linear model on hand-designed features is what the classical convention <em>is</em> — a linear
+          model on HOG, on SIFT, on shape moments. Making it an MLP would quietly turn the baseline into a small
+          neural network and destroy the comparison it exists for.</p>
+      </div>
+      <p>Two more rules that keep it honest: <strong>nothing is thresholded before AP</strong>, because AP
+        integrates over every score cut-off and discarding low-confidence detections in advance only removes
+        recall the metric would have credited; and <strong>all tuning was done on train and reported on
+        val</strong>, because choosing the watershed's smoothing parameter on the split you then report is
+        exactly how a baseline gets silently inflated.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Results on <code>val</code>, 2000 images</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Method</th><th>Regime</th><th class="num">mAP</th><th class="num">AP50</th><th class="num">AP75</th><th class="num">Agnostic mAP</th><th class="num">Det rate</th><th class="num">ms/img</th></tr></thead>
+          <tbody>
+            <tr><td>otsu</td><td><code>easy</code></td><td class="num">0.4460</td><td class="num">0.5178</td><td class="num">0.4488</td><td class="num">0.5138</td><td class="num">0.5482</td><td class="num">0.36</td></tr>
+            <tr class="bad"><td>otsu</td><td><code>hard</code></td><td class="num" style="color:#9c4a45;font-weight:600">0.1430</td><td class="num">0.2182</td><td class="num">0.1401</td><td class="num">0.1699</td><td class="num">0.2316</td><td class="num">0.19</td></tr>
+            <tr><td>bgsub</td><td><code>easy</code></td><td class="num">0.5002</td><td class="num">0.5639</td><td class="num">0.4962</td><td class="num">0.5307</td><td class="num">0.5524</td><td class="num">1.04</td></tr>
+            <tr><td>bgsub</td><td><code>hard</code></td><td class="num">0.4114</td><td class="num">0.4979</td><td class="num">0.4128</td><td class="num">0.4761</td><td class="num">0.5251</td><td class="num">1.12</td></tr>
+            <tr><td>bgsub + watershed</td><td><code>easy</code></td><td class="num">0.5895</td><td class="num">0.7672</td><td class="num">0.5853</td><td class="num">0.6658</td><td class="num">0.7164</td><td class="num">1.88</td></tr>
+            <tr class="hl"><td><strong>bgsub + watershed</strong></td><td><code>hard</code></td><td class="num"><strong>0.5322</strong></td><td class="num">0.6979</td><td class="num">0.5637</td><td class="num">0.6108</td><td class="num">0.6847</td><td class="num">2.02</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>A repair applied to something that is not broken is damage</h4>
+        <p><code>bgsub</code> alone leaves a <em>bimodal</em> error distribution: 47.3 % of objects recovered at
+          IoU ≥ 0.9, and 38.6 % below 0.5 because touching objects merge into one region. The obvious fix —
+          distance-transform watershed — made things <em>worse</em> when applied to every region.</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Variant</th><th class="num">Regions/img</th><th class="num">Det rate</th><th class="num">Agnostic mAP</th><th class="num">IoU ≥ 0.9</th><th class="num">IoU &lt; 0.5</th></tr></thead>
+          <tbody>
+            <tr><td><code>bgsub</code></td><td class="num">3.40</td><td class="num">0.5211</td><td class="num">0.3746</td><td class="num">47.3 %</td><td class="num">38.6 %</td></tr>
+            <tr class="bad"><td>watershed on <strong>every</strong> region</td><td class="num">4.29</td><td class="num">0.4933</td><td class="num">0.3004</td><td class="num" style="color:#9c4a45;font-weight:600">6.3 %</td><td class="num">25.0 %</td></tr>
+            <tr class="hl"><td>watershed on <strong>multi-seed regions only</strong></td><td class="num">4.29</td><td class="num"><strong>0.7067</strong></td><td class="num"><strong>0.5525</strong></td><td class="num"><strong>52.6 %</strong></td><td class="num"><strong>14.1 %</strong></td></tr>
+          </tbody>
+        </table></div>
+        <p>Running the watershed everywhere redraws the boundary of regions that were already correct: the
+          near-perfect tier collapsed from 47.3 % to 6.3 % while the merged tier only fell from 38.6 % to 25.0 %.
+          Counting distance-transform seeds inside each connected region first, and leaving single-seed regions
+          untouched, keeps the good tier <em>and</em> fixes the merges. A parameter sweep would never have found
+          this — the sweep converged towards "split less", which was the wrong axis entirely.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>A wrong prior still returns an answer</h4>
+        <p>Global Otsu thresholding on greyscale is a reasonable-looking method: objects and table differ in
+          brightness, so split the histogram. Under <code>easy</code> it scores 0.446. Under <code>hard</code>,
+          where table value is uniform(0.25, 0.85) and object value uniform(0.45, 1.0), the two distributions
+          overlap and the split lands <em>inside</em> the objects — mAP <strong>0.143</strong>, a 3.1× collapse,
+          detection rate 0.232. It never raised an error. It returned a mask every time, and its per-class
+          numbers read like a weak detector rather than a broken one.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>Classification is the bottleneck, not localisation</h4>
+        <p>On <code>hard</code>, class-agnostic AP50 is <strong>0.823</strong> against class-aware AP50
+          <strong>0.698</strong>. The boxes are in the right place; the label on them is wrong 15 % of the time.
+          Per class: sphere 0.695, cylinder 0.510, box <strong>0.391</strong>. A sphere's silhouette is a circle
+          from every direction, so nine shape features describe it completely. A box's silhouette under a tilted
+          camera changes with yaw, and at 28 px there is not enough of it left for a linear rule. That gap is the
+          specific thing a learned feature extractor should close — and it is now measured rather than assumed.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>Occlusion is where the classical pipeline stops, not degrades</h4>
+        <p>Recall at IoU 0.5 by visible fraction: <strong>0.785</strong> above 0.9 visibility,
+          <strong>0.348</strong> between 0.5 and 0.9, and <strong>0.000</strong> below 0.5. Not a slope — a
+          cliff. A partially hidden object has the wrong silhouette, so every shape feature it produces is wrong
+          at once.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="detector">
+  <div class="sec-head"><span class="sec-num">07</span><h2>The anchor-free detector</h2><p class="sec-sub">The anchor-free detector: heatmap, size and offset heads, focal loss, and max-pooling used as suppression.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Where the idea comes from</h3>
+      <p>The previous project's winning head was a spatial soft-argmax: reduce a feature map to <em>one</em>
+        expected location. That is exactly why it cannot be used here — there are three to six objects, and one
+        expectation cannot describe them.</p>
+      <p>The generalisation is to stop reducing the map at all. Keep it at stride 4 (48×48 for a 192 px input),
+        predict a per-class centre heatmap on it, and read <em>every</em> local maximum instead of the mean.
+        Size and offset ride along as two more heads on the same feature map. No anchor boxes, no region
+        proposals, no IoU-based suppression anywhere.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Three heads on one feature map</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Head</th><th class="num">Channels</th><th>Predicts</th><th>Loss</th></tr></thead>
+          <tbody>
+            <tr><td><code>hm</code> — heatmap</td><td class="num">3</td><td>One map per class. A peak means "an object centre is here".</td><td>Focal loss on a Gaussian-splatted target</td></tr>
+            <tr><td><code>wh</code> — size</td><td class="num">2</td><td>Width and height in cells, read only at the peak.</td><td>Masked L1</td></tr>
+            <tr><td><code>off</code> — offset</td><td class="num">2</td><td>The sub-cell remainder — where inside the 4×4 pixel cell the true centre actually was.</td><td>Masked L1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>The network shape, and why there is a decoder</h3>
+      <pre><code>c1  3→16   stride 2   →  96×96
+c2 16→32   stride 2   →  48×48
+c3 32→64   stride 2   →  24×24
+c4 64→128  stride 2   →  12×12          encoder, down to stride 16
+
+y3 = s3( l3(c3) + upsample(p4(c4)) )     FPN-style decoder
+y2 = s2( l2(c2) + upsample(y3)     )     back to 48×48, stride 4
+
+hm  = 1×1 conv → 3 channels  (sigmoid)
+wh  = 1×1 conv → 2 channels
+off = 1×1 conv → 2 channels</code></pre>
+      <p>The decoder exists because the heads need both halves. Stride 16 has the receptive field to say
+        <em>"object"</em>; stride 4 has the resolution to say <em>"here"</em>. Predicting at stride 16 would give
+        a 28 px object a 1.75-cell footprint, and the offset head would have to absorb an 8 px quantisation —
+        larger than the localisation error the classical baseline already achieves. Total: 380 631 parameters.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Three details that are load-bearing rather than decorative</h3>
+      <div class="pair">
+        <dt>bias starts at −4.6</dt>
+        <dd>That is <code>logit(0.01)</code>. 99.8 % of the 2304 cells in a target map are zeros. Initialised at
+          p = 0.5, the focal loss is dominated by pushing background down and the first epochs are spent walking
+          the bias there — and training can diverge doing it.</dd>
+        <dt>3×3 max-pool is the NMS</dt>
+        <dd>A cell survives only if it is the maximum of its own 3×3 neighbourhood. That removes the ridge of
+          near-peak cells the Gaussian target deliberately creates. It is not an approximation here: the 0.075 m
+          minimum separation guarantees no two object centres land in the same cell, so peak-picking is
+          <em>exact</em> and there is no IoU-based suppression in the pipeline at all.</dd>
+        <dt>the larger quadratic root</dt>
+        <dd>The Gaussian radius comes from solving a quadratic for the overlap constraint. The CornerNet and
+          CenterNet reference implementations take the larger root, which is not what the algebra calls for. The
+          smaller root was implemented first, and measured: at stride 4 a 28 px object is 7 cells across, and the
+          smaller root gives r = 0.57, which floors to 0 and collapses the soft target back to a single hot
+          pixel — destroying the only thing it exists for. The larger root gives r = 1.91. The discrepancy is
+          recorded in the source rather than quietly papered over.</dd>
+      </div>
+      <p>Encode and decode were verified as exact inverses <em>before</em> any training, the same discipline the
+        metric got. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
+        place.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Results, <code>hard/val</code>, 2000 images</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Metric</th><th class="num">Classical <code>bgsub+ws</code></th><th class="num">Detector</th><th class="num">Change</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td>mAP@[.5:.95]</td><td class="num">0.5322</td><td class="num"><strong>0.9107</strong></td><td class="num">+0.379</td></tr>
+            <tr><td>AP50</td><td class="num">0.6979</td><td class="num">0.9899</td><td class="num">+0.292</td></tr>
+            <tr><td>AP75</td><td class="num">0.5637</td><td class="num">0.9896</td><td class="num">+0.426</td></tr>
+            <tr><td>class-agnostic mAP</td><td class="num">0.6108</td><td class="num">0.9099</td><td class="num">+0.299</td></tr>
+            <tr><td>detection rate @ 0.5</td><td class="num">0.6847</td><td class="num">0.9433</td><td class="num">+0.259</td></tr>
+            <tr><td>latency (eager, in-process)</td><td class="num"><strong>2.02 ms</strong></td><td class="num">3.87 ms</td><td class="num">1.9× slower</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose" style="font-size:.9rem;color:var(--muted)">Training: 10 500 images with 1500 held out of
+        <em>train</em> to watch for divergence; <code>val</code> was touched exactly once, at the very end.
+        25 epochs, Adam + OneCycle, 34 min at 112–128 img/s on 8 threads. The latency row was measured
+        in-process immediately after that 34-minute run — step 5 re-measures it on an idle box and gets a
+        different answer.</p>
+    </div>
+
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>The classification gap closed — which the baseline predicted</h4>
+        <p>Per-class AP: box 0.391 → <strong>0.914</strong>, cylinder 0.510 → 0.910, sphere 0.695 → 0.908. The
+          spread across classes collapses from <strong>0.304 to 0.006</strong>. The learned extractor does not
+          just score higher, it scores <em>evenly</em> — the class that was hardest for hand-designed features
+          is now indistinguishable from the easiest. That was a stated prediction before training.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>The occlusion cliff is gone — with a caveat that matters more than the number</h4>
+        <p>Recall at IoU 0.5 by visible fraction: ≥0.9 → 0.785 becomes 1.000; 0.5–0.9 → 0.348 becomes 0.999;
+          &lt;0.5 → <strong>0.000 becomes 0.910</strong>. A centre heatmap has no coupling to the silhouette —
+          the centre of a half-occluded object is still a centre, and the size head regresses the full extent
+          from partial evidence.</p>
+        <p><strong>The caveat: n = 53.</strong> That is 0.6 % of the dataset, and 0.910 on 53 samples carries
+          about ±0.04 at one sigma. The honest claim is narrow — <em>the specific failure mode that stops the
+          classical pipeline does not appear here</em>. It is not evidence of robustness to heavy occlusion in
+          general.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>Localisation is essentially exact, and AP75 is where it shows</h4>
+        <p>AP75 0.9896 against AP50 0.9899 — a gap of 0.0003. The baseline lost 0.134 between the same two
+          thresholds. The metric's shift table gives the reading: a uniform 4 px error leaves AP50 at 1.000 while
+          mAP has already fallen to 0.464, so AP50 alone cannot see localisation. The offset head is what buys
+          this; it is measured at 2.00 px of worst-case centre error, which at stride 4 is exactly the
+          quantisation it exists to undo.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>The learned detector is slower, not faster</h4>
+        <p>3.87 ms against 2.02 ms, single image, PyTorch eager, decode included. Worth stating plainly because
+          the convenient story would be that the network wins on every axis, and it does not. Step 5 was set up
+          to find out whether that was the architecture or the runtime.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">05</span><div class="fbody">
+        <h4>Small objects still cost, in the expected direction</h4>
+        <p>By size tercile: 0.805 (&lt;25.5 px), 0.854 (25.5–31.9 px), 0.884 (&gt;31.9 px). IoU is scale-relative,
+          so a fixed pixel error costs a small box more. Output stride 4 means centres quantise to 4 px cells,
+          which is 16 % of a 25 px object and 9 % of a 43 px one. The offset head removes most of that; the
+          residual 0.079 spread is what is left.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="ablation">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Augmentation against domain randomisation</h2><p class="sec-sub">Photometric augmentation against render-time randomisation, and the asymmetry the comparison exposed.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>The question, stated before the runs</h3>
+      <p>Photometric augmentation — randomly changing brightness, contrast, gamma, channel gain during training —
+        exists because real datasets are captured under one set of lights and deployed under another. But the
+        <code>hard</code> regime <em>already</em> randomises object hue, table shade, light position and light
+        intensity at render time. Does augmentation add anything the randomiser does not already cover?</p>
+      <p>Two regimes × four augmentation settings, one identical budget per cell: 6000 training images, 12 epochs,
+        same seed, same schedule. Every model scored on <em>both</em> validation splits, so each row has an
+        in-distribution number and a cross-regime number. The <code>easy</code>→<code>hard</code> column is the
+        sim-to-real question in miniature — <code>easy</code> is a simulator nobody randomised,
+        <code>hard</code> is the world it has to survive.</p>
+    </div>
+
+    <div class="stack">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Trained on</th><th>Augmentation</th><th class="num"><code>easy</code> val</th><th class="num"><code>hard</code> val</th><th class="num">Train s</th></tr></thead>
+          <tbody>
+            <tr class="bad"><td><code>easy</code></td><td>none</td><td class="num">0.9013</td><td class="num" style="color:#9c4a45;font-weight:600">0.1465</td><td class="num">595</td></tr>
+            <tr><td><code>easy</code></td><td>photometric</td><td class="num">0.8945</td><td class="num">0.5214</td><td class="num">783</td></tr>
+            <tr><td><code>easy</code></td><td>geometric</td><td class="num">0.9093</td><td class="num">0.1808</td><td class="num">608</td></tr>
+            <tr><td><code>easy</code></td><td>both</td><td class="num">0.9060</td><td class="num">0.5065</td><td class="num">737</td></tr>
+            <tr class="hl"><td><code>hard</code></td><td>none</td><td class="num">0.8683</td><td class="num">0.8735</td><td class="num">589</td></tr>
+            <tr><td><code>hard</code></td><td>photometric</td><td class="num">0.8643</td><td class="num">0.8742</td><td class="num">782</td></tr>
+            <tr><td><code>hard</code></td><td>geometric</td><td class="num">0.8844</td><td class="num">0.8893</td><td class="num">648</td></tr>
+            <tr><td><code>hard</code></td><td>both</td><td class="num">0.8806</td><td class="num">0.8857</td><td class="num">839</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>The gap is appearance, and it is a cliff, not a slope</h4>
+        <p>A detector trained on fixed appearance scores 0.90 on what it saw and <strong>0.15</strong> when the
+          table colour and the light move. Detection rate falls to 0.29 — it does not misclassify seven objects in
+          ten, it fails to <em>see</em> them. Nothing about the geometry, the camera, the shapes or the sizes
+          changed. This is the number the whole track is about: a policy trained in an un-randomised simulator
+          meets the real world in exactly this way, and the failure is silent — no error, just boxes missing.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>Photometric augmentation recovers a third of the gap and stops</h4>
+        <p>0.147 → 0.521, still 0.35 short of simply training on <code>hard</code> (0.874). The mechanism is
+          visible in what each one varies. Augmentation perturbs the <em>whole image</em> with one brightness, one
+          contrast, one gamma, one channel gain — a global nuisance model. The randomiser gives every object its
+          own hue and moves the light source, which changes the shading <em>direction</em> on every face.
+          Augmentation is a hand-written model of the nuisance; the randomiser samples the nuisance itself. A
+          model cannot be augmented towards a variation nobody wrote down.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>Geometric augmentation does nothing across the gap</h4>
+        <p>0.147 → 0.181, within the noise of a single seed. Flip and translation add placement diversity, and
+          placement was never the problem — the two regimes share one camera and one placement distribution. An
+          augmentation only buys invariance along the axis it perturbs. Worth stating because the default recipe
+          applies everything at once and then cannot say which part worked.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>On top of the randomiser, photometric augmentation buys nothing</h4>
+        <p><code>hard/none</code> 0.8735 against <code>hard/photo</code> 0.8742: <strong>+0.0007</strong>, for
+          33 % more training time. The randomiser already covers the axis photometric augmentation would add.
+          Every hour spent on an augmentation pipeline for a randomised simulator is an hour spent on nothing.</p>
+        <p>Geometric augmentation <em>does</em> add +0.016 within <code>hard</code>. Single seed, so suggestive
+          rather than proven, but the direction is expected for a 6000-image dataset: flip and shift are extra
+          placements, which the randomiser only samples 6000 times.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">05</span><div class="fbody">
+        <h4>The randomised model transfers to the fixed regime for free</h4>
+        <p><code>hard/none</code> loses <strong>0.005</strong> going to <code>easy</code>.
+          <code>easy/none</code> loses <strong>0.75</strong> going the other way. That asymmetry is the entire
+          argument for domain randomisation: the randomised distribution <em>contains</em> the fixed one, so a
+          model trained on it has already seen the fixed regime as a special case. Nothing was tuned for
+          <code>easy</code> and nothing needed to be.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">06</span><div class="fbody">
+        <h4>More data does not close an appearance gap</h4>
+        <p>The full-budget <code>easy/none</code> model saw 75 % more images and 67 % more epochs and gained
+          +0.027 on <code>easy</code> — and only +0.033 on <code>hard</code>, from 0.147 to 0.180. Coverage of the
+          distribution is what transfers, not the number of samples drawn from the wrong one. When a model fails
+          out of distribution, "collect more data" is only the right answer if the new data comes from somewhere
+          new.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="latency">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Export, latency, and a measurement that was thrown away</h2><p class="sec-sub">ONNX export, thread scaling, and a latency measurement that was thrown away and kept in the repository.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Verifying the export end to end</h3>
+      <p>An export that is 3× faster and 2 % wrong is not an optimisation, and a max-absolute-difference on raw
+        tensors is not a proof: a small logit drift can move a heatmap peak by one cell and change a box entirely.
+        So the check runs full detections through the ONNX graph and scores them with the same
+        <code>ap.py</code>.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Check</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>max |torch − onnx| per head</td><td>heatmap 2.4e−6 · size 1.1e−5 · offset 4.8e−6</td></tr>
+            <tr><td>mAP, first 500 <code>hard/val</code> images, PyTorch</td><td>0.9127</td></tr>
+            <tr class="hl"><td>mAP, same 500 images, ONNX Runtime</td><td><strong>0.9127</strong></td></tr>
+            <tr><td>graph</td><td>1.53 MB · 380 631 params · opset 17 · batch fixed at 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Batch is fixed at 1 deliberately: an edge camera delivers one frame at a time, and a graph exported for
+        the shape it will actually see is the graph the runtime can plan for.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Latency, batch 1, 200 images, idle box</h3>
+      <p class="prose">Decode — the 3×3 max-pool, the top-k and the gather — is 0.18 ms and does not depend on the
+        runtime. It is added to every row, because a heatmap is not a detection.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Runtime</th><th class="num">Threads</th><th class="num">Model ms</th><th class="num">End to end ms</th><th class="num">vs classical 2.13 ms</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td>ONNX Runtime</td><td class="num">8</td><td class="num">1.01</td><td class="num"><strong>1.20</strong></td><td class="num"><strong>1.8× faster</strong></td></tr>
+            <tr><td>ONNX Runtime</td><td class="num">4</td><td class="num">1.12</td><td class="num">1.30</td><td class="num">1.6× faster</td></tr>
+            <tr><td>PyTorch eager</td><td class="num">4</td><td class="num">2.54</td><td class="num">2.72</td><td class="num">0.78×</td></tr>
+            <tr><td>PyTorch eager</td><td class="num">8</td><td class="num">2.75</td><td class="num">2.93</td><td class="num">0.73×</td></tr>
+            <tr><td>ONNX Runtime</td><td class="num">1</td><td class="num">3.69</td><td class="num">3.87</td><td class="num">0.55×</td></tr>
+            <tr><td>PyTorch eager</td><td class="num">1</td><td class="num">5.15</td><td class="num">5.33</td><td class="num">0.40×</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>The runtime is worth 2.7× at eight threads — and 1.4× at one</h4>
+        <p>The previous project found ONNX Runtime on <em>one</em> thread beating PyTorch eager on <em>eight</em>.
+          That does not repeat here. The difference is the model: that network was 27 k parameters with a 16×16
+          output, so per-op dispatch overhead was most of the time and a runtime that removes overhead removes
+          most of the time. This one is 14× larger with a 48×48×7 output; the convolutions themselves are the
+          cost, and they cost the same arithmetic in either runtime. <strong>The refined rule: the runtime
+          dominates while the model is small enough to be overhead-bound; once it is compute-bound, the thread
+          budget matters as much as the engine.</strong> The earlier number was true and its generalisation was
+          not.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>Four threads is the knee, and eight is worse for eager</h4>
+        <p>ONNX Runtime: 3.69 → 1.12 → 1.01 ms for 1 → 4 → 8 threads. 3.3× from the first four, 10 % from the
+          next four. PyTorch eager on 8 threads (2.75) is <em>slower</em> than on 4 (2.54) — thread
+          oversubscription on a batch-1 forward costs more than the parallelism returns. A node given 4 cores gets
+          essentially everything this model can deliver; a node given 1 core is 1.8× slower than the classical
+          pipeline it was meant to replace. The deployment question is not "how fast is the detector" but "how
+          fast is the detector on the cores it will actually be given" — and that answer can land on either side
+          of the baseline.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>Decode is 15 % of the end-to-end latency at the best setting</h4>
+        <p>0.18 ms against 1.01 ms of model, and it does not shrink with the runtime. On a small, fast model the
+          post-processing stops being free — any deployment budget that lists only the forward pass is
+          under-reporting by that much.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>The first measurement was discarded, and why is the most reusable finding here</h4>
+        <p>Step 5 first ran unattended immediately after the 96-minute ablation and recorded ONNX-8t
+          <strong>1.225 ms</strong> and eager-8t <strong>3.773 ms</strong>. Same weights, same code, same box,
+          re-run idle the next morning: <strong>1.014</strong> and <strong>2.750</strong> — 17 % and 27 % faster.
+          The single-threaded classical baseline moved only 5 % in the same comparison.</p>
+        <p>WSL exposes no temperature sensor, so the cause cannot be read directly. But the box had just finished
+          1.5 hours at sustained 8-thread load, and the multithreaded numbers moved while the single-threaded one
+          barely did. Three rules adopted for the rest of the track: a latency number is only reported with the
+          conditions it was taken under; nothing timed directly after a training run is trusted; and
+          <strong>both measurements stay in the repository</strong>, because a number that was silently replaced
+          is worse than a number that was wrong.</p>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">10</span><h2>What this does not prove</h2><p class="sec-sub">The limits of a synthetic dataset with perfect labels, stated plainly.</p></div>
+  <div class="stack prose">
+    <ul class="tight">
+      <li><strong>Occlusion robustness.</strong> Only 0.6 % of objects are occluded past half. The 0.910 recall
+        in that band rests on 53 samples. Testing it properly needs a lower camera and a smaller separation, and
+        a regenerated dataset.</li>
+      <li><strong>Sim-to-real.</strong> Both regimes are rendered. The <code>easy</code>→<code>hard</code> gap is
+        a measured stand-in for the real gap, not the real gap.</li>
+      <li><strong>Single seed on the ablation.</strong> The eight-cell grid was run once. The large effects
+        (0.147 vs 0.874) are far outside any plausible seed noise; the small ones (+0.016 for geometric
+        augmentation) are labelled suggestive rather than proven.</li>
+      <li><strong>Three classes, one camera pose, one placement distribution.</strong> Nothing here tests
+        generalisation to new object categories or new viewpoints.</li>
+      <li><strong>The classical baseline is one person's best attempt.</strong> A stronger classical pipeline
+        exists in principle; the comparison is honest about being between these two implementations.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="stack">
+    <pre><code>git clone https://github.com/AungKaung1928/mujoco-clutter-detect.git
+cd mujoco-clutter-detect
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+
+python gen_dataset.py --regime hard --n 200 --smoke     # smallest useful run
+python gen_dataset.py --regime hard --n 12000
+python gen_dataset.py --regime easy --n 12000
+python view_dataset.py --regime hard --n 12             # -> out/labels.png
+
+nice -n 10 python train_det.py --regime hard --epochs 25 \
+    --save runs/det_hard_none.json --ckpt runs/det_hard_none.pt      # ~35 min
+nice -n 10 python run_ablation.py --epochs 12 --fit-n 6000 \
+    --out runs/ablation.json                                         # ~95 min
+nice -n 10 python export_onnx.py --ckpt runs/det_hard_none.pt \
+    --regime hard --save runs/onnx.json                              # idle box only</code></pre>
+    <h3>Or check the claims without regenerating anything</h3>
+    <pre><code>./verify.sh</code></pre>
+    <div class="prose stack">
+      <p>Five tiers. The first two need no dataset and no weights — the fifteen hand-computed AP cases and the
+        encode/decode inverse check, which are the two places a silent bug would invalidate every number below.
+        They take under a minute. The later tiers need <code>data/</code> (2.9 GB, gitignored) and
+        <code>runs/*.pt</code>, and say how to regenerate them rather than failing.</p>
+      <p>The script pins <code>MUJOCO_GL=glfw</code> and the thread count, because both change the numbers.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="stack prose">
+    <p>Multi-object detection on a simulated tabletop, built metric-first. Labels come from MuJoCo's segmentation
+      buffer, so they are exact under perspective and occlusion; the occlusion fraction needs a second pass, which
+      an exact pruning rule cuts by half. A COCO-style AP@[.5:.95] harness is written by hand and proved against
+      fifteen paper-derived cases plus end-to-end controls. A fully fitted classical pipeline — background
+      estimate, seed-counted watershed, nine shape features, class-balanced logistic regression with a background
+      class — scores mAP 0.532, and the four findings under it name exactly where hand-designed features stop. A
+      381 k-parameter anchor-free heatmap detector then scores 0.911, with the per-class spread collapsing from
+      0.304 to 0.006 and the classical occlusion cliff absent. An eight-cell ablation shows training on randomised
+      appearance is what transfers: un-randomised collapses to 0.15 under appearance shift, photometric
+      augmentation recovers it only to 0.52, and on top of the randomiser it adds 0.0007. Through ONNX Runtime the
+      detector runs end to end in 1.20 ms against the classical 2.13 ms at identical mAP — and the first latency
+      measurement was discarded for having been taken on a hot box, with both numbers kept in the repository.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>mujoco-clutter-detect</code> — <code>README.md</code>, <code>common.py</code>,
+  <code>ap.py</code>, <code>detector.py</code>, <code>gen_dataset.py</code>, <code>train_det.py</code>,
+  <code>baseline_cv.py</code>, <code>export_onnx.py</code>, <code>scene.xml</code> and <code>verify.sh</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

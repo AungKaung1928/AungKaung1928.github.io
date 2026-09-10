@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPO Against LQR — Aung Kaung Myat</title>
+<meta name="description" content="PPO implemented from scratch and measured against an optimal LQR controller on the same cart-pole, across sixteen seeds and four ablations. Full walkthrough.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/ppo-from-scratch.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/ppo-from-scratch.html">
+<meta property="og:title" content="PPO Against LQR">
+<meta property="og:description" content="PPO implemented from scratch and measured against an optimal LQR controller on the same cart-pole, across sixteen seeds and four ablations. Full walkthrough.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f7d93'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#f7f9fa;
+  --paper2:#ecf1f3;
+  --ink:#151c21;
+  --ink2:#3c4a52;
+  --muted:#68757e;
+  --line:#e2e9ec;
+  --line2:#ccd8de;
+  --accent:#4f7d93;
+  --accent-deep:#375b6d;
+  --accent-soft:#eff5f8;
+  --accent-line:#bcd3de;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--warn)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 155px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.74rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fbfcfd}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+.vs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.vs > div{background:var(--bg);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.vs h4{font-size:1rem}
+.vs .tag{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+.vs p{font-size:.92rem;color:var(--ink2)}
+.vs .big{font-family:var(--disp);font-size:1.5rem;font-weight:700;color:var(--accent);line-height:1}
+@media (max-width:640px){.vs{grid-template-columns:1fr}}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · secondary project · repo <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></div>
+    <h1>PPO Against LQR</h1>
+    <p class="deck">Reinforcement learning, implemented from nothing, and then measured against a controller
+      you can solve for with pen and paper. Both balance the pole perfectly. The learned one paid 62 144
+      environment steps for that, and its recoverable region is <strong>half the size</strong> — a difference
+      the usual score cannot see at all.</p>
+    <div class="chips">
+      <span class="chip">PyTorch (CPU)</span><span class="chip">NumPy</span><span class="chip">MuJoCo</span>
+      <span class="chip">no gymnasium</span><span class="chip">no stable-baselines3</span>
+      <span class="chip">no scipy</span><span class="chip">no cleanrl</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Environment</dt><dd>hand-written, 13/13 checks</dd></div>
+      <div class="fact"><dt>Baseline</dt><dd>LQR · <em>0 samples</em></dd></div>
+      <div class="fact"><dt>PPO cost</dt><dd>62 144 steps · 16/16 seeds</dd></div>
+      <div class="fact"><dt>One training run</dt><dd>11.4 s</dd></div>
+      <div class="fact"><dt>Seeds per result</dt><dd>16</dd></div>
+      <div class="fact"><dt>Reward curves shown</dt><dd>zero, on purpose</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#steps">Six steps</a>
+    <a href="#files">Every file</a>
+    <a href="#env">The environment</a>
+    <a href="#lqr">The LQR baseline</a>
+    <a href="#ppo">PPO, written out</a>
+    <a href="#study">Seeds &amp; ablations</a>
+    <a href="#basin">Where it counts</a>
+    <a href="#continuous">Continuous actions</a>
+    <a href="#limits">Limits</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">Two controllers for the same cart-pole: one solved with linear algebra, one learned from nothing.</p></div>
+  <div class="stack prose">
+    <p>Cart-pole is the "hello world" of reinforcement learning: a pole hinged on a cart, and a controller that
+      can push the cart left or right. Let it go and the pole falls. Keep it upright for 500 steps and you have
+      "solved" the task.</p>
+    <p>Almost every tutorial trains a policy on it, plots a reward curve that goes up, and stops. This project
+      asks a different question, and the difference is the whole point:</p>
+    <div class="note key">
+      <span class="note-label">The question</span>
+      <p>What does a learned policy actually buy over a controller you can solve for in closed form — and what
+        does it cost in samples?</p>
+    </div>
+    <p>Because cart-pole has an answer that does not require learning at all. Linearise the physics around
+      upright, solve one matrix equation, and out comes an optimal linear feedback controller. It consumes
+      <strong>zero</strong> environment steps. It scores a perfect 500.0 out of 500 on the first try, and on
+      every try after that.</p>
+    <p>So the learned policy cannot beat the baseline on the usual metric. It can only match it. That framing
+      forces two better questions, which is what the project measures: how many samples does matching cost, and
+      is there any axis on which the two controllers actually differ?</p>
+    <h3>Nothing is imported</h3>
+    <p>No gymnasium, no stable-baselines3, no rllib, no cleanrl copy-paste, no scipy. The environment is
+      hand-written from the 1983 paper's equations. The discrete Riccati equation is solved by iterating the
+      recursion rather than calling a library, because understanding that recursion is the point — it is the
+      exact same object PPO's critic estimates by regression, except here it can be computed exactly.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>cart-pole</b><span>A pole hinged on a cart. Push the cart left or right to keep the pole upright. The standard first control problem.</span></div>
+    <div class="gterm"><b>LQR</b><span>Linear-quadratic regulator — the optimal controller for a linearised system, solved with matrix algebra. No learning involved.</span></div>
+    <div class="gterm"><b>PPO</b><span>Proximal policy optimisation — a reinforcement-learning algorithm that limits how far each update is allowed to move the policy.</span></div>
+    <div class="gterm"><b>GAE</b><span>Generalised advantage estimation — how the algorithm estimates whether an action was better or worse than average.</span></div>
+    <div class="gterm"><b>episode / return</b><span>One run from reset until failure or the time limit. The return is the total reward collected in it.</span></div>
+    <div class="gterm"><b>terminated vs truncated</b><span>Terminated means the pole actually fell. Truncated means the clock ran out while it was still up. Treating them the same corrupts the value estimate.</span></div>
+    <div class="gterm"><b>seed</b><span>The random-number starting point. One seed proves nothing, so results here are reported across sixteen.</span></div>
+    <div class="gterm"><b>basin of attraction</b><span>The set of starting states a controller can still recover from. Wider is better.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="steps">
+  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">The six build steps, and what each had to produce before the next could start.</p></div>
+  <div class="stack">
+    <div class="steps">
+      <div class="stepbox"><span class="sn">step 1</span><span class="st">The environment</span>
+        <span class="sd">Cart-pole written from the published equations, verified against an independent solve of the Lagrangian.</span>
+        <span class="sr">13/13 checks</span></div>
+      <div class="stepbox"><span class="sn">step 2</span><span class="st">LQR baseline</span>
+        <span class="sd">Linearise, iterate the Riccati recursion, project to two actions. Zero sample cost by construction.</span>
+        <span class="sr">7/7 checks · 500.0</span></div>
+      <div class="stepbox"><span class="sn">step 3</span><span class="st">PPO from scratch</span>
+        <span class="sd">GAE, advantage normalisation, the clipped surrogate, multi-epoch minibatching — each switchable.</span>
+        <span class="sr">358 lines · 11.4 s/run</span></div>
+      <div class="stepbox"><span class="sn">step 4</span><span class="st">Seed study</span>
+        <span class="sd">16 seeds, median and interquartile range, steps-to-threshold with censoring handled honestly.</span>
+        <span class="sr">16/16 · 62 144 steps</span></div>
+      <div class="stepbox"><span class="sn">step 5</span><span class="st">Ablations</span>
+        <span class="sd">One switch off at a time, 16 seeds each, permutation test for significance.</span>
+        <span class="sr">clipping dominates</span></div>
+      <div class="stepbox"><span class="sn">step 6</span><span class="st">Continuous actions</span>
+        <span class="sd">Gaussian policy on a MuJoCo plant proved identical to the numpy one. Does the ranking survive?</span>
+        <span class="sr">16 seeds + 3 ablations</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="stack">
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>cartpole.py</td><td class="num">209</td>
+            <td>The plant and the environment, numpy only. The four physical parameters, the closed-form
+              accelerations, the explicit-Euler step, energy and momentum functions used by the checks, and an
+              environment class with separate <code>terminated</code> and <code>truncated</code> flags and its
+              own random generator.</td></tr>
+          <tr><td>verify_env.py</td><td class="num">456</td>
+            <td>Thirteen checks in about six seconds on one core. Independent Lagrangian solve, energy and
+              momentum conservation under RK4, the closed-form divergence rate, every termination and truncation
+              contract, determinism, RNG isolation, the published random-policy return, and a golden-trajectory
+              regression fixture.</td></tr>
+          <tr class="hl"><td>lqr.py</td><td class="num">496</td>
+            <td>The baseline. Analytic linearisation, finite-difference Jacobian cross-checks, exact
+              discretisation, the Riccati recursion, the gain, the sign projection to two actions, seven
+              verification checks, the basin bisection, and the Q-sensitivity sweep.</td></tr>
+          <tr><td>lqr_baseline.json</td><td class="num">—</td>
+            <td>The baseline's numbers, written out so later steps compare against a file rather than a memory.</td></tr>
+          <tr class="hl"><td>ppo.py</td><td class="num">360</td>
+            <td>PPO itself. Separate 64-64 tanh actor and critic, orthogonal initialisation, GAE, the clipped
+              surrogate, multi-epoch minibatch updates, the truncation bootstrap, and command-line switches that
+              turn each of the four PPO ingredients off individually.</td></tr>
+          <tr><td>ppo_continuous.py</td><td class="num">305</td>
+            <td>The Gaussian-policy version. Imports <code>compute_gae</code> and <code>layer_init</code> from
+              <code>ppo.py</code> rather than copying them, so the two implementations cannot drift apart. Only
+              the head changes.</td></tr>
+          <tr><td>mj_cartpole.py</td><td class="num">291</td>
+            <td>The MuJoCo environment for step 6, plus six verification checks — including the one that proves
+              the two simulators describe the same rigid body to 1.4e−14.</td></tr>
+          <tr><td>study.py</td><td class="num">277</td>
+            <td>The experiment driver. Seed lists (0–15 for reporting, 100–103 for hyperparameter search, kept
+              disjoint), parallel launching, censoring, and a permutation test written without scipy.</td></tr>
+          <tr><td>compare.py</td><td class="num">148</td>
+            <td>LQR against all sixteen trained checkpoints on the axis that can actually separate them: the
+              basin of attraction, by bisection, plus a widened-initial-condition sweep.</td></tr>
+          <tr><td>visualize.py</td><td class="num">172</td>
+            <td>Watch it. MuJoCo is used as a <em>renderer only</em> — <code>mj_forward</code> for kinematics,
+              never <code>mj_step</code> — and the numpy plant supplies the state. Letting MuJoCo integrate would
+              silently be a different plant.</td></tr>
+          <tr><td>boxcheck.py</td><td class="num">49</td>
+            <td>Refuses to start training above a 1-minute load average of 4.0, and prints the offending process.
+              Called by every entry point that trains, not just the study driver — for a reason recorded below.</td></tr>
+          <tr><td>cartpole.xml · cartpole_mj.xml</td><td class="num">42 · 60</td>
+            <td>Two MJCF models. The first is for visualisation only. The second sets inertias by hand
+              (<code>inertiafromgeom="false"</code>) so its rigid body is provably identical to the numpy one.</td></tr>
+          <tr><td>golden_traj.npz</td><td class="num">—</td>
+            <td>201 frozen states. A regression fixture, not a correctness proof — it stops a refactor during
+              steps 3–5 from moving the environment silently.</td></tr>
+          <tr><td>runs/ · runs_c/</td><td class="num">—</td>
+            <td>Checkpoints and per-run JSON for the discrete and continuous studies.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="env">
+  <div class="sec-head"><span class="sec-num">04</span><h2>Step 1 — the environment, and why it is hand-written</h2><p class="sec-sub">Why the environment is hand-written rather than imported, and how it is checked against a saved trajectory.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>The reason</h3>
+      <p>PPO will fail to learn several times before step 5 is finished. Every time it does, the first question
+        is <em>algorithm or environment</em>. That question is only cheap to answer if the environment was
+        verified before any reinforcement learning existed. This one was.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>The dynamics</h3>
+      <p>Barto, Sutton &amp; Anderson (1983), appendix. θ is measured from upright; positive θ leans the pole
+        toward +x.</p>
+      <pre><code>temp      = (F + m·l·θ̇²·sin θ) / (M + m)
+θ̈         = (g·sin θ − cos θ · temp) / (l·(4/3 − m·cos²θ/(M+m)))
+ẍ         = temp − m·l·θ̈·cos θ / (M + m)</code></pre>
+      <p>Two conventions hide inside those three lines and both are classic bug sources. <code>l = 0.5</code> is
+        the <strong>half</strong>-length, not the full pole length. And the <code>4/3</code> is
+        <code>1 + I_cm/(m·l²)</code> for a uniform rod, whose moment of inertia about its own centre is
+        <code>m(2l)²/12 = m·l²/3</code>. Getting the half-length convention wrong is the most common bug in a
+        hand-written cart-pole, so one check exists purely to catch it.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Thirteen checks</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="num">#</th><th>Check</th><th class="num">Result</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td class="num">1</td><td>Scalar formulas against an independent solve of the Lagrangian mass matrix, 10 000 random states, |θ| up to π</td><td class="num">max rel diff <strong>2.6e−15</strong></td></tr>
+            <tr><td class="num">2a</td><td>Energy conserved under RK4, F = 0, 2 s at dt = 1e−4</td><td class="num">2.4e−14</td></tr>
+            <tr><td class="num">2b</td><td>Horizontal momentum conserved, same run</td><td class="num">5.4e−15</td></tr>
+            <tr class="hl"><td class="num">3</td><td>Pinned cart, divergence rate against the closed form √(3g/4l)</td><td class="num">3.834058 vs 3.834058, rel err <strong>3.4e−11</strong></td></tr>
+            <tr><td class="num">4a–d</td><td>Truncation fires exactly at the cap with <code>terminated</code> false; stepping a finished episode raises; reward is 1.0 on every step including the terminal one; the bounds are |x|&gt;2.4 and |θ|&gt;12°</td><td class="num">exact</td></tr>
+            <tr><td class="num">4e</td><td>Action sign: bang-bang on <code>θ + 0.5·θ̇</code> balances</td><td class="num">500.0 / 500</td></tr>
+            <tr><td class="num">5a–b</td><td>Same seed gives a bitwise identical trajectory; the environment ignores the global numpy RNG</td><td class="num">exact</td></tr>
+            <tr><td class="num">6</td><td>Random-policy mean return against the published ≈22, over 10 000 episodes</td><td class="num">22.09 ± 0.12</td></tr>
+            <tr><td class="num">7</td><td>Golden-trajectory regression, 201 states</td><td class="num">bitwise identical</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose stack">
+        <p>Check 1 is the strong one. The mass matrix is assembled from the Lagrangian and inverted with
+          <code>np.linalg.solve</code> — it shares no algebra with the hand-eliminated formulas the environment
+          uses, so agreement to 2.6e−15 rules out sign errors and bad elimination. Check 3 reaches outside the
+          code entirely: √(3g/4l) = 3.834058 s⁻¹ is a number you can derive on paper, and the simulator
+          reproduces it to eleven digits.</p>
+        <div class="note warnbox">
+          <span class="note-label">What none of this proves</span>
+          <p>gymnasium is not installed, so there is no bit-diff against the reference implementation. Checks 1–3
+            prove the equations are the published ones and internally consistent; check 6 is the only externally
+            published number reproduced. Check 7 is a regression fixture, not a correctness proof.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Three decisions worth arguing with</h3>
+      <div class="pair">
+        <dt>explicit Euler</dt>
+        <dd>Position is advanced with the <em>old</em> velocity. Semi-implicit Euler is the better integrator and
+          is deliberately not used, because the deliverable is a number ("475/500") that is only comparable to
+          published results if the plant is the same plant. The cost is measured rather than hidden: after 25
+          controlled steps the two integrators differ by 7.8e−3 rad, which is 3.7 % of the failure angle.</dd>
+        <dt>no combined <code>done</code></dt>
+        <dd><code>terminated</code> and <code>truncated</code> are kept separate and the environment refuses to
+          expose a merged flag. Collapsing them makes the value target at the 500-step cap treat a perfectly
+          healthy upright state as worth zero future return — a real bug worth roughly 100 points of final
+          performance.</dd>
+        <dt>no vectorised environment</dt>
+        <dd>The plan assumed the Python-loop environment would be the bottleneck. Measured: 374 000 steps/s, so a
+          200 k-step run spends 0.5 s total inside the environment — about 1 % of the budget. It was never written,
+          and step 3 confirmed it was never needed.</dd>
+      </div>
+      <div class="note">
+        <span class="note-label">A comparison that was deliberately not reported</span>
+        <p>A full-episode Euler-vs-RK4 comparison is absent, and check 3 is the reason: at λ = 3.834 s⁻¹, any
+          difference between two integrators is amplified by e³⁸ ≈ 3e16 over a ten-second episode. That number
+          would be about Lyapunov exponents, not about integrators. An early draft reported it anyway and got
+          <code>max |Δθ| = 12.9 rad</code>, which is how the mistake was caught.</p>
+      </div>
+      <p>Complete list of deviations from the standard CartPole-v1: observations are float64 not float32;
+        stepping a finished episode raises rather than warning; the two done flags are never merged. Everything
+        else — constants, equations, integrator and its ordering, initial distribution, thresholds, reward,
+        500-step cap — matches.</p>
+    </div>
+  </div>
+</section>
+
+<section id="lqr">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Step 2 — the baseline that costs nothing</h2><p class="sec-sub">LQR from first principles: linearisation, discretisation, the Riccati recursion, and what it costs to run.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>What LQR is</h3>
+      <p>Linear-Quadratic Regulator. If a system is linear and the cost you want to minimise is quadratic, the
+        optimal controller is a matrix multiplication: <code>u = −Kx</code>. The gain <code>K</code> is
+        computed from the model, not learned from data. Cart-pole is not linear, but near upright it is close
+        enough — so linearise, solve, and use the result.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Linearising</h3>
+      <p>Dropping second-order terms about the origin, with <code>D = l(4/3 − m/M)</code>:</p>
+      <pre><code>θ̈ = (g/D)·θ − (1/(M·D))·F
+ẍ = F/M − (m·l/M)·θ̈</code></pre>
+      <p><code>Ac[3,2] = g/D = 15.7756 s⁻²</code>, and √15.7756 = 3.9719 s⁻¹ is the growth rate of the
+        <em>free</em> cart-pole — slightly faster than the pinned-cart 3.834058 s⁻¹ measured in step 1, because
+        a free cart lets the base slide out from under the pole. Two related numbers, both derivable, both
+        matching.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Discretisation is exact here — and that is the payoff for step 1's integrator choice</h3>
+      <p>Every acceleration in <code>euler_step()</code> is evaluated at the <em>old</em> state, so the plant
+        genuinely is <code>s' = s + τ·f(s,u)</code> and therefore</p>
+      <pre><code>Ad = I + τ·Ac        Bd = τ·Bc</code></pre>
+      <p>with no approximation at all. A semi-implicit or exact zero-order-hold plant would need a matrix
+        exponential here. It was verified against a finite-difference Jacobian of the actual step function
+        anyway: max absolute difference <strong>7.57e−14</strong>.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Riccati by iteration, not by library call</h3>
+      <pre><code>P_{k+1} = Q + Adᵀ P_k Ad − Adᵀ P_k Bd (R + Bdᵀ P_k Bd)⁻¹ Bdᵀ P_k Ad,   P₀ = Q
+K       = (R + Bdᵀ P Bd)⁻¹ Bdᵀ P Ad,      u = −Kx</code></pre>
+      <p><code>P_k</code> is the cost-to-go matrix with <code>k</code> steps of horizon remaining, so this is
+        literally value iteration for a quadratic value function. <strong>It is the same object PPO's critic
+        estimates by regression</strong> — the difference is that here it can be computed exactly, which is the
+        whole reason to write the recursion out longhand.</p>
+      <p>Converged in <strong>866 sweeps</strong> / 22 ms. The theory says the convergence rate is
+        <code>ρ(Ad−BdK)² = 0.96810</code> per sweep, predicting about 923 sweeps to reach 1e−13 relative.
+        Measured 866. That agreement is the check that the recursion is the textbook one and not something that
+        merely happens to converge.</p>
+      <pre><code>K = [−0.910126, −2.132488, −30.594563, −7.841506]
+ρ(Ad − Bd·K) = 0.983919</code></pre>
+    </div>
+
+    <div class="stack">
+      <h3>Seven checks</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="num">#</th><th>Check</th><th class="num">Result</th></tr></thead>
+          <tbody>
+            <tr><td class="num">L1</td><td>Analytic Ac, Bc against a central-difference Jacobian of the derivative</td><td class="num">3.78e−12</td></tr>
+            <tr><td class="num">L2</td><td>Ad = I + τ·Ac against a finite-difference Jacobian of the actual step</td><td class="num">7.57e−14</td></tr>
+            <tr><td class="num">L3</td><td>Converged P satisfies the discrete algebraic Riccati equation</td><td class="num">residual 6.63e−10</td></tr>
+            <tr><td class="num">L4</td><td>Closed-loop spectral radius below 1</td><td class="num">0.983919</td></tr>
+            <tr class="hl"><td class="num">L5</td><td>xᵀPx against the simulated linear closed-loop cost-to-go</td><td class="num">max rel <strong>5.46e−12</strong></td></tr>
+            <tr><td class="num">L6</td><td>Scaling both Q and R by c leaves the gain unchanged, c ∈ [1e−3, 1e3]</td><td class="num">5.81e−16</td></tr>
+            <tr><td class="num">L7</td><td>Mean return ≥ 475 over 100 consecutive episodes</td><td class="num">500.0 (min 500, max 500)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">L5 is the one that matters most: it checks <code>P</code> against something
+        <code>P</code> was not used to compute. Roll the <em>linear</em> closed loop forward, accumulate
+        <code>xᵀQx + uᵀRu</code>, and compare the total to <code>x₀ᵀPx₀</code>. Agreement to 5e−12 means the
+        converged matrix really is the cost-to-go and not just a fixed point of some recursion that was typed in.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Bridging a continuous controller to two discrete actions</h3>
+      <p>The environment offers ±10 N. LQR returns a real number. The bridge is a design decision, not a detail:</p>
+      <pre><code>action = 1 if −Kx &gt; 0 else 0</code></pre>
+      <p>Bang-bang control with an LQR-derived switching surface. Only the <em>sign</em> of <code>−Kx</code>
+        reaches the plant, so the policy is invariant to any positive rescaling of <code>K</code>, and therefore
+        to scaling the whole cost — which is exactly what check L6 confirms.</p>
+    </div>
+
+    <div class="stack">
+      <h3>The number PPO has to justify itself against</h3>
+      <div class="vs">
+        <div>
+          <span class="tag">Baseline performance</span>
+          <span class="big">500.00</span>
+          <p>Mean return over 1000 episodes. Zero failures. Metric fully saturated.</p>
+        </div>
+        <div>
+          <span class="tag">Baseline sample cost</span>
+          <span class="big">0 steps</span>
+          <p>The design consumed no environment interaction at all. Steps-to-threshold is 0 by construction.</p>
+        </div>
+      </div>
+      <div class="note key">
+        <span class="note-label">The framing this step delivers</span>
+        <p>PPO cannot beat this. The metric is saturated. The most it can do is match it, and the only honest
+          axes left are sample cost — where LQR wins by construction — and everything the LQR does not have,
+          which is <em>independence from the model</em>.</p>
+      </div>
+    </div>
+
+    <div class="stack prose">
+      <h3>Return is a saturating metric — measured, not asserted</h3>
+      <p>An early claim in the repository was that the cost weight <code>R</code> cannot matter because it only
+        rescales <code>K</code>. That is false — the Riccati equation is not linear in <code>R</code> — and
+        sweeping <code>R</code> from 0.01 to 100 rotates the normalised gain direction by 0.130. The check caught
+        it. The interesting part is what happened next: <strong>that rotation moved the measured return by
+        0.0.</strong> Every one of those controllers scores 500.0.</p>
+      <p>So return cannot rank controllers on this task once they are all merely good enough. Steps 4 and 5
+        therefore rank on steps-to-threshold, and <strong>this repository does not contain a single reward
+        curve.</strong></p>
+      <p>What <em>can</em> tell controllers apart is the <em>basin</em> — how large a disturbance they can
+        recover from — found by bisecting on the initial state one axis at a time:</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Perturbation from upright</th><th class="num">Bang-bang (±10 N only)</th><th class="num">Continuous force, clipped to ±10 N</th></tr></thead>
+          <tbody>
+            <tr><td>critical θ̇₀</td><td class="num"><strong>2.1693 rad/s</strong></td><td class="num">1.9632 rad/s</td></tr>
+            <tr><td>critical ẋ₀</td><td class="num"><strong>2.4354 m/s</strong></td><td class="num">1.9593 m/s</td></tr>
+            <tr><td>critical θ₀</td><td class="num">0.2094 rad = the termination limit</td><td class="num">0.2094 rad</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Bang-bang has the <em>larger</em> basin than the same law with a proportional actuator of equal
+        strength. Not a paradox: recovering from a large disturbance is a time-optimal problem, and the
+        time-optimal solution to a bounded-input problem <em>is</em> bang-bang. The linear law under-commands
+        near the edge because it is minimising a quadratic cost, not maximising survival. Angle finds nothing —
+        every angle inside the termination limit is recoverable, which is why the sweep runs on velocity.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Q sensitivity — and the row that shows what return hides</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Q</th><th class="num">Sweeps</th><th class="num">ρ</th><th class="num">Return</th><th class="num">Critical θ̇₀</th><th class="num">Max |x|</th></tr></thead>
+          <tbody>
+            <tr><td><code>I₄</code></td><td class="num">866</td><td class="num">0.9839</td><td class="num">500.0</td><td class="num">2.17 rad/s</td><td class="num">0.136 m</td></tr>
+            <tr><td><code>diag(1,1,10,10)</code> pole-weighted</td><td class="num">887</td><td class="num">0.9842</td><td class="num">500.0</td><td class="num">2.14 rad/s</td><td class="num">0.143 m</td></tr>
+            <tr><td><code>diag(10,10,1,1)</code> cart-weighted</td><td class="num">664</td><td class="num">0.9786</td><td class="num">500.0</td><td class="num">1.89 rad/s</td><td class="num">0.081 m</td></tr>
+            <tr class="bad"><td><code>diag(0,0,1,1)</code> pole only</td><td class="num">240</td><td class="num"><strong>1.0000</strong></td><td class="num">500.0</td><td class="num"><strong>0.40 rad/s</strong></td><td class="num">0.245 m</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">The last row is the interesting one. With no cost on cart position or velocity the cart
+        mode is uncontrolled: ρ = 1.0000 exactly, the closed loop is only marginally stable, and the cart drifts.
+        It still scores 500.0, because 500 steps is not long enough to drift 2.4 m. <strong>Return says these
+        four designs are identical. The spectral radius and the basin say the fourth is broken.</strong></p>
+      <div class="note warnbox">
+        <span class="note-label">A bug worth writing down</span>
+        <p>The Riccati loop originally used an <em>absolute</em> tolerance of 1e−14. <code>P</code> has entries
+          near 7e3, so machine epsilon times 7e3 is about 1.5e−12 — the tolerance was below the float64
+          resolution of <code>P</code> itself and could only ever be met by luck. <code>Q = I₄</code> landed on an
+          exact fixed point and converged; <code>Q = diag(10,10,1,1)</code> chattered in the last bit for 200 000
+          sweeps and looked exactly like a stabilisability failure. It was not. The general lesson, which comes
+          back in step 3: <strong>an absolute tolerance on a quantity whose scale you have not measured is not a
+          convergence criterion.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ppo">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Step 3 — PPO, written out</h2><p class="sec-sub">PPO written out in full — GAE, the clipped objective, and the truncation bootstrap that is easy to get wrong.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>The four ingredients</h3>
+      <p>PPO is policy gradient plus four specific additions. Each is written longhand here, and each can be
+        switched off from the command line — which is what step 5 measures.</p>
+      <div class="pair">
+        <dt>GAE(γ, λ)</dt>
+        <dd>Generalised advantage estimation. "How much better was this action than average?" can be estimated
+          from one step (low variance, biased) or from the whole episode (unbiased, high variance). GAE
+          interpolates between them with λ.</dd>
+        <dt>advantage normalisation</dt>
+        <dd>Standardise the advantages within each batch so the gradient scale does not depend on how large the
+          rewards happen to be.</dd>
+        <dt>the clipped surrogate</dt>
+        <dd>The core of PPO. The update is weighted by the ratio of new to old action probability; clipping that
+          ratio to [1−ε, 1+ε] removes the incentive to move the policy far in one update.</dd>
+        <dt>multi-epoch minibatching</dt>
+        <dd>Reuse each batch of experience for several optimisation epochs instead of throwing it away — which is
+          only legal <em>because</em> of the clip.</dd>
+      </div>
+      <p>Architecture: separate 64-64 tanh actor and critic trunks, orthogonal initialisation (gain √2, 0.01 on
+        the policy head, 1.0 on the value head), Adam with eps = 1e−5, linear learning-rate anneal,
+        gradient-norm clipping at 0.5, and 8 environments × 128 steps = 1024-step batches.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>The truncation bootstrap — what step 1 was for</h3>
+      <p>At the 500-step cap the pole has <strong>not</strong> fallen. The episode was cut by the clock.
+        Bootstrapping <code>V(s_final)</code> there is correct; treating it as terminal teaches the critic that
+        surviving 500 steps is worth zero future return. That is the single most common silent bug in a
+        hand-written PPO, and it is only avoidable here because step 1 refused to merge the two done flags.</p>
+      <p>Implemented by folding the bootstrap into the reward of the truncated step,
+        <code>r_t += γ·V(s_final)</code>, and then treating that step as an episode boundary for GAE — which it
+        is, since the next observation comes from a fresh reset.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Hyperparameters were searched — on seeds that are not the reported ones</h3>
+      <div class="prose stack">
+        <p>The first configuration written down (lr 3e−4, 4 epochs) <strong>never reached threshold</strong> in
+          150 k steps, and reported a clip fraction of 0.000 on every single update: the policy was moving so
+          little per update that the clip never engaged. That is worth stating rather than quietly deleting,
+          because a PPO whose clip never engages is not PPO — it is A2C with extra arithmetic, and it would have
+          made the step-5 clipping ablation come out as "makes no difference".</p>
+        <p>The search ran on seeds 100–103, disjoint from the study seeds 0–15.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Configuration</th><th class="num">Solved</th><th class="num">Steps-to-threshold, median</th><th class="num">IQR</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td><strong>lr 2e−3, 10 epochs — adopted</strong></td><td class="num">4/4</td><td class="num"><strong>63 028</strong></td><td class="num">[62 020, 63 428]</td></tr>
+            <tr><td>lr 1e−3, 8 epochs, 8 minibatches</td><td class="num">4/4</td><td class="num">66 520</td><td class="num">[65 076, 69 772]</td></tr>
+            <tr><td>lr 1.5e−3, 10 epochs</td><td class="num">4/4</td><td class="num">73 412</td><td class="num">[68 910, 78 664]</td></tr>
+            <tr><td>lr 1e−3, 10 epochs</td><td class="num">4/4</td><td class="num">76 104</td><td class="num">[73 346, 85 050]</td></tr>
+            <tr><td>lr 2.5e−3, 4 epochs</td><td class="num">3/4</td><td class="num">112 104</td><td class="num">[83 832, 141 888]</td></tr>
+            <tr><td>lr 3e−4, 10 epochs</td><td class="num">2/4</td><td class="num">148 808</td><td class="num">—</td></tr>
+            <tr><td>lr 1e−3, 4 epochs</td><td class="num">1/4</td><td class="num">&gt;150 000</td><td class="num">—</td></tr>
+            <tr class="bad"><td>lr 3e−4, 4 epochs — first attempt</td><td class="num">0/4</td><td class="num">&gt;150 000</td><td class="num">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">With the adopted configuration the clip fraction runs at 0.03–0.05 instead of 0.000.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>Cost, and a prediction confirmed</h3>
+      <div class="pair">
+        <dt>one 150 k-step run</dt><dd>11.4 s sequential — 13 187 environment steps per second</dd>
+        <dt>64 runs</dt><dd>344 s at four-way parallel, <code>nice 10</code></dd>
+        <dt>threads</dt><dd><code>torch.set_num_threads(1)</code>, deliberately. The networks are 64×64;
+          intra-op threading costs more in synchronisation than it saves, and this machine shares eight threads
+          with a detection-training job that has priority.</dd>
+      </div>
+      <p>Step 1 predicted the environment would not be the bottleneck — 374 k steps/s standalone against 13 k
+        inside training. Confirmed: the environment is about 3 % of the wall clock. The vectorised rewrite was
+        never needed and was never written.</p>
+    </div>
+  </div>
+</section>
+
+<section id="study">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Steps 4 and 5 — seeds and ablations</h2><p class="sec-sub">Sixteen seeds, four ablations, and a permutation test written without scipy.</p></div>
+  <div class="stack-lg">
+    <div class="stack">
+      <h3>The seed study</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th class="num">Baseline PPO</th><th class="num">LQR</th></tr></thead>
+          <tbody>
+            <tr><td>solved (≥475 over 100 consecutive episodes)</td><td class="num"><strong>16/16</strong></td><td class="num">yes</td></tr>
+            <tr class="hl"><td>steps-to-threshold, median</td><td class="num"><strong>62 144</strong></td><td class="num"><strong>0</strong></td></tr>
+            <tr><td>steps-to-threshold, IQR</td><td class="num">[60 442, 63 448]</td><td class="num">—</td></tr>
+            <tr><td>greedy evaluation, 100 episodes, median</td><td class="num">500.0</td><td class="num">500.0</td></tr>
+            <tr><td>greedy evaluation, worst seed</td><td class="num">500.0</td><td class="num">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note key">
+        <span class="note-label">The honest headline</span>
+        <p>PPO matches the baseline and pays 62 144 environment steps for what the model gave away free. That is
+          not an argument against PPO — it is a precise statement of what PPO is buying, which is independence
+          from the model, and of what that costs on a plant where the model happens to be exact.</p>
+      </div>
+      <p class="prose"><strong>Censoring.</strong> A run that never reaches threshold has no steps-to-threshold.
+        Dropping those and taking the median of the survivors is the standard way to make a bad configuration
+        look good, so they are entered as <code>budget + 1</code> instead. The median is then correct whenever
+        fewer than half the runs fail, and reports as <code>&gt;150000</code> when more than half do. Solved
+        counts are printed next to every median.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Ablations — one switch at a time, 16 seeds each</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Ablation</th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">vs baseline</th><th class="num">Permutation p</th></tr></thead>
+          <tbody>
+            <tr><td>baseline</td><td class="num">16/16</td><td class="num">62 144</td><td class="num">1.00×</td><td class="num">—</td></tr>
+            <tr><td>no advantage normalisation</td><td class="num">16/16</td><td class="num">64 884</td><td class="num">1.04×</td><td class="num">0.054</td></tr>
+            <tr><td>no GAE (λ = 1)</td><td class="num">16/16</td><td class="num">68 948</td><td class="num">1.11×</td><td class="num">0.0006</td></tr>
+            <tr class="bad"><td><strong>no ratio clipping</strong></td><td class="num"><strong>8/16</strong></td><td class="num"><strong>145 368</strong></td><td class="num"><strong>2.34×</strong></td><td class="num">0.0001</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose stack">
+        <p><strong>Ratio clipping is the only one that actually matters, and it matters by a lot.</strong> Half
+          the seeds never reach threshold without it. GAE is worth 11 % of the sample budget here, and advantage
+          normalisation is not distinguishable from noise at the 5 % level on this task.</p>
+        <p>That ordering is task-specific and the reason is visible in the setup. Cart-pole episodes are short
+          and γ = 0.99 over 128-step rollouts, so λ = 1 costs much less variance than it would on a long-horizon
+          task. Clipping, by contrast, is what makes ten epochs on the same batch legal at all — without it the
+          objective is a correct policy gradient for the first epoch and an increasingly wrong one for the next
+          nine.</p>
+        <div class="pair">
+          <dt>"no GAE" = λ&nbsp;1.0</dt>
+          <dd>GAE(γ, 1) <em>is</em> the plain Monte-Carlo advantage. Implementing the ablation as a single number
+            change means the comparison is about GAE rather than about two different implementations.</dd>
+          <dt>significance</dt>
+          <dd>Steps-to-threshold is right-skewed and censored, so a t-test is the wrong tool. A two-sided
+            permutation test on the difference of medians is used instead — exhaustive when the number of splits
+            allows, 100 000 Monte-Carlo resamples otherwise. It assumes only exchangeability under the null,
+            which is exactly what "this ablation changed nothing" means. Written without scipy.</dd>
+        </div>
+      </div>
+      <div class="note warnbox">
+        <span class="note-label">Why the seed count is 16 and not 8</span>
+        <p>The study ran at eight seeds first. It gave: no GAE 1.03×, no advantage normalisation 1.11×. At
+          sixteen: no GAE 1.11×, no advantage normalisation 1.04×. <strong>The ranking of the two small
+          ablations is exactly reversed.</strong> Both runs were honest, both used the same code, and eight
+          seeds — already above the usual "at least five" — was enough to get the order backwards. The
+          conclusion that survived was only the large one. Small effects need either more seeds or an explicit
+          statement that they were not resolved, and the p-values are reported so a reader can see which is
+          which.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="basin">
+  <div class="sec-head"><span class="sec-num">08</span><h2>LQR against PPO, where it counts</h2><p class="sec-sub">Where the learned policy beats the optimal linear controller, and where it plainly does not.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <p>Both controllers score 500.0/500. Step 2 already showed return saturates and cannot rank anything
+        competent, so the comparison runs on the basin instead — the same bisection and the same widened
+        initial-condition sweep, same plant, same termination test, LQR against all sixteen trained
+        checkpoints.</p>
+    </div>
+
+    <div class="stack">
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th class="num">LQR</th><th class="num">PPO, median over 16 seeds</th><th class="num">PPO best seed</th></tr></thead>
+          <tbody>
+            <tr><td>nominal return, 100 episodes</td><td class="num">500.0</td><td class="num">500.0</td><td class="num">500.0</td></tr>
+            <tr class="hl"><td>critical θ̇₀</td><td class="num"><strong>2.169 rad/s</strong></td><td class="num">1.082 rad/s</td><td class="num">2.004 rad/s</td></tr>
+            <tr class="hl"><td>critical ẋ₀</td><td class="num"><strong>2.435 m/s</strong></td><td class="num">0.824 m/s</td><td class="num">1.935 m/s</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Failures out of 200 episodes, initial velocities widened</th><th class="num">LQR</th><th class="num">PPO median</th><th class="num">PPO worst seed</th></tr></thead>
+          <tbody>
+            <tr><td>U(−0.5, 0.5)</td><td class="num"><strong>0</strong></td><td class="num">1</td><td class="num">22</td></tr>
+            <tr><td>U(−1.0, 1.0)</td><td class="num"><strong>0</strong></td><td class="num">48</td><td class="num">83</td></tr>
+            <tr><td>U(−1.5, 1.5)</td><td class="num"><strong>6</strong></td><td class="num">88</td><td class="num">115</td></tr>
+            <tr><td>U(−2.0, 2.0)</td><td class="num"><strong>28</strong></td><td class="num">116</td><td class="num">138</td></tr>
+            <tr><td>U(−2.5, 2.5)</td><td class="num"><strong>61</strong></td><td class="num">140</td><td class="num">158</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note key">
+        <span class="note-label">The result worth keeping from the whole project</span>
+        <p>PPO's basin is roughly <strong>half</strong> the LQR's on angular rate and <strong>a third</strong> on
+          cart velocity, at identical nominal return. It learned the initial-state distribution it was trained
+          on — U(−0.05, 0.05) on every state — and nothing outside it, because nothing outside it was ever
+          sampled and the reward never asked. A policy that holds the nominal task with a small basin is a policy
+          that falls over the first time a real plant hands it a disturbance the training distribution did not
+          contain. Fixing that is what domain randomisation is for, and this measurement is the thing domain
+          randomisation would have to move.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3>The same finding, watchable in three windows</h3>
+      <div class="prose stack">
+        <p>Same disturbance, applied from the exact origin, no random initialisation:</p>
+        <pre><code>python visualize.py --controller lqr --zero-init --theta-dot0 1.5
+python visualize.py --controller ppo --ckpt runs/study/baseline_seed2.pt --zero-init --theta-dot0 1.5
+python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-init --theta-dot0 1.5</code></pre>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Controller</th><th>Outcome at θ̇₀ = 1.5 rad/s</th><th class="num">Peak |θ|</th></tr></thead>
+          <tbody>
+            <tr><td>LQR</td><td>survives 500 steps</td><td class="num">46 % of the limit</td></tr>
+            <tr class="bad"><td>PPO seed 2</td><td><strong>falls at step 18</strong> (0.36 s)</td><td class="num">113 %</td></tr>
+            <tr><td>PPO seed 0</td><td>survives 500 steps</td><td class="num">52 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">Both findings in one experiment: the learned policy is worse than the model-based one at
+        the median, <em>and</em> the spread across seeds is enormous — critical θ̇₀ is 2.004 rad/s for seed 0 and
+        0.831 rad/s for seed 2, from identical hyperparameters and an identical step budget. All three score
+        500.0 on the nominal task and are indistinguishable by return.</p>
+      <p class="prose"><code>--zero-init</code> matters. Without it the random ±0.05 initialisation is still
+        present, and a negative θ₀ paired with a positive θ̇₀ is the pole rotating <em>back towards</em> upright —
+        easier, not harder. Every basin number is bisected from the origin, so reproducing them needs the flag.
+        And <code>baseline_seed0</code> is the best of the sixteen, not a typical one; it is the default
+        checkpoint only because it is the first.</p>
+    </div>
+  </div>
+</section>
+
+<section id="continuous">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Step 6 — continuous actions on MuJoCo</h2><p class="sec-sub">The same algorithm on continuous actions and MuJoCo physics, and the saturation problem that exposed.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <p>Two things change from steps 1–5 at once — the physics engine and the action space — so both are
+        pinned down separately before anything is concluded.</p>
+      <h3>The plant is identical, verified to 1.4e−14</h3>
+      <p><code>cartpole_mj.xml</code> sets the inertias by hand rather than letting MuJoCo derive them from a
+        geometry primitive. A capsule adds hemispherical caps and a cylinder adds a <code>3r²/12</code> term; the
+        <code>4/3</code> in the numpy plant is exactly the uniform-thin-rod assumption. Deriving inertia from the
+        geometry would have made the two plants <em>nearly</em> the same object, which is the worst possible
+        state to be in.</p>
+      <p>Check V1 compares MuJoCo's <code>qacc</code> against the numpy accelerations over 5000 random states:
+        max absolute difference <strong>1.42e−14</strong>. The two simulators describe the same rigid body.
+        Anything that differs from here on is the integrator or the action space, and cannot be blamed on the
+        model.</p>
+    </div>
+
+    <div class="stack">
+      <h3>The integrator is different, and that is not reconcilable</h3>
+      <div class="prose stack">
+        <p>MuJoCo's Euler is semi-implicit: velocity first, then position advanced with the <em>new</em> velocity.
+          The numpy plant uses the explicit ordering because that is what the reference cart-pole does.</p>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Energy drift, zero control, θ₀ = 0.5 rad</th><th class="num">at 50 steps</th><th class="num">at 500 steps</th></tr></thead>
+          <tbody>
+            <tr><td>MuJoCo semi-implicit</td><td class="num">+6.69 %</td><td class="num"><strong>+9.85 %</strong></td></tr>
+            <tr><td>explicit Euler (step 1)</td><td class="num"><strong>+0.43 %</strong></td><td class="num">+145.0 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">Semi-implicit Euler is worse in the short run and dramatically better in the long run: its
+        energy error oscillates with bounded amplitude, while the explicit version's grows without bound. Neither
+        is "the correct plant" — they are two discretisations of the same continuous system, which is why step 6
+        gets its own baseline instead of borrowing step 4's numbers. One-step gap between them: median
+        |Δθ| 5.84e−3 rad, 3.35 % of the failure angle.</p>
+    </div>
+
+    <div class="stack">
+      <h3>The step-2 gain transfers unchanged — the smallest honest sim-to-real argument here</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Step-2 gain K applied to the MuJoCo plant</th><th class="num">Mean return, 100 episodes</th></tr></thead>
+          <tbody>
+            <tr class="hl"><td>bang-bang, sign only, ±10 N</td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
+            <tr class="hl"><td>continuous, clipped to ±10 N</td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">The gain was computed against the numpy plant, in step 2, before this file existed. A
+        model-based design survived being moved to a different integrator at zero cost, because it depends on the
+        plant and not on the discretisation. That is the one thing the learned policy in step 4 was never asked
+        to do.</p>
+    </div>
+
+    <div class="stack prose">
+      <h3>The Gaussian policy, and a bias that is reported rather than hidden</h3>
+      <p>Only the head changes: <code>Categorical(logits)</code> becomes <code>Normal(μ(s), exp(log σ))</code>
+        with <code>log σ</code> a free parameter, log-probability summed over action dimensions, and Gaussian
+        differential entropy. The entropy coefficient defaults to <strong>0.0</strong> here against 0.01 in the
+        discrete version, because Gaussian differential entropy is unbounded below and can go negative, so an
+        entropy bonus pushes σ up with no floor — the same coefficient does not mean the same thing in the two
+        files.</p>
+      <div class="note warnbox">
+        <span class="note-label">Action clipping is biased, and the size of the bias is measured</span>
+        <p>The Gaussian has support on all of ℝ; the actuator saturates at ±1. The action is clipped at the
+          environment boundary while the log-probability is computed on the <em>unclipped</em> sample, so every
+          out-of-range sample is credited with a density it did not act under. The honest alternatives are a
+          tanh-squashed policy with the change-of-variables correction, or a Beta policy on the bounded interval;
+          neither is used. Instead every run reports its saturation fraction, so the size of the problem is
+          visible in the results table.</p>
+      </div>
+      <p>The search table makes the case for why initialising σ matters on a bounded action space. At
+        <code>init_log_std = 0</code>, σ = 1 on a ±1 action range means <strong>37 % of sampled actions are
+        outside the actuator range</strong> — the policy spends most of its probability mass on actions the plant
+        cannot execute, and it costs roughly 50 % more environment steps. The adopted setting, −1.0, ends at
+        σ = 0.133 with 0.5 % saturation.</p>
+    </div>
+
+    <div class="stack">
+      <h3>Seed study and ablations, continuous</h3>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th></th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">IQR</th><th class="num">Greedy eval</th></tr></thead>
+          <tbody>
+            <tr><td>discrete, <code>ppo.py</code> (step 4)</td><td class="num">16/16</td><td class="num">62 144</td><td class="num">[60 442, 63 448]</td><td class="num">500.0</td></tr>
+            <tr class="hl"><td><strong>continuous, <code>ppo_continuous.py</code></strong></td><td class="num">16/16</td><td class="num"><strong>63 748</strong></td><td class="num">[62 008, 65 636]</td><td class="num">500.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="prose">Moving from two discrete actions to a one-dimensional Gaussian costs 2.6 % of the sample
+        budget on this task, and the interquartile ranges overlap. That is smaller than expected, and it is not
+        evidence that continuous control is free in general — it is evidence that on a plant this small, with the
+        action range matched to the force the discrete policy was already applying, the extra difficulty of
+        learning a mean <em>and</em> a standard deviation is nearly paid for by the finer control authority.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Ablation</th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">vs baseline</th><th class="num">p</th><th class="num">Final σ</th><th class="num">Saturation</th></tr></thead>
+          <tbody>
+            <tr><td>baseline</td><td class="num">16/16</td><td class="num">63 748</td><td class="num">1.00×</td><td class="num">—</td><td class="num">0.136</td><td class="num">0.5 %</td></tr>
+            <tr><td>no advantage normalisation</td><td class="num">16/16</td><td class="num">64 664</td><td class="num">1.01×</td><td class="num">0.73</td><td class="num">0.144</td><td class="num">0.1 %</td></tr>
+            <tr><td>no GAE (λ = 1)</td><td class="num">16/16</td><td class="num">71 760</td><td class="num">1.13×</td><td class="num">0.0032</td><td class="num">0.218</td><td class="num">0.8 %</td></tr>
+            <tr class="bad"><td><strong>no ratio clipping</strong></td><td class="num"><strong>0/16</strong></td><td class="num"><strong>&gt;150 000</strong></td><td class="num">2.35×</td><td class="num">0.0008</td><td class="num">0.088</td><td class="num"><strong>28.2 %</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note key">
+        <span class="note-label">The ordering survives; the magnitude of the top effect does not</span>
+        <p>Without clipping the discrete policy still gets half its seeds to threshold. The Gaussian policy gets
+          <strong>none</strong>. The mechanism is visible in the two right-hand columns: <code>no_clip</code> ends
+          with the <em>smallest</em> σ of any configuration (0.088) and by far the <em>largest</em> saturation
+          (28.2 %, up to 80.6 % on the worst seed). A Gaussian with σ = 0.088 only puts 28 % of its mass outside
+          [−1, 1] if the mean sits at roughly ±0.95 — the mean has been driven onto the actuator rail while the
+          standard deviation collapsed around it. With an importance ratio unbounded above on a continuous
+          density, one favourable minibatch moves the mean as far as the gradient points, and the nine remaining
+          epochs on that batch reinforce a policy that is already off the plant's control range. A categorical
+          ratio cannot do this — it is bounded by <code>1/π_old(a)</code> on a two-element support, and the worst
+          it can do is become deterministic between two executable actions.</p>
+        <p><strong>So the conclusion is narrower than "clipping matters more in continuous control". It is: on an
+          action space where the policy can place mass outside the actuator range, removing the clip is not a
+          slowdown, it is a failure mode.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">10</span><h2>What this does not prove, and one process failure</h2><p class="sec-sub">The limits of the comparison, plus one mistake in the process worth recording.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <ul class="tight">
+        <li><strong>No real exploration problem.</strong> Cart-pole rewards every timestep and a random policy
+          already scores 22. The ablation ordering would very likely change on a sparse-reward task.</li>
+        <li><strong>The ablations are one-at-a-time.</strong> Interactions were not measured.</li>
+        <li><strong>One hyperparameter configuration</strong> was searched over eight candidates on four seeds.
+          A different configuration could change the ablation magnitudes — though the clipping result is large
+          enough that it is unlikely to flip.</li>
+        <li><strong><code>no_clip</code> failing is measured at <em>this</em> learning rate and epoch count.</strong>
+          Clipping matters because of the ten epochs; at one epoch it would matter much less.</li>
+        <li><strong>The basin comparison uses the greedy policy.</strong> The stochastic policy used during
+          training has a different, smaller basin.</li>
+        <li><strong>Step 6 changes the action space, not the task.</strong> The plant, the reward and the horizon
+          are the same, so it tests whether the conclusion is an artefact of the categorical head — not whether
+          it holds anywhere else.</li>
+      </ul>
+    </div>
+
+    <div class="stack">
+      <h3>Box etiquette, and the time the guard failed</h3>
+      <div class="prose stack">
+        <p>This machine shares eight threads with a higher-priority detection-training job. Every entry point
+          that starts training calls <code>boxcheck.require_quiet_box()</code> and refuses above a 1-minute load
+          average of 4.0.</p>
+        <p>That guard originally lived only in <code>study.py</code>, and it did not help. The step-6
+          hyperparameter sweep was launched from a bare shell loop, which never called <code>study.py</code>, and
+          it ran straight through a training job using 770 % CPU. <strong>A guard on the front door is not a
+          guard</strong>, so it now lives in its own module and is called by every training entry point alike,
+          and it prints the offending process.</p>
+        <p>The consequences are stated rather than buried:</p>
+        <ul class="tight">
+          <li>The step-6 search wall-clock numbers are contaminated and are not reported. The <em>learning</em>
+            outcomes are not: runs are seeded and single-threaded, and two identical configurations submitted
+            under different tags during that window returned bitwise-identical steps-to-threshold — which is the
+            evidence that contention moved the clock and nothing else.</li>
+          <li>A throughput figure measured under load was re-measured and proved wrong: contended 73 962
+            steps/s, quiet box 145 458 steps/s — 1.97×. So MuJoCo is 2.6× slower than the numpy environment
+            rather than the 5× first recorded. <strong>A throughput number carries the load average it was taken
+            under, or it carries nothing.</strong></li>
+          <li>Steps 1–5 are clean. The 64-run study finished six minutes before the detection job started, and
+            the guard passed at launch.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="stack">
+    <pre><code>git clone https://github.com/AungKaung1928/ppo-from-scratch.git
+cd ppo-from-scratch
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+
+python verify_env.py       # step 1, ~6 s, one core
+python lqr.py              # step 2, ~30 s, one core
+python ppo.py --seed 0     # step 3, one 150k-step run, ~11 s
+python study.py --mode all # steps 3-5, 96 runs, ~8 min, 4-way parallel
+python compare.py          # LQR vs PPO basin comparison, ~3 min
+python mj_cartpole.py      # step 6 environment, 6/6 checks, ~2 min
+python study.py --family continuous --mode ablations --out runs_c   # ~7 min
+
+python visualize.py --controller lqr                 # MuJoCo viewer
+python visualize.py --controller lqr --record out/frames   # offscreen, no window</code></pre>
+    <div class="prose stack">
+      <p><code>numpy</code> and CPU <code>torch</code> are the only hard dependencies. <code>mujoco</code> is
+        imported lazily and is needed only by the step-6 environment and the visualiser — the cart-pole plant
+        itself is numpy, so every number in the repository reproduces without a physics engine installed at all.</p>
+      <p><code>visualize.py</code> opens a window, so it needs a rendering backend: set <code>MUJOCO_GL</code> to
+        whatever your machine has (<code>glfw</code>, <code>egl</code>, <code>osmesa</code>).
+        <code>--record</code> writes frames offscreen and needs no window.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="stack prose">
+    <p>A cart-pole environment hand-written from the 1983 equations and verified thirteen ways — including
+      against an independent solve of the Lagrangian (2.6e−15) and a closed-form divergence rate derivable on
+      paper (3.4e−11). An LQR baseline built by linearising, discretising exactly, and iterating the Riccati
+      recursion by hand, converging in 866 sweeps against a theory prediction of 923, scoring a perfect 500.0
+      at zero sample cost. PPO then written from scratch — no gymnasium, no stable-baselines3, no cleanrl — and
+      matched to that baseline for 62 144 environment steps across 16/16 seeds. Ablations over sixteen seeds
+      with a permutation test show ratio clipping is the only ingredient that dominates (2.34×, 8/16 solved
+      without it), while GAE is worth 11 % and advantage normalisation is not resolved at the 5 % level. Because
+      return saturates and cannot rank competent controllers, the real comparison runs on the basin of
+      attraction, where PPO recovers from roughly half the angular-rate disturbance and a third of the cart
+      velocity that LQR does, at identical nominal score. A stretch step repeats it with a Gaussian policy on a
+      MuJoCo plant proved identical to 1.4e−14, where removing the clip stops being a slowdown and becomes a
+      0/16 failure mode. No reward curve appears anywhere in the repository.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>ppo-from-scratch</code> — <code>README.md</code>, <code>cartpole.py</code>,
+  <code>verify_env.py</code>, <code>lqr.py</code>, <code>ppo.py</code>, <code>ppo_continuous.py</code>,
+  <code>mj_cartpole.py</code>, <code>study.py</code>, <code>compare.py</code>, <code>visualize.py</code> and
+  <code>boxcheck.py</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>
