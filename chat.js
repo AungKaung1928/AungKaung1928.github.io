@@ -37,33 +37,34 @@ const TOPICS = [
         weight: 1.4,
         a: "I answer questions about Aung Kaung Myat's robotics work. Six areas:\n\n" +
            "## Background\n" +
-           "- Who he is, his mechanical engineering route into software\n" +
-           "- Experience level and how he works\n" +
-           "- Where he is heading: physical AI, sim-to-real\n" +
+           "- Who he is, his experience level, how he works\n" +
+           "- Where he is heading: physical AI, sim-to-real transfer\n" +
            "## Skills\n" +
-           "- Languages: C++ vs Python and when he uses each\n" +
-           "- Navigation: Nav2, SLAM, AMCL, Cartographer\n" +
-           "- Perception: LiDAR, PCL, OpenCV, sensor fusion\n" +
-           "- Manipulation, control, ML/DL\n" +
+           "- Robot learning: PPO, reward design, domain randomisation, system identification\n" +
+           "- ML / DL: PyTorch, CNNs, object detection, pose regression, ONNX Runtime\n" +
+           "- ROS2 and C++: nodes, actions, MoveIt2, Nav2\n" +
+           "- Simulation: MuJoCo, Gazebo, RViz, synthetic data\n" +
            "## Projects\n" +
-           "- All four at once, or any one by name\n" +
-           "- Go2 perception · MoveIt2 pick & place · TF explorer · Fleet monitoring\n" +
+           "- All six at once, or any one by name\n" +
+           "- Clutter detector · PPO vs LQR · Microduck locomotion · Cube pose CNN · MoveIt2 pick & place · Fleet monitoring\n" +
+           "## Numbers\n" +
+           "- Every headline figure on the page and how it was measured\n" +
            "## Contact\n" +
            "- Email, GitHub, LinkedIn\n\n" +
            "Ask in plain English. Add the word \"detail\" to any question and I will go long.",
-        next: ['Explain each project in detail', 'What is his experience?', 'C++ or Python?', 'How do I contact him?'],
+        next: ['Explain each project in detail', 'What numbers can he back up?', 'Does he do machine learning?', 'How do I contact him?'],
     },
     {
         id: 'greeting',
         label: null,
         k: ['hi', 'hello', 'hey', 'yo', 'howdy', 'good morning', 'good evening', 'good afternoon'],
         weight: 0.5,
-        a: "Hi. I am the assistant for this portfolio — I answer questions about Aung Kaung Myat, a robotics software engineer working on ROS2 autonomy and moving toward physical AI.\n\n" +
+        a: "Hi. I am the assistant for this portfolio — I answer questions about Aung Kaung Myat, a robotics software engineer working on learned perception and control for physical machines.\n\n" +
            "Good places to start:\n" +
            "- His background and experience\n" +
-           "- His stack — navigation, perception, manipulation, ML\n" +
-           "- Any of the four projects, individually or all at once\n" +
-           "- How to reach him\n\n" +
+           "- His stack — robot learning, ML, ROS2, perception, manipulation\n" +
+           "- Any of the six projects, individually or all at once\n" +
+           "- The numbers behind them, and which numbers do not exist\n\n" +
            "Ask \"what can I ask you?\" for the full list.",
         next: ['Who is he?', 'What is his experience?', 'Explain each project', 'How do I contact him?'],
     },
@@ -72,17 +73,17 @@ const TOPICS = [
         label: 'Who is he?',
         ask: 'Who is Aung Kaung Myat?',
         k: ['who', 'about him', '!about aung', 'background', 'yourself', 'introduce', 'bio', 'summary', 'profile', 'himself'],
-        a: "Aung Kaung Myat is a robotics software engineer with a mechanical engineering background — he came to software from the hardware side, and it shows in how he works: kinematics, sensors and real robot behaviour first, code second.\n\n" +
-           "He builds autonomous mobile robots and manipulation systems on ROS2, covering navigation, localization, sensor integration and deployment on real hardware rather than simulation alone.\n\n" +
-           "His direction is physical AI: sim-to-real transfer, legged robotics, and perception for robots operating in unstructured environments.",
+        a: "Aung Kaung Myat is a robotics software engineer working on learned perception and control for physical machines — models trained in simulation, measured against a classical baseline that had to be beaten, and exported to run on device.\n\n" +
+           "ROS2 and C++ carry the systems layer; PyTorch carries the learning. The pattern across every project is the same: build the hand-written method first, measure it, then find out whether the learned one is actually worth its cost.\n\n" +
+           "His direction is physical AI: sim-to-real transfer, legged locomotion, and perception that survives outside a staged scene.",
         deep: "## Short version\n" +
-           "Robotics software engineer. Mechanical engineering background. ROS2 autonomy — navigation, perception, manipulation — with real hardware deployment, moving toward physical AI.\n\n" +
-           "## The route in\n" +
-           "He started in mechanical engineering, not computer science. That order matters: he understands the machine — kinematics, sensors, actuation, how things actually fail — before he writes the node that drives it. Robotics people who arrive purely from software usually learn that part last, if at all.\n\n" +
-           "## What he builds\n" +
-           "Autonomous mobile robots and manipulation systems on ROS2. Navigation and localization, sensor integration, LiDAR perception, motion planning — and the deployment step onto physical hardware, which is where most simulation-only work falls over.\n\n" +
+           "Robotics software engineer. Learned perception and control for real machines, built on ROS2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
+           "## What he actually builds\n" +
+           "Six projects, split across two tracks. Four of them are robot learning — an object detector, a pose-regression CNN, PPO written from scratch, and a locomotion policy for a small biped — all trained and measured on a laptop with no GPU. Two are ROS2 systems: a closed-loop pick-and-place stack on a Franka Panda, and a containerised multi-robot telemetry pipeline.\n\n" +
+           "## The habit worth noticing\n" +
+           "Every learned result on this page is reported next to a hand-written method that was measured first. The cube-pose project refits its OpenCV baseline until it is genuinely competitive before claiming the CNN wins. The PPO project reports that its learned policy has a smaller basin of attraction than the LQR controller it is compared to. That is unusual, and it is deliberate.\n\n" +
            "## Where he is going\n" +
-           "Physical AI: sim-to-real transfer, legged robotics, and perception that survives unstructured environments instead of clean test setups. The four projects on this page are deliberately spread across the stack to build toward that.",
+           "Physical AI: sim-to-real transfer, legged locomotion, and perception in unstructured environments. The robot-learning track exists to build exactly that, one measured block at a time.",
         next: ['What is his experience?', 'What is he aiming for?', 'What is his stack?', 'Explain each project'],
     },
     {
@@ -91,21 +92,23 @@ const TOPICS = [
         ask: 'What is his experience?',
         k: ['experience', 'exp', 'years', 'career', 'worked', 'work history', 'job', 'jobs', 'role', 'roles', 'seniority', 'senior', 'junior', 'employment', 'history', 'professional'],
         a: "Early-career robotics software engineer, working professionally on ROS2 systems — autonomous mobile robots, perception, and deployment onto real hardware.\n\n" +
-           "The mechanical engineering degree is the foundation; the software was built around real robots rather than coursework. Day to day that means ROS2 in C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt2.\n\n" +
-           "The four projects on this page are self-directed engineering work, not tutorial follow-alongs — each one exists to prove out a specific competency end to end.\n\n" +
+           "Alongside that, a self-directed robot-learning track: six public projects, four of them learned models trained and measured on CPU only. None of them are tutorial follow-alongs — each exists to answer one question with a number.\n\n" +
+           "Day to day that means ROS2 in C++ and Python on Linux, PyTorch for the models, MuJoCo and Gazebo for simulation.\n\n" +
            "For dates, employers and role specifics, email him: " + EMAIL,
         deep: "## Level\n" +
            "Early career, and honest about it. What he has is depth in a narrow band rather than a long list of years.\n\n" +
            "## What the day job looks like\n" +
            "ROS2 systems work: autonomous mobile robots, perception pipelines, and getting software onto physical machines. C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt2 as the working toolset.\n\n" +
-           "## Why the mechanical background counts\n" +
-           "He debugs from the hardware end. When a robot misbehaves the question is not only \"which node is wrong\" but \"is this a sensor mount, a frame definition, a controller limit, or genuinely the code\" — and that instinct is difficult to teach.\n\n" +
            "## What the projects prove\n" +
-           "- Go2 Perception Pipeline — C++ point-cloud processing at the sensor layer\n" +
-           "- MoveIt2 Pick & Place — planning and recovery under failure, with numbers attached\n" +
-           "- TF Transform Explorer — the ROS2 internals most people avoid: TF trees, custom messages, Nav2 plugins\n" +
-           "- Fleet Monitoring — the infrastructure layer: Kafka, time-series storage, Docker\n\n" +
-           "Together they cover sensor → perception → planning → control → fleet infrastructure. That spread is the point.\n\n" +
+           "- Tabletop Clutter Detector — an anchor-free detector, with COCO mAP implemented from scratch rather than imported\n" +
+           "- PPO vs LQR on Cart-Pole — reinforcement learning written from first principles and compared to a controller solved in closed form\n" +
+           "- Microduck Locomotion on CPU — the feasibility gate, environment contract and baseline for a biped walking policy\n" +
+           "- Cube Pose Regression CNN — a learned pose estimator measured against a refitted classical method\n" +
+           "- MoveIt2 Pick & Place Demo — a closed perception-to-execution loop on a 7-DOF arm\n" +
+           "- Fleet Monitoring System — the infrastructure layer: Kafka, time-series storage, Docker\n\n" +
+           "Together they cover model, policy, planner, and the infrastructure around them.\n\n" +
+           "## The constraint worth knowing about\n" +
+           "There is no GPU in any of this. The whole robot-learning track was designed around an 8-thread CPU budget, which is why the projects lead with feasibility measurements and small architectures rather than with scale.\n\n" +
            "## What is not on this page\n" +
            "Employers, dates, and specific role scope. Email " + EMAIL + " for the CV.",
         next: ['Explain each project in detail', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
@@ -114,46 +117,45 @@ const TOPICS = [
         id: 'goal',
         label: 'Career direction',
         ask: 'What is he aiming for?',
-        k: ['goal', 'goals', 'focus', 'future', 'direction', '!physical ai', '!sim-to-real', '!sim to real', 'aiming', 'aim', 'next', 'looking for', 'interested', 'ambition', 'want', '!legged'],
-        a: "Current focus is the ROS2 autonomy stack: Nav2 and localization, LiDAR perception with PCL, manipulation with MoveIt2, and simulation in Gazebo.\n\n" +
-           "The target is physical AI — shipping learned behaviour onto real machines. Concretely: sim-to-real transfer, legged robotics, and perception that holds up in unstructured environments rather than clean test setups.\n\n" +
-           "That is why the projects lean toward complete pipelines on real or simulated hardware instead of isolated algorithms.",
+        k: ['goal', 'goals', 'focus', 'future', 'direction', '!physical ai', 'aiming', 'aim', 'next', 'looking for', 'interested', 'ambition', 'want'],
+        a: "The target is Physical AI Engineer — shipping learned behaviour onto real machines rather than into a notebook.\n\n" +
+           "Concretely: sim-to-real transfer, legged locomotion, and perception that holds up outside a staged scene. The robot-learning track on this page is the deliberate route there, built block by block with a measurement closing each one.\n\n" +
+           "The ROS2 side is not being abandoned — it is the deployment layer that makes a learned policy useful on an actual robot.",
         deep: "## Now\n" +
-           "The ROS2 autonomy stack, end to end:\n" +
-           "- Navigation and localization — Nav2, SLAM, AMCL, Cartographer\n" +
-           "- LiDAR perception and PCL\n" +
-           "- Robot manipulation with MoveIt2\n" +
-           "- Simulation in Gazebo\n\n" +
+           "Two tracks, run in parallel:\n" +
+           "- Robot learning on CPU — detection, pose regression, PPO, and a locomotion policy for a biped\n" +
+           "- ROS2 systems — MoveIt2 manipulation, Nav2, perception, and the infrastructure around a fleet\n\n" +
            "## Next\n" +
-           "Physical AI — getting learned behaviour to run on real machines rather than in a notebook. The three pieces he is aiming at:\n" +
-           "- Sim-to-real transfer: closing the gap between a policy that works in simulation and one that works on hardware\n" +
-           "- Legged robotics: the Go2 perception work is the first step in that direction\n" +
-           "- Perception in unstructured environments, where the scene is not staged and the sensor data is not clean\n\n" +
+           "Physical AI — getting learned behaviour to run on real machines. Three pieces:\n" +
+           "- Sim-to-real transfer: closing the gap between a policy that works in simulation and one that survives hardware. Domain randomisation, system identification, and residual policies are the method, not the buzzwords\n" +
+           "- Legged locomotion: the Microduck Locomotion on CPU project is the first concrete step — a 25 cm biped with a fixed observation contract and a measured baseline waiting to be beaten\n" +
+           "- Perception in unstructured environments, where the scene is not staged and the data is not clean\n\n" +
            "## Why the portfolio looks the way it does\n" +
-           "Each project is a full pipeline rather than one clever algorithm, because sim-to-real is a systems problem. The failure usually lives in the seams — frames, timing, sensor noise, recovery behaviour — not in the model.",
-        next: ['What is his stack?', 'Tell me about the Go2 perception project', 'What is his experience?', 'How do I contact him?'],
+           "Each block closes on a number. The augmentation ablation in the detection project exists because \"we added augmentation\" is not a result; +0.0007 mAP is. That habit is the whole point — sim-to-real is decided by measurements, not by descriptions.",
+        next: ['What is his stack?', 'What about sim-to-real transfer?', 'Tell me about the Microduck locomotion project', 'How do I contact him?'],
     },
     {
         id: 'languages',
         label: 'C++ or Python?',
         ask: 'C++ or Python — which does he use?',
         k: ['language', 'languages', '!c++', '!cpp', '!python', 'coding', 'programming', 'code', 'linux', 'os'],
-        a: "Both, on ROS2 under Linux, and the split is deliberate.\n\n" +
-           "C++ is the default for production nodes and anything performance-critical — the Go2 LiDAR perception pipeline and the TF2/Nav2 plugin work are both C++.\n\n" +
-           "Python is for perception experiments, ML and prototyping — the MoveIt2 pick-and-place demo and the fleet telemetry pipeline sit there.\n\n" +
-           "Rule of thumb he works to: real-time and edge code in C++, research and glue in Python.",
+        a: "Both, and the split is deliberate.\n\n" +
+           "C++ is the default for production nodes and anything that runs per frame — the reachability validator in the MoveIt2 project is C++ precisely so it cannot block the Python state machine above it.\n\n" +
+           "Python is for the learning work: PyTorch models, MuJoCo environments, training loops, evaluation. Every project in the robot-learning track is Python.\n\n" +
+           "Rule of thumb: real-time and edge code in C++, research and orchestration in Python.",
         deep: "## The split\n" +
            "- C++ — production nodes, real-time paths, anything performance-critical or destined for an edge device\n" +
-           "- Python — perception research, ML, orchestration, prototyping\n" +
-           "- Linux throughout; ROS2 as the runtime for both\n\n" +
+           "- Python — model training, simulation, evaluation, orchestration\n" +
+           "- Linux throughout; ROS2 as the runtime for the systems side\n\n" +
            "## Where that shows in the projects\n" +
-           "- Go2 Perception Pipeline — C++. Point-cloud filtering runs per LiDAR frame, so it belongs in C++ with PCL.\n" +
-           "- TF Transform Explorer — C++. TF2 broadcasters, a custom message type, and a Nav2 costmap plugin loaded through pluginlib; plugin interfaces are C++ territory.\n" +
-           "- MoveIt2 Pick & Place — Python. The value is in planning strategy and the recovery state machine, not in per-frame throughput.\n" +
-           "- Fleet Monitoring — Python. Glue between ROS2, Kafka and QuestDB, where iteration speed beats microseconds.\n\n" +
+           "- MoveIt2 Pick & Place Demo — mixed. The workspace validator that filters unreachable targets is C++ because it runs on every detection; the finite state machine that sequences grasps is Python because the value there is orchestration, not throughput\n" +
+           "- Tabletop Clutter Detector, Cube Pose Regression CNN, PPO vs LQR on Cart-Pole, Microduck Locomotion on CPU — Python with PyTorch, NumPy and MuJoCo\n" +
+           "- Fleet Monitoring System — Python. Glue between ROS2, Kafka and QuestDB, where iteration speed beats microseconds\n\n" +
+           "## The deployment answer\n" +
+           "Training in Python does not mean serving in Python. Two of the learned projects export to ONNX and re-measure the full task metric through ONNX Runtime, which is the step that lets a C++ node run the same weights on a robot. In the detection project that export also turned a 3.87 ms eager forward pass into 1.20 ms end to end.\n\n" +
            "## Beyond the two\n" +
-           "PyTorch and TensorFlow for ML/DL, OpenCV and PCL for vision and point clouds, Docker for packaging.",
-        next: ['What is his stack?', 'Tell me about the TF Transform Explorer project', 'Does he do ML?', 'What is his experience?'],
+           "PyTorch and ONNX Runtime for models, OpenCV and PCL for vision and point clouds, Docker for packaging.",
+        next: ['What is his stack?', 'Does he do machine learning?', 'How does he deploy and package his work?', 'What is his experience?'],
     },
     {
         id: 'stack',
@@ -162,156 +164,218 @@ const TOPICS = [
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
         a: "## Core\n" +
            "ROS2 (Humble) · C++ · Python · Linux\n" +
-           "## Navigation\n" +
-           "Nav2 · SLAM · AMCL · GMapping · Cartographer\n" +
+           "## Robot Learning\n" +
+           "PPO · Reward design · Domain randomisation · System identification · Sim-to-real transfer\n" +
+           "## ML / DL\n" +
+           "PyTorch · CNN · Object detection · Pose regression · ONNX Runtime\n" +
+           "## Simulation\n" +
+           "MuJoCo · Gazebo · RViz · Synthetic data\n" +
            "## Perception\n" +
            "LiDAR · IMU · Camera · OpenCV · PCL · Sensor fusion\n" +
            "## Manipulation\n" +
-           "MoveIt · Trajectory planning · Motion control\n" +
-           "## ML / DL\n" +
-           "PyTorch · TensorFlow · CNN · YOLO · Object detection\n" +
-           "## Control\n" +
-           "PID controllers · Path planning · State machines\n\n" +
-           "The through-line is the whole autonomy loop — sensor in, perception, planning, control, motion out — plus the infrastructure to run it: Docker, Kafka, time-series storage.",
-        deep: "## Core\n" +
-           "ROS2 Humble, C++, Python, Linux. ROS2 is the runtime for everything below.\n" +
+           "MoveIt2 · OMPL · Trajectory planning · Motion control\n" +
            "## Navigation\n" +
-           "Nav2 for the planning and control stack; SLAM with GMapping and Cartographer for mapping; AMCL for localization against a known map. He has also written a Nav2 costmap plugin, which means working inside Nav2's interfaces rather than only configuring it.\n" +
-           "## Perception\n" +
-           "LiDAR, IMU and camera, fused. OpenCV for image work, PCL for point clouds — filtering, ground removal, obstacle extraction.\n" +
-           "## Manipulation\n" +
-           "MoveIt for motion planning, trajectory generation and execution, including constraint-based planning and velocity scaling on a 7-DOF arm.\n" +
-           "## ML / DL\n" +
-           "PyTorch and TensorFlow, CNNs, YOLO for object detection. This is the bridge toward the physical AI direction.\n" +
+           "Nav2 · SLAM · AMCL · Cartographer\n" +
            "## Control\n" +
-           "PID, path planning, and state machines — the last one matters more than it sounds, because robust robot behaviour is mostly a well-designed FSM with real recovery states.\n" +
+           "LQR · PID controllers · State machines · Path planning\n\n" +
+           "The through-line is the whole loop — sensor in, model, policy, planner, motion out — plus the infrastructure to run it: Docker, Kafka, time-series storage.",
+        deep: "## Core\n" +
+           "ROS2 (Humble), C++, Python, Linux. ROS2 is the runtime for the systems side; everything learned is Python until it is exported.\n" +
+           "## Robot Learning\n" +
+           "PPO implemented from scratch — advantage estimation, ratio clipping and normalisation each ablated rather than assumed. Reward design as an explicit artefact: the Microduck project measures each reward term's contribution against a hand-written controller before training starts. Domain randomisation and system identification are the sim-to-real method, and the detection project already measures randomising appearance at render time against photometric augmentation on top of it.\n" +
+           "## ML / DL\n" +
+           "PyTorch throughout. CNNs for object detection and pose regression, with architecture treated as a decision to justify: a spatial soft-argmax head beat a generic flatten head at a fifth of the parameters. ONNX Runtime for export, and the export is verified by recomputing the whole task metric through it, not by checking that a file exists.\n" +
+           "## Simulation\n" +
+           "MuJoCo for the learning work — scene generation, segmentation-buffer labels, and physics for control. Gazebo for the ROS2 side. RViz for visualising what a pipeline actually produced. Synthetic data generation is a first-class part of every learned project, because the label comes out of the renderer rather than out of a human.\n" +
+           "## Perception\n" +
+           "LiDAR, IMU and camera, fused. OpenCV for image work — used both as a tool and as the baseline the learned models have to beat. PCL for point clouds.\n" +
+           "## Manipulation\n" +
+           "MoveIt2 for motion planning and execution, OMPL as the sampling planner, trajectory planning and motion control on a 7-DOF arm including post-planning retiming for velocity scaling.\n" +
+           "## Navigation\n" +
+           "Nav2, SLAM, AMCL and Cartographer — the professional side of the work rather than the portfolio side.\n" +
+           "## Control\n" +
+           "LQR solved by iterating the Riccati recursion by hand, PID controllers, state machines, and path planning. The state-machine part is underrated: robust robot behaviour is mostly a well-designed FSM with real recovery states.\n" +
            "## Infrastructure\n" +
-           "Docker, Kafka, QuestDB, Gazebo. Enough to stand up a fleet, not only a single robot.",
-        next: ['Explain each project in detail', 'What about navigation and SLAM?', 'What about perception?', 'C++ or Python?'],
+           "Docker, Kafka, QuestDB, ONNX Runtime. Enough to stand up a fleet and to ship a model, not only to train one.",
+        next: ['Explain each project in detail', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'C++ or Python?'],
     },
     {
-        id: 'navigation',
-        label: 'Navigation & SLAM',
-        ask: 'What is his navigation and SLAM experience?',
-        k: ['navigation', 'navigate', '!nav2', '!slam', '!amcl', '!gmapping', '!cartographer', '!localization', '!localisation', 'mapping', '!costmap', 'path planning', 'planner', '!keepout', 'patrol', 'autonomous mobile'],
-        a: "Navigation is one of his core areas: Nav2 for the planning and control stack, SLAM with GMapping and Cartographer for mapping, and AMCL for localization against a known map.\n\n" +
-           "He does not only configure Nav2 — the TF Transform Explorer project ships a custom costmap plugin loaded through pluginlib that implements keepout zones the planner must respect, plus an autonomous patrol behaviour with random goal generation and recovery when navigation fails.\n\n" +
-           "Underneath that sits TF2: dynamic and static broadcasters, and a custom TFDiagnostics message so transform health is a monitorable topic rather than something you debug by eye.",
-        deep: "## The stack he uses\n" +
-           "- Nav2 — the planning and control stack: global and local planners, behaviour trees, recovery behaviours\n" +
-           "- SLAM — GMapping and Cartographer for building maps\n" +
-           "- AMCL — particle-filter localization against a known map\n" +
-           "- TF2 underneath all of it, because navigation is a frame problem before it is a planning problem\n" +
-           "## Beyond configuration\n" +
-           "Most people list Nav2 because they have tuned a YAML file. The TF Transform Explorer project goes further: it ships a costmap plugin loaded through pluginlib that implements keepout zones the planner must respect. Writing a costmap layer means working inside Nav2's C++ interfaces, not around them.\n" +
-           "## Behaviour, not just paths\n" +
-           "The same project adds autonomous patrol with random goal generation and recovery when navigation fails. Recovery is the part that separates a demo from something that runs unattended — a robot that cannot recover is a robot someone has to babysit.\n" +
-           "## Diagnostics\n" +
-           "A custom TFDiagnostics message publishes transform health as a topic. When a navigation stack misbehaves, the cause is very often a stale or missing transform, and this makes that visible instead of guesswork.",
-        next: ['Tell me about the TF Transform Explorer project', 'What about perception?', 'What is his stack?', 'What is his experience?'],
+        id: 'detection',
+        label: 'Tabletop Clutter Detector',
+        ask: 'Tell me about the clutter detection project',
+        k: ['!clutter', '!detector', '!detection', '!object detection', '!map', '!coco', '!anchor-free', '!anchor free', '!centernet', '!heatmap', '!bounding box', '!occlusion', '!segmentation', '!augmentation', '!ablation'],
+        a: "## Tabletop Clutter Detector — Python, PyTorch, MuJoCo, ONNX Runtime\n" +
+           "An anchor-free detector for three to six objects on a table, where they overlap and hide one another.\n\n" +
+           "- Every box is read straight out of the renderer's segmentation buffer, so no label is hand-drawn and every box is already correct under perspective and occlusion\n" +
+           "- mAP@[.5:.95] of 0.911 against a fitted classical pipeline's 0.532, with COCO mAP implemented from scratch and unit-tested rather than imported\n" +
+           "- 1.20 ms per image through ONNX Runtime on 8 CPU threads — 1.8x faster than the classical baseline it beats, after being 1.9x slower in eager PyTorch\n\n" +
+           "The part worth noticing: an ablation found that photometric augmentation on top of the simulator's own randomisation buys +0.0007 mAP. That is nothing, and it is reported as nothing.\n\n" +
+           "Repository: https://github.com/AungKaung1928/mujoco-clutter-detect",
+        deep: "## Tabletop Clutter Detector — Python, PyTorch, MuJoCo, ONNX Runtime\n" +
+           "Multi-object detection on a simulated tabletop: three classes, three to six objects per scene, a tilted camera.\n" +
+           "## Why the camera is tilted\n" +
+           "A top-down view makes detection degenerate — objects resting on a flat table cannot overlap in that image, so there is no occlusion, no perspective and no depth-dependent scale. Moving the camera to 39 degrees of elevation is what makes the task a detection task at all.\n" +
+           "## Why the labels are exact\n" +
+           "Each scene is rendered twice: once for RGB, once with segmentation rendering on. The second pass returns which object won each pixel, so a tight box around an instance mask is already correct for a rotated box, already correct under perspective, and already correct about what is hidden behind what. This is the concrete argument for doing robot learning in simulation — the label is read out of the renderer instead of drawn by a person.\n" +
+           "## The metric was built before the model\n" +
+           "COCO mAP@[.5:.95] is implemented from scratch and tested against known inputs before any detector exists. A shift table makes the reason visible: a uniform 4-pixel error leaves AP50 untouched at 1.000 while mAP has already fallen by half. AP50 alone cannot see localisation, which is exactly what a robot needs it to see.\n" +
+           "## Results\n" +
+           "- Classical baseline, fitted rather than strawmanned: mAP 0.532\n" +
+           "- Learned detector, 380,631 parameters, 25 epochs, 34 minutes on 8 CPU threads: mAP 0.911\n" +
+           "- AP75 0.9896 against AP50 0.9899 — a gap of 0.0003, meaning localisation is essentially exact. The classical method lost 0.134 between the same two thresholds\n" +
+           "- Small objects still cost: 0.805 mAP on the smallest size tercile against 0.884 on the largest\n" +
+           "## The ablation that returned nothing\n" +
+           "Photometric augmentation applied on top of the simulator's own appearance randomisation buys +0.0007 mAP. The two are not symmetric — randomising at render time changes geometry and lighting, augmentation only changes pixels — and the result is recorded as a null because that is what it is.\n" +
+           "## Deployment\n" +
+           "Exported to ONNX and re-scored end to end through ONNX Runtime: identical mAP, 1.20 ms per image on 8 threads against 3.87 ms in eager PyTorch. The learned detector was slower than the classical pipeline until the runtime changed, and both numbers are on the page.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/mujoco-clutter-detect",
+        next: ['Tell me about the cube pose project', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project in detail'],
     },
     {
-        id: 'perception',
-        label: 'Go2 Perception Pipeline',
-        ask: 'Tell me about the Go2 perception project',
-        k: ['perception', '!lidar', '!pcl', '!point cloud', '!pointcloud', 'obstacle', '!quadruped', 'sensing', 'sensor', 'sensors', '!go2', '!unitree', '!passthrough', '!ground plane', 'rviz', '!opencv', 'camera', 'imu', 'fusion'],
-        a: "## Go2 Perception Pipeline — C++, ROS2, PCL, Unitree Go2\n" +
-           "A custom LiDAR perception pipeline for the Unitree Go2 quadruped in Gazebo.\n\n" +
-           "- Raw LiDAR scans are ground-plane filtered with a PCL PassThrough filter, so only genuine obstacle returns survive\n" +
-           "- The cleaned obstacle cloud is republished for downstream planning\n" +
-           "- RViz shows raw and filtered clouds side by side, which makes the filter's effect measurable rather than assumed\n" +
-           "- Teleop-ready in a custom world, so the robot can be driven through obstacles while the pipeline runs\n\n" +
-           "Demonstrates: C++ point-cloud processing, PCL filter chains, and ROS2 topic design for perception.\n\n" +
-           "Broader perception stack: LiDAR, IMU and camera with sensor fusion, OpenCV for images, PCL for clouds.",
-        deep: "## Go2 Perception Pipeline — C++, ROS2, PCL, Unitree Go2\n" +
-           "A custom LiDAR perception pipeline for the Unitree Go2 quadruped, running in Gazebo.\n" +
-           "## The pipeline\n" +
-           "- Raw LiDAR scans arrive as point clouds on a ROS2 topic\n" +
-           "- A PCL PassThrough filter removes the ground plane, so the floor stops being reported as an obstacle\n" +
-           "- The remaining cloud — genuine obstacle returns only — is republished for downstream planning\n" +
-           "- RViz displays raw and filtered clouds side by side, so the filter's effect is measurable rather than assumed\n" +
-           "- A custom Gazebo world and teleop support mean the robot can be driven through obstacles while the pipeline runs\n" +
-           "## Why it is written in C++\n" +
-           "Point-cloud filtering runs on every LiDAR frame. That is a per-frame budget, not a background task, so it belongs in C++ with PCL rather than in Python.\n" +
-           "## The wider perception stack\n" +
-           "- Sensors: LiDAR, IMU, camera, with sensor fusion across them\n" +
-           "- Libraries: PCL for point clouds, OpenCV for images\n" +
-           "- ML side: CNNs and YOLO for object detection\n" +
-           "## Why this project in particular\n" +
-           "A quadruped is the natural first step toward the legged robotics and physical AI direction he is aiming at.",
-        next: ['What about navigation and SLAM?', 'Explain each project in detail', 'C++ or Python?', 'What is he aiming for?'],
+        id: 'rl',
+        label: 'PPO vs LQR on Cart-Pole',
+        ask: 'Tell me about the PPO project',
+        k: ['!ppo', '!rl', '!reinforcement learning', '!policy gradient', '!lqr', '!riccati', '!cart-pole', '!cartpole', '!gae', '!advantage', '!seeds', '!permutation test', '!from scratch', '!optimal control'],
+        a: "## PPO vs LQR on Cart-Pole — Python, PyTorch, NumPy, MuJoCo\n" +
+           "The same problem solved twice: once with an optimal controller derived from the physics, once with PPO written from first principles.\n\n" +
+           "- No gymnasium, no stable-baselines3, no cleanrl copy-paste, no scipy — the discrete Riccati equation is solved by iterating the recursion, because understanding the recursion is the point\n" +
+           "- 16 seeds reported as median and interquartile range, plus ablations on GAE, advantage normalisation and ratio clipping, each judged by a two-sided permutation test\n" +
+           "- LQR reaches threshold at zero sample cost; PPO needs a median 62,144 environment steps and ends with a smaller basin of attraction\n\n" +
+           "The question the repository answers is not whether PPO can balance a pole. It is what the learned policy buys over a controller you can solve for, and what it costs — including the axes where it loses.\n\n" +
+           "Repository: https://github.com/AungKaung1928/ppo-from-scratch",
+        deep: "## PPO vs LQR on Cart-Pole — Python, PyTorch, NumPy, MuJoCo\n" +
+           "A hand-written environment, an optimal controller that costs zero samples, and PPO implemented from scratch.\n" +
+           "## Why the environment is hand-written\n" +
+           "PPO fails to learn several times before a seed study is finished, and every time it does the first question is: algorithm or environment. That question is only cheap to answer if the environment was verified before any RL existed. This one was — 13 checks against the published 1983 dynamics, including the half-length convention that is the most common bug in a hand-written cart-pole.\n" +
+           "## The baseline costs nothing\n" +
+           "Linearise, iterate the discrete Riccati recursion, project the continuous control onto the two available forces. The result balances the pole indefinitely having consumed zero environment steps. Any honest comparison starts from there, not from a random policy.\n" +
+           "## The seed study\n" +
+           "16 seeds, median and IQR, never a single reward curve. Steps-to-threshold median 62,144, IQR [60,442, 63,448]. Re-running the 16 seeds returned the identical median. Runs that never reach threshold are entered as budget plus one rather than dropped, because dropping them is the standard way to make a bad configuration look good.\n" +
+           "## The ablations\n" +
+           "GAE, advantage normalisation and ratio clipping, 16 seeds each, one switch changed at a time, with a two-sided permutation test on the difference of medians. Advantage normalisation turns out to matter most — half the seeds never reach threshold without it. The study was run at 8 seeds first and two of the three conclusions changed at 16, which is reported rather than quietly overwritten.\n" +
+           "## Where the learned policy loses\n" +
+           "On a widened initial-condition sweep, PPO's basin of attraction is roughly half the LQR's on angular rate and a third on cart velocity. The median seed is well behind the closed-form controller on robustness. That is the honest answer to \"is RL better here\", and it is on the page.\n" +
+           "## Hyperparameters\n" +
+           "Searched on seeds 100 to 103, disjoint from the reported seeds 0 to 15. Tuning on the seeds you then report is the most common quiet mistake in an RL repository.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/ppo-from-scratch",
+        next: ['Tell me about the Microduck locomotion project', 'What about sim-to-real transfer?', 'What numbers can he back up?', 'Explain each project in detail'],
+    },
+    {
+        id: 'duck',
+        label: 'Microduck Locomotion on CPU',
+        ask: 'Tell me about the Microduck locomotion project',
+        k: ['!microduck', '!duck', '!biped', '!bipedal', '!walking', '!walk', '!locomotion', '!gait', '!legged', '!servo', '!servos', '!balance', '!observation contract', '!cpu only', '!no gpu'],
+        a: "## Microduck Locomotion on CPU — Python, MuJoCo, PyTorch, ONNX\n" +
+           "A balance-and-recover policy for a 25 cm, 737 g open-source biped with 14 position-controlled servos, trained in MuJoCo with no GPU anywhere in the stack.\n\n" +
+           "- The project opens with a feasibility gate rather than with training: can this machine simulate the robot fast enough to learn at all. Answer, measured: 13,300 sustained environment steps per second across 8 processes\n" +
+           "- Three earlier throughput figures — 28,749, 18,400 and 8,000 — turned out to be bursts or misconfigurations. All four are kept on the page, because the difference between them is the useful part\n" +
+           "- A 48-dimensional observation contract is fixed, and a PD hold-pose baseline is measured at 108.7 ± 2.9 of a 500 ceiling. That is the number a learned policy has to beat\n\n" +
+           "Steps 1 and 2 are done. Training is the next step and has not run yet — stated plainly rather than implied.\n\n" +
+           "Repository: https://github.com/AungKaung1928/microduck-rl-cpu",
+        deep: "## Microduck Locomotion on CPU — Python, MuJoCo, PyTorch, ONNX\n" +
+           "Robot learning for a biped on a laptop with no GPU.\n" +
+           "## Why the project exists in this form\n" +
+           "The upstream project trains this robot with MuJoCo Warp, which requires CUDA. There is no GPU on the machine and no hardware to buy. So the same model file runs in plain CPU MuJoCo, parallel across processes, inside an 8-of-14-thread budget on a laptop that has other work to do. The constraint is the interesting part, not an excuse.\n" +
+           "## Step 1 — the feasibility gate\n" +
+           "The gate was written down before anything was measured: below 5,000 environment steps per second at 8 processes, walking leaves the scope and the project becomes stand-only. Every worker runs with a single OpenMP thread, set before MuJoCo loads, or the workers spawn thread pools and fight each other.\n" +
+           "The gate passed. But the first number, 28,749, was a 20-second burst — held for four minutes the same configuration falls to 19,356 as the package heats up. The sustained figure after three corrections is about 13,300 environment steps per second, and the full sequence 28,749 to 18,400 to 8,000 to 13,300 is left on the page with the reason for each correction.\n" +
+           "## Step 2 — the contract and the baseline\n" +
+           "- A 48-dimensional observation. Step 1 had said 61, and 61 was wrong; the correction is documented\n" +
+           "- A 14-dimensional action at 50 Hz, which is 10 physics steps per control decision at the model's 500 Hz timestep\n" +
+           "- The shipped PD controller commanded to hold a standing pose scores 108.7 ± 2.9 of a 500 ceiling. Every episode is the same length, so a controller that topples early is penalised by the metric rather than hidden by it\n" +
+           "- Each reward term's contribution is measured over 20 seeds against both the PD controller and random actions, before any weight is chosen\n" +
+           "## Why a baseline before a policy\n" +
+           "Without it, a trained policy that scores 140 sounds like a success. Against 108.7 ± 2.9 it is a modest one, and against a better-tuned controller it might be a failure. Fixing the baseline first is what makes the eventual result mean something.\n" +
+           "## Honest status\n" +
+           "Steps 1 and 2 are closed and pushed. PPO training against the PD baseline, evaluation on physics the policy never trained on, and ONNX export are not started. This is the project closest to his stated direction — legged locomotion and sim-to-real — and it is the least finished one on the page.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/microduck-rl-cpu",
+        next: ['What about sim-to-real transfer?', 'Tell me about the PPO project', 'What is he aiming for?', 'What are the gaps in his experience?'],
+    },
+    {
+        id: 'pose',
+        label: 'Cube Pose Regression CNN',
+        ask: 'Tell me about the cube pose project',
+        k: ['!cube', '!pose', '!pose estimation', '!pose regression', '!soft-argmax', '!soft argmax', '!keypoint', '!regression', '!baseline', '!classical cv', '!hsv', '!sub-millimetre', '!sub millimeter'],
+        a: "## Cube Pose Regression CNN — Python, PyTorch, MuJoCo, OpenCV\n" +
+           "Recovering the planar pose of a cube — x, y and yaw — from a single 128x128 render.\n\n" +
+           "- A hand-written OpenCV baseline is measured first, twice, with two different thresholds so that \"classical CV fails\" cannot be blamed on one badly chosen prior\n" +
+           "- Calibrating a single scalar on the training split removed a systematic +2.98 mm radial bias and took the baseline from 3.41 mm to 1.91 mm — 53% of the gap to the network, closed for free\n" +
+           "- A spatial soft-argmax head reaches 0.59 mm median error with 27k parameters: five times smaller, 2.6 times faster and with a better error tail than a 130k generic head\n\n" +
+           "The conclusion is stated against the network's interest: if 1.9 mm is inside tolerance, the CNN is the wrong engineering choice.\n\n" +
+           "Repository: https://github.com/AungKaung1928/mujoco-cube-pose-cnn",
+        deep: "## Cube Pose Regression CNN — Python, PyTorch, MuJoCo, OpenCV\n" +
+           "One question, answered with numbers: when does a learned model beat hand-written geometry, and when does it not.\n" +
+           "## The setup\n" +
+           "Two dataset regimes. In the easy one the cube colour and lighting are fixed and a colour-threshold baseline should win or tie. In the hard one hue, light position, light intensity and table shade are all randomised, and the baseline should degrade while the network should not.\n" +
+           "## The baseline is refitted, not strawmanned\n" +
+           "The first classical method reached 3.41 mm median error, and inspection showed the error was dominated by a systematic +2.98 mm radial bias — an overhead camera sees the top face of a cube offset outward from its centre. One scalar, calibrated on the training split so both methods have seen the same labels, removes the bias entirely and brings the baseline to 1.91 mm. That single number closed 53% of the gap to the CNN.\n" +
+           "## The architecture prior beat the parameter count\n" +
+           "- Generic flatten head: 130k parameters, 1.70 ms, 0.75 mm median\n" +
+           "- Spatial soft-argmax keypoint head: 27k parameters, 0.65 ms, 0.59 mm median and a better p95\n" +
+           "Five times smaller, 2.6 times faster, and more accurate. The prior is worth more than the capacity here.\n" +
+           "## Where the classical method still wins\n" +
+           "Median yaw error, 0.19 degrees against the CNN's 0.21. The network wins on the tail — p95 yaw 0.66 against 1.66 degrees — and for a controller the tail is the number that matters. Both are reported.\n" +
+           "## A correction kept on the page\n" +
+           "An early version of the training script selected the best epoch on the validation split and then reported that split's numbers, which is a small leak. It was found, fixed, the affected run retrained, and the difference measured: 0.48 mm against 0.47 before. The leak cost nothing measurable — which is the point of checking rather than assuming.\n" +
+           "## Deployment\n" +
+           "Exported to ONNX and proven, not just exported: maximum absolute output difference against PyTorch plus the full task metrics recomputed through ONNX Runtime. 0.23 ms on one thread against 0.65 ms in eager PyTorch on eight.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/mujoco-cube-pose-cnn",
+        next: ['Tell me about the clutter detection project', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project in detail'],
     },
     {
         id: 'manipulation',
         label: 'MoveIt2 Pick & Place',
         ask: 'Tell me about the MoveIt2 pick and place project',
-        k: ['!moveit', '!moveit2', '!manipulation', 'manipulator', 'arm', 'pick', 'place', '!panda', '!franka', '!grasp', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof'],
-        a: "## MoveIt2 Pick & Place Demo — Python, MoveIt2, ROS2, Franka Panda\n" +
-           "A 7-DOF Franka Panda arm running full pick-and-place with OMPL motion planning and constraint-based execution.\n\n" +
-           "- ±1 cm positioning accuracy\n" +
-           "- Above 95% success rate, achieved through multi-attempt fallback rather than one optimistic plan\n" +
-           "- Production-grade safety: action-server verification before execution, velocity and acceleration scaling, graceful recovery\n\n" +
-           "The part worth noticing is the failure handling. A failed grasp recovers and resumes instead of ending the run — that is the difference between a demo and something you would let near real hardware.\n\n" +
-           "Demonstrates: MoveIt2 planning pipelines, robust FSM design, and treating failure paths as first-class.",
-        deep: "## MoveIt2 Pick & Place Demo — Python, MoveIt2, ROS2, Franka Panda\n" +
-           "A 7-DOF Franka Panda arm executing complete pick-and-place cycles.\n" +
-           "## Planning\n" +
-           "- OMPL as the motion planner\n" +
-           "- Constraint-based execution, so the plan respects pose and path constraints rather than only reaching the goal\n" +
-           "- Velocity and acceleration scaling, which is what keeps a 7-DOF arm from moving faster than its situation allows\n" +
-           "## The numbers\n" +
-           "- ±1 cm positioning accuracy\n" +
-           "- Above 95% success rate\n" +
-           "The success rate is the interesting one. It does not come from a better planner; it comes from multi-attempt fallback — when a plan or an execution fails, the system tries again with a different strategy instead of aborting.\n" +
-           "## Production hardening\n" +
-           "- Action-server verification before anything is commanded, so the node fails loudly at startup rather than silently at runtime\n" +
-           "- Graceful recovery: a failed grasp returns the arm to a known state and the run resumes\n" +
-           "- Failure paths designed first, not bolted on\n" +
-           "## What it says about him\n" +
-           "Most pick-and-place demos work once, on video. This one is built around the assumption that things fail — which is the only assumption that survives contact with real hardware.",
-        next: ['Explain each project in detail', 'What about navigation and SLAM?', 'What is his experience?', 'How do I contact him?'],
-    },
-    {
-        id: 'tf',
-        label: 'TF Transform Explorer',
-        ask: 'Tell me about the TF Transform Explorer project',
-        k: ['!tf', '!tf2', '!transform', '!transforms', '!pluginlib', 'frame', 'frames', '!tfdiagnostics', 'diagnostics', '!broadcaster', '!broadcasters'],
-        a: "## TF Transform Explorer — C++, TF2, Nav2, pluginlib\n" +
-           "A TF2 frame transformation system with both dynamic and static broadcasters.\n\n" +
-           "- Custom TFDiagnostics message type, so transform health is published as a topic and can be monitored instead of eyeballed\n" +
-           "- Nav2 costmap plugin loaded through pluginlib, implementing keepout zones the planner has to respect\n" +
-           "- Autonomous patrol behaviour with random goal generation and recovery when navigation fails\n\n" +
-           "Demonstrates: real depth in the TF tree, writing custom ROS2 message types, and extending Nav2 through its plugin interfaces rather than working around them.\n\n" +
-           "This is the least glamorous project on the page and probably the most telling one — TF bugs are where most ROS2 systems quietly break.",
-        deep: "## TF Transform Explorer — C++, TF2, Nav2, pluginlib\n" +
-           "The parts of ROS2 that most portfolios skip.\n" +
-           "## Transforms\n" +
-           "- Both dynamic and static TF2 broadcasters, so the frame tree covers moving joints and fixed mounts correctly\n" +
-           "- A custom TFDiagnostics message type, publishing transform health as a topic\n" +
-           "That second point matters more than it sounds. TF failures are usually silent: a stale transform, a missing frame, a clock skew. Turning that into a monitored topic converts a debugging session into an alert.\n" +
-           "## Nav2 extension\n" +
-           "- A costmap plugin loaded through pluginlib, implementing keepout zones the planner is required to respect\n" +
-           "- Written against Nav2's C++ plugin interface, which is a different skill from tuning Nav2 parameters\n" +
-           "## Autonomous behaviour\n" +
-           "- Patrol behaviour with random goal generation\n" +
-           "- Recovery behaviour when navigation fails, so the robot keeps operating instead of stopping\n" +
-           "## Why it is worth attention\n" +
-           "This is the least visually impressive project on the page and probably the most diagnostic one. Writing a custom message type and a pluginlib plugin means he has read ROS2's interfaces rather than only its tutorials.",
-        next: ['What about navigation and SLAM?', 'Explain each project in detail', 'C++ or Python?', 'What is his experience?'],
+        k: ['!moveit', '!moveit2', '!manipulation', 'manipulator', 'arm', 'pick', 'place', '!panda', '!franka', '!grasp', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof', '!reachability', '!validator', '!fsm'],
+        a: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
+           "A 7-DOF Franka Panda clears seven balls from a table and drops them into a box, fully autonomously.\n\n" +
+           "- Nothing is hard-coded. A simulated camera renders the scene, an OpenCV node finds the balls, a C++ validator discards anything the arm cannot reach, and a state machine grasps only what survived that chain\n" +
+           "- Cartesian-first execution gives straight-line end-effector motion, with OMPL RRTConnect as the fallback when a straight line is not available\n" +
+           "- Action-server verification at startup, post-planning trajectory retiming for velocity scaling, and recovery to a known home state when planning fails\n\n" +
+           "Stated on the repository itself: detection is HSV on synthetic frames and positions are recovered by exact pinhole back-projection onto a known table plane. It demonstrates the pipeline architecture, not robustness to real-sensor noise.\n\n" +
+           "Repository: https://github.com/AungKaung1928/moveit_pickplace_demo",
+        deep: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
+           "A closed perception-to-execution loop on a 7-DOF arm, in simulation.\n" +
+           "## The loop\n" +
+           "1. A scene manager holds ground truth and publishes it on a latched topic\n" +
+           "2. A camera simulator renders synthetic frames from it\n" +
+           "3. A vision node finds red balls by HSV threshold and back-projects them onto the known table plane\n" +
+           "4. A C++ workspace validator filters the detections down to what the arm can actually reach\n" +
+           "5. A Python finite state machine grasps, places, and repeats until nothing is left\n" +
+           "The arm picks only what the camera detected and the validator approved. There are no hard-coded grasp poses anywhere in it.\n" +
+           "## Why the validator is C++\n" +
+           "Reachability filtering runs on every detection and must not block the state machine above it. The orchestration layer stays in Python, where async goal handling and recovery logic are easier to get right.\n" +
+           "## Motion decisions worth defending\n" +
+           "- Cartesian-first: a straight-line end-effector path over the ball, down to grasp, up and over to the box. OMPL RRTConnect is the fallback only, because a sampling planner produces wrist excursions that look wrong and are hard to certify\n" +
+           "- Post-planning retiming: the Humble Cartesian-path service has no velocity-scaling field, so timestamps are stretched after planning instead\n" +
+           "- An orientation constraint keeps the gripper pointing down with yaw left free, because a ball is symmetric and locking yaw makes the inverse kinematics needlessly hard\n" +
+           "- No attached collision object: it produced a gripper artefact and self-collision failures, so it was removed and the reason recorded\n" +
+           "## Failure handling\n" +
+           "Action-server verification before anything is commanded, so a missing controller fails loudly at startup rather than silently mid-motion. A dedicated homing state on planning failure returns the arm to a known configuration and the run continues.\n" +
+           "## What it does not claim\n" +
+           "The repository carries an explicit honest-simulation note: HSV detection on synthetic frames with exact geometric back-projection is not robustness to real-sensor noise. There is no positioning-accuracy figure and no success-rate figure, because neither was measured.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/moveit_pickplace_demo",
+        next: ['Explain each project in detail', 'How does he handle failure and recovery?', 'How deep is his ROS2 knowledge?', 'How do I contact him?'],
     },
     {
         id: 'fleet',
         label: 'Fleet Monitoring System',
         ask: 'Tell me about the fleet monitoring project',
         k: ['fleet', '!kafka', '!docker', 'container', 'containerized', 'containerised', '!telemetry', 'database', '!questdb', 'postgres', '!postgresql', 'infra', 'infrastructure', 'monitoring', 'dashboard', 'multi-robot', 'multi robot', '!turtlebot', '!turtlebot3', 'devops', 'time-series', 'time series', 'scale'],
-        a: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker, QuestDB\n" +
+        a: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
            "A distributed multi-robot telemetry pipeline: ROS2 topics feed Kafka, Kafka feeds QuestDB as a time-series store.\n\n" +
            "- Simulates production fleet infrastructure with multiple TurtleBot3 robots running at once in Gazebo\n" +
            "- Fully containerised with Docker\n" +
            "- Real-time dashboard reading from QuestDB over the PostgreSQL wire protocol\n\n" +
-           "Demonstrates: he can build the layer around the robots — message brokers, time-series storage, containerised deployment — not just the robot software. That is the difference between one working robot and a fleet you can actually operate.",
-        deep: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker, QuestDB\n" +
-           "A distributed multi-robot telemetry pipeline — the infrastructure a fleet needs, rather than the software on one robot.\n" +
+           "This is the infrastructure slot on the page rather than the main line of work — it shows he can build the layer around the robots, which is a useful secondary skill for a team that has robots and no telemetry.\n\n" +
+           "Repository: https://github.com/AungKaung1928/fleet_monitoring_ws",
+        deep: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
+           "The infrastructure a fleet needs, rather than the software on one robot.\n" +
            "## The data path\n" +
            "1. ROS2 topics carry telemetry from multiple robots\n" +
            "2. Kafka takes it as a message broker, decoupling producers from consumers\n" +
@@ -322,92 +386,136 @@ const TOPICS = [
            "## Simulation scale\n" +
            "Multiple TurtleBot3 robots run simultaneously in Gazebo, so the pipeline is exercised with concurrent producers rather than a single stream.\n" +
            "## Deployment\n" +
-           "The whole stack is containerised with Docker — brokers, database, dashboard and ROS2 nodes — which makes it reproducible instead of a machine-specific setup.\n" +
-           "## What it demonstrates\n" +
-           "That he can build the layer around the robots. One working robot is a project; a fleet you can observe and operate is a product.",
-        next: ['Explain each project in detail', 'What is his stack?', 'What is his experience?', 'How do I contact him?'],
+           "The whole stack is containerised with Docker — broker, database, dashboard and ROS2 nodes — which makes it reproducible instead of a machine-specific setup.\n" +
+           "## How to weigh it\n" +
+           "It is deliberately the last project on the page. The main line of work is robot learning and manipulation; this one exists because a robotics team eventually needs someone who can stand up the observability layer, and it is the only project here that proves he can.\n" +
+           "## Repository\n" +
+           "https://github.com/AungKaung1928/fleet_monitoring_ws",
+        next: ['Explain each project in detail', 'How does he deploy and package his work?', 'What is his stack?', 'How do I contact him?'],
     },
     {
         id: 'ml',
         label: 'ML / deep learning',
         ask: 'Does he do machine learning?',
-        k: ['ml', '!machine learning', '!deep learning', 'dl', 'neural', '!pytorch', '!tensorflow', '!cnn', '!yolo', '!object detection', 'detection', 'ai', 'model', 'training', 'inference', 'vision'],
-        a: "Yes, and it is pointed at robotics rather than at benchmarks.\n\n" +
-           "- PyTorch and TensorFlow\n" +
-           "- CNNs and YOLO for object detection\n" +
-           "- Classical vision alongside it: OpenCV, PCL, sensor fusion\n\n" +
-           "This is the bridge to his stated direction — physical AI, meaning learned behaviour running on real machines: sim-to-real transfer, legged robotics, and perception in unstructured environments.\n\n" +
-           "The projects on this page are currently classical robotics rather than learned policies; the ML sits in the skill stack and in where he is heading.",
-        deep: "## What he has\n" +
-           "- PyTorch and TensorFlow\n" +
-           "- CNNs and YOLO for object detection\n" +
-           "- Classical vision alongside the learned side: OpenCV, PCL, sensor fusion\n" +
-           "## How it fits the robotics work\n" +
-           "The four projects on this page are classical robotics — filters, planners, state machines, infrastructure. The ML sits in the skill stack and in the direction he is heading, rather than in a shipped learned policy.\n" +
-           "That is worth stating plainly instead of overselling: he has the ML toolset, and the robotics systems experience to know where a model actually goes in a pipeline.\n" +
-           "## Where it is going\n" +
-           "His stated direction is physical AI — learned behaviour running on real machines:\n" +
-           "- Sim-to-real transfer: closing the gap between a policy that works in simulation and one that survives hardware\n" +
-           "- Legged robotics, which the Go2 perception work already touches\n" +
-           "- Perception in unstructured environments, where the data is not clean and the scene is not staged\n" +
+        k: ['ml', '!machine learning', '!deep learning', 'dl', 'neural', '!pytorch', '!cnn', 'ai', 'model', 'models', 'training', 'train', 'inference', 'vision', '!onnx', '!onnx runtime', '!network', '!architecture'],
+        a: "Yes — four of the six projects on this page are learned models, and every one is measured against a hand-written method that was built first.\n\n" +
+           "- Tabletop Clutter Detector — anchor-free detection, mAP 0.911 against a fitted classical baseline's 0.532\n" +
+           "- Cube Pose Regression CNN — 0.59 mm median pose error from 27k parameters\n" +
+           "- PPO vs LQR on Cart-Pole — reinforcement learning written from first principles, 16 seeds, ablations with permutation tests\n" +
+           "- Microduck Locomotion on CPU — the environment contract and baseline for a biped walking policy\n\n" +
+           "PyTorch throughout, ONNX Runtime for export, MuJoCo for the simulation. No GPU anywhere in the stack — the whole track is designed around an 8-thread CPU budget.\n\n" +
+           "What this is not: a research record. There are no publications and no benchmark leaderboard entries, and he does not claim any.",
+        deep: "## What is actually here\n" +
+           "Four learned projects, all public, all reproducible on a CPU:\n" +
+           "- Tabletop Clutter Detector — anchor-free detection with a heatmap, size and offset head. 380,631 parameters, mAP@[.5:.95] 0.911 against a fitted classical pipeline's 0.532, 1.20 ms per image through ONNX Runtime\n" +
+           "- Cube Pose Regression CNN — a spatial soft-argmax head, 27k parameters, 0.59 mm median position error, beating a 130k generic head at a fifth of the size\n" +
+           "- PPO vs LQR on Cart-Pole — PPO implemented from scratch, 16 seeds, three ablations with two-sided permutation tests, compared to a controller solved in closed form\n" +
+           "- Microduck Locomotion on CPU — a 48-dimensional observation contract, a measured PD baseline of 108.7 ± 2.9, and a feasibility gate closed at 13,300 environment steps per second\n" +
+           "## The method that runs through all four\n" +
+           "Build the hand-written method first and measure it. Refit it until it is genuinely competitive. Only then find out whether the learned model is worth its cost — and report the axes where it is not. The cube-pose project closes 53% of the gap to its own CNN by calibrating one scalar in the baseline. The PPO project reports a smaller basin of attraction than the LQR it is compared to. The detection project reports an augmentation ablation that returned +0.0007 mAP.\n" +
+           "## The engineering side, not just the model\n" +
+           "- ONNX export verified by recomputing the whole task metric through ONNX Runtime, not by checking that a file exists\n" +
+           "- Metrics implemented from scratch and unit-tested — COCO mAP among them — so a number cannot be wrong in a way the library hides\n" +
+           "- Labels generated from the renderer's segmentation buffer rather than annotated\n" +
+           "- Hyperparameters searched on seeds disjoint from the seeds that get reported\n" +
+           "## The constraint\n" +
+           "No CUDA anywhere. Everything runs inside an 8-thread CPU budget, which is why the architectures are small and why every project opens by measuring whether it is feasible at all.\n" +
            "## The honest framing\n" +
-           "Strong classical robotics foundation, ML tooling in place, moving deliberately toward learned control. Not a research ML engineer, and not claiming to be.",
-        next: ['What is he aiming for?', 'What about perception?', 'What is his stack?', 'How do I contact him?'],
+           "Applied robot learning with unusually careful measurement, not an ML research record. No publications, no large-scale training, no benchmark leaderboard.",
+        next: ['Tell me about the clutter detection project', 'What about sim-to-real transfer?', 'What numbers can he back up?', 'What are the gaps in his experience?'],
     },
     {
         id: 'control',
         label: 'Control & simulation',
         ask: 'What control and simulation experience does he have?',
-        k: ['control', 'controller', '!pid', '!state machine', 'fsm', '!gazebo', 'simulation', 'simulator', 'sim', '!rviz', 'motion control'],
+        k: ['control', 'controller', '!pid', '!state machine', 'fsm', '!gazebo', '!mujoco', 'simulation', 'simulator', 'sim', '!rviz', 'motion control', '!synthetic data'],
         a: "## Control\n" +
-           "PID controllers, path planning, and state machines. The FSM part is underrated — the MoveIt2 project's above-95% success rate comes from a state machine with real recovery states, not from a better planner.\n\n" +
+           "LQR, PID controllers, path planning and state machines. The LQR is not imported — the discrete Riccati recursion is iterated by hand in the PPO project, so the baseline the learned policy is measured against is one he derived.\n\n" +
            "## Simulation\n" +
-           "Gazebo is the main environment: the Go2 perception pipeline runs there with a custom world, and the fleet project simulates multiple TurtleBot3 robots simultaneously. RViz is used throughout for visualising raw versus processed data.\n\n" +
-           "Simulation is treated as a step toward hardware, not a destination — the stated goal is sim-to-real transfer.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'What is he aiming for?', 'What is his stack?', 'Explain each project'],
+           "MuJoCo for all the learning work: scene generation, segmentation-buffer labels, and physics for control. Gazebo for the ROS2 side. RViz throughout for looking at what a pipeline actually produced.\n\n" +
+           "Synthetic data generation is a first-class part of every learned project — the label comes out of the renderer, not out of a person, which is the concrete reason robot learning starts in simulation.",
+        next: ['Tell me about the PPO project', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'Explain each project'],
+    },
+    {
+        id: 'navigation',
+        label: 'Navigation & SLAM',
+        ask: 'What is his navigation and SLAM experience?',
+        k: ['navigation', 'navigate', '!nav2', '!slam', '!amcl', '!cartographer', '!localization', '!localisation', 'mapping', '!costmap', 'path planning', 'planner', 'autonomous mobile'],
+        a: "Navigation is professional work rather than portfolio work, and the page is clear about that.\n\n" +
+           "Nav2 for the planning and control stack, SLAM for mapping, AMCL for localization against a known map, Cartographer among the mapping tools. That comes from his day job on autonomous mobile robots, not from a project on this page.\n\n" +
+           "What is on the page instead: motion planning on a 7-DOF arm with MoveIt2 and OMPL, and path planning as part of the control skill set.\n\n" +
+           "For the scope of the navigation work — which robots, which environments, how long — email " + EMAIL,
+        deep: "## The stack he uses professionally\n" +
+           "- Nav2 — the planning and control stack: global and local planners, behaviour trees, recovery behaviours\n" +
+           "- SLAM for building maps, with Cartographer among the tools\n" +
+           "- AMCL — particle-filter localization against a known map\n" +
+           "- TF2 underneath all of it, because navigation is a frame problem before it is a planning problem\n" +
+           "## Why it is not a project on this page\n" +
+           "The portfolio was deliberately re-pointed at robot learning and manipulation, which is where he is heading. Navigation is real experience and it is listed as a skill, but there is no navigation project here to check it against — so treat it as a claim to verify in conversation rather than as a demonstrated result.\n" +
+           "## What is demonstrated instead\n" +
+           "Planning on a 7-DOF arm: OMPL as the sampling planner, Cartesian paths preferred where a straight line exists, constraint-based execution, and trajectory retiming for velocity scaling. Different problem, same underlying discipline.\n" +
+           "## What to ask\n" +
+           "Which platforms, which environments, and whether the work was simulation or hardware: " + EMAIL,
+        next: ['Tell me about the MoveIt2 pick and place project', 'What is his stack?', 'What is his experience?', 'How do I contact him?'],
     },
     {
         id: 'projects',
-        label: 'All four projects',
+        label: 'All six projects',
         ask: 'Explain each project in detail',
         k: ['project', 'projects', 'portfolio', 'built', 'build', 'repo', 'repos', 'repository', 'github', 'work on', 'works on', 'showcase', 'made', 'demos'],
         weight: 0.9,
-        a: "Four projects, each aimed at a different layer of the robotics stack:\n\n" +
-           "1. Go2 Perception Pipeline — C++, PCL. Ground-plane removal producing clean obstacle clouds for a quadruped.\n" +
-           "2. MoveIt2 Pick & Place — Python, Franka Panda. OMPL planning, ±1 cm, >95% success with fallback.\n" +
-           "3. TF Transform Explorer — C++, TF2, Nav2. Custom diagnostics message and a costmap keepout plugin.\n" +
-           "4. Fleet Monitoring System — ROS2 → Kafka → QuestDB, containerised, live dashboard.\n\n" +
+        a: "Six projects in two tracks — four robot learning, two ROS2 systems.\n\n" +
+           "1. Tabletop Clutter Detector — PyTorch, MuJoCo. Anchor-free detection, mAP 0.911 against a fitted classical 0.532, 1.20 ms through ONNX Runtime.\n" +
+           "2. PPO vs LQR on Cart-Pole — PyTorch, NumPy. PPO from first principles against a closed-form controller, 16 seeds, ablations with permutation tests.\n" +
+           "3. Microduck Locomotion on CPU — MuJoCo, PyTorch. A biped's feasibility gate, 48-dim observation contract, and a PD baseline of 108.7 ± 2.9 to beat.\n" +
+           "4. Cube Pose Regression CNN — PyTorch, OpenCV. 0.59 mm median pose error from 27k parameters, against a refitted classical baseline.\n" +
+           "5. MoveIt2 Pick & Place Demo — Python, C++, ROS2. A closed camera-to-grasp loop on a Franka Panda with no hard-coded poses.\n" +
+           "6. Fleet Monitoring System — ROS2, Kafka, Docker. Multi-robot telemetry into a time-series store with a live dashboard.\n\n" +
            "Ask about any one by name, or say \"explain each project in detail\" for the full breakdown. Every card above links to its repository.",
-        deep: "Four projects, each aimed at a different layer of the robotics stack.\n\n" +
-           "## 1 · Go2 Perception Pipeline — C++, ROS2, PCL, Unitree Go2\n" +
-           "Custom LiDAR perception for a quadruped in Gazebo.\n" +
-           "- Ground-plane removal with a PCL PassThrough filter, so only genuine obstacle returns survive\n" +
-           "- Clean obstacle clouds republished for downstream planning\n" +
-           "- RViz shows raw versus filtered side by side, making the filter's effect measurable\n" +
-           "- Teleop-ready in a custom world\n" +
-           "Demonstrates: C++ point-cloud processing, PCL filter chains, perception topic design.\n\n" +
-           "## 2 · MoveIt2 Pick & Place — Python, MoveIt2, Franka Panda\n" +
-           "A 7-DOF arm doing full pick-and-place.\n" +
-           "- OMPL motion planning with constraint-based execution\n" +
-           "- ±1 cm positioning accuracy, >95% success via multi-attempt fallback\n" +
-           "- Action-server verification, velocity and acceleration scaling, graceful recovery\n" +
-           "Demonstrates: MoveIt2 pipelines, robust FSM design, failure paths treated as first-class.\n\n" +
-           "## 3 · TF Transform Explorer — C++, TF2, Nav2, pluginlib\n" +
-           "The ROS2 internals most people avoid.\n" +
-           "- Dynamic and static TF2 broadcasters\n" +
-           "- Custom TFDiagnostics message type, making transform health a monitorable topic\n" +
-           "- Nav2 costmap plugin via pluginlib implementing keepout zones\n" +
-           "- Autonomous patrol with random goal generation and recovery behaviour\n" +
-           "Demonstrates: TF tree depth, custom ROS2 messages, extending Nav2 through its plugin API.\n\n" +
-           "## 4 · Fleet Monitoring System — Python, ROS2, Kafka, Docker, QuestDB\n" +
+        deep: "Six projects in two tracks. Four are robot learning, trained and measured on CPU only. Two are ROS2 systems.\n\n" +
+           "## 1 · Tabletop Clutter Detector — Python, PyTorch, MuJoCo, ONNX Runtime\n" +
+           "Anchor-free detection of three to six overlapping objects on a table.\n" +
+           "- Labels read from the renderer's segmentation buffer, so every box is already correct under perspective and occlusion\n" +
+           "- COCO mAP implemented from scratch and unit-tested before the detector existed\n" +
+           "- mAP@[.5:.95] 0.911 against a fitted classical pipeline's 0.532; AP75 within 0.0003 of AP50, meaning localisation is essentially exact\n" +
+           "- 1.20 ms per image through ONNX Runtime on 8 threads, after 3.87 ms in eager PyTorch\n" +
+           "- An augmentation ablation that returned +0.0007 mAP, reported as the null it is\n" +
+           "https://github.com/AungKaung1928/mujoco-clutter-detect\n\n" +
+           "## 2 · PPO vs LQR on Cart-Pole — Python, PyTorch, NumPy, MuJoCo\n" +
+           "Reinforcement learning measured honestly against optimal control.\n" +
+           "- No gymnasium, no baselines library, no scipy — the Riccati recursion is iterated by hand\n" +
+           "- Environment verified against the published dynamics before any RL existed, 13 checks\n" +
+           "- 16 seeds, median and IQR, steps-to-threshold 62,144; ablations on GAE, advantage normalisation and ratio clipping with two-sided permutation tests\n" +
+           "- LQR costs zero samples and keeps a basin of attraction roughly twice PPO's — reported, not omitted\n" +
+           "https://github.com/AungKaung1928/ppo-from-scratch\n\n" +
+           "## 3 · Microduck Locomotion on CPU — Python, MuJoCo, PyTorch, ONNX\n" +
+           "A walking policy for a 25 cm, 14-servo biped with no GPU in the stack.\n" +
+           "- A feasibility gate written down before measuring, then closed at 13,300 sustained environment steps per second across 8 processes\n" +
+           "- Four throughput figures kept on the page, because the corrections between them are the useful part\n" +
+           "- A 48-dimensional observation contract and a PD hold-pose baseline at 108.7 ± 2.9 of 500\n" +
+           "- Training not started; stated plainly\n" +
+           "https://github.com/AungKaung1928/microduck-rl-cpu\n\n" +
+           "## 4 · Cube Pose Regression CNN — Python, PyTorch, MuJoCo, OpenCV\n" +
+           "Planar pose from a single render, with the classical method given a fair fight.\n" +
+           "- One calibrated scalar removed a +2.98 mm radial bias and closed 53% of the gap for free\n" +
+           "- Spatial soft-argmax head: 0.59 mm median, 27k parameters, beating a 130k flatten head\n" +
+           "- ONNX export proven by recomputing the task metrics through the runtime\n" +
+           "https://github.com/AungKaung1928/mujoco-cube-pose-cnn\n\n" +
+           "## 5 · MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
+           "A 7-DOF arm clearing seven balls from a table, fully autonomously.\n" +
+           "- Camera to HSV detection to C++ reachability validator to state machine — no hard-coded grasp poses\n" +
+           "- Cartesian-first execution, OMPL RRTConnect as fallback, trajectory retiming for velocity scaling\n" +
+           "- Action-server verification at startup and recovery to a known state on planning failure\n" +
+           "https://github.com/AungKaung1928/moveit_pickplace_demo\n\n" +
+           "## 6 · Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
            "The infrastructure layer around a fleet.\n" +
-           "- ROS2 → Kafka → QuestDB time-series pipeline\n" +
+           "- ROS2 to Kafka to QuestDB time-series storage\n" +
            "- Multiple TurtleBot3 robots simulated at once in Gazebo\n" +
            "- Fully containerised; real-time dashboard over the PostgreSQL wire protocol\n" +
-           "Demonstrates: message brokers, time-series storage, containerised deployment.\n\n" +
-           "## Why these four\n" +
-           "Sensor → perception → planning → control → fleet infrastructure. Deliberately spread across the stack rather than four variations on one idea. Every card above links to its repository.",
-        next: ['What is his strongest project?', 'Tell me about the MoveIt2 pick and place project', 'What is his stack?', 'How do I contact him?'],
+           "https://github.com/AungKaung1928/fleet_monitoring_ws\n\n" +
+           "## Why these six\n" +
+           "Four learned models with a measured classical baseline under each, one closed-loop ROS2 manipulation stack, and one infrastructure project. Five of the six have a full written walkthrough linked from the card above.",
+        next: ['What is his strongest project?', 'Tell me about the clutter detection project', 'What numbers can he back up?', 'How do I contact him?'],
     },
     {
         id: 'strongest',
@@ -416,12 +524,12 @@ const TOPICS = [
         k: ['!strongest', 'best', 'favourite', 'favorite', 'impressive', 'highlight', 'proudest', 'standout', 'stand out', '!why hire', '!why him', '!hire him', '!should we hire', '!worth hiring', '!good fit', 'differentiator', 'unique'],
         weight: 1.2,
         a: "Depends what you are hiring for, and the honest read is this:\n\n" +
-           "- Hardest engineering — MoveIt2 Pick & Place. It has real numbers attached (±1 cm, >95% success) and the success rate comes from failure handling, not from a lucky planner.\n" +
-           "- Most telling about ROS2 depth — TF Transform Explorer. Custom messages, a Nav2 costmap plugin through pluginlib, and TF diagnostics. Unglamorous, and exactly where most ROS2 systems quietly break.\n" +
-           "- Widest scope — Fleet Monitoring System. Kafka, QuestDB and Docker around a multi-robot simulation; it shows he can build the layer around the robots.\n" +
-           "- Closest to where he is heading — Go2 Perception Pipeline. C++ point-cloud work on a quadruped, which is the first step toward legged robotics and physical AI.\n\n" +
-           "The common thread: a mechanical engineering background plus full-pipeline thinking, rather than one isolated algorithm.",
-        next: ['Explain each project in detail', 'What is his experience?', 'What is he aiming for?', 'How do I contact him?'],
+           "- Best complete result — Tabletop Clutter Detector. mAP 0.911 against a fitted classical 0.532, a metric implemented from scratch, and a deployment path that turned a 1.9x slowdown into a 1.8x speedup\n" +
+           "- Most rigorous — PPO vs LQR on Cart-Pole. 16 seeds, permutation tests, hyperparameters searched on disjoint seeds, and a conclusion that goes against the learned method\n" +
+           "- Closest to where he is heading — Microduck Locomotion on CPU. A biped, a feasibility gate, and a measured baseline. Also the least finished\n" +
+           "- Best systems engineering — MoveIt2 Pick & Place Demo. A closed camera-to-grasp loop on a 7-DOF arm with no hard-coded poses\n\n" +
+           "The common thread is not any single project: it is that every learned result on this page sits next to a hand-written method that was measured first, and the comparison is reported even when it goes the wrong way.",
+        next: ['Explain each project in detail', 'What are the gaps in his experience?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'contact',
@@ -430,7 +538,7 @@ const TOPICS = [
         k: ['contact', 'email', 'mail', 'reach', 'hire', 'hiring', 'recruit', 'recruiter', '!linkedin', 'cv', '!resume', 'talk', '!get in touch', 'available', 'availability', 'opportunity', 'opportunities', 'interview', 'apply'],
         a: "## Email — fastest route\n" + EMAIL + "\n" +
            "## GitHub\n" +
-           "github.com/AungKaung1928 — all four projects are public\n" +
+           "github.com/AungKaung1928 — all six projects are public\n" +
            "## LinkedIn\n" +
            "Linked in the Contact section above\n\n" +
            "For a CV, role details, availability, or anything this page does not cover, email is the right channel.",
@@ -440,83 +548,71 @@ const TOPICS = [
         id: 'ros2',
         label: 'ROS2 depth',
         ask: 'How deep is his ROS2 knowledge?',
-        k: ['!ros2', '!ros', '!humble', '!pluginlib', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', '!custom message', '!message type', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
+        k: ['!ros2', '!ros', '!humble', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
         a: "## ROS2 — Humble, in C++ and Python\n" +
-           "He works inside ROS2's interfaces rather than only on top of them. Three concrete markers on this page:\n\n" +
-           "- A custom message type, TFDiagnostics, defined and published as a topic so transform health is monitorable\n" +
-           "- A Nav2 costmap plugin loaded through pluginlib, implementing keepout zones the planner has to respect\n" +
-           "- Action-server verification before execution in the MoveIt2 project, so a missing controller fails at startup instead of mid-motion\n\n" +
-           "Defining a message type and writing a pluginlib plugin is a different level from editing a YAML file — both require reading ROS2's own interfaces.\n\n" +
-           "Also on the page: TF2 dynamic and static broadcasters, perception topic design (raw cloud in, filtered obstacle cloud out), and Gazebo integration with a custom world.",
+           "He works inside ROS2's interfaces rather than only on top of them. Concrete markers on this page:\n\n" +
+           "- A multi-node pipeline in the MoveIt2 project where each stage is its own node with a defined topic contract: ground truth, rendered image, detections, validated targets\n" +
+           "- A C++ node and a Python node in the same package, split on a real criterion — the per-detection reachability filter must not block the orchestrating state machine\n" +
+           "- Action-server verification before execution, so a missing controller fails at startup instead of mid-motion\n" +
+           "- A latched topic for scene ground truth, so a node that starts late still receives it\n\n" +
+           "Professionally: Nav2, SLAM and AMCL on autonomous mobile robots, which is where the deeper navigation-side ROS2 work sits.",
         deep: "## The version and the languages\n" +
-           "ROS2 Humble, written in both C++ and Python, on Linux. C++ for the nodes that run per sensor frame or plug into someone else's C++ interface; Python where iteration speed matters more.\n" +
-           "## Where the depth actually shows\n" +
-           "- Custom interfaces — a TFDiagnostics message type, generated and published as a topic. Most people consume standard messages; defining one means dealing with interface packages, build dependencies and the code generation step.\n" +
-           "- pluginlib — a Nav2 costmap layer loaded as a plugin, implementing keepout zones. This is written against Nav2's C++ plugin API: you inherit from its layer class, respect its lifecycle, and get loaded by name at runtime.\n" +
-           "- TF2 — dynamic and static broadcasters, so moving joints and fixed mounts are both represented correctly in the frame tree.\n" +
-           "- Actions — the MoveIt2 project verifies its action server is up before commanding anything, which is the difference between a loud startup failure and a silent runtime one.\n" +
-           "- Topic design — the Go2 pipeline subscribes to a raw cloud and republishes a filtered obstacle cloud, keeping the perception boundary clean for downstream planners.\n" +
-           "## Where most portfolios stop\n" +
-           "Launch files, parameter YAML, and a tutorial-shaped node. Those are present here too, but they are not the interesting part. The interesting part is that two of the four projects extend ROS2 through its extension points instead of working around them.\n" +
+           "ROS2 Humble, C++ and Python, on Linux. C++ for nodes that run per frame or per detection; Python where iteration speed and async orchestration matter more.\n" +
+           "## Where the depth shows on this page\n" +
+           "- Topic contracts between nodes: scene ground truth on a latched topic, rendered frames, detected objects, validated targets, and a scene-update channel that hides a ball once it is picked. Each stage is replaceable without touching the others\n" +
+           "- Actions: the MoveIt2 project verifies its action server before commanding anything, and drives MoveGroup asynchronously with an explicit completion event rather than blocking\n" +
+           "- Service quirks handled rather than worked around: the Humble Cartesian-path service has no velocity-scaling field, so the trajectory is retimed after planning\n" +
+           "- Language split inside one package, justified per node\n" +
+           "## Where the deeper ROS2 work actually lives\n" +
+           "In the day job: Nav2, SLAM, AMCL and TF2 on autonomous mobile robots. That is professional experience and it is not demonstrated by a repository here, so it should be verified in conversation.\n" +
            "## What is not claimed\n" +
-           "This page does not show real-time executors, DDS QoS tuning, or micro-ROS work. Ask by email if that is what the role needs.",
-        next: ['Tell me about the TF Transform Explorer project', 'C++ or Python?', 'What is his stack?', 'How does he debug robot problems?'],
+           "No real-time executors, no DDS QoS tuning, no micro-ROS. Ask by email if that is what the role needs.\n" +
+           "## Why the portfolio leans away from ROS2 now\n" +
+           "Deliberately. The target role is Physical AI Engineer — learned behaviour on real machines — not ROS2 integration. ROS2 is the deployment layer for that, and it is represented here by one closed-loop system rather than by four.",
+        next: ['Tell me about the MoveIt2 pick and place project', 'C++ or Python?', 'What roles is he a fit for?', 'How does he debug robot problems?'],
     },
     {
         id: 'simtoreal',
         label: 'Sim-to-real',
         ask: 'What about sim-to-real transfer?',
-        k: ['!sim-to-real', '!sim to real', '!sim2real', '!reality gap', '!domain gap', '!simulation to reality', '!real world', '!transfer', '!does it work on real hardware'],
+        k: ['!sim-to-real', '!sim to real', '!sim2real', '!reality gap', '!domain gap', '!simulation to reality', '!real world', '!transfer', '!domain randomisation', '!domain randomization', '!system identification', '!does it work on real hardware'],
         weight: 1.3,
-        a: "This is the direction he is aiming at, and the honest version matters more than the enthusiastic one.\n\n" +
+        a: "This is his stated differentiator, and the honest version matters more than the enthusiastic one.\n\n" +
            "## What is on this page\n" +
-           "- Heavy simulation work: a custom Gazebo world for the Go2 perception pipeline, multiple TurtleBot3 robots running at once for the fleet project\n" +
-           "- Professional work that includes deployment onto real hardware, not simulation alone\n" +
-           "- A mechanical engineering background, which is where sim-to-real problems actually live: sensor mounting, actuator limits, friction, timing\n\n" +
+           "- Domain randomisation measured rather than described: the detection project randomises hue, lighting and table shade at render time, and then ablates whether photometric augmentation on top adds anything. It adds +0.0007 mAP\n" +
+           "- The same question asked in the pose project, with two dataset regimes — fixed appearance and randomised appearance — and the classical baseline's detection rate collapsing to 10.9% under the hard one\n" +
+           "- An evaluation habit that transfers: hold out the split you report on, search hyperparameters on disjoint seeds, and report the axis where the learned method loses\n" +
+           "- ONNX export verified by recomputing the task metric through the runtime, which is the step that gets a model onto a robot\n\n" +
            "## What is not on this page\n" +
-           "A shipped sim-to-real result — a policy trained in simulation and measured on hardware. That is the stated goal, not a finished credential.\n\n" +
+           "A policy trained in simulation and measured on hardware. There is no robot to deploy to. That is the missing artefact and he would say so first.\n\n" +
            "If a role turns on that specifically, email him: " + EMAIL,
-        deep: "## Why he is pointed here\n" +
-           "His stated career direction is physical AI: learned behaviour running on real machines. Sim-to-real transfer is the gate every one of those systems has to pass, and it is a systems problem rather than a model problem — the failure is usually in the seams: frames, latency, sensor noise, actuator saturation, contact.\n" +
-           "## What the page supports today\n" +
-           "- Simulation depth — a custom Gazebo world with teleop for the Go2 perception pipeline; several TurtleBot3 robots simulated concurrently in the fleet project. He builds environments, not just runs stock ones.\n" +
-           "- Hardware exposure — the professional side of his work involves deployment onto real robots, which is where simulation-only engineers get caught out.\n" +
-           "- The measurement habit — RViz raw versus filtered side by side, positioning accuracy in centimetres, success rate as a percentage. Sim-to-real without measurement is guesswork.\n" +
-           "- A mechanical background — kinematics, sensors and failure modes of physical machines. The reality gap is mostly physics, and he read the physics first.\n" +
+        deep: "## Why this is the differentiator\n" +
+           "His stated target is Physical AI Engineer, and the thing that separates one from a general ML engineer is sim-to-real: domain randomisation, system identification, residual policies, and hardware failure analysis. That is a systems problem — the failure lives in the seams: frames, latency, sensor noise, actuator saturation, contact.\n" +
+           "## What the page actually supports\n" +
+           "- Randomisation as a measured variable, not a checkbox. The Tabletop Clutter Detector randomises appearance at render time and then ablates photometric augmentation on top of it: +0.0007 mAP, a null, reported as a null. The two are not symmetric and the project says why\n" +
+           "- Two regimes in the Cube Pose Regression CNN — fixed appearance and randomised hue, light position, light intensity and table shade. The classical colour-threshold baseline's detection rate falls to 10.9% under the randomised regime while the network holds at 100%. That is the reality-gap experiment in miniature\n" +
+           "- Evaluation discipline that survives contact with a real result: the val split touched exactly once, hyperparameters searched on seeds disjoint from the reported ones, and a training-selection leak found, fixed and quantified at 0.01 mm\n" +
+           "- A deployment path: ONNX export with the full task metric recomputed through the runtime, and latency measured on the CPU budget a robot would actually have\n" +
+           "- Microduck Locomotion on CPU is set up for the next piece — evaluation on physics the policy never trained on — with the observation contract and baseline already fixed\n" +
            "## What is honestly missing\n" +
-           "- No trained policy on this page, in simulation or on hardware\n" +
-           "- No domain randomisation, system identification or residual-policy work published here\n" +
-           "- The four projects are classical robotics: filters, planners, state machines, infrastructure\n" +
-           "So the accurate read is: strong classical foundation plus the hardware instinct sim-to-real needs, aimed deliberately at learned control, without a shipped learned result yet.\n" +
+           "- No policy has been transferred to hardware, because there is no hardware. Everything is simulation to simulation so far\n" +
+           "- System identification is method knowledge and a planned step, not a shipped result\n" +
+           "- No residual or hybrid policy work published yet\n" +
            "## The next step that would prove it\n" +
-           "A policy trained in Gazebo and measured on a real machine, with the gap quantified rather than described. That is the missing artefact, and he would tell you the same.",
-        next: ['What is he aiming for?', 'What legged robotics experience does he have?', 'Does he do machine learning?', 'What are the gaps in his experience?'],
+           "The Microduck policy trained, then evaluated under perturbed mass, friction and latency it never saw in training, with the gap quantified. That is the artefact, and it is the declared next step rather than a finished credential.",
+        next: ['Tell me about the Microduck locomotion project', 'Does he do machine learning?', 'What are the gaps in his experience?', 'What is he aiming for?'],
     },
     {
         id: 'legged',
         label: 'Legged robotics',
         ask: 'What legged robotics experience does he have?',
-        k: ['!legged', '!legged robotics', '!quadrupedal', '!four-legged', '!four legged', '!walking robot', '!gait', '!locomotion', '!dog robot'],
+        k: ['!legged robotics', '!quadruped', '!quadrupedal', '!four-legged', '!four legged', '!walking robot', '!dog robot', '!humanoid'],
         a: "## What exists\n" +
-           "The Go2 Perception Pipeline — a custom LiDAR perception pipeline for the Unitree Go2 quadruped, running in Gazebo. Ground-plane removal with a PCL PassThrough filter, clean obstacle clouds republished for planning, RViz showing raw versus filtered, teleop in a custom world.\n\n" +
+           "Microduck Locomotion on CPU — a balance-and-recover policy for a 25 cm, 737 g open-source biped with 14 position-controlled servos, in MuJoCo. The environment contract is fixed at 48 observations and 14 actions at 50 Hz, the feasibility of training on this machine is measured at 13,300 environment steps per second, and a PD hold-pose baseline scores 108.7 ± 2.9 of 500.\n\n" +
            "## What that is and is not\n" +
-           "It is perception for a legged platform: the sensing layer a walking robot needs before anything else works. It is not gait control, whole-body control, or a learned locomotion policy — none of that is on this page.\n\n" +
-           "Legged robotics is one of the three things he names as his direction, and the Go2 work is the first deliberate step toward it rather than the finished article.",
-        deep: "## The project\n" +
-           "Go2 Perception Pipeline — C++, ROS2, PCL, Unitree Go2 in Gazebo.\n" +
-           "- Raw LiDAR scans ground-plane filtered with a PCL PassThrough filter, so the floor stops being reported as an obstacle\n" +
-           "- The surviving obstacle cloud republished on its own topic for downstream planning\n" +
-           "- RViz displaying raw and filtered clouds side by side, which makes the filter's effect measurable rather than asserted\n" +
-           "- A custom world with teleop, so the robot can be driven through obstacles while the pipeline runs\n" +
-           "## Why perception first on a quadruped\n" +
-           "A legged robot's hardest problem is knowing what is under and in front of it. Ground-plane removal is not a toy step for a walking platform: the floor is exactly what a wheeled-robot filter would treat as an obstacle, and exactly what a quadruped has to walk on. Getting the obstacle definition right is a prerequisite for anything above it.\n" +
-           "## The honest boundary\n" +
-           "- No gait or whole-body control on this page\n" +
-           "- No reinforcement-learning locomotion policy\n" +
-           "- The Go2 work is in simulation, not on the physical dog\n" +
-           "## Why it is still the right first step\n" +
-           "The stated direction is physical AI with legged robotics as one of three pillars. Starting at the sensing layer of a real quadruped platform, in C++, with a measurable result, is a more defensible entry than a rebuilt tutorial policy.",
-        next: ['Tell me about the Go2 perception project', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
+           "It is the whole scaffolding a locomotion policy needs — physics, contract, reward terms measured individually, and a baseline to beat. It is not a trained policy yet, and there is no physical robot.\n\n" +
+           "Legged locomotion is one of the three things he names as his direction, and this is the first deliberate step rather than the finished article.",
+        next: ['Tell me about the Microduck locomotion project', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
     },
     {
         id: 'hardware',
@@ -524,27 +620,25 @@ const TOPICS = [
         ask: 'Which robots and sensors has he worked with?',
         k: ['!hardware', '!real robot', '!real robots', '!physical robot', '!physical hardware', '!which robots', '!what robots', '!robot platforms', '!platforms', '!actuator', '!actuators', '!motor', '!motors', '!sensor suite', '!sensors used', '!sensor stack', '!on real hardware'],
         a: "## Platforms named on this page\n" +
-           "- Unitree Go2 quadruped — LiDAR perception pipeline, in Gazebo\n" +
-           "- Franka Panda, 7-DOF arm — full pick-and-place with MoveIt2\n" +
+           "- Microduck — a 25 cm, 737 g open-source biped with 14 servos, in MuJoCo\n" +
+           "- Franka Panda, 7-DOF arm — the closed-loop pick-and-place stack, in simulation\n" +
            "- TurtleBot3, several at once — the fleet telemetry project, in Gazebo\n\n" +
            "## Sensors\n" +
-           "LiDAR, IMU and camera, with sensor fusion across them. PCL for point clouds, OpenCV for images.\n\n" +
+           "LiDAR, IMU and camera, with sensor fusion across them. PCL for point clouds, OpenCV for images — used both as a tool and as the baseline the learned models have to beat.\n\n" +
            "## The honest split\n" +
-           "The four portfolio projects run in simulation. His professional work includes deployment onto real hardware — that is stated on the page, but the specific machines are not.\n\n" +
+           "Every project on this page runs in simulation. His professional work includes deployment onto real hardware; the specific machines are not published here.\n\n" +
            "For the real-hardware detail, employers and dates, email him: " + EMAIL,
         deep: "## Platforms\n" +
-           "- Unitree Go2 — a quadruped, used for the C++ LiDAR perception pipeline in a custom Gazebo world with teleop\n" +
-           "- Franka Panda — a 7-DOF arm, used for OMPL-planned pick-and-place with constraint-based execution, velocity and acceleration scaling\n" +
+           "- Microduck — a 25 cm, 737 g open-source biped with 14 position-controlled servos, simulated in MuJoCo at 500 Hz physics with 50 Hz control\n" +
+           "- Franka Panda — a 7-DOF arm, OMPL and Cartesian planning, constraint-based execution, trajectory retiming for velocity scaling\n" +
            "- TurtleBot3 — multiple units simulated simultaneously, producing concurrent telemetry for the Kafka and QuestDB pipeline\n" +
            "## Sensors and the libraries around them\n" +
-           "- LiDAR — point-cloud filtering, ground-plane removal, obstacle extraction with PCL\n" +
-           "- IMU and camera, fused with the LiDAR data\n" +
-           "- OpenCV for image work; CNNs and YOLO on the learned side of detection\n" +
+           "- Camera — synthetic RGB from MuJoCo and Gazebo renderers, with labels taken from the segmentation buffer\n" +
+           "- LiDAR and IMU with sensor fusion, and PCL for point-cloud work, from the professional side\n" +
+           "- OpenCV for image work: HSV thresholding, contour extraction, minimum-area rectangles — all of it used as a measured baseline rather than as a demo\n" +
            "## Simulation versus hardware, stated plainly\n" +
-           "The projects on this page are simulated. That is a deliberate choice for a public portfolio — a simulated stack is reproducible by whoever is reading it, and every claim can be re-run.\n" +
-           "The About section states that his professional work covers deployment on real hardware rather than simulation alone. The page does not name those robots, so neither will I.\n" +
-           "## Why the mechanical background matters here\n" +
-           "He came from mechanical engineering, so hardware is not an abstraction to him: mounting, alignment, actuator limits and mechanical failure modes are things he has designed around, not only read about. That is the part that decides whether working code survives contact with a real machine.\n" +
+           "The six projects here are simulated. That is a deliberate choice for a public portfolio — a simulated stack is reproducible by whoever is reading it, and every claim can be re-run from the repository. It is also a constraint: there is no GPU and no robot to buy.\n" +
+           "The About section states that his professional work covers deployment on real hardware. The page does not name those robots, so neither will I.\n" +
            "## What to ask him directly\n" +
            "Which physical platforms, at what scale, and for how long — email " + EMAIL + " for that.",
         next: ['What about sim-to-real transfer?', 'Explain each project in detail', 'What numbers can he back up?', 'How do I contact him?'],
@@ -555,28 +649,28 @@ const TOPICS = [
         ask: 'How does he handle failure and recovery?',
         k: ['!reliability', '!reliable', '!robust', '!robustness', '!recovery', '!recover', '!fallback', '!failure', '!failures', '!fail', '!safety', '!safe', '!error handling', '!graceful', '!edge case', '!edge cases', '!unattended', '!production ready', '!production-ready'],
         weight: 1.1,
-        a: "This is the strongest single thread through the portfolio: failure paths are designed, not bolted on.\n\n" +
-           "- MoveIt2 pick & place — multi-attempt fallback rather than one optimistic plan, which is where the >95% success rate comes from. Action-server verification before execution, velocity and acceleration scaling, and a failed grasp that returns to a known state and resumes\n" +
-           "- TF Transform Explorer — recovery behaviour when navigation fails, so an autonomous patrol keeps operating instead of stopping; plus TFDiagnostics, which turns silent transform failures into a monitorable topic\n" +
-           "- Fleet Monitoring — Kafka between producers and consumers, so a slow or dead consumer does not take telemetry down with it\n\n" +
-           "The pattern: assume it breaks, decide what happens next, and make the breakage visible.",
-        deep: "## Why this is the thread worth following\n" +
-           "Any demo works once. The difference between a demo and something that runs unattended is entirely in what happens when a step fails — and three of the four projects address that explicitly.\n" +
-           "## MoveIt2 pick & place\n" +
-           "- Multi-attempt fallback: when a plan or an execution fails, the system retries with a different strategy instead of aborting. The >95% success rate is a consequence of this, not of a better planner\n" +
-           "- Action-server verification before anything is commanded, so a missing or unready controller fails loudly at startup rather than silently at runtime\n" +
-           "- Velocity and acceleration scaling, keeping a 7-DOF arm inside limits its situation allows\n" +
-           "- Graceful recovery: a failed grasp returns the arm to a known state and the run continues\n" +
-           "## TF Transform Explorer\n" +
-           "- Recovery behaviour when navigation fails, inside an autonomous patrol that generates its own goals — a robot that cannot recover is a robot someone has to babysit\n" +
-           "- A custom TFDiagnostics message publishing transform health as a topic. TF failures are usually silent: a stale transform, a missing frame, clock skew. This converts a debugging session into an alert\n" +
-           "- Keepout zones enforced in a costmap plugin, so a forbidden region is a planner constraint rather than an operator instruction\n" +
-           "## Fleet Monitoring\n" +
-           "- Kafka decouples producers from consumers, so a slow or failed consumer buffers instead of dropping telemetry\n" +
-           "- Containerised deployment, which removes the whole class of failures that begin with \"it worked on my machine\"\n" +
+        a: "Failure paths are designed, not bolted on — and the same instinct shows up in how the measurements are run.\n\n" +
+           "- MoveIt2 Pick & Place Demo — a C++ validator rejects unreachable targets before the planner is asked, Cartesian planning falls back to OMPL RRTConnect, the action server is verified at startup, and a planning failure routes to a homing state rather than ending the run\n" +
+           "- PPO vs LQR on Cart-Pole — runs that never reach threshold are entered as budget plus one rather than dropped, because dropping them is how a bad configuration is made to look good\n" +
+           "- Fleet Monitoring System — Kafka between producers and consumers, so a slow or dead consumer does not take telemetry down with it\n\n" +
+           "The pattern: assume it breaks, decide what happens next, and make the breakage visible — in a robot and in a results table.",
+        deep: "## In the robot code\n" +
+           "- The reachability validator is a filter placed before the planner, so an impossible target is a rejected message rather than a planning failure. Failing early is cheaper than failing loudly\n" +
+           "- Cartesian-first with OMPL RRTConnect as fallback: the preferred motion is the predictable one, and the sampling planner is what happens when the preferred motion is unavailable\n" +
+           "- Action-server verification before anything is commanded, so a missing or unready controller fails at startup rather than mid-motion\n" +
+           "- A dedicated homing state on planning failure, returning the arm to a known configuration so the run continues\n" +
+           "- An attached collision object was removed after it caused self-collision failures, and the reason is recorded in the repository rather than silently reverted\n" +
+           "## In the measurements\n" +
+           "This is the less obvious half, and it is the same habit.\n" +
+           "- Unsolved RL runs are entered at budget plus one instead of dropped, so a failing configuration cannot hide behind the survivors' median\n" +
+           "- Throughput figures that turned out to be bursts are corrected on the page with all four values kept, rather than overwritten\n" +
+           "- A training-selection leak was found, fixed, the affected run retrained, and the difference quantified at 0.01 mm\n" +
+           "- An ablation that returned nothing is published as nothing\n" +
+           "## In the infrastructure\n" +
+           "Kafka decouples producers from consumers so a slow consumer buffers instead of dropping telemetry, and the whole stack is containerised, which removes the class of failures that begin with \"it worked on my machine\".\n" +
            "## The underlying habit\n" +
-           "Design the failure path first, make the failure observable, and give the system a defined next move. That habit transfers directly to hardware, where failure is not hypothetical.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'How does he debug robot problems?', 'What numbers can he back up?', 'How does he work?'],
+           "Design the failure path first, make the failure observable, and give the system a defined next move. A results table gets the same treatment as a robot.",
+        next: ['Tell me about the MoveIt2 pick and place project', 'What numbers can he back up?', 'How does he debug robot problems?', 'How does he work?'],
     },
     {
         id: 'metrics',
@@ -584,113 +678,122 @@ const TOPICS = [
         ask: 'What numbers can he back up?',
         k: ['!metric', '!metrics', '!accuracy', '!success rate', '!numbers', '!measured', '!measurable', '!benchmark', '!benchmarks', '!precision', '!latency', '!throughput', '!fps', '!proof', '!evidence', '!quantify', '!quantified', '!results'],
         a: "## Published on this page\n" +
-           "- ±1 cm positioning accuracy — MoveIt2 pick & place, 7-DOF Franka Panda\n" +
-           "- Above 95% success rate — same project, achieved through multi-attempt fallback\n" +
-           "- Multiple TurtleBot3 robots streaming telemetry concurrently — fleet project, so the pipeline is exercised with real concurrency rather than one stream\n" +
-           "- Raw versus filtered point clouds shown side by side in RViz — the Go2 filter's effect is observable, not asserted\n\n" +
+           "- mAP@[.5:.95] 0.911 against a fitted classical pipeline's 0.532 — Tabletop Clutter Detector, COCO mAP implemented from scratch\n" +
+           "- 1.20 ms per image through ONNX Runtime on 8 CPU threads, against 3.87 ms in eager PyTorch — same project\n" +
+           "- 0.59 mm median position error from 27k parameters — Cube Pose Regression CNN, against a refitted classical baseline at 1.91 mm\n" +
+           "- Steps-to-threshold median 62,144 over 16 seeds, IQR [60,442, 63,448] — PPO vs LQR on Cart-Pole, against LQR at zero sample cost\n" +
+           "- 13,300 sustained environment steps per second across 8 processes, and a PD baseline of 108.7 ± 2.9 of 500 — Microduck Locomotion on CPU\n\n" +
            "## Not published\n" +
-           "Per-frame latency, CPU and memory budgets, throughput figures, and localisation error over a run. Those numbers are not on this page, so I will not invent them.\n\n" +
-           "Every project links to its repository, and the code is the primary source. For measurements beyond the above, email " + EMAIL,
-        deep: "## The numbers that exist\n" +
-           "- ±1 cm positioning accuracy on the 7-DOF Franka Panda pick-and-place\n" +
-           "- Above 95% success rate on the same task, with the mechanism named: multi-attempt fallback, not a luckier planner\n" +
-           "- Concurrent multi-robot telemetry — several TurtleBot3 robots simulated at once through ROS2, Kafka and QuestDB\n" +
-           "- A measurable perception result: RViz displays the raw and the ground-plane-filtered cloud together, so the filter's effect can be inspected rather than trusted\n" +
-           "## Why those two numbers are the interesting ones\n" +
-           "A success rate is only meaningful with its mechanism attached. \">95% via multi-attempt fallback\" tells you the system was built around failure; \">95%\" alone tells you nothing. Same for ±1 cm: it is a claim you can re-run from the linked repository.\n" +
+           "No positioning-accuracy or success-rate figure for the MoveIt2 project — neither was measured, so neither is claimed. No throughput number for the telemetry pipeline. No hardware-versus-simulation comparison, because nothing has run on hardware.\n\n" +
+           "Every project links to its repository and every number above is reproducible from it.",
+        deep: "## The numbers, with their mechanism attached\n" +
+           "A figure without its method is decoration, so each one comes with how it was obtained.\n" +
+           "- **mAP@[.5:.95] 0.911** — Tabletop Clutter Detector, 380,631 parameters, 25 epochs, 34 minutes on 8 CPU threads. The comparison point is a classical pipeline refitted with a score, at 0.532. The metric itself is implemented from scratch and unit-tested, and the val split was touched exactly once\n" +
+           "- **AP75 0.9896 against AP50 0.9899** — a gap of 0.0003, which is the evidence that localisation is essentially exact. The baseline lost 0.134 between the same thresholds\n" +
+           "- **1.20 ms per image** through ONNX Runtime at 8 threads, against 3.87 ms eager. Re-measured on an idle machine because the first pair was taken on a hot one\n" +
+           "- **+0.0007 mAP** — the augmentation ablation. A null result, reported\n" +
+           "- **0.59 mm median, 1.32 mm p95** — Cube Pose Regression CNN, 27k parameters. The refitted classical baseline reaches 1.91 mm, and the network's real advantage is the tail rather than the median\n" +
+           "- **62,144 steps-to-threshold**, median over 16 seeds, IQR [60,442, 63,448], reproduced exactly on a second run. LQR reaches the same threshold having consumed zero samples\n" +
+           "- **13,300 environment steps per second**, sustained across 8 processes — the fourth and current value after 28,749, 18,400 and 8,000 were each shown to be wrong, with the reason for each correction on the page\n" +
+           "- **108.7 ± 2.9 of 500** — the PD hold-pose baseline a locomotion policy has to beat\n" +
            "## What is deliberately absent\n" +
-           "- No per-frame latency or CPU budget for the C++ perception pipeline\n" +
-           "- No localisation error figures for the navigation work\n" +
-           "- No end-to-end throughput number for the telemetry pipeline\n" +
-           "- No hardware-versus-simulation comparison\n" +
-           "That is a real gap for a performance-critical role, and the right answer is to ask him rather than to read an implied number into the page.\n" +
-           "## How to verify what is here\n" +
-           "All four projects are public on github.com/AungKaung1928. The claims above are reproducible from the code and the launch setup.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'What are the gaps in his experience?', 'How does he handle failure and recovery?', 'How do I contact him?'],
+           "- No positioning accuracy and no success rate for the MoveIt2 project. Neither was measured, so neither is claimed\n" +
+           "- No end-to-end throughput figure for the telemetry pipeline\n" +
+           "- No hardware measurements of any kind, because no project has run on hardware\n" +
+           "## How to verify\n" +
+           "All six projects are public on github.com/AungKaung1928, and five have a full written walkthrough linked from the card. Each repository ships the script that produces its numbers.",
+        next: ['Tell me about the clutter detection project', 'What are the gaps in his experience?', 'How does he handle failure and recovery?', 'How do I contact him?'],
     },
     {
         id: 'deployment',
         label: 'Deployment & packaging',
         ask: 'How does he deploy and package his work?',
-        k: ['!deploy', '!deployment', '!deploying', '!packaging', '!containerised', '!containerized', '!reproducible', '!ship', '!shipping', '!ci', '!cd', '!build system', '!setup', '!install', '!run it', '!devops'],
-        a: "## Packaging\n" +
-           "The fleet monitoring stack is fully containerised with Docker — brokers, the time-series database, the dashboard and the ROS2 nodes. The whole system comes up as a unit rather than as a machine-specific ritual.\n\n" +
-           "## Why that matters\n" +
-           "A multi-robot telemetry stack has four or five moving services. Containerising it is the difference between a system somebody else can start and a system only its author can start.\n\n" +
-           "## Around it\n" +
-           "Linux throughout, ROS2 Humble as the runtime, Gazebo for simulation, and a real-time dashboard reading QuestDB over the PostgreSQL wire protocol — a deliberate choice to reuse standard tooling instead of writing a bespoke client.\n\n" +
-           "Not on this page: CI pipelines, cross-compilation, or edge-device images. Ask by email if the role needs those.",
-        deep: "## What is containerised\n" +
-           "The Fleet Monitoring System runs as a Docker stack: Kafka as the broker, QuestDB as the time-series store, the dashboard, and the ROS2 nodes producing telemetry. Bringing the stack up is one operation, and it comes up the same way on someone else's machine.\n" +
-           "## Why a portfolio project is the right place to prove this\n" +
-           "Anyone reading the repository can run it. That is the actual test of reproducibility, and it is the reason the fleet project is containerised rather than documented with a list of manual steps.\n" +
-           "## Interface choices worth noticing\n" +
-           "- QuestDB spoken over the PostgreSQL wire protocol, so the dashboard uses a standard client instead of a custom one\n" +
-           "- Kafka as the boundary between the robot network and everything downstream — ROS2's DDS transport is designed for a robot, not for a datacentre\n" +
-           "- ROS2 packages and launch setups for the robot-side work, with Gazebo worlds committed alongside the code\n" +
+        k: ['!deploy', '!deployment', '!deploying', '!packaging', '!containerised', '!containerized', '!reproducible', '!ship', '!shipping', '!export', '!ci', '!cd', '!build system', '!setup', '!install', '!run it', '!devops', '!edge'],
+        a: "## Models\n" +
+           "Two of the learned projects export to ONNX, and the export is proven rather than assumed: the full task metric is recomputed through ONNX Runtime and compared, not just the output tensors. In the detection project that step also turned a 3.87 ms eager forward pass into 1.20 ms end to end.\n\n" +
+           "## Systems\n" +
+           "The fleet monitoring stack is fully containerised with Docker — broker, time-series database, dashboard and ROS2 nodes — so the whole system comes up as a unit on someone else's machine.\n\n" +
+           "## Why the ONNX step matters for robotics\n" +
+           "A model that only runs inside a Python training script is not deployed. Exporting it is what lets a C++ ROS2 node run the same weights on a robot, and re-scoring the task through the runtime is what proves the exported graph is the same model.\n\n" +
+           "Not on this page: CI pipelines, cross-compilation, or edge-device images.",
+        deep: "## Model deployment\n" +
+           "- ONNX export in both vision projects, with opset and graph size recorded\n" +
+           "- Verified by recomputing the entire task metric through ONNX Runtime, not by checking a maximum absolute difference alone. A graph can be numerically close and still have a wrong output order or a dropped layer\n" +
+           "- Latency measured at the thread counts a robot would actually have: 1.20 ms per image at 8 threads for the detector, 0.23 ms at one thread for the pose network\n" +
+           "- The detector was 1.9x slower than the classical pipeline in eager PyTorch and 1.8x faster through the runtime. Runtime choice, not architecture, decided it — and both numbers are published\n" +
+           "## System deployment\n" +
+           "The Fleet Monitoring System runs as a Docker stack: Kafka as the broker, QuestDB as the time-series store, the dashboard, and the ROS2 nodes producing telemetry. Bringing it up is one operation.\n" +
+           "## Reproducibility as the actual test\n" +
+           "Every repository ships the script that regenerates its numbers, and each states what to run and roughly how long it takes on CPU. Anyone reading can re-run the claim.\n" +
            "## The runtime environment\n" +
-           "Linux throughout, ROS2 Humble, C++ and Python. Nothing exotic, which is the point: the stack is standard enough that a team could adopt it.\n" +
+           "Linux throughout, ROS2 Humble for the robot side, Python with PyTorch and MuJoCo for the learning side, ONNX Runtime as the serving layer. Nothing exotic, which is the point.\n" +
            "## What is not claimed\n" +
-           "- No CI/CD pipeline shown on this page\n" +
-           "- No cross-compilation or edge-device image building\n" +
-           "- No orchestration beyond Docker\n" +
+           "- No CI/CD pipeline on this page\n" +
+           "- No cross-compilation or Jetson image building\n" +
+           "- No TensorRT or GPU inference work, because there is no GPU\n" +
            "Email " + EMAIL + " if a role depends on any of those.",
-        next: ['Tell me about the fleet monitoring project', 'What is his stack?', 'How does he work?', 'What are the gaps in his experience?'],
+        next: ['Does he do machine learning?', 'Tell me about the fleet monitoring project', 'C++ or Python?', 'What are the gaps in his experience?'],
     },
     {
         id: 'debug',
         label: 'How he debugs',
         ask: 'How does he debug robot problems?',
         k: ['!debug', '!debugging', '!troubleshoot', '!troubleshooting', '!diagnose', '!root cause', '!failure analysis', '!goes wrong', '!something breaks', '!find bugs', '!fix bugs', '!observability', '!monitoring health'],
-        a: "Two habits show up repeatedly in the projects.\n\n" +
-           "## Start at the hardware end\n" +
-           "With a mechanical engineering background, the first question is not \"which node is wrong\" but \"is this a sensor mount, a frame definition, a controller limit — or genuinely the code\". That ordering saves the days most people lose.\n\n" +
+        a: "Two habits show up repeatedly.\n\n" +
+           "## Verify the substrate before blaming the algorithm\n" +
+           "The cart-pole environment was checked against the published dynamics — 13 checks — before any RL existed, precisely so that \"algorithm or environment\" would be a cheap question later. The dataset labels are drawn back onto the images before any model is trained, because if the markers miss the objects the label convention is wrong and nothing downstream means anything.\n\n" +
            "## Make the invisible observable\n" +
-           "- TFDiagnostics publishes transform health as a topic, because TF failures are silent by default\n" +
-           "- RViz shows raw and filtered clouds side by side, so a filter's effect is inspected rather than assumed\n" +
-           "- Action-server verification fails loudly at startup instead of silently at runtime\n\n" +
+           "- Raw and processed data rendered side by side rather than trusted\n" +
+           "- Action-server verification that fails loudly at startup instead of silently at runtime\n" +
+           "- Throughput measured under sustained load, not in a 20-second burst, after the burst number proved misleading three times\n\n" +
            "The theme: turn a debugging session into a signal you can watch.",
-        deep: "## First principle — suspect the machine before the code\n" +
-           "He came into software from mechanical engineering, and it shapes the debugging order. When a robot misbehaves the candidate list starts with sensor mounting, frame definitions, controller limits and timing — then the algorithm. Engineers who arrive purely from software usually work that list in the opposite order and lose days to it.\n" +
+        deep: "## First principle — verify the layer underneath\n" +
+           "Every project builds the thing that could be silently wrong, then checks it before building on top.\n" +
+           "- The cart-pole dynamics are verified against the 1983 source equations, 13 checks, before PPO is written. When PPO then fails to learn, the environment is already excluded\n" +
+           "- Dataset labels are projected back onto the rendered images and inspected. A wrong label convention invalidates every number that follows it, and it is invisible in a loss curve\n" +
+           "- The COCO mAP implementation is tested against known inputs before a detector exists, so a bad metric cannot be mistaken for a bad model\n" +
+           "- The observation dimension was stated as 61 in one step and found to be 48 in the next. The correction is on the page rather than quietly applied\n" +
            "## Second principle — instrument the silent failures\n" +
-           "- TF: a custom TFDiagnostics message publishes transform health as a topic. Stale transforms, missing frames and clock skew produce no error by themselves; a navigation stack simply behaves strangely. Publishing health converts that into something monitorable\n" +
-           "- Perception: RViz renders the raw cloud and the ground-plane-filtered cloud together. The filter is then evaluated by looking at it, not by trusting the parameter\n" +
-           "- Manipulation: the action server is verified before execution, so an unready controller is a startup failure rather than a mysterious mid-motion stop\n" +
-           "- Fleet: telemetry from several robots lands in a time-series database with a live dashboard, which is what makes intermittent problems visible at all\n" +
+           "- Rendered comparisons instead of asserted improvements\n" +
+           "- Action-server verification before commanding motion, so an unready controller is a startup failure rather than a mysterious stop\n" +
+           "- Sustained-load measurement after a burst measurement misled three times in a row. The machine's power state is not visible from inside the environment, so the measurement had to be redesigned rather than repeated\n" +
            "## Third principle — a defined next move\n" +
-           "Recovery behaviour after failed navigation, multi-attempt fallback after a failed grasp, and a return to a known state. Debugging is easier when the system's response to failure is deterministic instead of improvised.\n" +
-           "## What that adds up to\n" +
-           "Diagnostics as a first-class topic, comparisons rendered rather than argued, loud startup failures, and deterministic recovery. It is an unglamorous set of habits and it is exactly what separates a system that can be operated from one that has to be supervised.",
-        next: ['How does he handle failure and recovery?', 'Tell me about the TF Transform Explorer project', 'How does he work?', 'What is his experience?'],
+           "Recovery to a home state after a failed plan, a fallback planner when the preferred one fails, unsolved runs entered at budget plus one. Debugging is easier when the system's response to failure is deterministic instead of improvised.\n" +
+           "## Where the hardware instinct comes in\n" +
+           "When a robot misbehaves the candidate list starts with mounting, frames, controller limits and timing, then the algorithm. That ordering is what saves the days most people lose.",
+        next: ['How does he handle failure and recovery?', 'What numbers can he back up?', 'How does he work?', 'What is his experience?'],
     },
     {
         id: 'kinematics',
-        label: 'Kinematics & maths',
-        ask: 'What is his kinematics and maths background?',
-        k: ['!kinematics', '!inverse kinematics', '!forward kinematics', '!dynamics', '!maths', '!mathematics', '!math background', '!linear algebra', '!transform math', '!mechanical engineering', '!mech eng', '!mechanical background', '!rotation', '!quaternion', '!quaternions', '!frames math'],
-        a: "## Where it comes from\n" +
-           "A mechanical engineering degree first, software afterwards. Kinematics, statics and machine behaviour were the original subject — not a library he picked up later.\n\n" +
-           "## Where it is applied on this page\n" +
-           "- A 7-DOF Franka Panda arm: OMPL motion planning, constraint-based execution, trajectory planning, velocity and acceleration scaling\n" +
-           "- TF2 frame trees with dynamic and static broadcasters — rigid-body transforms as a working tool rather than a diagram\n" +
-           "- PCL point-cloud geometry: ground-plane filtering, obstacle extraction\n" +
-           "- PID control and path planning\n\n" +
-           "The practical value: when a robot's pose is wrong, he can tell a frame error from a planner error from a mechanical one.",
-        deep: "## The origin\n" +
-           "Mechanical engineering was the degree; robotics software came after. So kinematics, rigid-body motion and the physical limits of machines are foundational for him rather than borrowed vocabulary.\n" +
-           "## Applied — manipulation\n" +
-           "A 7-DOF arm is a genuine kinematics problem: redundant degrees of freedom, joint limits, and a planner that has to respect both. The MoveIt2 project uses OMPL with constraint-based execution and scales velocity and acceleration, which means working with the arm's dynamic limits and not only its geometry.\n" +
-           "## Applied — transforms\n" +
-           "TF2 broadcasters, dynamic and static, with a diagnostics message for transform health. Every robotics pose bug is ultimately a transform composition problem; treating the frame tree as a first-class artefact is what makes those bugs findable.\n" +
-           "## Applied — geometry on sensor data\n" +
-           "Ground-plane removal with a PCL PassThrough filter, obstacle extraction from raw LiDAR returns. Point-cloud work is applied geometry with noise attached.\n" +
-           "## Applied — control\n" +
-           "PID controllers, path planning, and state machines to sequence them.\n" +
-           "## Why this matters more than a maths module\n" +
-           "The maths gets used where robots fail: a pose that is 16 cm off, a plan that clips a joint limit, a filter that removes the wrong plane. Coming from the mechanical side means the physical explanation is always a live hypothesis, not an afterthought.\n" +
+        label: 'Maths & control theory',
+        ask: 'What is his maths and control theory background?',
+        k: ['!kinematics', '!inverse kinematics', '!forward kinematics', '!dynamics', '!maths', '!mathematics', '!math background', '!linear algebra', '!transform math', '!rotation', '!quaternion', '!quaternions', '!frames math', '!control theory', '!riccati', '!statistics'],
+        a: "## Control theory, applied rather than cited\n" +
+           "The LQR baseline in the PPO project is derived, not imported: linearise the plant, iterate the discrete Riccati recursion, project the continuous control onto the available actuation. No scipy — the recursion is the point.\n\n" +
+           "## Rigid-body geometry\n" +
+           "A 7-DOF arm with redundant degrees of freedom, joint limits, orientation constraints and trajectory retiming. Pinhole back-projection onto a known plane to recover world coordinates from pixels. Projective geometry used to check labels rather than to describe them.\n\n" +
+           "## Statistics, which is the underrated one\n" +
+           "Median and IQR over 16 seeds instead of a best curve. Two-sided permutation tests on differences of medians. Hyperparameters searched on disjoint seeds. A conclusion that changed between 8 and 16 seeds, and is reported as having changed.\n\n" +
+           "The practical value: when a result looks good, he can tell whether it is real.",
+        deep: "## Control theory\n" +
+           "- LQR derived from the linearised cart-pole: the discrete Riccati recursion iterated directly, then the continuous control projected onto a two-action plant through a sign-based switching surface\n" +
+           "- The plant dynamics themselves written from the published equations, including the half-length convention and the 4/3 term that comes from a uniform rod's moment of inertia\n" +
+           "- PID controllers and a hand-tuned PD hold-pose controller for the biped, measured as a baseline rather than assumed adequate\n" +
+           "## Geometry\n" +
+           "- A 7-DOF redundant arm: joint limits, orientation constraints with yaw deliberately left free for a symmetric object, and post-planning trajectory retiming\n" +
+           "- Exact pinhole back-projection onto a known table plane, which is what makes the pick-and-place loop closed rather than approximate\n" +
+           "- An analytic overhead projection used to verify dataset labels, and a radial-bias correction derived from what an overhead camera actually sees of a cube's top face\n" +
+           "## Statistics and experiment design\n" +
+           "This is the part that separates a measurement from a demo.\n" +
+           "- 16 seeds, median and interquartile range, never a single reward curve\n" +
+           "- Two-sided permutation tests on the difference of medians, rather than eyeballing a gap\n" +
+           "- Unsolved runs entered at budget plus one instead of dropped\n" +
+           "- Hyperparameters searched on seeds disjoint from the reported ones\n" +
+           "- A study run at 8 seeds first, where two of three conclusions changed at 16 — kept on the page as evidence that eight was not enough\n" +
+           "- Aggregate error floors computed properly: a per-sample pixel quantisation is not a floor on a median over N samples\n" +
            "## Not on this page\n" +
            "University, degree specifics and coursework. Email " + EMAIL + " for that.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'Who is he?', 'What about navigation and SLAM?', 'How does he debug robot problems?'],
+        next: ['Tell me about the PPO project', 'What numbers can he back up?', 'Tell me about the MoveIt2 pick and place project', 'How does he work?'],
     },
     {
         id: 'gaps',
@@ -700,28 +803,30 @@ const TOPICS = [
         weight: 1.2,
         a: "Straight answer, because a recruiter asking this deserves one.\n\n" +
            "- Early career. Depth in a narrow band, not a long track record\n" +
-           "- The four portfolio projects run in simulation. His professional work involves real hardware, but that work is not documented on this page\n" +
-           "- No shipped learned policy. Physical AI is the stated direction; the projects are classical robotics — filters, planners, state machines, infrastructure\n" +
-           "- No published performance numbers: no latency, CPU or throughput figures\n" +
+           "- Every project runs in simulation. Nothing on this page has been transferred to hardware, which is awkward for someone whose stated differentiator is sim-to-real\n" +
+           "- No GPU experience in the portfolio. No CUDA, no TensorRT, no distributed training — the whole learning track is an 8-thread CPU budget by necessity\n" +
+           "- The Microduck locomotion policy, the project closest to his target role, is not trained yet\n" +
+           "- Model scale is small: the largest network on the page is 380,631 parameters\n" +
            "- Employers, dates and role scope are not on the page at all\n\n" +
-           "What is genuinely strong: ROS2 internals — a custom message type and a pluginlib plugin — plus failure handling with numbers attached, and a mechanical background that makes hardware debugging natural.\n\n" +
+           "What is genuinely strong: measurement discipline that is rare at any level — baselines refitted until they are hard to beat, null results published, corrections left visible, and conclusions reported against the learned method when that is what the data says.\n\n" +
            "For anything in the first list, email " + EMAIL,
         deep: "## The gaps, plainly\n" +
            "- Early career. The claim is depth in a narrow band, not seniority. He would say the same\n" +
-           "- Simulation-weighted portfolio. Go2, Franka Panda and TurtleBot3 all appear in Gazebo. Real-hardware deployment is stated as part of his professional work but is not shown here\n" +
-           "- No learned policy shipped. The direction is physical AI and sim-to-real, and the ML toolset is listed — PyTorch, TensorFlow, CNNs, YOLO — but no trained model appears in the four projects\n" +
-           "- No performance figures. No per-frame latency for the C++ perception pipeline, no CPU or memory budget, no throughput number for the telemetry stack\n" +
-           "- No employment detail on the page: no employers, no dates, no team size, no role scope\n" +
-           "- Nothing published here on CI/CD, cross-compilation or edge-device deployment\n" +
+           "- Simulation only. Six projects, zero hardware results. His professional work involves real robots, but none of that is documented here — and sim-to-real is precisely the thing he names as his differentiator\n" +
+           "- No GPU work. No CUDA, no TensorRT, no multi-GPU training, no large models. This is a hard constraint rather than a preference, and it caps what the portfolio can demonstrate about scale\n" +
+           "- The flagship is unfinished. Microduck Locomotion on CPU is the project closest to Physical AI, and only its feasibility gate and environment contract are done\n" +
+           "- Small models and small datasets. 380,631 parameters at the top end, tens of thousands of images\n" +
+           "- Navigation and SLAM appear as skills with no project behind them on this page — professional experience that has to be verified in conversation\n" +
+           "- No employment detail: no employers, dates, team size or role scope\n" +
+           "- Nothing published on CI/CD, cross-compilation or edge-device deployment\n" +
            "## What that leaves genuinely strong\n" +
-           "- ROS2 internals: a custom message type and a Nav2 costmap plugin through pluginlib — extension points, not configuration\n" +
-           "- Failure handling as a design habit, with ±1 cm and >95% attached to it\n" +
-           "- Breadth across the stack: sensor, perception, planning, control, fleet infrastructure\n" +
-           "- A mechanical engineering foundation, which is the part that makes hardware debugging instinctive\n" +
+           "- Measurement discipline. Baselines refitted until they are competitive, metrics implemented and tested from scratch, null results published, corrections left on the page with the reason, and conclusions that go against the learned method when the data says so. This is rare and it is not something a candidate can fake in an interview\n" +
+           "- End-to-end ownership: dataset generation, model, metric, ablation, export, latency — all of it, per project\n" +
+           "- A working ROS2 systems layer to deploy into, including a closed perception-to-execution loop on a 7-DOF arm\n" +
            "## How to read the combination\n" +
-           "Strong classical robotics engineer, early in the career, deliberately pointed at physical AI, with the systems instincts that direction needs and without the learned-control credential yet.\n" +
+           "An early-career engineer with unusually good scientific hygiene, aimed deliberately at physical AI, who has built the method but not yet the hardware result. If the role can supply the robot, that gap closes fast. If the role needs someone who has already shipped a policy onto a machine, it does not.\n" +
            "## What to ask him\n" +
-           "Real-hardware scope, employers and dates, and any measurements beyond the two published numbers: " + EMAIL,
+           "Real-hardware scope, employers and dates, and the state of the Microduck training run: " + EMAIL,
         next: ['What is his strongest project?', 'What about sim-to-real transfer?', 'What roles is he a fit for?', 'How do I contact him?'],
     },
     {
@@ -730,28 +835,29 @@ const TOPICS = [
         ask: 'What roles is he a fit for?',
         k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
         a: "## Direct fits\n" +
-           "- Robotics software engineer on a ROS2 autonomy stack — navigation, localization, perception, manipulation\n" +
-           "- Perception engineering at the sensor layer: LiDAR and point-cloud processing in C++\n" +
-           "- Physical-AI-track roles where the team wants systems instincts now and learned control grown into\n" +
+           "- Physical AI / robot learning engineer, junior to mid — perception models, policies, sim-to-real, on a team that has the hardware\n" +
+           "- Perception engineering: detection and pose estimation with a deployment path, not just a notebook\n" +
+           "- Robotics software engineer on a ROS2 stack — manipulation, MoveIt2, closed perception-to-execution loops\n" +
            "- Robot infrastructure adjacent work: telemetry, fleet observability, containerised deployment\n\n" +
            "## Poor fits\n" +
-           "- ML research positions — the ML is a toolset here, not a publication record\n" +
+           "- ML research positions — no publications, no benchmark record, and he does not claim either\n" +
+           "- Large-scale training or GPU infrastructure roles — there is no GPU experience in this portfolio\n" +
            "- Pure cloud or web engineering\n" +
-           "- Roles needing a long track record; he is early career and does not pretend otherwise\n\n" +
+           "- Roles needing a shipped hardware policy today rather than in a year\n\n" +
            "For scope, availability and the CV: " + EMAIL,
         deep: "## Where he lines up well\n" +
-           "- ROS2 autonomy — Nav2, SLAM, AMCL, TF2, with plugin-level work rather than parameter tuning. He has written a costmap layer and a custom message type\n" +
-           "- LiDAR and point-cloud perception in C++ — the Go2 pipeline is exactly this, per-frame filtering with PCL\n" +
-           "- Manipulation with MoveIt2 — a 7-DOF arm, OMPL, constraints, velocity scaling, and a recovery-first state machine\n" +
-           "- Physical AI as a growth track — the classical foundation and hardware instinct are in place; the learned-control experience is the part a team would be growing\n" +
+           "- Robot learning, junior to mid — four learned projects with a measured classical baseline under each, metrics implemented from scratch, ablations with significance tests, and ONNX deployment. On a team with hardware, the missing half of sim-to-real closes quickly\n" +
+           "- Applied perception — object detection and pose regression taken all the way from synthetic data generation to a latency figure on the CPU budget a robot would have\n" +
+           "- ROS2 manipulation — a closed camera-to-grasp loop on a 7-DOF arm, with the language split between C++ and Python justified per node\n" +
            "- Robot-adjacent infrastructure — Kafka, QuestDB, Docker, live dashboards. Useful on a team that has robots but no telemetry layer\n" +
            "## Where he would be the wrong hire\n" +
-           "- ML research or applied-science roles measured in publications and benchmark results\n" +
-           "- Pure cloud, backend or web engineering — not what the page is about\n" +
+           "- ML research or applied-science roles measured in publications and leaderboard results\n" +
+           "- GPU infrastructure, distributed training, or anything where model scale is the job\n" +
+           "- Pure cloud, backend or web engineering\n" +
            "- A senior or lead position requiring years of shipped hardware programmes\n" +
-           "- A role needing an existing sim-to-real portfolio today rather than in a year\n" +
+           "- A role needing an existing sim-to-real hardware result today\n" +
            "## The one-line version\n" +
-           "Early-career robotics software engineer with unusual depth in ROS2 internals and failure design, a mechanical engineering foundation, and a deliberate trajectory toward physical AI.\n" +
+           "Early-career robot-learning engineer with unusually rigorous measurement habits and a working ROS2 deployment layer, aimed squarely at physical AI, missing the hardware half of sim-to-real.\n" +
            "## Next step\n" +
            "Email " + EMAIL + " for the CV, availability and role scope — none of that is published here.",
         next: ['What are the gaps in his experience?', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
@@ -761,25 +867,29 @@ const TOPICS = [
         label: 'How he works',
         ask: 'How does he work?',
         k: ['!how does he work', '!work style', '!workstyle', '!approach', '!process', '!methodology', '!philosophy', '!principles', '!way of working', '!engineering approach', '!habits', '!standards', '!code quality'],
-        a: "Four habits are visible across the four projects.\n\n" +
-           "- Full pipelines, not isolated algorithms. Every project runs end to end — sensor in, result out — because the interesting failures live in the seams\n" +
-           "- Failure paths designed first. Multi-attempt fallback, recovery behaviours, action-server verification, graceful returns to a known state\n" +
-           "- Make the effect measurable. Raw versus filtered clouds in RViz, ±1 cm, >95% success, telemetry into a time-series database\n" +
-           "- Right language for the job. C++ for per-frame and plugin work, Python for research, ML and glue\n\n" +
-           "And one structural choice: the four projects deliberately spread across the stack — perception, manipulation, ROS2 internals, fleet infrastructure — rather than repeating one idea four times.",
-        deep: "## Full pipelines over isolated pieces\n" +
-           "Each project runs end to end. The Go2 work goes from raw LiDAR to a republished obstacle cloud with visualisation; the fleet project goes from ROS2 topics through Kafka and QuestDB to a live dashboard. This is deliberate — in robotics the failure is usually in the seams: frames, timing, sensor noise, recovery. A clever algorithm in isolation does not expose any of that.\n" +
-           "## Failure first\n" +
-           "Multi-attempt fallback, recovery behaviour after failed navigation, action-server verification before commanding motion, velocity and acceleration scaling, graceful return to a known state. The >95% success rate is the visible result of this habit, not of planner tuning.\n" +
-           "## Measure the effect, do not assert it\n" +
-           "RViz renders raw and filtered clouds together. Positioning accuracy is quoted in centimetres. Telemetry lands in a time-series store with a dashboard on top. Where a number is not available, the page does not imply one.\n" +
+        a: "Four habits are visible across the six projects.\n\n" +
+           "- Build the baseline first, and make it hard to beat. The cube-pose project refits its OpenCV baseline until it closes 53% of the gap to the CNN, then reports that if 1.9 mm is inside tolerance the network is the wrong choice\n" +
+           "- Publish the null and the correction. An augmentation ablation worth +0.0007 mAP, four successive throughput figures with the reason each earlier one was wrong, a training-selection leak found and quantified\n" +
+           "- Measure before committing. Every project opens with a feasibility or verification step: is the machine fast enough, is the environment correct, is the metric right, is the label convention right\n" +
+           "- Right language for the job. C++ for per-frame and per-detection work, Python for models and orchestration\n\n" +
+           "And one structural choice: the projects are sequenced as blocks, each closing on a number, rather than accumulated as demos.",
+        deep: "## Baseline first, and make it hard to beat\n" +
+           "A learned model measured against a weak baseline proves nothing. The Cube Pose Regression CNN runs two different hand-written thresholds so \"classical CV fails\" cannot be blamed on one bad prior, then calibrates a scalar that closes 53% of the remaining gap — and states that if 1.9 mm is inside tolerance, the CNN is the wrong engineering choice. The detection project fits a score onto its classical pipeline for the same reason.\n" +
+           "## Publish the null, keep the correction\n" +
+           "- An augmentation ablation returning +0.0007 mAP, reported as nothing\n" +
+           "- Four throughput figures for the same machine — 28,749, 18,400, 8,000, 13,300 — all kept, each with the reason the previous one was wrong\n" +
+           "- A validation-selection leak found, fixed, retrained and quantified at 0.01 mm\n" +
+           "- An observation dimension stated as 61 and corrected to 48, in writing\n" +
+           "- An RL conclusion that changed between 8 and 16 seeds, reported as having changed\n" +
+           "## Measure before committing\n" +
+           "The Microduck project's first step is a throughput gate with a pass threshold written down before the measurement. The cart-pole environment is verified against published dynamics before any RL is written. The mAP implementation is tested before a detector exists. In each case the cheap check comes before the expensive work.\n" +
            "## Language discipline\n" +
-           "C++ for anything running per sensor frame or plugging into a C++ interface — the perception pipeline, the TF2 and Nav2 plugin work. Python where iteration speed dominates — the MoveIt2 demo, the telemetry glue. That split is a decision he can defend project by project.\n" +
-           "## Hardware-first debugging\n" +
-           "From the mechanical engineering background: suspect mounting, frames, limits and timing before suspecting the algorithm.\n" +
-           "## Portfolio as an argument\n" +
-           "Four projects across sensor, perception, planning, control and fleet infrastructure — chosen to demonstrate spread, with every repository public so the claims can be checked.",
-        next: ['How does he handle failure and recovery?', 'How does he debug robot problems?', 'What is his strongest project?', 'Explain each project in detail'],
+           "C++ for anything running per frame or per detection — the reachability validator. Python for models, training and orchestration. The split is defensible node by node rather than by preference.\n" +
+           "## Sequenced, not accumulated\n" +
+           "The learning track runs as blocks: pose regression, then detection, then reinforcement learning, then locomotion. Each closes on a measurement and each one's result is the starting point of the next — block 1's soft-argmax head is the comparison point block 2's detector is judged against.\n" +
+           "## Written down\n" +
+           "Five of the six projects have a full written walkthrough on this site explaining the architecture, every source file, the measurements and what the result does not prove.",
+        next: ['What numbers can he back up?', 'How does he handle failure and recovery?', 'What is his strongest project?', 'Explain each project in detail'],
     },
 ];
 
@@ -791,25 +901,23 @@ const DEEP_EXTRA = {
         "## What I cover\n" +
         "Everything published on this page, in as much depth as you want. Answers default to the long form; add \"short\" or \"brief\" to any question if you would rather have the summary.\n" +
         "## Background\n" +
-        "- Who he is, and the mechanical engineering route into robotics software\n" +
-        "- Experience level, stated honestly, and how he works day to day\n" +
-        "- Where he is heading: physical AI, sim-to-real transfer, legged robotics\n" +
-        "- Kinematics and the maths that actually gets used\n" +
+        "- Who he is, his experience level, stated honestly\n" +
+        "- Where he is heading: physical AI, sim-to-real transfer, legged locomotion\n" +
+        "- The maths and control theory that actually gets used\n" +
         "## Skills\n" +
         "- The full stack, or any layer of it\n" +
-        "- C++ versus Python and the rule he applies\n" +
-        "- ROS2 depth — custom message types, pluginlib plugins, TF2, actions\n" +
-        "- Navigation: Nav2, SLAM, AMCL, GMapping, Cartographer\n" +
-        "- Perception: LiDAR, PCL, OpenCV, IMU, camera, sensor fusion\n" +
-        "- Manipulation, control, ML/DL, Docker and deployment\n" +
+        "- Robot learning: PPO, reward design, domain randomisation, system identification\n" +
+        "- ML / DL: PyTorch, CNNs, object detection, pose regression, ONNX Runtime\n" +
+        "- ROS2 depth, C++ versus Python, MoveIt2 and Nav2\n" +
+        "- Simulation: MuJoCo, Gazebo, RViz, synthetic data\n" +
         "## Projects\n" +
-        "- All four together, or any one by name\n" +
-        "- Go2 perception pipeline · MoveIt2 pick & place · TF Transform Explorer · Fleet monitoring\n" +
-        "- The numbers behind them, and which numbers do not exist\n" +
+        "- All six together, or any one by name\n" +
+        "- Tabletop Clutter Detector · PPO vs LQR on Cart-Pole · Microduck Locomotion on CPU · Cube Pose Regression CNN · MoveIt2 Pick & Place Demo · Fleet Monitoring System\n" +
+        "- The numbers behind them, how each was measured, and which numbers do not exist\n" +
         "## How he works\n" +
+        "- Baseline-first measurement, null results, corrections kept visible\n" +
         "- Failure handling and recovery design\n" +
-        "- How he debugs a misbehaving robot\n" +
-        "- Which robots and sensors appear on the page\n" +
+        "- How he debugs a misbehaving robot or a misleading measurement\n" +
         "## Hiring\n" +
         "- Which roles fit and which do not\n" +
         "- The honest gaps in his experience\n" +
@@ -818,42 +926,45 @@ const DEEP_EXTRA = {
         "Invent facts that are not on this page, and pad an answer when the honest reply is \"that is not published, email him\".",
     control:
         "## Control\n" +
-        "- PID controllers\n" +
-        "- Path planning, with Nav2's planners on the navigation side\n" +
-        "- State machines to sequence behaviour\n" +
-        "The state-machine part is the underrated one. The MoveIt2 project's above-95% success rate comes from an FSM with real recovery states — a failed grasp returns to a known state and the run resumes — rather than from a better planner. Velocity and acceleration scaling sit alongside it, keeping a 7-DOF arm inside sane limits.\n" +
+        "- LQR, derived rather than imported: the discrete Riccati recursion iterated by hand on a linearised cart-pole, then projected onto a two-action plant\n" +
+        "- PID controllers, and a hand-tuned PD hold-pose controller for the biped that is measured as a baseline rather than assumed adequate\n" +
+        "- State machines to sequence behaviour, with recovery states rather than an abort\n" +
+        "- Path planning, and motion planning on a 7-DOF arm with OMPL\n" +
+        "The state-machine part is underrated. The pick-and-place run continues through a failed plan because there is a homing state to route to, not because the planner is better.\n" +
+        "## Simulation — MuJoCo\n" +
+        "The learning track's substrate. Scene generation with randomised hue, lighting and table shade; labels read from the segmentation buffer rather than annotated; 500 Hz physics with 50 Hz control for the biped; and throughput measured under sustained load because a 20-second burst misled three times.\n" +
         "## Simulation — Gazebo\n" +
-        "- A custom Gazebo world for the Go2 perception pipeline, teleop-ready so the robot can be driven through obstacles while the pipeline runs\n" +
-        "- Multiple TurtleBot3 robots simulated simultaneously for the fleet project, which exercises the telemetry pipeline with concurrent producers instead of one stream\n" +
-        "He builds environments rather than only running stock ones — that is the difference between a simulation user and someone using simulation as a test rig.\n" +
+        "The ROS2 side: multiple TurtleBot3 robots simulated at once so the telemetry pipeline sees concurrent producers rather than a single stream.\n" +
         "## Visualisation — RViz\n" +
-        "Used throughout, and used as a measurement tool: raw and ground-plane-filtered clouds displayed side by side so the filter's effect is inspected rather than assumed.\n" +
-        "## How simulation is positioned\n" +
-        "As a step toward hardware, not a destination. The stated goal is sim-to-real transfer, and the whole point of a custom world with teleop is to break the pipeline before a real machine does.",
+        "Used as a measurement tool rather than a screenshot generator: raw and processed data displayed together so an effect is inspected rather than asserted.\n" +
+        "## Synthetic data as a first-class artefact\n" +
+        "Every learned project generates its own dataset, and every one verifies the labels before training — projecting them back onto the images, because a wrong label convention is invisible in a loss curve and invalidates everything after it.",
     strongest:
         "Depends what you are hiring for. Four honest readings:\n\n" +
-        "## Hardest engineering — MoveIt2 Pick & Place\n" +
-        "A 7-DOF Franka Panda, OMPL planning with constraint-based execution, ±1 cm positioning and above 95% success. The success rate comes from multi-attempt fallback, action-server verification and graceful recovery — failure handling, not a luckier planner. It is the only project with numbers attached.\n" +
-        "## Most telling about ROS2 depth — TF Transform Explorer\n" +
-        "A custom TFDiagnostics message type, a Nav2 costmap plugin loaded through pluginlib for keepout zones, dynamic and static TF2 broadcasters, and autonomous patrol with recovery. Unglamorous, and exactly where most ROS2 systems quietly break. Defining a message type and writing a plugin means reading ROS2's interfaces rather than its tutorials.\n" +
-        "## Widest scope — Fleet Monitoring System\n" +
-        "ROS2 to Kafka to QuestDB, several TurtleBot3 robots at once, fully containerised, live dashboard over the PostgreSQL wire protocol. It shows he can build the layer around the robots — one working robot is a project, a fleet you can observe is a product.\n" +
-        "## Closest to where he is heading — Go2 Perception Pipeline\n" +
-        "C++ point-cloud processing on a quadruped: ground-plane removal with PCL, clean obstacle clouds republished, raw versus filtered rendered side by side. The first deliberate step toward legged robotics and physical AI.\n" +
+        "## Best complete result — Tabletop Clutter Detector\n" +
+        "An anchor-free detector at mAP@[.5:.95] 0.911 against a fitted classical pipeline's 0.532, with COCO mAP implemented from scratch and unit-tested before the model existed. AP75 within 0.0003 of AP50, so localisation is essentially exact. Exported to ONNX and re-scored end to end: 1.20 ms per image at 8 threads, turning a 1.9x slowdown in eager PyTorch into a 1.8x speedup. Also carries a published null — an augmentation ablation worth +0.0007 mAP.\n" +
+        "## Most rigorous — PPO vs LQR on Cart-Pole\n" +
+        "PPO written from first principles against a controller solved in closed form. 16 seeds with median and IQR, ablations on GAE, advantage normalisation and ratio clipping each judged by a two-sided permutation test, hyperparameters searched on disjoint seeds, and unsolved runs entered at budget plus one rather than dropped. The conclusion goes against the learned method: LQR costs zero samples and keeps roughly twice the basin of attraction.\n" +
+        "## Closest to where he is heading — Microduck Locomotion on CPU\n" +
+        "A 25 cm biped, a feasibility gate closed at 13,300 environment steps per second, a 48-dimensional observation contract, and a PD baseline at 108.7 ± 2.9 of 500. It is also the least finished project on the page — training has not started, and that is stated rather than implied.\n" +
+        "## Best systems engineering — MoveIt2 Pick & Place Demo\n" +
+        "A closed camera-to-grasp loop on a 7-DOF Franka Panda: rendered scene, HSV detection, a C++ reachability validator, and a state machine that grasps only what survived. Cartesian-first motion with OMPL RRTConnect as fallback, action-server verification at startup, recovery to a known state on failure. No hard-coded poses anywhere.\n" +
         "## The common thread\n" +
-        "A mechanical engineering background plus full-pipeline thinking. Each project runs end to end rather than demonstrating one isolated algorithm, because in robotics the failure lives in the seams.",
+        "Every learned result sits next to a hand-written method that was measured first, and the comparison is published even when it favours the hand-written one. That habit is the differentiator, more than any single project.",
     contact:
         "## Email — the fastest route\n" +
         EMAIL + "\n" +
         "Right channel for the CV, availability, role scope, employers and dates, real-hardware detail, and anything else this page does not publish.\n" +
         "## GitHub\n" +
-        "github.com/AungKaung1928 — all four projects are public, and every claim on this page is checkable against the code:\n" +
-        "- Go2 Perception Pipeline: https://github.com/AungKaung1928/go2-perception-pipeline\n" +
+        "github.com/AungKaung1928 — all six projects are public, and every claim on this page is checkable against the code:\n" +
+        "- Tabletop Clutter Detector: https://github.com/AungKaung1928/mujoco-clutter-detect\n" +
+        "- PPO vs LQR on Cart-Pole: https://github.com/AungKaung1928/ppo-from-scratch\n" +
+        "- Microduck Locomotion on CPU: https://github.com/AungKaung1928/microduck-rl-cpu\n" +
+        "- Cube Pose Regression CNN: https://github.com/AungKaung1928/mujoco-cube-pose-cnn\n" +
         "- MoveIt2 Pick & Place Demo: https://github.com/AungKaung1928/moveit_pickplace_demo\n" +
-        "- TF Transform Explorer: https://github.com/AungKaung1928/TF-Transform-Explorer\n" +
         "- Fleet Monitoring System: https://github.com/AungKaung1928/fleet_monitoring_ws\n" +
-        "## LinkedIn\n" +
-        "Linked in the Contact section of this page.\n" +
+        "## Walkthroughs\n" +
+        "Five of the six have a full written walkthrough on this site, linked from the project card — architecture, every source file, the measurements, and what each result does not prove.\n" +
         "## What to include if you are hiring\n" +
         "The stack the role actually uses and whether it is simulation or hardware work. He is early career, aimed at physical AI, and specific about what he has and has not done — a specific question gets a specific answer.",
 };
@@ -866,8 +977,8 @@ for (const t of TOPICS) {
  * "More", so adding a topic above never silently drops it from the menu. */
 const TOPIC_GROUPS = [
     { name: 'Background', ids: ['help', 'who', 'experience', 'goal', 'kinematics'] },
-    { name: 'Skills', ids: ['stack', 'languages', 'ros2', 'navigation', 'ml', 'control', 'deployment'] },
-    { name: 'Projects', ids: ['projects', 'perception', 'manipulation', 'tf', 'fleet', 'metrics', 'hardware'] },
+    { name: 'Skills', ids: ['stack', 'ml', 'languages', 'ros2', 'control', 'navigation', 'deployment'] },
+    { name: 'Projects', ids: ['projects', 'detection', 'rl', 'duck', 'pose', 'manipulation', 'fleet', 'metrics', 'hardware'] },
     { name: 'Approach', ids: ['workstyle', 'reliability', 'debug', 'simtoreal', 'legged'] },
     { name: 'Hiring', ids: ['strongest', 'fit', 'gaps', 'contact'] },
 ];
@@ -879,19 +990,21 @@ const STARTERS = [
     'What is his experience?',
     'Explain each project in detail',
     'What is his full technical stack?',
-    'How deep is his ROS2 knowledge?',
-    'C++ or Python — which does he use?',
-    'What about navigation and SLAM?',
-    'Tell me about the Go2 perception project',
+    'Does he do machine learning?',
+    'Tell me about the clutter detection project',
+    'Tell me about the PPO project',
+    'Tell me about the Microduck locomotion project',
+    'Tell me about the cube pose project',
     'Tell me about the MoveIt2 pick and place project',
-    'Tell me about the TF Transform Explorer project',
     'Tell me about the fleet monitoring project',
     'What about sim-to-real transfer?',
-    'What legged robotics experience does he have?',
+    'What numbers can he back up?',
+    'How deep is his ROS2 knowledge?',
+    'C++ or Python — which does he use?',
+    'What is his maths and control theory background?',
     'Which robots and sensors has he worked with?',
     'How does he handle failure and recovery?',
     'How does he debug robot problems?',
-    'What numbers can he back up?',
     'What are the gaps in his experience?',
     'What roles is he a fit for?',
     'What is his strongest project?',
@@ -911,14 +1024,14 @@ const NOT_COVERED = {
 const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project in detail', 'What roles is he a fit for?'];
 
 const FALLBACK =
-    "I did not catch that one. I cover Aung's robotics work only — background, experience, the technical stack, the four projects, how he works, and contact details.\n\n" +
+    "I did not catch that one. I cover Aung's robotics work only — background, experience, the technical stack, the six projects, how he works, and contact details.\n\n" +
     "Questions I answer well:\n" +
     "- \"what is his experience\"\n" +
     "- \"explain each project in detail\"\n" +
-    "- \"how deep is his ROS2 knowledge\"\n" +
-    "- \"what about navigation and SLAM\"\n" +
-    "- \"how does he handle failure and recovery\"\n" +
+    "- \"does he do machine learning\"\n" +
+    "- \"what about sim-to-real transfer\"\n" +
     "- \"what numbers can he back up\"\n" +
+    "- \"how deep is his ROS2 knowledge\"\n" +
     "- \"what are the gaps in his experience\"\n" +
     "- \"how do I contact him\"\n\n" +
     "Tap the list icon in the header for every topic I hold.";

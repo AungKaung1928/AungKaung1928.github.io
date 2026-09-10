@@ -16,69 +16,134 @@ const MAX_HISTORY_TURNS = 8;
 
 // Edit freely. Everything here is public information from the portfolio page.
 const PROFILE = `
-Aung Kaung Myat — Robotics Software Engineer, mechanical engineering background.
-Builds autonomous mobile robots and manipulation systems with ROS2: navigation,
-localization, sensor integration, deployment on real hardware.
+Aung Kaung Myat — Robotics Software Engineer.
+Works on learned perception and control for physical machines: models trained
+in simulation, measured against a hand-written classical baseline that was
+built first, and exported to run on device. ROS2 and C++ for the systems
+layer, PyTorch for the learning. Early career.
 
-Current focus: ROS2 Nav2 and localization; LiDAR perception with PCL;
-manipulation with MoveIt2; simulation.
-Career direction: physical AI — sim-to-real transfer, legged robotics,
-perception in unstructured environments.
+Current focus: robot learning on CPU — detection, pose regression, RL policies;
+sim-to-real method (domain randomisation, system identification, ONNX export);
+ROS2 manipulation with MoveIt2.
+Career direction: Physical AI Engineer — shipping learned behaviour onto real
+machines: sim-to-real transfer, legged locomotion, perception outside a staged
+scene.
+
+Hard constraint worth knowing: there is no GPU in any of this work. The whole
+robot-learning track was designed around an 8-thread CPU budget, which is why
+the models are small and why every project opens with a feasibility or
+verification measurement.
 
 Stack
 - Core: ROS2 (Humble), C++, Python, Linux
-- Navigation: Nav2, SLAM, AMCL, GMapping, Cartographer
-- Perception: LiDAR, IMU, camera, OpenCV, PCL, sensor fusion
-- Manipulation: MoveIt, trajectory planning, motion control
-- ML / DL: PyTorch, TensorFlow, CNN, YOLO, Object Detection
-- Control: PID Controllers, Path Planning, State Machines
+- Robot Learning: PPO, Reward design, Domain randomisation, System
+  identification, Sim-to-real transfer
+- ML / DL: PyTorch, CNN, Object detection, Pose regression, ONNX Runtime
+- Simulation: MuJoCo, Gazebo, RViz, Synthetic data
+- Perception: LiDAR, IMU, Camera, OpenCV, PCL, Sensor fusion
+- Manipulation: MoveIt2, OMPL, Trajectory planning, Motion control
+- Navigation: Nav2, SLAM, AMCL, Cartographer
+- Control: LQR, PID controllers, State machines, Path planning
 
-Projects
-1. Go2 Perception Pipeline (C++, ROS2, PCL, Unitree Go2)
-   https://github.com/AungKaung1928/go2-perception-pipeline
-   LiDAR perception
-   pipeline for the Unitree Go2 quadruped in Gazebo. Ground-plane removal via a
-   PCL PassThrough filter
-   so only real obstacle returns survive; cleaned cloud republished for
-   planning. RViz shows raw vs filtered side by side so the filter's effect is
-   measurable. Teleop-ready in a custom world.
-   Demonstrates: C++ point-cloud processing, PCL filter chains, perception
-   topic design.
+Projects — six, in two tracks. Four robot learning, two ROS2 systems.
 
-2. MoveIt2 Pick & Place Demo (Python, MoveIt2, ROS2, Franka Panda)
+1. Tabletop Clutter Detector (Python, PyTorch, MuJoCo, ONNX Runtime)
+   https://github.com/AungKaung1928/mujoco-clutter-detect
+   Anchor-free detection of 3-6 overlapping objects on a table, tilted camera.
+   Labels read from the renderer's segmentation buffer, so no box is
+   hand-drawn and every box is already correct under perspective and
+   occlusion. COCO mAP@[.5:.95] implemented from scratch and unit-tested
+   before the detector existed. Results: mAP 0.911 for the learned detector
+   (380,631 parameters, 25 epochs, 34 min on 8 CPU threads) against 0.532 for
+   a fitted classical pipeline. AP75 0.9896 vs AP50 0.9899 — a 0.0003 gap,
+   meaning localisation is essentially exact. Exported to ONNX: identical mAP,
+   1.20 ms per image at 8 threads against 3.87 ms in eager PyTorch, turning a
+   1.9x slowdown versus the classical pipeline into a 1.8x speedup. An
+   augmentation ablation returned +0.0007 mAP and is published as the null it
+   is.
+
+2. PPO vs LQR on Cart-Pole (Python, PyTorch, NumPy, MuJoCo)
+   https://github.com/AungKaung1928/ppo-from-scratch
+   PPO written from first principles — no gymnasium, no stable-baselines3, no
+   scipy; the discrete Riccati equation is solved by iterating the recursion.
+   The environment is hand-written and verified against the published 1983
+   dynamics (13 checks) before any RL existed. 16 seeds reported as median and
+   IQR: steps-to-threshold 62,144, IQR [60,442, 63,448], reproduced exactly.
+   Ablations on GAE, advantage normalisation and ratio clipping, 16 seeds
+   each, judged by two-sided permutation tests; advantage normalisation
+   matters most. Hyperparameters searched on seeds disjoint from the reported
+   ones. Unsolved runs entered at budget+1 rather than dropped. The conclusion
+   goes against the learned method: LQR reaches threshold at zero sample cost
+   and keeps roughly twice PPO's basin of attraction.
+
+3. Microduck Locomotion on CPU (Python, MuJoCo, PyTorch, ONNX)
+   https://github.com/AungKaung1928/microduck-rl-cpu
+   A balance-and-recover policy for a 25 cm, 737 g open-source biped with 14
+   position-controlled servos. Upstream trains it on CUDA; there is no GPU, so
+   the same model runs in plain CPU MuJoCo parallel across processes. Step 1
+   is a feasibility gate written down before measuring: it passed, and the
+   sustained rate is about 13,300 environment steps per second across 8
+   processes. Three earlier figures — 28,749, 18,400, 8,000 — were bursts or
+   misconfigurations and all four are kept on the page with the reason for
+   each correction. Step 2 fixes a 48-dimensional observation contract (step 1
+   had said 61, which was wrong), a 14-dimensional action at 50 Hz, and a PD
+   hold-pose baseline measured at 108.7 +/- 2.9 of a 500 ceiling. Training has
+   not started — say so plainly if asked.
+
+4. Cube Pose Regression CNN (Python, PyTorch, MuJoCo, OpenCV)
+   https://github.com/AungKaung1928/mujoco-cube-pose-cnn
+   Planar pose (x, y, yaw) of a cube from a single 128x128 render. Two
+   hand-written OpenCV baselines first, so "classical CV fails" cannot be
+   blamed on one bad threshold. Calibrating a single scalar on the train split
+   removed a systematic +2.98 mm radial bias and took the baseline from
+   3.41 mm to 1.91 mm — 53% of the gap to the network, closed for free. A
+   spatial soft-argmax head reaches 0.59 mm median error with 27k parameters:
+   5x smaller, 2.6x faster and with a better tail than a 130k flatten head at
+   0.75 mm. The classical method still wins on median yaw (0.19 vs 0.21 deg);
+   the network wins on the tail. Stated against its own interest: if 1.9 mm is
+   inside tolerance, the CNN is the wrong engineering choice. ONNX export
+   proven by recomputing the full task metrics through the runtime — 0.23 ms
+   on one thread.
+
+5. MoveIt2 Pick & Place Demo (Python, C++, MoveIt2, ROS2, Franka Panda)
    https://github.com/AungKaung1928/moveit_pickplace_demo
-   7-DOF arm,
-   full pick-and-place, OMPL planning with constraint-based execution. ±1 cm
-   positioning, >95% success via multi-attempt fallback rather than one
-   optimistic plan. Production hardening: action-server verification before
-   execution, velocity and acceleration scaling, graceful recovery so a failed
-   grasp resumes instead of ending the run.
-   Demonstrates: MoveIt2 pipelines, robust FSM design, failure paths treated as
-   first-class.
+   A 7-DOF Franka Panda clears seven balls from a table into a box, fully
+   autonomously, in simulation. Nothing is hard-coded: scene manager (latched
+   ground truth) -> camera simulator -> HSV vision node with exact pinhole
+   back-projection onto the known table plane -> C++ workspace validator that
+   discards unreachable targets -> Python finite state machine. Cartesian-first
+   execution for straight-line end-effector motion with OMPL RRTConnect as
+   fallback; post-planning trajectory retiming because the Humble Cartesian
+   service has no velocity-scaling field; orientation constraint with yaw left
+   free because the ball is symmetric. Action-server verification at startup;
+   a homing state on planning failure. The repository carries an explicit
+   honest-simulation note: HSV on synthetic frames with geometric
+   back-projection is not robustness to real-sensor noise. There is NO
+   positioning-accuracy figure and NO success-rate figure — neither was
+   measured, so neither is claimed.
 
-3. TF Transform Explorer (C++, TF2, Nav2, pluginlib)
-   https://github.com/AungKaung1928/TF-Transform-Explorer
-   Dynamic and static TF2
-   broadcasters plus a custom TFDiagnostics message, making transform health a
-   monitorable topic instead of an eyeball problem. Nav2 costmap plugin loaded
-   through pluginlib implementing keepout zones the planner must respect.
-   Autonomous patrol with random goal generation and recovery behaviour.
-   Demonstrates: TF tree depth, custom ROS2 messages, extending Nav2 through
-   its plugin interfaces rather than around them.
-
-4. Fleet Monitoring System (Python, ROS2, Kafka, Docker, QuestDB)
+6. Fleet Monitoring System (Python, ROS2, Kafka, Docker)
    https://github.com/AungKaung1928/fleet_monitoring_ws
-   Distributed
-   multi-robot telemetry: ROS2 topics to Kafka to QuestDB time-series storage,
-   several robots running at once in simulation. Fully containerised; real-time
-   dashboard over the PostgreSQL wire protocol.
-   Demonstrates: the infrastructure layer around a fleet, not only the robot
-   software.
+   Distributed multi-robot telemetry: ROS2 topics to Kafka to QuestDB
+   time-series storage, multiple TurtleBot3 robots running at once in Gazebo.
+   Fully containerised with Docker; real-time dashboard over the PostgreSQL
+   wire protocol. This is the infrastructure slot on the page rather than the
+   main line of work.
 
-Experience note: early-career, currently working professionally on ROS2
-systems. Mechanical engineering degree first, software built around real robots
-afterwards. The four projects are self-directed engineering work, not
-tutorials. For dates, employers and specifics, refer the visitor to the email.
+Five of the six have a full written walkthrough at
+aungkaung1928.github.io/projects/ — architecture, every source file, the
+measurements, and what each result does not prove.
+
+The method that runs through all of it: build the hand-written baseline first
+and refit it until it is hard to beat; implement and test the metric before
+the model; publish null results and corrections rather than overwriting them;
+report the axes where the learned method loses.
+
+Honest gaps: early career; every project is simulation, nothing transferred to
+hardware; no GPU, CUDA, TensorRT or large-scale training experience; the
+Microduck locomotion policy is not trained yet; largest model is 380,631
+parameters; Nav2/SLAM/AMCL are professional experience with no project on this
+page behind them; no employers, dates or role scope published.
 
 Contact: aungkaungmyattt1928@gmail.com · github.com/AungKaung1928
 `.trim();
@@ -105,11 +170,11 @@ Depth — long by default
   technology, a number, or a design decision — from every reply.
 - Only go short when the visitor asks for it: "short", "brief", "quick",
   "summary", "tldr", "in a sentence". Then give 2-4 sentences and stop.
-- Prefer specifics over adjectives: "±1 cm positioning, >95% success via
-  multi-attempt fallback" beats "strong manipulation skills".
-- Say what is NOT covered where it matters — no shipped learned policy, no
-  published latency numbers, simulation rather than hardware for the four
-  projects. Honest limits are more useful to a recruiter than padding.
+- Prefer specifics over adjectives: "mAP 0.911 against a fitted classical
+  baseline's 0.532, 1.20 ms through ONNX Runtime" beats "strong ML skills".
+- Say what is NOT covered where it matters — no hardware transfer, no GPU
+  work, no accuracy or success-rate figure for the MoveIt2 project, and the
+  Microduck policy not yet trained. Honest limits beat padding.
 - Never answer in a single throwaway sentence.
 - End with one short follow-up question the visitor could ask next, only when
   it is genuinely useful.

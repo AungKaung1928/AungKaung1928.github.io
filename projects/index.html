@@ -111,52 +111,10 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
 
   <section class="track">
     <div class="track-head">
-      <h2>ROS 2 · manipulation</h2>
-      <span class="track-note">Perception driving a real motion-planning stack.</span>
-    </div>
-    <div class="cards">
-
-      <article class="card" style="--h:#a2624a">
-        <div class="hue"></div>
-        <div class="card-body">
-          <div class="card-top"><h3>Panda Pick-and-Place Pipeline</h3>
-            <span class="repo">moveit_pickplace_demo</span></div>
-          <p>A 7-axis Franka Panda clears seven balls off a table. Nothing is hard-coded: a simulated
-            camera renders the scene, an OpenCV node finds the balls in the picture, a C++ node discards
-            anything the arm cannot reach, and a state machine grasps only what survived that chain.</p>
-          <div class="tech"><span>ROS 2 Humble</span><span>MoveIt 2</span><span>C++17</span><span>OpenCV</span><span>OMPL</span></div>
-          <div class="links">
-            <a class="primary" href="moveit-pickplace.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a>
-          </div>
-        </div>
-      </article>
-
-    </div>
-  </section>
-
-  <section class="track">
-    <div class="track-head">
       <h2>Robot learning · CPU only</h2>
       <span class="track-note">Trained and measured on a laptop, no GPU anywhere in the stack.</span>
     </div>
     <div class="cards">
-
-      <article class="card" style="--h:#527a6c">
-        <div class="hue"></div>
-        <div class="card-body">
-          <div class="card-top"><h3>Sub-Millimetre Cube Pose</h3>
-            <span class="repo">mujoco-cube-pose-cnn</span></div>
-          <p>A small CNN recovers a cube's position and yaw angle from one rendered image. Two classical
-            baselines come first — the second exposed a systematic radial bias in the first, fixed by a
-            single scale factor — so the network's error is measured against something that already works.</p>
-          <div class="tech"><span>PyTorch CPU</span><span>MuJoCo</span><span>soft-argmax</span><span>ONNX</span></div>
-          <div class="links">
-            <a class="primary" href="cube-pose-cnn.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener">Repository ↗</a>
-          </div>
-        </div>
-      </article>
 
       <article class="card" style="--h:#6a6fa8">
         <div class="hue"></div>
@@ -202,6 +160,48 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
           <div class="links">
             <a class="primary" href="microduck-rl-cpu.html">Read the walkthrough →</a>
             <a href="https://github.com/AungKaung1928/microduck-rl-cpu" target="_blank" rel="noopener">Repository ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" style="--h:#527a6c">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>Sub-Millimetre Cube Pose</h3>
+            <span class="repo">mujoco-cube-pose-cnn</span></div>
+          <p>A small CNN recovers a cube's position and yaw angle from one rendered image. Two classical
+            baselines come first — the second exposed a systematic radial bias in the first, fixed by a
+            single scale factor — so the network's error is measured against something that already works.</p>
+          <div class="tech"><span>PyTorch CPU</span><span>MuJoCo</span><span>soft-argmax</span><span>ONNX</span></div>
+          <div class="links">
+            <a class="primary" href="cube-pose-cnn.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener">Repository ↗</a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="track">
+    <div class="track-head">
+      <h2>ROS 2 · manipulation</h2>
+      <span class="track-note">Perception driving a real motion-planning stack.</span>
+    </div>
+    <div class="cards">
+
+      <article class="card" style="--h:#a2624a">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>Panda Pick-and-Place Pipeline</h3>
+            <span class="repo">moveit_pickplace_demo</span></div>
+          <p>A 7-axis Franka Panda clears seven balls off a table. Nothing is hard-coded: a simulated
+            camera renders the scene, an OpenCV node finds the balls in the picture, a C++ node discards
+            anything the arm cannot reach, and a state machine grasps only what survived that chain.</p>
+          <div class="tech"><span>ROS 2 Humble</span><span>MoveIt 2</span><span>C++17</span><span>OpenCV</span><span>OMPL</span></div>
+          <div class="links">
+            <a class="primary" href="moveit-pickplace.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a>
           </div>
         </div>
       </article>
