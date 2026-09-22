@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A C++ Environment That Matches Python to the Bit — Aung Kaung Myat</title>
+<meta name="description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, and measured against it on the same laptop.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/mujoco-vecenv-cpp.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/mujoco-vecenv-cpp.html">
+<meta property="og:title" content="A C++ Environment That Matches Python to the Bit">
+<meta property="og:description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, and measured against it on the same laptop.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234e7c7a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#f7f9f9;
+  --paper2:#eef3f2;
+  --ink:#171d1d;
+  --ink2:#3d4a49;
+  --muted:#6c7a79;
+  --line:#e3eae9;
+  --line2:#cbd7d6;
+  --accent:#4e7c7a;
+  --accent-deep:#3a5f5d;
+  --accent-soft:#eef4f3;
+  --accent-line:#b9d1cf;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--bad)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox.todo{background:var(--paper)}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox.todo .sn{color:var(--muted)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+.stepbox.todo .sr{color:var(--muted);font-weight:400}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fafcfb}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+/* page-specific: the pipeline strip and the ratio bars */
+.flow{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+.flow .box{flex:1 1 150px;background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.flow .box b{font-family:var(--disp);font-size:.86rem;font-weight:600}
+.flow .box span{font-size:.8rem;color:var(--muted);line-height:1.4}
+.flow .box.py{border-top:3px solid var(--warn)}
+.flow .box.cpp{border-top:3px solid var(--accent)}
+.bars{display:flex;flex-direction:column;gap:8px;font-family:var(--mono);font-size:.78rem}
+.bar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}
+.bar i{display:block;height:14px;background:var(--accent);border-radius:2px}
+.bar i.py{background:var(--line2)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · infrastructure · repo <code style="background:none;padding:0;color:inherit">mujoco-vecenv-cpp</code></div>
+    <h1>A C++ Environment That Matches Python to the Bit</h1>
+    <p class="deck">The Microduck project trains a balance policy in a Python MuJoCo environment that runs eight
+      forked processes on a laptop. This repo is that environment again in C++17, on threads instead of
+      processes, with a Python binding so the same training script runs on it unchanged. The claim it makes is
+      not "faster". It is that the two environments produce the same 48 numbers, the same reward and the same
+      flags at every step, to the last bit, and that a test proves it on every commit. The speed was measured
+      afterwards.</p>
+    <div class="chips">
+      <span class="chip">C++17</span><span class="chip">MuJoCo 3.12</span><span class="chip">pybind11</span>
+      <span class="chip">std::thread</span><span class="chip">doctest</span><span class="chip">ASan · UBSan · TSan</span>
+      <span class="chip">CMake</span><span class="chip">GitHub Actions</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Equality</dt><dd><em>6,275 / 6,275</em> observations identical</dd></div>
+      <div class="fact"><dt>Diffs</dt><dd>0 reward · 0 flag · 0 info</dd></div>
+      <div class="fact"><dt>C++ vs Python, 8 workers</dt><dd><em>1.9–2.0×</em> env-steps/s</dd></div>
+      <div class="fact"><dt>Full env, 8 threads</dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
+      <div class="fact"><dt>Tests</dt><dd>34 C++ cases · 41 Python tests</dd></div>
+      <div class="fact"><dt>CI</dt><dd>Release + ASan/UBSan + TSan</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#why">Why it exists</a>
+    <a href="#files">Every file</a>
+    <a href="#equality">The equality test</a>
+    <a href="#arith">Three arithmetic details</a>
+    <a href="#threads">Threading design</a>
+    <a href="#san">Sanitizers and CI</a>
+    <a href="#speed">Measured throughput</a>
+    <a href="#limits">What it does not prove</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What a vector environment is, why this one is written in C++, and what "bit-identical" buys.</p></div>
+  <div class="stack prose">
+    <p>Reinforcement learning trains a policy by letting it act in a simulator millions of times. To do that
+      quickly you run many copies of the simulated robot at once and feed the policy a batch of observations
+      per step. The object that holds those copies and steps them together is called a <em>vector
+      environment</em>.</p>
+    <p>The Microduck project has one written in Python. Python can only execute one thread of its own code at a
+      time, so its vector environment starts eight separate processes and talks to them through pipes. That
+      works, and every number in that project was measured on it. It also means a fixed cost per step that has
+      nothing to do with physics: serialising actions, waking eight processes, waiting for the slowest one,
+      copying observations back.</p>
+    <p>This repository is the same environment in C++. The step loop has no interpreter in it, so eight
+      environments run on eight threads of one process and share memory. A small binding lets Python call
+      it, and the Microduck training script runs on it with no edits.</p>
+    <div class="note key">
+      <span class="note-label">The one claim</span>
+      <p>A faster environment that behaves even slightly differently trains a different policy, and then
+        nothing measured on the Python environment carries over. So the first thing tested, before any timing,
+        is equality: given the same starting state and the same actions, the C++ environment returns the
+        same 48 floating-point observations, the same reward and the same flags as the Python one, with no
+        tolerance. Over 25 episodes and 6,275 observations there is not one differing bit. That test runs in
+        CI against a pinned commit of the Python repository.</p>
+    </div>
+    <p>Getting there meant matching how numpy adds fourteen numbers, how Python squares a float, and how a
+      float32 constant is promoted to float64. Those three details are the middle of this page. The
+      throughput numbers are at the end, with their caveats, because they turned out to say something about
+      the Python environment too.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>vector environment</b><span>N simulated robots stepped together so the policy sees a batch of N observations per step. The Python one uses N processes; this one uses T threads.</span></div>
+    <div class="gterm"><b>thread vs process</b><span>Threads share one address space and cost nothing to exchange data. Processes have separate memory and exchange data through pipes, which costs a copy and a context switch each way.</span></div>
+    <div class="gterm"><b>bit-identical</b><span>Two floating-point numbers with exactly the same 32 or 64 bits. Stricter than "close": no tolerance, no rounding allowed.</span></div>
+    <div class="gterm"><b>pybind11</b><span>A header-only library for exposing C++ classes to Python. Here it wraps <code>Env</code>, <code>VecEnv</code> and the config structs, and passes numpy arrays without copying.</span></div>
+    <div class="gterm"><b>PCG64</b><span>The random number generator numpy uses by default. Reimplemented here so the C++ side draws from the same family; the seeding differs on purpose (see section 04).</span></div>
+    <div class="gterm"><b>domain randomisation</b><span>Changing physical parameters (servo gains, masses, friction, latency) each episode so the policy does not overfit one exact model. Here it writes into the model, which is why each environment owns its own copy.</span></div>
+    <div class="gterm"><b>sanitizer</b><span>A compiler mode that instruments the binary to catch memory errors (AddressSanitizer), undefined behaviour (UBSan) or data races between threads (ThreadSanitizer) at run time.</span></div>
+    <div class="gterm"><b>burst vs sustained</b><span>A 20-second measurement on a cool laptop reads high because the chip is still at turbo. A six-minute run with no pause shows the rate the power limit allows. Budgets come from the second.</span></div>
+    <div class="gterm"><b>reference window</b><span>A single-thread measurement taken before the sweep and after every row. If it moves, the machine changed state mid-sweep and the rows are not comparable.</span></div>
+    <div class="gterm"><b>env-steps/s</b><span>Environment steps per second, summed over all environments. One env step here is 10 physics steps plus observation, reward and bookkeeping.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="why">
+  <div class="sec-head"><span class="sec-num">02</span><h2>Why it exists</h2><p class="sec-sub">Two open questions from the Python project, and the rule that equality comes before speed.</p></div>
+  <div class="stack prose">
+    <p>The Python project left two measurements it could not explain from inside Python. First, its
+      environment wrapper cost 25% over bare physics on one core. Second, scaling across eight processes
+      settled at 55% efficiency on one robot model and 42% on the one actually used for training, and the
+      loss was attributed to a shared resource outside the cores, without proof. Whether process isolation
+      itself was part of the loss was unknowable without an implementation that did not use processes.</p>
+    <p>A C++ version answers both, but only if it is the same environment. The order of work therefore was:
+      port the environment, prove equality, and only then run the benchmarks. Timing code that has not been
+      proven equal produces a number about a different environment.</p>
+    <div class="flow" aria-label="what each side does per step">
+      <div class="box py"><b>Python, per step</b><span>Pickle 8 action rows, write to 8 pipes, each worker unpickles, steps, pickles obs, writes back, parent reads 8 pipes and stacks.</span></div>
+      <div class="box cpp"><b>C++, per step</b><span>Write the action batch into shared memory, bump an atomic counter, 8 threads step their environments, caller reads the observation buffer.</span></div>
+      <div class="box"><b>Same in both</b><span>10 × <code>mj_step</code>, one <code>mj_forward</code>, 48-dim observation, reward terms, three seeded pushes, fixed 250-step episodes, autoreset.</span></div>
+    </div>
+    <p>Everything measured in the Python project was measured inside a budget of eight of the machine's
+      fourteen cores. This repo inherits that rule in code: <code>VecEnv</code> refuses more than eight
+      threads unless the caller passes <code>allow_overcommit</code>.</p>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every tracked file outside the vendored test framework, grouped by directory, with line counts.</p></div>
+  <div class="stack">
+    <p class="prose">About 4,100 tracked lines outside <code>third_party/</code>, including the README, CI and the
+      saved equality report. doctest is vendored under MIT and is the only third-party code.</p>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>include/vecenv/env.hpp</td><td class="num">139</td>
+            <td>The environment interface. <code>EnvConfig</code> (variant, episode length, action scale, pushes,
+              initial noise, reward version, latency, sensor noise, DR), <code>EpisodeParams</code> (an episode's
+              drawn values supplied from outside) and <code>StepInfo</code> (reward terms, trunk height, upright
+              cosine, fallen, pushed, truncated, terminated, step index).</td></tr>
+          <tr class="hl"><td>src/env.cpp</td><td class="num">281</td>
+            <td>One Microduck. Keyframe reset, initial-noise clamp to the joint limits, push schedule, the
+              latency buffer, the 48-dim observation with float32 scaling, rewards v1 and v2, the
+              <code>mj_forward</code> that keeps every observation channel on one timestamp.</td></tr>
+          <tr class="hl"><td>include/vecenv/vecenv.hpp · src/vecenv.cpp</td><td class="num">88 · 129</td>
+            <td>N environments on T threads. Generation counter, spin-then-block workers, env <em>i</em> on thread
+              <em>i</em> mod T, autoreset with <code>terminal_obs</code>, the eight-thread budget.</td></tr>
+          <tr><td>include/vecenv/dr.hpp · src/dr.cpp</td><td class="num">55 · 113</td>
+            <td>Domain randomisation: the five servo parameters between the four measured actuator fits, body
+              mass and inertia, floor friction, action latency, initial noise, sensor noise. Apply and restore
+              are exact; a test checks nothing compounds across episodes.</td></tr>
+          <tr><td>include/vecenv/model.hpp · src/model.cpp</td><td class="num">71 · 139</td>
+            <td>Loads a variant from the upstream assets, copies the prototype model per environment, resolves
+              the strided joint indices the backlash variants need, and checks the header and library are the
+              same MuJoCo version.</td></tr>
+          <tr class="hl"><td>include/vecenv/numpy_compat.hpp</td><td class="num">66</td>
+            <td>The three arithmetic details that decide bit equality: numpy's pairwise sum, Python's
+              <code>pow</code>, and <code>clip</code>. Section 05.</td></tr>
+          <tr><td>include/vecenv/rng.hpp · src/rng.cpp</td><td class="num">51 · 79</td>
+            <td>PCG64 with numpy's exact core stream, <code>random()</code> and <code>uniform()</code>. Seeding,
+              <code>normal()</code> and <code>integers()</code> are documented as not numpy's.</td></tr>
+          <tr><td>include/vecenv/mujoco.hpp</td><td class="num">19</td>
+            <td>The one place MuJoCo's header is included, with a workaround so it compiles under
+              AddressSanitizer. Section 07.</td></tr>
+          <tr><td>include/vecenv/boxcheck.hpp · src/boxcheck.cpp</td><td class="num">21 · 94</td>
+            <td>Reads the load average and the number of cores before a benchmark and records warnings into the
+              output JSON, so a number taken on a busy machine cannot be read later as a clean one.</td></tr>
+          <tr class="hl"><td>python/bindings.cpp</td><td class="num">336</td>
+            <td>The pybind11 module <code>_vecenv_cpp</code>. Zero-copy numpy views over the observation, reward and
+              done buffers; the config structs; <code>EpisodeParams</code> construction from Python arrays.</td></tr>
+          <tr><td>python/vecenv_cpp/__init__.py</td><td class="num">161</td>
+            <td>The drop-in. A <code>VecEnv</code> class with the Python project's constructor and step signature,
+              and converters that accept its <code>DRConfig</code> dataclass and <code>DomainRandomizer</code>
+              directly.</td></tr>
+          <tr><td>python/vecenv_cpp/contract.py</td><td class="num">79</td>
+            <td>Runs one episode on both environments from the same drawn values and compares everything that
+              comes back. Used by the pytest suite and by the report script.</td></tr>
+          <tr><td>scripts/contract_report.py</td><td class="num">63</td>
+            <td>The 25-episode equality table, written to <code>runs/contract.json</code>. Counts exact matches
+              separately from within-tolerance matches so the two never blur.</td></tr>
+          <tr><td>scripts/ppo_cpp.py</td><td class="num">45</td>
+            <td>Runs the Python project's <code>ppo.py</code> as <code>__main__</code> with <code>vecenv_cpp</code>
+              installed under the module name <code>vec_env</code>. Nothing in the Python project changes.</td></tr>
+          <tr><td>bench/bench_vecenv.cpp</td><td class="num">358</td>
+            <td>The benchmark, mirroring the Python project's protocol: bracketed sweep with reference windows,
+              drift and trend guards, a sustained mode, and a <code>bare</code> mode that runs the physics alone.</td></tr>
+          <tr><td>bench/compare.py</td><td class="num">120</td>
+            <td>Python processes against C++ threads, alternating backend every window so a machine that
+              changes state biases both the same way.</td></tr>
+          <tr><td>tests/cpp/*.cpp</td><td class="num">665</td>
+            <td>34 doctest cases, 417,482 assertions: environment contract, DR apply/restore, RNG determinism and
+              moments, the numpy summation order on an input where the orders provably differ, thread-count
+              independence, N threaded envs equal N sequential ones.</td></tr>
+          <tr><td>tests/py/*.py</td><td class="num">249</td>
+            <td>41 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
+              internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</td></tr>
+          <tr><td>CMakeLists.txt · .github/workflows/ci.yml · verify.sh · Dockerfile</td><td class="num">91 · 68 · 84 · 28</td>
+            <td>Build (asks Python where the MuJoCo wheel is, links its <code>libmujoco.so</code>), three CI jobs,
+              the one-command local check, and a container that runs it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="equality">
+  <div class="sec-head"><span class="sec-num">04</span><h2>How the equality test works</h2><p class="sec-sub">Python draws the randomness, C++ replays it, and everything that comes back is compared with no tolerance.</p></div>
+  <div class="stack prose">
+    <p>The Python environment gets its randomness from numpy: initial joint noise, then which control steps
+      the pushes land on (a draw without replacement), their speeds and directions, and under domain
+      randomisation the servo parameters, mass, friction, latency and noise. Reproducing that draw in C++
+      would mean reimplementing numpy's seed-sequence expansion, its <code>choice</code> and its ziggurat
+      normal sampler, and getting all three right. It is possible. It is also beside the point, because the
+      draw is not what the environment does; it is what the environment is handed.</p>
+    <p>So the test runs the Python environment, reads what it drew, and passes those values to the C++
+      environment through <code>EpisodeParams</code>: the post-noise joint state, the push schedule, and the
+      DR factors if any. From that moment the two environments share every line of logic and receive the
+      same 250 actions.</p>
+    <pre><code>pe = MicroduckEnv(seed=s, **kw); o_py = pe.reset(seed=s)
+params = vecenv_cpp.episode_params(pe.data.qpos[qi], pe.data.qvel[vi],
+                                   pe._push_at, pe._push_vel, dr=pe.dr.current)
+ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
+# 250 identical actions into both; compare obs, reward, terms, flags, info</code></pre>
+    <p><code>Env::reset(const EpisodeParams&amp;)</code> is that entry point. <code>Env::reset()</code> with no
+      argument uses the environment's own PCG64 and is what training uses.</p>
+    <h3>Result</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>episodes</th><th class="num">observations compared</th><th class="num">bit-identical</th><th class="num">max abs diff (f32)</th><th class="num">max rel reward diff</th><th class="num">info mismatches</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>25</td><td class="num">6,275</td><td class="num">6,275 (100.00%)</td><td class="num">0.0e+00</td><td class="num">0.0e+00</td><td class="num">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The 25 episodes cover both reward versions, action latency 0 and 2, initial noise 0 and 0.02, an action
+      scale of 0.5 with five pushes, the two held-out physics variants (35 and 25 position coordinates, with
+      strided joint indices), and two DR cases with injected factors. Every observation is the same float32
+      array, every reward the same float64, and <code>pushed</code>, <code>fallen</code>, <code>t</code>,
+      <code>truncated</code>, <code>terminated</code>, <code>trunk_height</code> and <code>upright_cos</code>
+      agree on every step. The pytest suite asserts this at 1e-6 on observations and 1e-9 relative on rewards,
+      so a last-bit difference in a system library would pass while a real defect would not; the report script
+      counts exact matches separately so the distinction stays visible. One further test shifts a single push
+      by one step and checks that the comparison notices.</p>
+    <div class="note">
+      <span class="note-label">Deliberately different</span>
+      <p><code>Env(cfg, seed=7)</code> and <code>MicroduckEnv(seed=7)</code> draw different pushes. The C++ seeds
+        PCG64 from a 64-bit integer through splitmix; numpy runs SeedSequence. The PCG64 core stream and its
+        <code>uniform()</code> are numpy's exactly (a test hands numpy's internal state to the C++ class and
+        checks 1,000 outputs of each), but <code>normal()</code> is Marsaglia polar, not the ziggurat, and
+        <code>integers()</code> uses a different rejection scheme. A Python run and a C++ run with the same seed
+        are two samples of the same distribution, not a replay. Compare them across seeds.</p>
+    </div>
+  </div>
+</section>
+
+<section id="arith">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Three arithmetic details, and one about the solver</h2><p class="sec-sub">What was actually different the first time the two environments disagreed in the last bit, and how each was found.</p></div>
+  <div class="stack">
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4>numpy does not add fourteen numbers left to right</h4>
+        <p>The reward takes <code>np.mean</code> over the fourteen joints. For arrays of 8 to 128 elements numpy's
+          reduction keeps eight partial sums and combines them as a tree. Measured on 20,000 random 14-vectors: a
+          sequential loop matched <code>np.mean</code> on 15,831; a tree starting from the identity 0 matched on
+          20,000 of 20,000; a tree starting from the first element matched on 11,776. <code>np::pairwise_sum</code>
+          is the first of those, copied from numpy's own loop structure. A C++ test feeds it an input where the
+          two orders provably differ: <code>{1e16, 1×7, -1e16, 0×5}</code> sums to 0 sequentially and to 6 as a
+          tree.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>Python's <code>x ** 2</code> is <code>pow(x, 2.0)</code>, not <code>x * x</code></h4>
+        <p>Python routes a float power through the C library's <code>pow</code>. Measured on 2,000,000 random
+          doubles, <code>pow(x, 2.0)</code> and <code>x * x</code> differ in 1,621 of them. The v1 height term uses
+          the power operator. GCC folds <code>pow(x, 2.0)</code> into a multiply unless stopped, so
+          <code>np::py_pow</code> passes the exponent through a <code>volatile</code> to force the library call.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">03</span><div class="fbody">
+        <h4>The observation scale is float32, the raw values are float64</h4>
+        <p>The Python side multiplies a float64 array by a float32 constant table. numpy promotes the constant, so
+          the product is <code>raw * double(float32(0.05))</code>, and <code>double(0.05f)</code> is
+          0.05000000074505806, not 0.05. The C++ scale table is built from the float32 literals and widened the
+          same way.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">04</span><div class="fbody">
+        <h4>A second <code>mj_forward</code> is not a no-op</h4>
+        <p>The Python reset calls <code>mj_forward</code> once on the keyframe and a second time only after
+          applying initial noise. Running the forward pass twice on an unchanged state lands a few units in the
+          last place elsewhere, because the constraint solver warm-starts from the previous acceleration. The C++
+          reset runs the second pass under exactly the same condition, <code>init_noise &gt; 0</code>.</p>
+      </div></div>
+    </div>
+    <p class="prose">The build also sets <code>-ffp-contract=off</code> and <code>-fno-fast-math</code>. A fused
+      multiply-add rounds once where numpy rounds twice, and one fused instruction anywhere in the reward would
+      have broken the table above.</p>
+  </div>
+</section>
+
+<section id="threads">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Threading design</h2><p class="sec-sub">One model per environment, a fixed thread assignment so results never depend on the thread count, and a wake-up scheme that costs nothing when idle.</p></div>
+  <div class="stack prose">
+    <dl class="pair">
+      <dt>one model per env</dt>
+      <dd>Domain randomisation writes into <code>mjModel</code> (damping, gains, masses, friction). A shared model
+        would make DR a data race and every environment identical. <code>Env</code> takes a prototype and
+        <code>mj_copyModel</code>s it. A test mutates one environment's masses and checks the prototype and its
+        neighbours are untouched. Sixteen bodies and 82 geoms: the copies are kilobytes.</dd>
+      <dt>env i on thread i mod T</dt>
+      <dd>Always. So the assignment of environments to threads is fixed, and <strong>the result does not depend
+        on T</strong>. A test runs the same 300 steps on 1, 2 and 4 threads and compares observations, rewards,
+        dones and terminal observations with <code>==</code>; another runs 260 steps as three sequential
+        <code>Env</code>s, autoreset included, and gets the same bits.</dd>
+      <dt>generation counter</dt>
+      <dd>The caller writes the action batch, increments an atomic counter and works as thread 0. The other
+        T−1 threads spin on the counter for tens of microseconds and then block on a condition variable. While
+        the policy is computing its next action the pool burns nothing; while it is stepping, there is no futex
+        call per step. Acquire and release ordering on the counter and on the completion count is what makes
+        the action and observation buffers visible without a lock.</dd>
+      <dt>autoreset</dt>
+      <dd>Matches the Python version: when an episode ends, the observation returned is the new episode's
+        first, and the ended episode's final observation is kept in <code>terminal_obs</code>. Every episode here
+        ends on the step limit, never on a terminal state, so the training loop bootstraps
+        <code>V(terminal_obs)</code>; the flags are carried so a stock advantage estimator cannot get this wrong
+        silently.</dd>
+      <dt>the budget</dt>
+      <dd>More than eight threads is refused unless the caller says <code>allow_overcommit</code>. Every number in
+        the Python project was taken inside eight of fourteen cores on a laptop with other work to do, and this
+        repo inherits that as a constructor check rather than a comment.</dd>
+    </dl>
+  </div>
+</section>
+
+<section id="san">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Sanitizers and CI</h2><p class="sec-sub">Three CI jobs, and two things about MuJoCo's prebuilt library that had to be worked around to run them.</p></div>
+  <div class="stack prose">
+    <p>CI runs three jobs on every push. The first builds Release, runs the 34 C++ cases, the 41 Python tests
+      and the equality report against the Python repository at a pinned commit, after fetching the robot
+      assets from their upstream (they are Creative Commons BY-SA-NC and are never committed). The second and
+      third rebuild the C++ suite under <code>-fsanitize=address,undefined</code> and under
+      <code>-fsanitize=thread</code>. The thread-count independence test is the one ThreadSanitizer exists
+      for: a race on the shared action or observation buffers would fail the build.</p>
+    <div class="findings">
+      <div class="finding"><span class="fnum">01</span><div class="fbody">
+        <h4><code>mujoco.h</code> does not compile under AddressSanitizer in C++</h4>
+        <p>MuJoCo's header includes <code>mjsan.h</code>, written for building MuJoCo itself under ASan. When the
+          compiler defines <code>__SANITIZE_ADDRESS__</code> it declares inline helpers with an attribute syntax
+          g++ rejects in a C++ translation unit. This repo links the prebuilt, uninstrumented library and never
+          touches those helpers, so <code>include/vecenv/mujoco.hpp</code> predefines the header's include guard
+          and two stub macros, and every file includes MuJoCo through that one wrapper.</p>
+      </div></div>
+      <div class="finding"><span class="fnum">02</span><div class="fbody">
+        <h4>MuJoCo's XML compiler has its own thread pool</h4>
+        <p><code>mj_loadXML</code> spawns a pool inside the prebuilt library. ThreadSanitizer cannot see the
+          synchronisation inside code it did not instrument, so it reports the pool's internal mutex as a race.
+          <code>tests/cpp/tsan.supp</code> contains one line, <code>race:libmujoco</code>, and nothing this repo
+          compiles is suppressed. On recent kernels TSan also aborts on an unexpected memory mapping;
+          <code>setarch $(uname -m) -R</code> disables address-space randomisation for that one process without
+          privileges, and CI lowers <code>vm.mmap_rnd_bits</code> on the runner instead.</p>
+      </div></div>
+    </div>
+    <p>The C++ side links <em>the same</em> <code>libmujoco.so</code> that the Python side imports: CMake asks
+      the Python interpreter where the wheel lives and takes the headers and library from there, so nothing
+      is installed system-wide. <code>check_library_version()</code> refuses to run if the header and the
+      library disagree. The equality claim is only meaningful against the same physics binary.</p>
+  </div>
+</section>
+
+<section id="speed">
+  <div class="sec-head"><span class="sec-num">08</span><h2>Measured throughput</h2><p class="sec-sub">Four measurements taken on 2026-09-22 on the same laptop, each with the guard verdict its own tool printed.</p></div>
+  <div class="stack">
+    <p class="prose">The protocol is the Python project's. A sweep runs 1, 2, 4 and 8 threads for 20 seconds each,
+      with a single-thread reference window before the sweep and after every row. The JSON is marked
+      <em>unstable</em> if a reference drifts more than 10% and <em>trending</em> if the reference moves in one
+      direction across three windows by more than 4%. A sustained run holds 8 threads for 18 windows of 20
+      seconds with no pause. All runs were under <code>nice -n 10</code>, eight of fourteen cores, no other work
+      on the machine.</p>
+
+    <h3>The full environment, sweep</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>threads</th><th class="num">env-steps/s</th><th class="num">per thread</th><th class="num">speedup</th><th class="num">efficiency</th><th class="num">ref drift</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="num">5,639</td><td class="num">5,639</td><td class="num">1.00×</td><td class="num">100%</td><td class="num">+1.3%</td></tr>
+          <tr><td>2</td><td class="num">10,471</td><td class="num">5,236</td><td class="num">1.86×</td><td class="num">93%</td><td class="num">−0.1%</td></tr>
+          <tr><td>4</td><td class="num">16,601</td><td class="num">4,150</td><td class="num">2.94×</td><td class="num">74%</td><td class="num">−0.2%</td></tr>
+          <tr class="hl"><td>8</td><td class="num">20,287</td><td class="num">2,536</td><td class="num">3.60×</td><td class="num">45%</td><td class="num">−0.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Taken at 14:51 on a freshly rebooted machine, reference drift within 1.3%, marked stable by
+      its own guard. The efficiency at 8 threads, 45%, is the same as the 42% the Python project measured with
+      8 processes on the same model. That settles the question section 02 asked: process isolation was not
+      the loss. Whatever holds this chip back at eight workers holds threads in one address space back just as
+      much, which points at the cores themselves (this CPU has three kinds) or at the package power limit,
+      neither of which is readable from inside a WSL guest.</p>
+
+    <h3>Physics only, sweep</h3>
+    <p class="prose">The same sweep in <code>bare</code> mode: 10 × <code>mj_step</code> per env step and nothing else. The
+      gap between this table and the one above is the cost of everything that is not physics.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>threads</th><th class="num">env-steps/s</th><th class="num">per thread</th><th class="num">speedup</th><th class="num">efficiency</th><th class="num">ref drift</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="num">5,404</td><td class="num">5,404</td><td class="num">1.00×</td><td class="num">100%</td><td class="num">−0.7%</td></tr>
+          <tr><td>2</td><td class="num">10,788</td><td class="num">5,394</td><td class="num">2.00×</td><td class="num">100%</td><td class="num">+0.4%</td></tr>
+          <tr><td>4</td><td class="num">20,142</td><td class="num">5,036</td><td class="num">3.73×</td><td class="num">93%</td><td class="num">+3.7%</td></tr>
+          <tr class="hl"><td>8</td><td class="num">27,011</td><td class="num">3,376</td><td class="num">5.00×</td><td class="num">62%</td><td class="num">+2.7%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">
+      <span class="note-label">Guard verdict, and what it means here</span>
+      <p>Taken at 21:03, machine rebooted minutes before. A first sweep just before it read 5,390 / 10,823 /
+        19,956 / 27,087, so every row reproduced within 1%. The guard nevertheless marked both sweeps
+        <em>trending</em>: the single-thread reference rose 4.4% across three consecutive windows against a 4%
+        bar. On this laptop the single-thread reference scatters about 5% from one window to the next, so the
+        trend detector fires on scatter. A third sweep started immediately afterwards, with the package still
+        warm, read 5,340 / 10,496 / 18,909 / 24,384: 10% lower at 8 threads. That is the chained-benchmark
+        effect the Python project already documented, and it is why the second sweep, not the third, is the
+        table.</p>
+    </div>
+    <p class="prose">One thing the two sweeps cannot tell you: the bare 1-thread row, 5,404, is below the full-environment
+      1-thread row, 5,639, taken six hours earlier. Physics alone cannot be slower than physics plus
+      observation, so the two sweeps were taken in different host power states. The host's power mode is not
+      visible from inside the guest, and the env-to-bare gap cannot be read from these two tables to better
+      than about 4%. Both tables are individually consistent; the comparison between them is not.</p>
+
+    <h3>Sustained, 8 threads, six minutes</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>window</th><th class="num">0</th><th class="num">1</th><th class="num">2</th><th class="num">4</th><th class="num">6</th><th class="num">8</th><th class="num">10</th><th class="num">11</th><th class="num">12</th><th class="num">13</th><th class="num">14</th><th class="num">15</th><th class="num">16</th><th class="num">17</th></tr></thead>
+        <tbody>
+          <tr><td>env-steps/s</td><td class="num">18,724</td><td class="num">20,829</td><td class="num">19,440</td><td class="num">18,548</td><td class="num">16,724</td><td class="num">16,001</td><td class="num">13,782</td><td class="num">13,327</td><td class="num">13,329</td><td class="num">15,590</td><td class="num">16,238</td><td class="num">14,393</td><td class="num">15,074</td><td class="num">14,908</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Peak 20,829 in window 1, then a monotonic fall to 13,327 at window 11, a climb to 16,238 at window 14,
+      and 14,908 in the last window. Over the last six windows the rate sits between 13,329 and 16,238, a 22%
+      band; the last three average 14,792, 29% below peak. The shape is the same one the Python project saw
+      with eight processes: a dip around window 11, then a partial recovery. Two implementations with nothing
+      in common except the physics library and the machine producing the same curve is decent evidence that the
+      curve belongs to the machine's power management, not to the code. Budgets should be taken from the low
+      end of the band.</p>
+
+    <h3>Python processes against C++ threads, same hour</h3>
+    <p class="prose"><code>bench/compare.py</code> drives both vector environments with uniform random actions in 20-second
+      windows and alternates backends every window, so a machine that changes state during the run biases both
+      the same way. Two rounds.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>workers</th><th class="num">Python processes</th><th class="num">C++ threads</th><th class="num">C++ / Python</th><th class="num">C++ efficiency</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="num">2,336</td><td class="num">4,867</td><td class="num">2.08×</td><td class="num">100%</td></tr>
+          <tr><td>2</td><td class="num">3,463</td><td class="num">7,429</td><td class="num">2.14×</td><td class="num">76%</td></tr>
+          <tr><td>4</td><td class="num">4,270</td><td class="num">10,370</td><td class="num">2.43×</td><td class="num">53%</td></tr>
+          <tr class="hl"><td>8</td><td class="num">6,385</td><td class="num">12,327</td><td class="num">1.93×</td><td class="num">32%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bars" aria-label="8 workers, env-steps per second">
+      <div class="bar"><span>Python ×8</span><i class="py" style="width:52%"></i><span>6,385</span></div>
+      <div class="bar"><span>C++ ×8</span><i style="width:100%"></i><span>12,327</span></div>
+    </div>
+    <p class="prose">An earlier run of the same script, started while the load average was still 3 from the sustained run,
+      gave 6,668 against 13,612 at 8 workers, a ratio of 2.04×. The script's single-process Python reference
+      was marked <em>unstable</em> in both runs, with scatter up to 39%: one forked worker behind a pipe has a
+      jittery round trip, and the guard was designed around bare physics, which does not. The multi-worker
+      rows agree within 10% across the two runs, and the ratio at 8 is between 1.9× and 2.0× either way.</p>
+    <div class="note key">
+      <span class="note-label">Two conclusions</span>
+      <p>The README set a decision rule before the run: under 1.3× at 8 workers, the C++ environment is not worth
+        its build step for training. At 1.9× to 2.0× it clears the rule.</p>
+      <p>The second conclusion is about the Python project. Its vector environment at 8 processes delivers about
+        6,400 env-steps/s in this driver, half of the 13,300 that project budgeted from bare physics times a
+        measured wrapper factor. The inter-process round trip, pickling actions out and observations back
+        through eight pipes each step, was never in that composition. The training script itself logs its
+        rate every update, and that figure, not any composed one, is the number to budget from.</p>
+    </div>
+    <p class="prose">Not yet run: the Python project's PPO on this backend. <code>scripts/ppo_cpp.py</code> exists and a
+      1,024-step smoke of it wrote a checkpoint, which proves the plumbing and nothing else. Return curves and
+      wall-clock for the 50M-step budget on both backends are the open item.</p>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">09</span><h2>What it does not prove</h2><p class="sec-sub">The boundaries of the equality claim and of the speed numbers, stated so they are not read past.</p></div>
+  <div class="stack prose">
+    <ul class="tight">
+      <li><strong>Bit equality holds on one machine, one compiler, one C library.</strong> Python's <code>pow</code>
+        and <code>exp</code> and the C++ ones are the same library calls on the same host, which is why they
+        agree. A runner with a different glibc, or a numpy built with a different vectorised <code>exp</code>,
+        could differ in the last bit on the height term. The test tolerances are set so that would pass and a
+        real defect would not.</li>
+      <li><strong>The draw is not replicated.</strong> Same seed, different pushes. A step-by-step replay of a
+        Python training run on the C++ backend is not available; comparisons between the two are
+        statistical, across seeds.</li>
+      <li><strong>Sensor noise is not contract-tested</strong>, for the same reason: it is a Gaussian per step
+        and the C++ draws its own. The contract cases run with it off.</li>
+      <li><strong>No policy has trained on this yet.</strong> The smoke run proves the training script executes
+        against it, not that a policy trained here matches one trained on the Python environment.</li>
+      <li><strong>One robot.</strong> <code>Env</code> is Microduck-shaped: 14 actuators, a standing keyframe, a
+        named trunk body, named gyro and orientation sensors. The threading layer is not, and a second model
+        behind the same interface is the natural next step.</li>
+      <li><strong>No rendering.</strong> Image observations through MuJoCo's C rendering API are deferred until a
+        machine with a working EGL context exists; the laptop this was written on has GLFW through WSLg and
+        nothing else.</li>
+      <li><strong>The speed numbers are for this laptop.</strong> Fourteen cores of three kinds under a
+        hypervisor, with a power state the guest cannot read. The ratios are more portable than the absolute
+        rates, and the sustained band is more portable than any 20-second row.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">A C++17 compiler, CMake 3.18 or later, Python 3.8 or later, and the Python project next door.</p></div>
+  <div class="stack">
+    <pre><code>git clone https://github.com/AungKaung1928/microduck-rl.git ../microduck-rl
+(cd ../microduck-rl && python3 -m venv .venv && . .venv/bin/activate \
+   && pip install -r requirements.txt && ./fetch_assets.sh)
+
+pip install -r requirements.txt            # mujoco (headers + library inside), numpy, pybind11, pytest
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j4
+./build/vecenv_tests
+python -m pytest tests/py -q
+python scripts/contract_report.py          # the equality table, one core, about a minute</code></pre>
+    <p class="prose"><code>./verify.sh</code> does all of that in order and prints the benchmark commands at the end.
+      <code>MICRODUCK_RL</code> or <code>MICRODUCK_ASSETS</code> point it at the Python project if it lives
+      somewhere else.</p>
+    <h3>Benchmarks, on an idle machine</h3>
+    <pre><code>nice -n 10 ./build/bench_vecenv --threads 1 2 4 8 --seconds 20 --ref-seconds 10 --tag main
+nice -n 10 ./build/bench_vecenv --mode bare --threads 1 2 4 8 --seconds 20 --ref-seconds 10 --tag main
+nice -n 10 ./build/bench_vecenv --sustained 8 --windows 18 --seconds 20 --tag sustained
+nice -n 10 python bench/compare.py --workers 1 2 4 8 --seconds 20 --rounds 2 --tag main</code></pre>
+    <h3>Sanitizer builds</h3>
+    <pre><code>cmake -S . -B build-san -DVECENV_SANITIZE=address,undefined -DVECENV_BUILD_PYTHON=OFF -DVECENV_BUILD_BENCH=OFF
+cmake --build build-san -j4 && ./build-san/vecenv_tests
+
+cmake -S . -B build-tsan -DVECENV_SANITIZE=thread -DVECENV_BUILD_PYTHON=OFF -DVECENV_BUILD_BENCH=OFF
+cmake --build build-tsan -j4
+TSAN_OPTIONS=suppressions=$PWD/tests/cpp/tsan.supp setarch $(uname -m) -R ./build-tsan/vecenv_tests</code></pre>
+    <h3>Training on it</h3>
+    <pre><code>OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --total-steps 50000000 \
+    --chunk-steps 25000000 --tag v2cpp --reward v2       # VECENV_THREADS=8 is the default</code></pre>
+    <pre><code>import vecenv_cpp
+envs = vecenv_cpp.VecEnv(n=8, seed=0, reward="v2", dr=True)   # same kwargs as the Python env
+obs = envs.reset()
+obs, rew, done, info = envs.step(actions)                     # actions: (8, 14) float64</code></pre>
+    <div class="prose stack">
+      <h3>Licence</h3>
+      <p>MIT. doctest is vendored under MIT. MuJoCo comes from its pip wheel. The robot's meshes are Creative
+        Commons BY-SA-NC and are fetched from their upstream by the Python project's script, never committed.</p>
+      <h3>Measured environment</h3>
+      <p>Intel Core Ultra 5 225H, 14 cores (4 performance, 8 efficiency, 2 low-power efficiency), no
+        hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2, Ubuntu 22.04, g++ 11.4, CMake 3.22,
+        Python 3.10, MuJoCo 3.12.0, numpy 2.2.6. No CUDA anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The whole project in one paragraph.</p></div>
+  <div class="stack prose">
+    <p>The Microduck balance task has a Python environment that runs eight forked processes. This is the same
+      environment in C++17 on eight threads, with a pybind11 binding and a drop-in class so the Python
+      training script runs on it unchanged. Before any timing, the two were made to agree to the bit: the
+      test lets Python draw the episode's randomness and hands the drawn values to the C++ side, then feeds
+      both 250 identical actions and compares everything that comes back with no tolerance. Reaching 6,275 of
+      6,275 identical observations took matching numpy's eight-accumulator summation tree, routing Python's
+      power operator through the C library's <code>pow</code> behind a <code>volatile</code>, widening a float32
+      scale table the way numpy does, and running MuJoCo's forward pass a second time only under the same
+      condition the Python code does, because the solver warm-starts. CI runs that comparison against a
+      pinned commit of the Python repository, and rebuilds the C++ suite under AddressSanitizer and
+      ThreadSanitizer, each of which needed a workaround for MuJoCo's prebuilt library. Measured afterwards
+      on the same laptop: the full environment runs 20,287 env-steps/s in a 20-second burst at eight threads
+      and settles between 13,300 and 16,200 over six minutes, with the same power-management curve the Python
+      version shows; head to head under identical random actions the C++ threads deliver 1.9 to 2.0 times the
+      Python processes at eight workers, above the 1.3× the README had set as the threshold for being worth
+      the build. The same comparison showed the Python vector environment delivering about half the rate its
+      project had budgeted from physics alone, because the inter-process round trip had never been in that
+      composition. Thread efficiency at eight workers, 45%, matched the Python processes' 42%, so process
+      isolation was not the scaling loss; the chip is. A policy has not yet been trained on this backend.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>mujoco-vecenv-cpp</code>: <code>README.md</code>, <code>include/vecenv/*.hpp</code>,
+  <code>src/*.cpp</code>, <code>python/bindings.cpp</code>, <code>python/vecenv_cpp/</code>, <code>bench/</code>,
+  <code>tests/</code>, <code>scripts/</code>, <code>CMakeLists.txt</code> and <code>.github/workflows/ci.yml</code>,
+  plus the four measurement JSONs under <code>runs/</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

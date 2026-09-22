@@ -85,8 +85,12 @@ for (const target of targets) {
     }
 }
 
-// Reverse: a repo URL or project title the KB still names but the page dropped.
+// Reverse: a repo URL the KB still names but the site dropped. A URL counts as
+// live if the front page or the walkthrough hub links it: the hub keeps the
+// earlier projects' pages after their front-page card is retired.
+const hub = read('projects/index.html');
 const pageRepos = new Set(facts.filter((f) => f.kind === 'repo url').map((f) => norm(f.value)));
+for (const url of all(/href="(https:\/\/github\.com\/AungKaung1928\/[A-Za-z0-9._-]+)"/g, hub)) pageRepos.add(norm(url));
 const stale = [];
 for (const target of targets) {
     for (const url of all(/(https:\/\/github\.com\/AungKaung1928\/[A-Za-z0-9._-]+)/g, target.text)) {

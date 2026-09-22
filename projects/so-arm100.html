@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Arm, Three Ways to Learn It — Aung Kaung Myat</title>
+<meta name="description" content="A simulated SO-ARM100 taught to reach, push, lift and place a cube three ways: PPO with a curriculum and domain randomisation, imitation from a scripted expert (BC, DAgger, ACT), and a small language-conditioned policy tested on unseen paraphrases. One shared bench, one protocol.">
+<meta name="author" content="Aung Kaung Myat">
+<link rel="canonical" href="https://aungkaung1928.github.io/projects/so-arm100.html">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://aungkaung1928.github.io/projects/so-arm100.html">
+<meta property="og:title" content="One Arm, Three Ways to Learn It">
+<meta property="og:description" content="A simulated SO-ARM100 learned three ways on one shared bench: reinforcement learning, imitation, and a language-conditioned policy. Four repositories, 122 tests, results tables empty until measured.">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2396605f'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+html{color-scheme:light;-webkit-text-size-adjust:100%}
+img{max-width:100%;height:auto}
+[hidden]{display:none!important}
+
+:root{
+  --bg:#ffffff;
+  --paper:#faf7f6;
+  --paper2:#f3ebea;
+  --ink:#1f1817;
+  --ink2:#4a3f3e;
+  --muted:#7d6e6d;
+  --line:#eadfde;
+  --line2:#d9c9c7;
+  --accent:#96605f;
+  --accent-deep:#74484a;
+  --accent-soft:#f9f1f0;
+  --accent-line:#dfc0bd;
+  --good:#3f6b4a;
+  --warn:#8a6a2c;
+  --bad:#9c4a45;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
+h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
+h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
+h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
+h4{font-size:.95rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent-deep)}
+code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
+  border-radius:3px;color:var(--ink);word-break:break-word}
+pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
+  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
+  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
+pre code{background:none;padding:0;font-size:1em}
+.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+header.top{border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
+.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
+.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
+  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
+.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);margin-top:6px}
+.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
+.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
+.fact dd em{font-style:normal;color:var(--accent)}
+nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
+.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
+  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
+.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
+.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
+  padding-top:.35em;letter-spacing:.06em}
+.stack{display:flex;flex-direction:column;gap:16px}
+.stack-lg{display:flex;flex-direction:column;gap:26px}
+.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
+  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
+.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
+.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--muted);font-weight:600}
+.note.key .note-label{color:var(--accent-deep)}
+.note.warnbox .note-label{color:var(--bad)}
+.note p{font-size:.95rem}
+.steps{display:flex;flex-wrap:wrap;margin-block:4px}
+.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
+  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
+.stepbox + .stepbox{border-left:0}
+.stepbox.todo{background:var(--paper)}
+.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+.stepbox.todo .sn{color:var(--muted)}
+.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
+.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
+.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
+  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
+.stepbox.todo .sr{color:var(--muted);font-weight:400}
+@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
+.tablewrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);background:var(--paper);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
+td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
+.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
+tbody tr:nth-child(even){background:#fdfaf9}
+tr.hl td{background:var(--accent-soft)}
+tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
+ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
+ul.tight li::marker{color:var(--accent)}
+ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
+ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
+.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
+.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
+.pair dd{margin:0;color:var(--ink2)}
+@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
+figure{margin:0;display:flex;flex-direction:column;gap:8px}
+figcaption{font-size:.83rem;color:var(--muted)}
+svg{max-width:100%;height:auto;display:block}
+.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.finding:last-child{border-bottom:0}
+.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
+.finding h4{margin-bottom:6px}
+.finding p{font-size:.93rem;color:var(--ink2)}
+.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
+.obsbar{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
+.obsseg{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px;flex:1 1 130px}
+.obsseg .od{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--accent);line-height:1}
+.obsseg .on{font-family:var(--disp);font-size:.85rem;font-weight:600}
+.obsseg .os{font-size:.78rem;color:var(--muted);line-height:1.35}
+.obsseg.drop{background:var(--paper)}
+.obsseg.drop .od{color:var(--bad);text-decoration:line-through}
+footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
+.rule{height:1px;background:var(--line);border:0;margin:0}
+
+/* refinements */
+html{scroll-behavior:smooth}
+section{scroll-margin-top:58px}
+a{text-underline-offset:.16em;text-decoration-thickness:.055em}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
+.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
+.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
+  box-shadow:inset 0 -2px 0 var(--accent)}
+.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
+.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
+  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
+  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
+.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
+.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
+.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line)}
+.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
+.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media (max-width:520px){.sec-sub{font-size:.9rem}}
+
+/* site chrome */
+.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
+  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
+.skip:focus{left:8px;top:8px}
+.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
+.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
+  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
+.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
+.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
+.sb-sep{color:var(--line2)}
+.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/so-arm100-sim" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="progress" aria-hidden="true"><i></i></div>
+<header class="top">
+  <div class="wrap head-inner">
+    <div class="eyebrow">CPU-only robot-learning track · four repositories · <code style="background:none;padding:0;color:inherit">so-arm100-sim</code> · <code style="background:none;padding:0;color:inherit">so-arm100-rl</code> · <code style="background:none;padding:0;color:inherit">so-arm100-il</code> · <code style="background:none;padding:0;color:inherit">so-arm100-vla</code></div>
+    <h1>One Arm, Three Ways to Learn It</h1>
+    <p class="deck">The SO-ARM100 is the low-cost 5-DOF arm behind most of the open LeRobot datasets. This is
+      the same arm in MuJoCo, taught to reach, push, lift and place a cube three different ways: by
+      reinforcement learning from a reward, by imitation of a scripted demonstrator, and by a small
+      language-conditioned policy that reads the instruction. One shared bench defines the tasks, the
+      physics shifts and the success protocol, so the three tables can be laid side by side.</p>
+    <div class="chips">
+      <span class="chip">MuJoCo 3.13</span><span class="chip">PyTorch, CPU</span><span class="chip">LeRobotDataset v3</span>
+      <span class="chip">PPO + curriculum</span><span class="chip">BC · DAgger · ACT</span>
+      <span class="chip">MiniLM + FiLM</span><span class="chip">held-out physics</span><span class="chip">no CUDA anywhere</span>
+    </div>
+    <dl class="factgrid">
+      <div class="fact"><dt>Status</dt><dd>Code complete, CI green · numbers pending</dd></div>
+      <div class="fact"><dt>Tasks</dt><dd><em>4</em>, one success rule each</dd></div>
+      <div class="fact"><dt>Protocol</dt><dd>100 episodes × 5 seeds per cell</dd></div>
+      <div class="fact"><dt>Held-out physics</dt><dd>6 cells, each outside DR</dd></div>
+      <div class="fact"><dt>Tests</dt><dd>63 + 16 + 19 + 24 = <em>122</em></dd></div>
+      <div class="fact"><dt>Policy sizes</dt><dd>MLP · keypoint CNN · ~1M-param transformer</dd></div>
+    </dl>
+  </div>
+</header>
+
+<nav class="jump">
+  <div class="wrap jump-inner">
+    <a href="#plain">In plain words</a>
+    <a href="#shared">One bench, three projects</a>
+    <a href="#files">Every file</a>
+    <a href="#bench">The bench</a>
+    <a href="#rl">Reinforcement learning</a>
+    <a href="#il">Imitation</a>
+    <a href="#vla">Language</a>
+    <a href="#measured">What is measured</a>
+    <a href="#limits">Limits</a>
+    <a href="#run">Running it</a>
+  </div>
+</nav>
+
+<main class="wrap" id="main">
+
+<section id="plain">
+  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the arm is, what it is asked to do, and why the same task is solved three times.</p></div>
+  <div class="stack prose">
+    <p>The SO-ARM100 is a 3D-printed arm with five joints and a parallel gripper, driven by hobby servos.
+      It costs a few hundred dollars and it is the arm most of the open LeRobot community data was recorded
+      on, which makes it the natural target for a project about learning manipulation from data.</p>
+    <p>Here the arm lives in MuJoCo, a physics simulator, on a laptop with no graphics card. The
+      description comes from MuJoCo Menagerie, unchanged. On top of it sit a table, three coloured cubes,
+      a target marker and three cameras. The policy's job is one of four things: hover the gripper over a
+      cube, push it onto the marker, lift it clear of the table, or carry it to the marker and let go.</p>
+    <p>Three separate repositories learn those tasks in three different ways, and the point of running
+      all three on one bench is the comparison.</p>
+    <div class="note key">
+      <span class="note-label">The three routes</span>
+      <p><strong>Reinforcement learning</strong> gets a reward signal and privileged information (the cube's
+        true position) and has to discover the motion itself. <strong>Imitation learning</strong> gets a few
+        hundred demonstrations from a scripted expert, a camera image and the arm's own joint readings, and
+        copies. <strong>The language policy</strong> gets the same image and joints plus a sentence, and has
+        to work out from the sentence which cube and which task is meant, including sentences and
+        task-colour pairs it never saw in training.</p>
+    </div>
+    <h3>Where things stand</h3>
+    <p>All four repositories are written, tested and green in continuous integration. The measurement
+      phase, in which every results table on this page gets its numbers from a named script on an idle
+      machine, has not started. Every table below says so explicitly. Nothing here is a claim about the
+      physical arm.</p>
+  </div>
+<div class="glosswrap">
+  <h3>Terms used on this page</h3>
+  <div class="gloss">
+    <div class="gterm"><b>SO-ARM100</b><span>Standard Open Arm 100: a 5-DOF arm plus gripper from TheRobotStudio, driven by position-controlled servos. Version 1.3 of its MuJoCo model is used, from the Menagerie collection.</span></div>
+    <div class="gterm"><b>MJCF / MjSpec</b><span>MJCF is MuJoCo's XML model format. MjSpec is the programmatic editor for it, used here to attach the table, cubes, marker and cameras to the arm without editing the vendored file.</span></div>
+    <div class="gterm"><b>inverse kinematics</b><span>Given a target pose for the gripper, find joint angles that put it there. Solved iteratively with damped least squares; the scripted expert is built on it.</span></div>
+    <div class="gterm"><b>scripted expert</b><span>A hand-written controller that reads the cube's true position from the simulator and moves through IK waypoints. It produces demonstrations and reference success rates. It is not a controller a real arm could run.</span></div>
+    <div class="gterm"><b>domain randomisation (DR)</b><span>Sampling physics parameters (mass, friction, servo gain, latency) from a range at every reset, so a policy is not fitted to one exact model.</span></div>
+    <div class="gterm"><b>held-out physics</b><span>Fixed physics settings a trained policy is tested on, each outside the DR range. Success there is a transfer claim, not interpolation.</span></div>
+    <div class="gterm"><b>PPO</b><span>Proximal Policy Optimization, the standard on-policy RL algorithm: collect rollouts, estimate advantages, take clipped gradient steps so the policy does not move too far per update.</span></div>
+    <div class="gterm"><b>curriculum</b><span>Training on an easier task first and promoting to a harder one once a success threshold is reached, keeping the network weights across the switch.</span></div>
+    <div class="gterm"><b>behaviour cloning (BC)</b><span>Supervised learning from demonstrations: given what the expert saw, predict what the expert did.</span></div>
+    <div class="gterm"><b>DAgger</b><span>Dataset Aggregation. Let the learner drive, ask the expert what it would have done at the states the learner reached, add those labels, retrain. Fixes the drift BC suffers when it leaves the demonstrated states.</span></div>
+    <div class="gterm"><b>ACT / action chunking</b><span>Action Chunking with Transformers: predict a chunk of future actions per forward pass instead of one, and blend overlapping chunks at run time. Used here without the variational latent the original has.</span></div>
+    <div class="gterm"><b>VLA</b><span>Vision-language-action model: a policy conditioned on an image and a sentence. The one here is small and trained from scratch; it is not a fine-tuned foundation model.</span></div>
+    <div class="gterm"><b>sentence embedding</b><span>A fixed-size vector for a sentence from a pretrained text model, here MiniLM (384 numbers). Similar meanings should land near each other.</span></div>
+    <div class="gterm"><b>FiLM</b><span>Feature-wise Linear Modulation: the sentence embedding produces a scale and shift applied to the image features, so the instruction changes what the vision layers look for.</span></div>
+    <div class="gterm"><b>LoRA</b><span>Low-Rank Adaptation: fine-tuning a large network by training small rank-8 matrices added to a few weight matrices, leaving the original weights frozen.</span></div>
+    <div class="gterm"><b>LeRobotDataset v3</b><span>The on-disk format Hugging Face LeRobot uses for robot demonstrations: parquet tables plus video or image frames, with episode indexing.</span></div>
+  </div>
+</div>
+</section>
+
+<section id="shared">
+  <div class="sec-head"><span class="sec-num">02</span><h2>One bench, three projects</h2><p class="sec-sub">Why the tasks, the physics shifts and the evaluation protocol live in a separate repository that the other three depend on.</p></div>
+  <div class="stack prose">
+    <p>A comparison between three learning methods is only worth reading if all three are measured the
+      same way. So everything a policy is later judged against is defined once, in
+      <code>so-arm100-sim</code>: the four tasks and their success rules, the two observation layouts,
+      the DR ranges, the six held-out physics cells, the evaluation protocol (100 episodes × 5 seeds per
+      cell, mean and spread over seeds), the scripted expert and its own success table, the language
+      templates and their train/held-out split, and the dataset recorder.</p>
+    <p>The three policy repositories install the bench from a pinned release tag (<code>v0.1.0</code>) and
+      import from it. None of them redefines a task or a threshold. A test in the bench hashes the vendored
+      arm description, so an accidental edit to the robot model fails CI rather than silently changing
+      every downstream number.</p>
+    <div class="steps">
+      <div class="stepbox"><span class="sn">bench</span><span class="st">so-arm100-sim</span>
+        <span class="sd">Scene, tasks, IK expert, DR, evaluation, instruction templates, dataset writer, vector env.</span>
+        <span class="sr">63 tests · shared floor</span></div>
+      <div class="stepbox"><span class="sn">route 1</span><span class="st">so-arm100-rl</span>
+        <span class="sd">PPO on privileged state, reach → push → lift curriculum, nominal vs DR, held-out gap, ONNX export.</span>
+        <span class="sr">16 tests · not trained yet</span></div>
+      <div class="stepbox"><span class="sn">route 2</span><span class="st">so-arm100-il</span>
+        <span class="sd">BC, DAgger and ACT-lite from scripted demonstrations on image + proprioception; dataset-size curve.</span>
+        <span class="sr">19 tests · not trained yet</span></div>
+      <div class="stepbox"><span class="sn">route 3</span><span class="st">so-arm100-vla</span>
+        <span class="sd">Language-conditioned multitask policy; seen / paraphrase / combo splits; encoder ablation; LoRA gate.</span>
+        <span class="sr">24 tests · gate measured</span></div>
+    </div>
+    <p>What the shared protocol buys: the expert's success rate is the ceiling every learned policy is read
+      against; the RL policy's drop on <code>heavy</code> physics and the imitation policy's drop on the same
+      cell are the same experiment; and "unseen paraphrase" in the language project means exactly the
+      sentences the imitation recorder refused to write.</p>
+  </div>
+</section>
+
+<section id="files">
+  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">The source files across the four repositories, with line counts, grouped by repository.</p></div>
+  <div class="stack">
+    <h3>so-arm100-sim, 3,424 lines</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <tbody>
+          <tr><td>so_arm100_sim/env.py</td><td class="num">455</td><td><code>ArmEnv</code>: four tasks, <code>state</code> (25-d) and <code>proprio</code> (15-d) observations, <code>delta</code> and <code>absolute</code> actions, 20 Hz control over 2 ms physics, success rules, termination and truncation kept apart</td></tr>
+          <tr><td>so_arm100_sim/scene.py</td><td class="num">247</td><td>Builds the tabletop with <code>MjSpec</code>: floor, three cubes, marker, three cameras, an end-effector site on the fixed jaw. Spawn box and cube size constants</td></tr>
+          <tr><td>so_arm100_sim/expert.py</td><td class="num">247</td><td><code>ScriptedExpert</code>: per-task phase machine over IK waypoints, grasp-branch resolution, Cartesian integral correction, rate limiting</td></tr>
+          <tr><td>so_arm100_sim/dr.py</td><td class="num">173</td><td><code>DRConfig</code> training ranges, <code>EVAL_PHYSICS</code> held-out cells, exact apply and restore against the vendored model</td></tr>
+          <tr><td>so_arm100_sim/vec_env.py</td><td class="num">135</td><td>N environments in N forked processes, one observation batch per step, <code>terminal_obs</code> carried on truncation</td></tr>
+          <tr><td>so_arm100_sim/evaluate.py</td><td class="num">113</td><td>The protocol: 100 episodes × 5 seeds per cell, JSON with provenance (package versions, model hash)</td></tr>
+          <tr><td>so_arm100_sim/ik.py</td><td class="num">111</td><td>Damped least-squares IK on the end-effector site, orientation down-weighted because one rotational degree is structurally unreachable on a 5-DOF arm</td></tr>
+          <tr><td>so_arm100_sim/record.py</td><td class="num">100</td><td>Records successful expert episodes as a LeRobotDataset v3 (proprio, image, absolute joint targets, instruction)</td></tr>
+          <tr><td>so_arm100_sim/instructions.py</td><td class="num">99</td><td>Five training and three held-out sentence templates per task, and the held-out (task, colour) pairs</td></tr>
+          <tr><td>so_arm100_sim/datasets.py</td><td class="num">80</td><td>LeRobotDataset writer wrapper; <code>finalize()</code> is mandatory or the parquet is corrupt</td></tr>
+          <tr><td>so_arm100_sim/render.py · gym_adapter.py</td><td class="num">96</td><td>Offscreen camera rendering; a gymnasium wrapper</td></tr>
+          <tr><td>scripts/bench_throughput.py</td><td class="num">110</td><td>1/2/4/8-process sweep bracketed by a single-process reference; refuses to certify a drifting table</td></tr>
+          <tr><td>scripts/expert_success.py · view_scene.py · record_dataset.py</td><td class="num">125</td><td>The expert's headline table; a viewer; a thin wrapper around the recorder</td></tr>
+          <tr><td>tools/reach_map.py · probe_model.py</td><td class="num">121</td><td>Where a top-down grasp is IK-reachable; measured frames of the vendored model</td></tr>
+          <tr><td>tests/ (8 files)</td><td class="num">731</td><td>63 tests: scene hash, contract, IK, expert gates, DR outside-range property, vector env, recorder</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>so-arm100-rl, 1,605 lines</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <tbody>
+          <tr><td>so_arm100_rl/ppo.py</td><td class="num">318</td><td>PPO: Gaussian actor, separate critic (2 × 256, tanh), GAE with termination and truncation distinguished, running normaliser, checkpointing, throughput monitor</td></tr>
+          <tr><td>train.py</td><td class="num">220</td><td>Entry point; chunked and resumable; curriculum and DR flags</td></tr>
+          <tr><td>export_onnx.py</td><td class="num">106</td><td>Normaliser folded into the actor's mean as one ONNX graph, verified to 1e-5 on 1,000 observations, timed on one thread</td></tr>
+          <tr><td>so_arm100_rl/curriculum.py</td><td class="num">86</td><td>Stage promotion on rolling success; steps-to-threshold bookkeeping</td></tr>
+          <tr><td>so_arm100_rl/normalizer.py</td><td class="num">72</td><td>Welford running mean and variance, frozen at evaluation and export</td></tr>
+          <tr><td>eval_gap.py · compare_gap.py</td><td class="num">88</td><td>Bench protocol on every held-out cell; nominal-trained vs DR-trained table</td></tr>
+          <tr><td>so_arm100_rl/boxcheck.py</td><td class="num">33</td><td>Refuse to start on a loaded machine</td></tr>
+          <tr><td>tests/ (7 files)</td><td class="num">263</td><td>16 tests: a hand-worked GAE case, normaliser, curriculum state machine, bit-exact resume, 2,048-step training smoke, ONNX round trip</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>so-arm100-il, 1,778 lines</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <tbody>
+          <tr><td>so_arm100_il/models.py</td><td class="num">185</td><td><code>StateMLP</code>, <code>ImagePolicy</code> (CNN → spatial soft-argmax keypoints → MLP), <code>ACTLite</code> (keypoint tokens, 2-layer encoder, 2-layer decoder, 20 queries), masked L1 loss, temporal ensembler</td></tr>
+          <tr><td>so_arm100_il/data.py</td><td class="num">153</td><td>Reads the LeRobotDataset, builds k-step action windows, split by episode, normalisation from training episodes only</td></tr>
+          <tr><td>so_arm100_il/human_video.py</td><td class="num">142</td><td>Experimental: MediaPipe hand landmarks from an overhead video to IK targets, replayed in the simulator</td></tr>
+          <tr><td>scaling.py</td><td class="num">120</td><td>Dataset-size curve: 10, 25, 50, 100, 200 episodes × 3 seeds, bench protocol</td></tr>
+          <tr><td>dagger.py</td><td class="num">111</td><td>DAgger loop: mixed control, shadow-expert labels, aggregate, retrain</td></tr>
+          <tr><td>so_arm100_il/training.py · policy.py · shadow.py</td><td class="num">189</td><td>Training loop; run-time policy wrapper; the expert running in the learner's shadow</td></tr>
+          <tr><td>train_bc.py · eval_policy.py · scripts/</td><td class="num">190</td><td>BC entry point; held-out physics evaluation; demo recorder and hand-video wrapper</td></tr>
+          <tr><td>tests/ (5 files)</td><td class="num">295</td><td>19 tests: windows, models, ensembling, shadow expert with beta = 1, hand mapping, an end-to-end record → train → evaluate smoke</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>so-arm100-vla, 2,076 lines</h3>
+    <div class="tablewrap">
+      <table class="filemap">
+        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <tbody>
+          <tr><td>so_arm100_vla/data.py</td><td class="num">223</td><td>Records every training (task, colour) combination through the bench expert with distractors on; caches frames; k-step action windows</td></tr>
+          <tr><td>smolvla_reference.py</td><td class="num">175</td><td>Zero-shot SmolVLA-base through the same protocol, inference only; <code>--dry-run</code> validates the observation mapping against a stub</td></tr>
+          <tr><td>so_arm100_vla/model.py</td><td class="num">149</td><td><code>LangPolicy</code>: CNN → FiLM → 32 keypoints, three tokens, d = 128 transformer, 10 action queries; <code>ChunkEnsembler</code></td></tr>
+          <tr><td>so_arm100_vla/text.py</td><td class="num">124</td><td><code>MiniLMEncoder</code> (frozen, cached to disk) and <code>HashEncoder</code>, both 384-d</td></tr>
+          <tr><td>train.py · eval_language.py · record_data.py</td><td class="num">255</td><td>Training with final-epoch reporting; the three splits through the bench protocol; the recorder entry point</td></tr>
+          <tr><td>lora_gate.py · so_arm100_vla/lora.py</td><td class="num">198</td><td>Times one LoRA training step on a SmolVLM-256M-shaped decoder; <code>LoRALinear</code> with exact merge and unmerge</td></tr>
+          <tr><td>so_arm100_vla/policy.py · splits.py</td><td class="num">125</td><td>Runner that carries the sentence the bench env does not know about; seen / paraphrase / combo split definitions</td></tr>
+          <tr><td>tests/ (8 files)</td><td class="num">362</td><td>24 tests: encoders, splits, windowing, shapes, ensembling, LoRA maths, SmolVLA mapping, end-to-end smoke</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose" style="font-size:.9rem;color:var(--muted)">Each repository also carries a Dockerfile, a GitHub Actions workflow, a <code>verify.sh</code> that reproduces the README from a clean checkout, and a <code>docs/ISSUES.md</code> listing its open ends. Line counts exclude the vendored arm description and images.</p>
+  </div>
+</section>
+
+<section id="bench">
+  <div class="sec-head"><span class="sec-num">04</span><h2>The bench</h2><p class="sec-sub">The tasks, the observations, the physics shifts, and the two things the scripted expert had to get right.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <h3>Four tasks, one rule each</h3>
+      <p>Control runs at 20 Hz; each control step is 25 physics steps of 2 ms. Episodes end on success or on
+        the step limit, and the two are reported separately because a value estimate has to bootstrap on one
+        and not the other.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>task</th><th>success</th><th class="num">step limit</th></tr></thead>
+        <tbody>
+          <tr><td><code>reach</code></td><td>end effector within 2 cm of a point 3 cm above the cube</td><td class="num">100</td></tr>
+          <tr><td><code>push</code></td><td>cube centre within 2.5 cm (xy) of the marker</td><td class="num">150</td></tr>
+          <tr><td><code>lift</code></td><td>cube 5 cm above its resting height <strong>and</strong> both jaws touching it</td><td class="num">150</td></tr>
+          <tr><td><code>pick_place</code></td><td>cube within 2.5 cm of the marker, on the table, released</td><td class="num">250</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>The "both jaws touching" clause exists because a cube flung upward otherwise counts as lifted.</p>
+      <h3>Two observation layouts</h3>
+      <div class="pair">
+        <dt>state, 25-d</dt><dd>Joint angles and velocities, end-effector position, active cube position, cube minus end effector, target position, jaw gap. Privileged: the policy knows where the cube is. Used by the RL project.</dd>
+        <dt>proprio, 15-d</dt><dd>Joint angles and velocities, end-effector position. What the real arm knows about itself. Anything about objects has to come from the camera image. Used by the imitation and language projects.</dd>
+      </div>
+      <p>Actions are 6-d either way: <code>delta</code> in [−1, 1] added to the previous joint target, or
+        <code>absolute</code> joint targets in radians, which is what a recorded dataset stores and what the
+        physical arm takes.</p>
+      <h3>Where the cubes may appear, and why the box is small</h3>
+      <p>The fingertip can reach almost anywhere within 0.4 m. Pointing the gripper straight down cannot,
+        because that spends the wrist pitch. <code>tools/reach_map.py</code> maps where a top-down grasp is
+        solvable to 3 mm at the height the lift task has to hold the cube (about 9 cm), and the spawn box,
+        x in ±0.10 m and y in −0.26 to −0.16 m, sits inside that region. The lift height of 5 cm was set
+        from the same map.</p>
+    </div>
+    <div class="stack prose">
+      <h3>Domain randomisation and the held-out cells</h3>
+      <p>Two things are defined here and kept apart. <code>DRConfig</code> is what a training run samples at
+        every reset. <code>EVAL_PHYSICS</code> is a fixed set of shifts a trained policy is tested on, and a
+        test asserts that every cell is outside the DR range in at least one factor.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>factor</th><th>DR range (× nominal)</th><th>held-out cell</th></tr></thead>
+        <tbody>
+          <tr><td>cube mass</td><td>0.5 – 2.0</td><td><code>heavy</code> 3.0</td></tr>
+          <tr><td>cube sliding friction</td><td>0.5 – 1.5</td><td><code>slippery</code> 0.3</td></tr>
+          <tr><td>servo gain kp</td><td>0.6 – 1.4</td><td><code>weak</code> 0.45</td></tr>
+          <tr><td>joint damping, frictionloss</td><td>0.5 – 2.0</td><td>–</td></tr>
+          <tr><td>cube half-extent</td><td>10 – 15 mm</td><td><code>small</code> 9 mm</td></tr>
+          <tr><td>action latency</td><td>0 – 2 control steps</td><td><code>laggy</code> 3</td></tr>
+          <tr><td>observation noise (rad, m)</td><td>0.005, 0.003</td><td><code>noisy</code> 3×</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>Scaling <code>kp</code> scales the position actuator's gain and position bias together and leaves the
+        velocity feedback alone, so a weaker motor is also a more damped one. That is what a weaker motor
+        does, and it is a documented choice rather than a side effect.</p>
+    </div>
+    <div class="stack prose">
+      <h3>The scripted expert, and two things a first draft got wrong</h3>
+      <p>The expert reads the cube's true pose from the simulator and moves through IK waypoints, rate limited
+        to 0.05 rad per step so the actions are smooth enough to learn from. It is a demonstrator and a
+        reference, not a controller the real arm could run. Two problems had to be solved before it worked.</p>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4>The grasp is ambiguous by 180 degrees</h4>
+        <p>A parallel jaw closing along yaw θ is the same grasp as θ + π, but only one of the two may be inside
+          the wrist-roll limit from where the arm currently is. Both branches are solved, the better one wins,
+          and the choice is held for the whole episode so the wrist does not flip halfway through the
+          approach.</p></div></div>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4>Position servos sag, so the loop had to be closed</h4>
+        <p>The actuators are plain PD with no gravity compensation. The arm settles 1 to 2 cm from the pose IK
+          asked for, more under a weakened <code>kp</code>. The expert integrates the Cartesian error near each
+          waypoint and shifts its IK target by it, with anti-windup, and only once the arm has stopped slewing.
+          A hover phase 1 cm above the cube exists so that this correction has converged before the descent.
+          Without it the open jaw landed on the cube and pushed it away instead of straddling it.</p></div></div>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Found by a test, not by a policy</span>
+      <p>The action-latency buffer held one entry too many, so every command reached the servos one step late
+        even with latency set to zero. <code>test_kp_affects_tracking</code> failed because a step command
+        produced no motion inside the step that issued it. The expert had been succeeding through the bug.
+        It is fixed, and the test stays.</p>
+    </div>
+  </div>
+</section>
+
+<section id="rl">
+  <div class="sec-head"><span class="sec-num">05</span><h2>Route 1: reinforcement learning</h2><p class="sec-sub">PPO on privileged state, a three-stage curriculum, and the nominal-versus-randomised transfer table.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <p>The RL project asks two measured questions, not one. Does training under randomised physics buy
+        success on physics outside the randomised range? And does a curriculum that starts with reaching buy
+        anything on the lifting task it is meant to help?</p>
+      <h3>The algorithm, and two places it departs from a textbook PPO</h3>
+      <p>The loop is the clipped-surrogate PPO from the author's earlier from-scratch implementation: GAE,
+        orthogonal initialisation, separate actor and critic of two 256-unit tanh layers, learning-rate
+        annealing, 8 forked environments with 128 steps each per update. Two things the cart-pole never forced
+        appear here.</p>
+    </div>
+    <div class="findings">
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4>Two kinds of episode end</h4>
+        <p>These tasks <em>terminate</em> on success, where there is no future to bootstrap, and
+          <em>truncate</em> on the step limit, where there is: the value of the state the episode stopped in,
+          which the vector env carries as <code>terminal_obs</code>. Treating a truncation as a termination
+          zeroes that bootstrap and corrupts the value target for roughly 1/(1−γ) ≈ 100 steps before every
+          step limit. A four-step test case with one of each is worked by hand.</p></div></div>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4>A running observation normaliser, frozen for evaluation</h4>
+        <p>The 25-d state mixes radians, metres and a scaled velocity, and the per-group RMS spans more than an
+          order of magnitude. A Welford running mean and variance is updated from rollouts and then frozen at
+          evaluation and export, so the policy that is measured is the policy that was trained. Actions are
+          clipped to [−1, 1] at the environment boundary while the log-probability uses the unclipped sample;
+          that is biased and common, and the saturation fraction is logged so its size stays visible.</p></div></div>
+    </div>
+    <div class="stack prose">
+      <h3>Curriculum</h3>
+      <p>Stages run reach → push → lift. Promotion happens when the rolling success over the last 100 finished
+        episodes reaches 0.8 for reach and push, or 0.6 for lift. Weights and normaliser are kept across the
+        promotion, the learning-rate anneal restarts, and the vector env swaps its task.
+        <code>--no-curriculum</code> trains lift from scratch on the same budget. What should transfer between
+        stages is the joint-space skill of putting the end effector at a point; what should not is anything
+        about contact. Whether the transferred part is worth the steps spent on reach and push is the
+        measurement.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>run</th><th>steps to lift ≥ 0.6 (rolling 100)</th><th>final eval success</th><th class="num">seeds</th></tr></thead>
+        <tbody>
+          <tr><td>curriculum</td><td>not yet measured</td><td>not yet measured</td><td class="num">3</td></tr>
+          <tr><td>from scratch</td><td>not yet measured</td><td>not yet measured</td><td class="num">3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <h3>The transfer table</h3>
+      <p><code>--dr full</code> samples the bench's ranges at every reset; <code>--dr none</code> trains on the
+        vendored model as is. Both policies are then run on every held-out cell, plus a <code>dr</code> cell
+        with in-range sampling, which is the DR policy's home ground. Each cell is 100 episodes × 5 seeds.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>physics</th><th>nominal-trained</th><th>DR-trained</th><th>delta</th></tr></thead>
+        <tbody>
+          <tr><td>nominal</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>heavy (mass 3×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>slippery (friction 0.3×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>weak (kp 0.45×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>laggy (3 steps)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>noisy (3× obs noise)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>small (9 mm)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>dr (in-range)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr class="hl"><td><strong>mean drop vs own nominal</strong></td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>A smaller mean drop for the DR policy would be evidence that randomising <em>these</em> factors
+        transfers to shifts in <em>these</em> factors. It would say nothing about the physical SO-ARM100, whose
+        unmodelled effects (backlash, cable friction, camera latency) are in neither column. The scripted
+        expert's own numbers on the same cells, from the bench, are the ceiling to read the table against.</p>
+      <h3>Checkpoints and export</h3>
+      <p>Runs are chunked and resumable. The checkpoint carries model, optimiser, normaliser, RNG and
+        curriculum state, and a test asserts that two updates after a reload equal two updates without one,
+        bit for bit. The throughput monitor warns when the rolling env-steps/s drops more than 20% below the
+        first five updates; the machine cannot read its own temperature and CPU contention looks identical,
+        so the warning says to check both. Export folds the normaliser into the actor's mean as one ONNX graph
+        that takes raw observations, verified against PyTorch to 1e-5 on 1,000 random observations before any
+        latency is quoted.</p>
+    </div>
+    <pre><code>nice -n 10 python train.py --task lift --curriculum    --dr none --out runs/lift_cur_nominal --seed 0
+nice -n 10 python train.py --task lift --curriculum    --dr full --out runs/lift_cur_dr      --seed 0
+nice -n 10 python train.py --task lift --no-curriculum --dr none --out runs/lift_scr_nominal --seed 0
+python eval_gap.py --ckpt runs/lift_cur_nominal/policy.pt --task lift --tag nominal
+python eval_gap.py --ckpt runs/lift_cur_dr/policy.pt      --task lift --tag dr
+python compare_gap.py runs/gap_nominal.json runs/gap_dr.json</code></pre>
+  </div>
+</section>
+
+<section id="il">
+  <div class="sec-head"><span class="sec-num">06</span><h2>Route 2: imitation</h2><p class="sec-sub">Behaviour cloning, DAgger and a chunked transformer from scripted demonstrations, and the question of how many demonstrations each needs.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <p>Imitation is the route physical arms mostly take: no reward shaping, no privileged state, a few hundred
+        demonstrations and a camera. Here the policy sees what the real arm would see, the 15-d proprioception
+        vector and a 96 × 128 front-camera image, and nothing else.</p>
+      <h3>The expert plays two roles</h3>
+      <div class="pair">
+        <dt>demonstrator</dt><dd>Successful expert episodes are written as a LeRobotDataset v3: proprio, front image, the expert's absolute joint targets as the action, and an instruction drawn from the training templates only.</dd>
+        <dt>oracle</dt><dd>DAgger needs a label at states the learner visits, which a human demonstrator cannot give after the fact. A scripted expert can: asked at any state, it returns what it would do from there, its phase machine advancing on the true state. A test checks that with the mixing coefficient at 1 the labels equal what the expert alone would have done.</dd>
+      </div>
+    </div>
+    <div class="stack prose">
+      <h3>Three models, one loss</h3>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>model</th><th>input</th><th>output</th><th>why it is there</th></tr></thead>
+        <tbody>
+          <tr><td><code>StateMLP</code></td><td>15-d proprio</td><td>1 action</td><td>The floor. Proprioception alone cannot locate the cube; this is the number the image models must beat.</td></tr>
+          <tr><td><code>ImagePolicy</code></td><td>image + proprio</td><td>1 action</td><td>A small CNN ending in a spatial soft-argmax over 16 keypoint channels. The last layer <em>is</em> a coordinate, so position is handed to the network rather than learned. Keypoints and proprio feed an MLP.</td></tr>
+          <tr><td><code>ACTLite</code></td><td>image + proprio</td><td>chunk of 20 actions</td><td>ACT without the variational latent: keypoint tokens and a proprio token through a 2-layer encoder, 20 learned queries through a 2-layer decoder. Overlapping chunks are blended at run time.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>All three train with L1 on normalised actions. Mean-squared error fits the conditional mean, and when
+        demonstrations are multimodal (two valid grasp yaws, two ways round a cube) the mean is a third,
+        invalid action. L1 fits the conditional median, which is one of the modes, and it is what ACT trains
+        with. Padded chunk entries are masked. Normalisation statistics come from the training episodes only
+        and travel with the checkpoint. The split is by episode, never by frame, and the final epoch is
+        reported rather than the best one on validation.</p>
+      <h3>The experiments</h3>
+      <p><strong>Scaling curve.</strong> For 10, 25, 50, 100 and 200 episodes and three seeds each, train on
+        the first <em>n</em> episodes and evaluate with the bench protocol. Every seed sees the same first
+        episodes, so seeds differ only in initialisation and shuffling.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th class="num">episodes</th><th>state</th><th>image</th><th>act</th></tr></thead>
+        <tbody>
+          <tr><td class="num">10</td><td>not yet measured</td><td>not yet measured</td><td>not yet measured</td></tr>
+          <tr><td class="num">25</td><td></td><td></td><td></td></tr>
+          <tr><td class="num">50</td><td></td><td></td><td></td></tr>
+          <tr><td class="num">100</td><td></td><td></td><td></td></tr>
+          <tr><td class="num">200</td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p><strong>DAgger.</strong> Mixing coefficient β<sub>i</sub> = 0.5 · 0.5<sup>i</sup>, 20 rollouts per
+        iteration, labels from the shadow expert, retrain from scratch on the aggregate, five iterations. The
+        comparison is BC on the same 200 demonstrations.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th></th><th>BC, 200 demos</th><th>DAgger, 200 demos + 100 relabelled rollouts</th></tr></thead>
+        <tbody><tr><td>lift, nominal</td><td>not yet measured</td><td>not yet measured</td></tr></tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p><strong>Held-out physics.</strong> The best image policy on every <code>EVAL_PHYSICS</code> cell,
+        100 episodes × 5 seeds. The demonstrations were recorded on nominal physics, so this is a transfer
+        table, and the expert's own table from the bench is the reference column.</p>
+      <h3>Experimental: demonstrations from a hand video</h3>
+      <p>MediaPipe Hand Landmarker on an overhead phone video; wrist position maps to a point in the spawn
+        box, thumb-to-index pinch distance to jaw angle and a two-level height; the bench's IK turns that into
+        joint targets, and the targets are replayed in the simulator. The video supplies the motion, the
+        simulator supplies everything the policy sees. It has run on synthetic landmarks only and has not been
+        validated on a real recording. The page says so because the repository does.</p>
+    </div>
+    <pre><code>python scripts/record_demos.py --root data/lift_red --repo-id local/so_arm100_lift_red --tasks lift:red --episodes 200
+nice -n 10 python scaling.py --root data/lift_red --repo-id local/so_arm100_lift_red --task lift:red --model image --sizes 10 25 50 100 200 --seeds 3
+nice -n 10 python dagger.py  --root data/lift_red --repo-id local/so_arm100_lift_red --task lift:red --model image --iters 5 --rollouts 20 --out runs/dagger_image_lift.pt
+python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/eval_bc_image_lift.json</code></pre>
+  </div>
+</section>
+
+<section id="vla">
+  <div class="sec-head"><span class="sec-num">07</span><h2>Route 3: language</h2><p class="sec-sub">A small policy that reads a sentence, and three held-out splits that test whether it read it or memorised it.</p></div>
+  <div class="stack-lg">
+    <div class="stack prose">
+      <p>The interesting property of a vision-language-action model is that one policy follows language across
+        tasks and objects and generalises to phrasings and combinations it was not trained on. That property
+        can be tested at about one million parameters on a laptop CPU with a real held-out protocol. What
+        cannot be tested here is scale, and the repository does not pretend otherwise.</p>
+      <h3>What the policy is</h3>
+      <p>Three tokens go into a 128-wide, 2-layer transformer encoder: a frozen 384-d sentence embedding, 32
+        image keypoints from a small CNN, and the arm's proprioception. Ten learned queries go through a
+        2-layer decoder and come out as a chunk of ten joint-target vectors, blended at run time as chunks
+        overlap. Before the keypoints are pooled, the sentence embedding produces a per-channel scale and
+        shift on the image features (FiLM), so "the blue cube" can sharpen blue before position is read
+        out. Training is L1 on normalised actions over a few thousand expert frames covering four tasks and
+        three colours, all three cubes always on the table.</p>
+      <h3>What it is not</h3>
+      <p>It is not a foundation model and it does not fine-tune one. SmolVLA-base appears as a zero-shot
+        calibration line, inference only. A LoRA fine-tune of a SmolVLM-sized network is gated on a measured
+        compute check and is future work even where the gate passes.</p>
+      <h3>The three splits</h3>
+      <p>Sentences and (task, colour) pairs come from the bench's instruction module, so "unseen" means the
+        same sentences the imitation recorder never writes. There are five training and three held-out
+        templates per task, for example training "pick up the {c} cube" and held-out "hoist the {c} block".
+        Nine of the twelve (task, colour) pairs are used in training; <code>lift:blue</code>,
+        <code>push:red</code> and <code>pick_place:green</code> are held out.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>split</th><th>templates</th><th>(task, colour) pairs</th><th>what success shows</th></tr></thead>
+        <tbody>
+          <tr><td><code>seen</code></td><td>training</td><td>training (9 of 12)</td><td>the policy executes what it was shown</td></tr>
+          <tr><td><code>paraphrase</code></td><td><strong>held out</strong></td><td>training</td><td>the instruction is read through the encoder, not matched as a string</td></tr>
+          <tr><td><code>combo</code></td><td>training</td><td><strong>held out</strong> (3 of 12)</td><td>colour and task compose; every task and colour was seen, never together</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>split</th><th>success</th><th>± over seeds</th><th>reach</th><th>push</th><th>lift</th><th>pick_place</th></tr></thead>
+        <tbody>
+          <tr><td>seen</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>paraphrase</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>combo</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <h3>Does the language model matter? An ablation with a control</h3>
+      <p>Two encoders produce the same 384-d shape. MiniLM (<code>all-MiniLM-L6-v2</code>, 22M parameters,
+        frozen) is a sentence model that should place "hoist the blue block" near "lift the blue cube". A
+        hashed bag of words and bigrams has no parameters and no semantics; "hoist" and "lift" land in
+        unrelated buckets. If the hashed policy scores as well as MiniLM on <code>paraphrase</code>, the split
+        was not testing language understanding. If MiniLM wins there and ties on <code>seen</code>, the
+        difference is the encoder's contribution and nothing else, because policy, data and seeds are
+        identical. A third row removes FiLM, leaving language as a token only.</p>
+    </div>
+    <div class="note key">
+      <span class="note-label">One thing already measured about the encoder</span>
+      <p>Cosine similarities of MiniLM embeddings on these templates, recorded by a test rather than asserted
+        away: "lift the green cube" is 0.59 from its paraphrase "raise the green block into the air" and 0.38
+        from "hoist the green block", but 0.63 from "push the red cube to the target" and 0.82 from "lift the
+        blue cube". The encoder is driven by shared surface words, and the colour word moves the embedding
+        very little. So the <code>paraphrase</code> split is hard for a reason that sits in the encoder, and
+        the <code>combo</code> split asks the policy to read colour out of a small difference between two
+        nearly parallel vectors. Whether FiLM on the image features is enough to do that is what the ablation
+        measures.</p>
+    </div>
+    <div class="stack prose">
+      <h3>SmolVLA-base, zero-shot, same simulator</h3>
+      <p><code>lerobot/smolvla_base</code> was pretrained on community SO-100/101 data: real arms, real
+        cameras, motor units. Here it receives a rendered 96 × 128 frame letterboxed to its 512 × 512 input,
+        six joint angles in radians zero-padded to its state width, and the instruction. Nothing is adapted
+        and the expected result is low. It is a calibration line, not a comparison of capability: different
+        embodiment statistics, camera placement, units and control rate make it evidence about this protocol,
+        not about SmolVLA. A dry-run mode validates the observation mapping against a stub with the same
+        feature keys, so the test suite covers it without the download.</p>
+      <h3>The LoRA gate</h3>
+      <p>Before proposing a fine-tune, measure whether one step of it is affordable. The gate builds a decoder
+        with SmolVLM-256M's language-model shape (hidden 576, 30 layers, 9 heads, MLP 1536), attaches rank-8
+        LoRA to the query and value projections, and times one forward-backward-optimiser step at batch 1,
+        sequence 256, on 8 threads. The rule was fixed before measuring: go under 5 s per step, otherwise
+        no-go. At 5 s per step, 2,000 steps is 2.8 hours, the most a chunked, attended CPU run can carry.</p>
+      <p>Measured: a stand-in of 176.7M parameters with 0.55M trainable (0.31%), <strong>0.51 s per step on
+        8 threads</strong>, best of two, so the gate passes and 2,000 steps would be about 0.3 h. The gate
+        times the language-model half only; the real SmolVLA action expert adds a vision tower and a
+        flow-matching head that were not timed. A pass says a fine-tune is affordable to try, not that it
+        would help.</p>
+    </div>
+    <pre><code>python record_data.py --root data/multitask --episodes 20            # ~10 min of software rendering
+nice -n 10 python train.py --root data/multitask --encoder minilm --epochs 30
+nice -n 10 python train.py --root data/multitask --encoder hash   --epochs 30
+python eval_language.py --ckpt runs/policy_minilm_s0.pt --episodes 100 --seeds 5
+python smolvla_reference.py --run --episodes 10
+OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
+  </div>
+</section>
+
+<section id="measured">
+  <div class="sec-head"><span class="sec-num">08</span><h2>What is measured so far, and what is not</h2><p class="sec-sub">The facts that exist today, the development readings that are explicitly not results, and the tables still waiting for an idle machine.</p></div>
+  <div class="stack-lg">
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>repository</th><th class="num">tests</th><th>what they pin down</th><th>CI</th></tr></thead>
+        <tbody>
+          <tr><td>so-arm100-sim</td><td class="num">63</td><td>vendored model hash, observation and action contract, IK, expert success gates, every held-out cell outside the DR range, vector env, recorder</td><td>green, Python 3.10 and 3.12</td></tr>
+          <tr><td>so-arm100-rl</td><td class="num">16</td><td>GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip</td><td>green</td></tr>
+          <tr><td>so-arm100-il</td><td class="num">19</td><td>action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke</td><td>green</td></tr>
+          <tr><td>so-arm100-vla</td><td class="num">24</td><td>both encoders, splits, windowing, shapes, chunk ensembling, LoRA identity-at-init and exact merge, SmolVLA mapping, end-to-end smoke</td><td>green</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <h3>Measured facts</h3>
+      <ul class="tight">
+        <li>The latency-buffer off-by-one in the bench, found by a tracking test and fixed.</li>
+        <li>MiniLM cosine similarities on the instruction templates, above: paraphrases are further apart than
+          sentences that share surface words.</li>
+        <li>The LoRA gate: 0.51 s per step on 8 threads for a 176.7M-parameter stand-in, rule fixed before
+          measuring.</li>
+        <li>The cost of an image-policy evaluation cell: about 17 minutes for 100 episodes × 5 seeds at
+          roughly 20 ms per software-rendered frame. It bounds the imitation and language tables, not the
+          models.</li>
+        <li>Bare <code>mj_step</code> on this arm model at about 18 µs single-process during development,
+          roughly 2,200 env-steps/s per process before any Python overhead. A development reading, not the
+          throughput table.</li>
+      </ul>
+      <h3>Development readings that are not the reference</h3>
+      <p>The expert's success gates in the bench tests were set from 30 episodes and one seed: reach 1.00
+        everywhere; lift 0.93 nominal, 0.87 small, 0.97 weak, 0.93 heavy; push 0.83, 0.80, 0.77, 0.80;
+        pick_place 0.93, 0.80, 0.93, 0.90. The gates sit below those, at 0.95, 0.75, 0.65 and 0.75. The
+        100 × 5 table replaces these when it is measured, and until then they are what the tests hold the
+        expert to, not a published result.</p>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Not yet measured</span>
+      <p>The expert success table, the throughput sweep, the curriculum comparison, the nominal-versus-DR
+        transfer table, the ONNX latency, the imitation scaling curve, the DAgger comparison, the held-out
+        physics table for the image policies, the three language splits, the encoder ablation, and the
+        SmolVLA reference line. Each has a script and a JSON path named next to it in the repositories, and
+        each is filled from that JSON. None is typed in.</p>
+    </div>
+  </div>
+</section>
+
+<section id="limits">
+  <div class="sec-head"><span class="sec-num">09</span><h2>Limits, stated</h2><p class="sec-sub">What these four repositories cannot show, regardless of what the tables end up saying.</p></div>
+  <div class="stack prose">
+    <ul class="tight">
+      <li><strong>Simulation only.</strong> No number is a claim about the physical SO-ARM100. Backlash, cable
+        friction and camera latency are in none of the columns.</li>
+      <li><strong>Fixed cameras.</strong> Front, side and top; no wrist camera yet. That is an open issue in
+        three of the four repositories.</li>
+      <li><strong>Three cubes of three colours, one active at a time.</strong> Nothing about clutter, occlusion
+        or multi-object reasoning.</li>
+      <li><strong>The expert is a script.</strong> A policy that imitates an IK script inherits the script's
+        style and its failure modes; it re-aims a push but cannot recover a cube that has yawed off the line.</li>
+      <li><strong>Language is templated.</strong> Negation, spatial relations and counting are outside the set.</li>
+      <li><strong>The RL policy is state-based.</strong> It sees the cube's true position; image-based control
+        is the other two projects' problem.</li>
+      <li><strong>The DR ranges and held-out cells are one choice.</strong> A different choice gives a different
+        table.</li>
+      <li><strong>CPU budget.</strong> Eight threads, chunked attended runs, software rendering at about 20 ms
+        per frame. Model sizes and dataset sizes were chosen to fit that, and the throughput monitor cannot
+        tell power limiting from another process on the machine.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="run">
+  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">Setup for the bench and for the three policy repositories, and the order the commands go in.</p></div>
+  <div class="stack">
+    <h3>The bench</h3>
+    <pre><code>git clone https://github.com/AungKaung1928/so-arm100-sim.git
+cd so-arm100-sim
+python3 -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]"              # mujoco + numpy + pytest
+./verify.sh                          # tests, camera PNGs, then prints the two measurement commands
+
+python scripts/expert_success.py --episodes 100 --seeds 5      # -> runs/expert_success.json, one core
+nice -n 10 python scripts/bench_throughput.py                  # -> runs/throughput.json, loads the machine</code></pre>
+    <h3>The three policy repositories (Python ≥ 3.12, because of lerobot)</h3>
+    <pre><code>git clone https://github.com/AungKaung1928/so-arm100-rl.git     # or -il, -vla
+cd so-arm100-rl
+python3 -m venv .venv && . .venv/bin/activate
+pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt      # installs the bench from its v0.1.0 tag
+pip install -e .
+./verify.sh                          # tier 1 tests in under a minute; tiers 2-4 print the long commands</code></pre>
+    <div class="prose stack">
+      <p>Optional extras on the bench: <code>.[lerobot]</code> for the dataset writer, <code>.[gym]</code> for
+        the gymnasium adapter, <code>.[image]</code> for PNG output. Rendering needs a GL context:
+        <code>MUJOCO_GL=glfw</code> with a display, or <code>egl</code> / <code>osmesa</code> headless. Tests
+        that render skip cleanly without one. Each repository also builds as a Docker image that runs the
+        offline tests: <code>docker build -t so-arm100-sim . && docker run --rm so-arm100-sim</code>.</p>
+      <p>Every training script refuses to start on a loaded machine, runs chunked with <code>--resume</code>,
+        and logs its throughput so a drop is visible. The CPU-only pins on torch and torchvision matter: an
+        unpinned install pulls the CUDA build, which is several gigabytes and fails to import inside lerobot
+        on a machine without a GPU.</p>
+      <h3>Licences</h3>
+      <p>MIT for the code in all four repositories. The arm description under
+        <code>so_arm100_sim/assets/trs_so_arm100/</code> is from MuJoCo Menagerie, Apache-2.0, vendored
+        unchanged from commit <code>822c2d8</code>.</p>
+      <h3>Measured environment</h3>
+      <p>Intel Core Ultra 5 225H, 14 cores, no hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2,
+        Ubuntu 22.04, Python 3.12.14, MuJoCo 3.13.0, torch 2.11.0 CPU, lerobot 0.6.1, software rendering
+        through WSLg. No CUDA anywhere.</p>
+    </div>
+  </div>
+</section>
+
+<section id="summary" style="border-bottom:0">
+  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The four repositories in one paragraph.</p></div>
+  <div class="stack prose">
+    <p>Four repositories teach a simulated SO-ARM100 to reach, push, lift and place a cube. The first is a bench:
+      the Menagerie arm untouched, a tabletop attached through MjSpec, four tasks with one success rule each,
+      a scripted IK expert that had to resolve a 180-degree grasp ambiguity and close the loop on servos that
+      sag 1 to 2 cm, domain-randomisation ranges, six held-out physics cells each proven outside those ranges,
+      and one evaluation protocol of 100 episodes × 5 seeds. The other three learn on it in three ways. PPO on
+      privileged state with a reach → push → lift curriculum, trained with and without randomisation and
+      tested on the held-out cells, with truncation and termination kept apart in the value target. Behaviour
+      cloning, DAgger with the scripted expert as oracle, and a chunked transformer, all from a camera image
+      and proprioception, on a dataset-size curve from 10 to 200 demonstrations. And a one-million-parameter
+      language-conditioned policy with a frozen MiniLM encoder modulating the image features, tested on
+      held-out paraphrases and held-out task-colour pairs against a hashed-words control, with SmolVLA-base as
+      a zero-shot calibration line and a LoRA fine-tune gated on a step timing that came in at 0.51 s. All of
+      it is written, 122 tests are green, and every results table is empty on purpose until the measurement
+      phase fills it from a script.</p>
+  </div>
+</section>
+
+</main>
+
+<hr class="rule">
+<footer class="wrap">
+  Built from the source in <code>so-arm100-sim</code>, <code>so-arm100-rl</code>, <code>so-arm100-il</code>
+  and <code>so-arm100-vla</code>: their <code>README.md</code> files, <code>docs/ISSUES.md</code>,
+  <code>verify.sh</code>, and the packages <code>so_arm100_sim</code>, <code>so_arm100_rl</code>,
+  <code>so_arm100_il</code> and <code>so_arm100_vla</code>.
+</footer>
+
+<script>
+(function(){
+  var bar=document.querySelector('.progress i');
+  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
+  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var queued=false;
+  function paint(){
+    queued=false;
+    var d=document.documentElement;
+    var max=d.scrollHeight-d.clientHeight;
+    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
+    var cur=0;
+    for(var i=0;i<secs.length;i++){
+      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
+    }
+    for(var j=0;j<links.length;j++){
+      if(j===cur) links[j].setAttribute('aria-current','true');
+      else links[j].removeAttribute('aria-current');
+    }
+  }
+  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
+  addEventListener('scroll',tick,{passive:true});
+  addEventListener('resize',tick);
+  paint();
+})();
+</script>
+
+</body>
+</html>

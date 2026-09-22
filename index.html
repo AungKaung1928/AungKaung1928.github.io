@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Aung Kaung Myat — Robotics Software Engineer</title>
-    <meta name="description" content="Robotics software engineer — ROS2, C++ and LiDAR perception on real mobile robots at work; personal projects on learned perception and control, sim-to-real, and ROS2 manipulation.">
+    <meta name="description" content="Robotics software engineer. ROS2, C++ and LiDAR perception on real mobile robots at work; personal projects in robot learning: legged balance, arm manipulation by RL, imitation and language, a bit-identical C++ simulation backend, edge-ready detection.">
     <meta name="author" content="Aung Kaung Myat">
     <link rel="canonical" href="https://aungkaung1928.github.io/">
 
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://aungkaung1928.github.io/">
     <meta property="og:title" content="Aung Kaung Myat — Robotics Software Engineer">
-    <meta property="og:description" content="ROS2 and LiDAR perception on real mobile robots at work; personal projects on learned perception and control, sim-to-real, ROS2 manipulation.">
+    <meta property="og:description" content="ROS2 and LiDAR perception on real mobile robots at work; personal projects in robot learning: legged balance, arm manipulation, a bit-identical C++ simulation backend, edge-ready detection.">
     <meta property="og:image" content="https://aungkaung1928.github.io/profile.jpg">
     <meta name="twitter:card" content="summary">
 
@@ -87,7 +87,7 @@
                             </picture>
                         </div>
 
-                        <p class="eyebrow">Robot Learning · Manipulation · Physical AI</p>
+                        <p class="eyebrow">Robot Learning · Sim-to-Real · Physical AI</p>
 
                         <h1 class="hero-title">Robotics Software Engineer</h1>
                         <p class="hero-desc">Real robots at work; learned perception and control in the projects here, measured against classical baselines</p>
@@ -131,7 +131,7 @@
                     <dl class="spec-list">
                         <div class="spec-row">
                             <dt>Current Focus</dt>
-                            <dd>Robot learning on CPU — detection, pose regression, RL policies · Sim-to-real method: domain randomisation, system identification, ONNX export · ROS2 manipulation with MoveIt2</dd>
+                            <dd>Robot learning on CPU: a biped balance policy, arm manipulation by RL, imitation and language, a detector quantised to INT8 · Sim-to-real method: domain randomisation, held-out physics, system identification, ONNX export · A C++ simulation backend proven bit-identical to its Python reference</dd>
                         </div>
                         <div class="spec-row">
                             <dt>Career Goal</dt>
@@ -151,15 +151,15 @@
                 <div class="skills-grid">
                     <div class="skill-category">
                         <h3>Core</h3>
-                        <ul><li>ROS2 (Humble)</li><li>C++</li><li>Python</li><li>Linux</li><li>Docker</li></ul>
+                        <ul><li>ROS2 (Humble)</li><li>C++17</li><li>Python</li><li>Linux</li><li>Docker</li><li>CMake</li></ul>
                     </div>
                     <div class="skill-category">
                         <h3>Robot Learning</h3>
-                        <ul><li>PPO</li><li>LQR</li><li>Domain randomisation</li><li>System identification</li><li>Sim-to-real transfer</li></ul>
+                        <ul><li>PPO</li><li>Imitation learning</li><li>Language-conditioned policies</li><li>Domain randomisation</li><li>System identification</li><li>Sim-to-real transfer</li></ul>
                     </div>
                     <div class="skill-category">
                         <h3>ML / DL</h3>
-                        <ul><li>PyTorch</li><li>CNN</li><li>Object detection</li><li>Pose regression</li><li>ONNX Runtime</li></ul>
+                        <ul><li>PyTorch</li><li>CNN</li><li>Object detection</li><li>INT8 quantisation</li><li>ONNX Runtime</li></ul>
                     </div>
                     <div class="skill-category">
                         <h3>Perception</h3>
@@ -187,91 +187,61 @@
                 <div class="projects-grid">
                     <article class="project-card">
                         <div class="project-index">01</div>
-                        <h3>Tabletop Clutter Detector</h3>
-                        <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>MuJoCo</li><li>ONNX Runtime</li></ul>
+                        <h3>Microduck Balance and Push Recovery</h3>
+                        <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>ONNX</li></ul>
                         <ul class="project-points">
-                            <li>Anchor-free detector for 3&ndash;6 overlapping objects on a table; every box read straight out of the renderer's segmentation buffer, so no label is hand-drawn</li>
-                            <li>mAP@[.5:.95] of 0.911 against a fitted classical pipeline's 0.532 &mdash; with COCO mAP implemented from scratch and unit-tested rather than imported</li>
-                            <li>1.20 ms per image through ONNX Runtime on 8 CPU threads, 1.8&times; faster than the classical baseline it beats</li>
+                            <li>Balance-and-recover policy for a 25 cm, 14-servo open-source biped, trained with PPO in CPU MuJoCo, no GPU anywhere in the stack; the observation is only what the real robot's sensors report</li>
+                            <li>Reward rebuilt from measurement, not taste: three of four penalties were under 0.25% of the return and were dropped or reweighted; the PD hold-pose baseline scores 175.2 &plusmn; 3.1 of 500 under the new reward</li>
+                            <li>PPO after the first 25M of 50M steps: 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2, trunk up 74% vs 47% of the time, 100 episodes &times; 5 seeds; no push knocked the learned policy over, so standing back up is still unmeasured; the return plateaued near 8M steps with the clip fraction at 0.7, and the loop ran at 3,300 env-steps/s, a quarter of the budgeted rate; the README says why</li>
                         </ul>
                         <div class="project-links">
-                            <a href="projects/clutter-detect.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/microduck-rl.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
                     <article class="project-card">
                         <div class="project-index">02</div>
-                        <h3>PPO vs LQR on Cart-Pole</h3>
-                        <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>NumPy</li><li>MuJoCo</li></ul>
+                        <h3>Threaded C++ MuJoCo Backend, Bit-Identical</h3>
+                        <ul class="project-tech"><li>C++17</li><li>MuJoCo</li><li>pybind11</li><li>CMake</li></ul>
                         <ul class="project-points">
-                            <li>PPO written from first principles &mdash; no gymnasium, no baselines library &mdash; against an LQR controller solved from the linearised physics</li>
-                            <li>16 seeds reported as median and IQR, plus ablations on GAE, advantage normalisation and ratio clipping, each judged by a permutation test</li>
-                            <li>LQR solves at zero sample cost; PPO needs a median 62,144 environment steps and ends with a smaller basin of attraction &mdash; reported where the learned policy loses, not only where it wins</li>
+                            <li>The Microduck environment ported to C++17: one model copy per environment, N environments on T threads of one process, and a drop-in vector env that runs the Python PPO loop unchanged</li>
+                            <li>6,275 of 6,275 observations bit-identical to the Python environment over 25 episodes, by reproducing numpy's pairwise sum, Python's libm <code>pow</code> and a float32 scale constant; tested on every commit under ASan, UBSan and TSan</li>
+                            <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s, alternated in the same run), and the comparison exposed that the Python budget had never counted its inter-process round trip</li>
                         </ul>
                         <div class="project-links">
-                            <a href="projects/ppo-from-scratch.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
                     <article class="project-card">
                         <div class="project-index">03</div>
-                        <h3>Microduck Locomotion on CPU</h3>
-                        <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>ONNX</li></ul>
+                        <h3>SO-ARM100 Manipulation with RL, Imitation and Language</h3>
+                        <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>LeRobot</li></ul>
                         <ul class="project-points">
-                            <li>Balance-and-recover policy for a 25 cm, 14-servo open-source biped, trained in MuJoCo with no GPU anywhere in the stack</li>
-                            <li>Feasibility measured before any training was committed: 13,300 sustained env-steps/s across 8 processes, after three earlier figures turned out to be short bursts</li>
-                            <li>48-dimensional observation contract fixed and a PD hold-pose baseline measured at 108.7 &plusmn; 2.9 of 500 for the policy to beat; training is the next step</li>
+                            <li>One shared MuJoCo bench (four tasks, scripted IK expert, domain randomisation, six held-out physics settings, 100 episodes &times; 5 seeds) feeds three policy repos: curriculum PPO, imitation from BC through DAgger to ACT, and a language-conditioned multitask policy</li>
+                            <li>Language generalisation is scored on held-out paraphrases and on task&ndash;colour pairs never seen together, with SmolVLA-base zero-shot in the same simulator as a reference line</li>
+                            <li>Code complete, 63 bench tests plus three test suites green in CI; every results table is marked not yet measured and the training runs are the next step, stated on the page rather than implied</li>
                         </ul>
                         <div class="project-links">
-                            <a href="projects/microduck-rl-cpu.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/microduck-rl-cpu" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/so-arm100.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/so-arm100-rl" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
                     <article class="project-card">
                         <div class="project-index">04</div>
-                        <h3>Cube Pose Regression CNN</h3>
-                        <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>MuJoCo</li><li>OpenCV</li></ul>
+                        <h3>Tabletop Clutter Detector, INT8 on One Thread</h3>
+                        <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>MuJoCo</li><li>ONNX Runtime</li></ul>
                         <ul class="project-points">
-                            <li>Planar pose (x, y, yaw) of a cube recovered from a single 128&times;128 render, with a hand-written OpenCV baseline measured first so the network has something to beat</li>
-                            <li>A spatial soft-argmax head reaches 0.59 mm median error with 27k parameters &mdash; 5&times; smaller and more accurate than the 130k flatten head</li>
-                            <li>Calibrating one scalar removed a systematic +2.98 mm radial bias from the classical baseline and closed 53% of the gap for free &mdash; the reason the baseline is refitted, not dismissed</li>
+                            <li>Anchor-free detector for 3&ndash;6 overlapping objects on a table; every box read straight out of the renderer's segmentation buffer, so no label is hand-drawn</li>
+                            <li>mAP@[.5:.95] of 0.911 against a fitted classical pipeline's 0.532, with COCO mAP implemented from scratch and unit-tested rather than imported; 1.20 ms per image through ONNX Runtime on 8 threads</li>
+                            <li>Step 6, INT8 and pruning: static INT8 with minmax calibration gives 1.38 ms on one thread (2.6&times; fp32, under the classical 2.13 ms) at mAP 0.910 vs 0.911; structured pruning was the wrong tool, half the channels cost 0.065 mAP for 2.42 ms, so INT8 alone is what would ship; one mAP-versus-latency curve at one thread holds every graph</li>
                         </ul>
                         <div class="project-links">
-                            <a href="projects/cube-pose-cnn.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
-                        </div>
-                    </article>
-
-                    <article class="project-card">
-                        <div class="project-index">05</div>
-                        <h3>MoveIt2 Pick &amp; Place Demo</h3>
-                        <ul class="project-tech"><li>Python</li><li>C++</li><li>MoveIt2</li><li>ROS2</li><li>Franka Panda</li></ul>
-                        <ul class="project-points">
-                            <li>7-DOF Franka Panda clears seven balls from a table using only what the camera detects &mdash; no grasp pose is hard-coded anywhere in the loop</li>
-                            <li>Simulated camera &rarr; HSV detection &rarr; C++ reachability validator &rarr; state machine, so an unreachable target is rejected before the planner is ever asked</li>
-                            <li>Cartesian-first execution with OMPL RRTConnect as fallback, action-server verification at startup, and recovery to a known state when planning fails</li>
-                        </ul>
-                        <div class="project-links">
-                            <a href="projects/moveit-pickplace.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
-                        </div>
-                    </article>
-
-                    <article class="project-card">
-                        <div class="project-index">06</div>
-                        <h3>Fleet Monitoring System</h3>
-                        <ul class="project-tech"><li>Python</li><li>ROS2</li><li>Kafka</li><li>Docker</li></ul>
-                        <ul class="project-points">
-                            <li>Distributed multi-robot telemetry pipeline: ROS2 &rarr; Kafka &rarr; QuestDB time-series database</li>
-                            <li>Simulates production fleet infrastructure with multiple TurtleBot3 robots in Gazebo</li>
-                            <li>Containerised stack with Docker; real-time dashboard over the PostgreSQL wire protocol</li>
-                        </ul>
-                        <div class="project-links">
-                            <a href="projects/fleet-monitoring.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/clutter-detect.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
                 </div>

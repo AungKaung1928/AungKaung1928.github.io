@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Walkthroughs — Aung Kaung Myat</title>
-<meta name="description" content="Long-form walkthroughs of five robotics and robot-learning projects: what each one does, how the code is arranged, what was measured, and what it does not prove.">
+<meta name="description" content="Long-form walkthroughs of eight robotics and robot-learning projects: what each one does, how the code is arranged, what was measured, and what it does not prove.">
 <meta name="author" content="Aung Kaung Myat">
 <link rel="canonical" href="https://aungkaung1928.github.io/projects/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://aungkaung1928.github.io/projects/">
 <meta property="og:title" content="Project Walkthroughs — Aung Kaung Myat">
-<meta property="og:description" content="Five robotics and robot-learning projects explained end to end: architecture, every file, the measurements, and the stated limits.">
+<meta property="og:description" content="Eight robotics and robot-learning projects explained end to end: architecture, every file, the measurements, and the stated limits.">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2337424a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
@@ -116,6 +116,51 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
     </div>
     <div class="cards">
 
+      <article class="card" style="--h:#8c6e33">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>Microduck Balance and Push Recovery</h3>
+            <span class="repo">microduck-rl</span></div>
+          <p>A balance-and-recover policy for a 25 cm, 14-servo biped, trained with PPO in CPU MuJoCo. The page follows the project in order: a throughput figure that had to be corrected five times, a 48-dimensional observation built only from what the real sensors report, a reward rebuilt from measurement, a PD baseline of 175.2 of 500 to beat, and the first 25M-step training chunk with its evaluation. Domain randomisation and ONNX export are written and tested, not yet run.</p>
+          <div class="tech"><span>MuJoCo</span><span>PyTorch CPU</span><span>PPO</span><span>system ID</span><span>sim-to-real</span></div>
+          <div class="links">
+            <a class="primary" href="microduck-rl.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener">Repository ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" style="--h:#4e7c7a">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>A C++ Environment That Matches Python to the Bit</h3>
+            <span class="repo">mujoco-vecenv-cpp</span></div>
+          <p>The Microduck environment rewritten in C++17 and run on threads instead of processes. The claim is not speed first: 6,275 of 6,275 observations come out bit-identical to the Python reference, which took matching numpy's summation order, libm's <code>pow</code> and a float32 constant. Then the speed: about 2x the Python vector environment at 8 workers, measured with the two alternating in one run.</p>
+          <div class="tech"><span>C++17</span><span>MuJoCo</span><span>pybind11</span><span>ASan / TSan</span></div>
+          <div class="links">
+            <a class="primary" href="mujoco-vecenv-cpp.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener">Repository ↗</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" style="--h:#96605f">
+        <div class="hue"></div>
+        <div class="card-body">
+          <div class="card-top"><h3>One Arm, Three Ways to Learn It</h3>
+            <span class="repo">so-arm100-sim · -rl · -il · -vla</span></div>
+          <p>A shared MuJoCo bench for the SO-ARM100 arm (four tasks, a scripted IK expert, domain randomisation, held-out physics, one evaluation protocol) and three policy projects on top of it: curriculum PPO, imitation from behaviour cloning through DAgger to ACT, and a language-conditioned policy scored on held-out paraphrases. Code and tests are complete; the result tables are the next step and say so.</p>
+          <div class="tech"><span>PyTorch CPU</span><span>PPO</span><span>BC · DAgger · ACT</span><span>LeRobotDataset</span><span>MiniLM</span></div>
+          <div class="links">
+            <a class="primary" href="so-arm100.html">Read the walkthrough →</a>
+            <a href="https://github.com/AungKaung1928/so-arm100-sim" target="_blank" rel="noopener">Bench ↗</a>
+            <a href="https://github.com/AungKaung1928/so-arm100-rl" target="_blank" rel="noopener">RL ↗</a>
+            <a href="https://github.com/AungKaung1928/so-arm100-il" target="_blank" rel="noopener">Imitation ↗</a>
+            <a href="https://github.com/AungKaung1928/so-arm100-vla" target="_blank" rel="noopener">Language ↗</a>
+          </div>
+        </div>
+      </article>
+
       <article class="card" style="--h:#6a6fa8">
         <div class="hue"></div>
         <div class="card-body">
@@ -132,6 +177,16 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
         </div>
       </article>
 
+    </div>
+  </section>
+
+  <section class="track">
+    <div class="track-head">
+      <h2>Earlier learning work</h2>
+      <span class="track-note">The two projects the ones above grew out of: the PPO loop and the keypoint head are reused there.</span>
+    </div>
+    <div class="cards">
+
       <article class="card" style="--h:#4f7d93">
         <div class="hue"></div>
         <div class="card-body">
@@ -144,22 +199,6 @@ footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--mute
           <div class="links">
             <a class="primary" href="ppo-from-scratch.html">Read the walkthrough →</a>
             <a href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a>
-          </div>
-        </div>
-      </article>
-
-      <article class="card" style="--h:#8c6e33">
-        <div class="hue"></div>
-        <div class="card-body">
-          <div class="card-top"><h3>Microduck on a CPU</h3>
-            <span class="repo">microduck-rl-cpu</span></div>
-          <p>A walking policy for a small biped, trained without a GPU. The project opens by measuring
-            whether that is possible at all — four wrong throughput numbers preceded the right one — then
-            fixes a 48-dimensional observation contract and a hand-tuned controller for learning to beat.</p>
-          <div class="tech"><span>MuJoCo</span><span>PyTorch CPU</span><span>system ID</span><span>sim-to-real</span></div>
-          <div class="links">
-            <a class="primary" href="microduck-rl-cpu.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/microduck-rl-cpu" target="_blank" rel="noopener">Repository ↗</a>
           </div>
         </div>
       </article>
