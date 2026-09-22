@@ -205,7 +205,7 @@
                         <h3>Threaded C++ MuJoCo Backend, Bit-Identical</h3>
                         <ul class="project-tech"><li>C++17</li><li>MuJoCo</li><li>pybind11</li><li>CMake</li></ul>
                         <ul class="project-points">
-                            <li>The Microduck environment ported to C++17: one model copy per environment, N environments on T threads of one process, and a drop-in vector env that runs the Python PPO loop unchanged</li>
+                            <li>The same environment as project 01, rebuilt in C++17 because the Python one pays an inter-process round trip on every step: one model copy per environment, N environments on T threads of one process, and a drop-in vector env that the same PPO loop imports without a line changed</li>
                             <li>6,275 of 6,275 observations bit-identical to the Python environment over 25 episodes, by reproducing numpy's pairwise sum, Python's libm <code>pow</code> and a float32 scale constant; tested on every commit under ASan, UBSan and TSan</li>
                             <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s, alternated in the same run), and the comparison exposed that the Python budget had never counted its inter-process round trip</li>
                         </ul>
