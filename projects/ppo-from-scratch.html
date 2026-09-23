@@ -17,6 +17,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<script>
+try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+</script>
 <style>
 html{color-scheme:light;-webkit-text-size-adjust:100%}
 img{max-width:100%;height:auto}
@@ -187,11 +190,49 @@ a:hover{color:var(--accent)}
 .sb-sep{color:var(--line2)}
 .sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
 
+
+
+/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
+html.dark-mode{color-scheme:dark;
+  --bg:#0f1417;
+  --paper:#161d21;
+  --paper2:#1d262c;
+  --ink:#e8eef2;
+  --ink2:#a7b7c0;
+  --muted:#7b8c97;
+  --line:#253036;
+  --line2:#38474f;
+  --accent:#92aebc;
+  --accent-soft:#19252b;
+  --accent-deep:#a7bec9;
+  --accent-line:#2f4855;
+  --good:#8ca692;
+  --warn:#b9a680;
+  --bad:#c4928f;
+}
+html.dark-mode .chip{background:var(--paper)}
+html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
+html.dark-mode .note.warnbox{background:#231c1d}
+html.dark-mode tbody tr:nth-child(even){background:#131a1e}
+html.dark-mode .skip{color:#0f1417}
+html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
+html.dark-mode img{background:#f6f5f1}
+html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
+html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
+html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
+.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
+  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
+.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
+.sb-theme{margin-left:auto}
+.sb-repo ~ .sb-theme{margin-left:0}
+.sb-theme .moon-icon{display:none}
+html.dark-mode .sb-theme .sun-icon{display:none}
+html.dark-mode .sb-theme .moon-icon{display:block}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a></div></div>
+<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
@@ -1112,5 +1153,10 @@ python visualize.py --controller lqr --record out/frames   # offscreen, no windo
 })();
 </script>
 
+<script>
+(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
+function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
+b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();})();
+</script>
 </body>
 </html>
