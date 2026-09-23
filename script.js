@@ -17,6 +17,19 @@ themeToggle.addEventListener('click', () => {
 
 themeToggle.setAttribute('aria-pressed', String(root.classList.contains('dark-mode')));
 
+/* Keep every open page on the stored choice: a page restored by the Back
+ * button, or another tab where the toggle was pressed, re-reads it. */
+function syncTheme() {
+    try {
+        const t = localStorage.getItem('theme');
+        root.classList.toggle('dark-mode',
+            t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches));
+        themeToggle.setAttribute('aria-pressed', String(root.classList.contains('dark-mode')));
+    } catch (e) {}
+}
+window.addEventListener('pageshow', (e) => { if (e.persisted) syncTheme(); });
+window.addEventListener('storage', (e) => { if (e.key === 'theme') syncTheme(); });
+
 /* ── Scroll progress + active section ────────────────────────────── */
 
 const progressBar = document.getElementById('progress-bar');
