@@ -203,8 +203,9 @@ a:hover{color:var(--accent)}
     <p class="deck">A 25 cm, 737 g open-source biped with fourteen servos. Upstream trains it on a GPU cluster.
       This does it on a laptop with no graphics card. Two steps prove, with numbers, that the machine and the
       environment can be trusted; the third rebuilds the reward from what was measured and trains a PPO policy
-      against a PD controller; the fourth and fifth, domain randomisation and ONNX export, are written and
-      tested and wait for the box.</p>
+      against a PD controller; the fourth trains a second policy under randomised physics and tests both on
+      physics models neither has seen, and found that randomisation, as run here, made the robot worse at
+      standing; the fifth exports the policy to ONNX.</p>
     <div class="chips">
       <span class="chip">MuJoCo 3.12</span><span class="chip">PyTorch CPU</span><span class="chip">PPO</span>
       <span class="chip">multiprocessing</span><span class="chip">14-DOF biped</span><span class="chip">sim-to-sim transfer</span>
@@ -266,8 +267,10 @@ a:hover{color:var(--accent)}
         what does the policy see, what does it emit, when does an episode end, and what number does it have to
         beat? Both were written before any learning code, because a training run that fails is uninterpretable
         if you cannot rule out the machine and the environment first. <strong>Step 3</strong> re-decides the
-        reward on the numbers step 2 produced, then runs PPO against the PD controller. <strong>Steps 4 and
-        5</strong> randomise the physics and export the policy; both are code with tests and no numbers yet.</p>
+        reward on the numbers step 2 produced, then runs PPO against the PD controller. <strong>Step 4</strong>
+        randomises the physics and measures what that is worth on held-out models; <strong>step 5</strong> exports
+        the policy. Steps 3 and 4 have each run the first half of their training; step 5 is measured on step 3's
+        policy.</p>
     </div>
     <h3>Why "sim-to-sim" is the real target</h3>
     <p>The robot's authors ship <strong>four</strong> physics variants of the same robot — including one with a
@@ -302,7 +305,7 @@ a:hover{color:var(--accent)}
 </section>
 
 <section id="steps">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">Where each step stands: three measured, two written and waiting for the machine, one waiting for hardware.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">Where each step stands: five measured, steps 3 and 4 on the first half of their training, one waiting for hardware.</p></div>
   <div class="stack">
     <div class="steps">
       <div class="stepbox"><span class="sn">step 1 · done</span><span class="st">Feasibility gate</span>
@@ -314,12 +317,12 @@ a:hover{color:var(--accent)}
       <div class="stepbox"><span class="sn">step 3 · chunk 1 measured</span><span class="st">Reward v2 and PPO</span>
         <span class="sd">Reward re-decided on step 2's measurements; PD baseline re-measured at 175.2; PPO with a running normaliser and truncation bootstrap, 25M of 50M steps run.</span>
         <span class="sr">PD 175.2 to beat · results in section 13</span></div>
-      <div class="stepbox todo"><span class="sn">step 4 · code + tests</span><span class="st">Domain randomisation</span>
+      <div class="stepbox"><span class="sn">step 4 · chunk 1 measured</span><span class="st">Domain randomisation</span>
         <span class="sd">Servo ranges from the four measured fits, mass, friction, latency, noise. Evaluated on two held-out models from upstream.</span>
-        <span class="sr">not yet run</span></div>
-      <div class="stepbox todo"><span class="sn">step 5 · code + tests</span><span class="st">ONNX export</span>
+        <span class="sr">did not help · results in section 15</span></div>
+      <div class="stepbox"><span class="sn">step 5 · measured</span><span class="st">ONNX export</span>
         <span class="sd">Normaliser folded into the graph, verified on rollout observations, one-thread latency.</span>
-        <span class="sr">runs on the chunk-1 policy</span></div>
+        <span class="sr">p99 0.033 ms on the chunk-1 policy</span></div>
       <div class="stepbox todo"><span class="sn">step 6</span><span class="st">The physical robot</span>
         <span class="sd">Run the exported policy on a real Microduck. Agreed as the endpoint; the hardware is not owned and there is no date.</span>
         <span class="sr">not scheduled</span></div>
@@ -1206,7 +1209,7 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
 </section>
 
 <section id="dr">
-  <div class="sec-head"><span class="sec-num">15</span><h2>Step 4 — domain randomisation, and which physics is held out</h2><p class="sec-sub">Ranges taken from the model rather than chosen, two held-out models from upstream, and why the one step 2 named cannot be used. Code and tests complete, not yet run.</p></div>
+  <div class="sec-head"><span class="sec-num">15</span><h2>Step 4 — domain randomisation, and which physics is held out</h2><p class="sec-sub">Ranges taken from the model rather than chosen, two held-out models from upstream, and why the one step 2 named cannot be used. Chunk 1 measured: randomisation bought robustness to backlash and cost the robot its stance.</p></div>
   <div class="stack-lg">
     <div class="stack prose">
       <p>Domain randomisation varies the physics at every reset so the policy cannot tune itself to one exact
@@ -1245,11 +1248,56 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
         compounds; <code>restore()</code> puts every array back bit for bit, and a test checks that.</p>
       <pre><code>OMP_NUM_THREADS=1 nice -n 10 python ppo.py --total-steps 50000000 --chunk-steps 25000000 --tag v2dr --reward v2 --dr
 python eval_gap.py --nominal runs/ppo_v2.pt --dr runs/ppo_v2dr.pt          # -&gt; runs/gap.json</code></pre>
-      <p>The output is a six-row table: each of the two policies on <code>groundcontact</code>,
-        <code>groundcontact_backlash</code> and <code>rollers</code>, with recovery, return and the gap against
-        its own training model. The difference between the two gap columns is the number. It may be zero or
-        negative; that is a result too. None of it exists yet: the nominal policy is still training and the DR run
-        is another two chunks.</p>
+      <p>Both policies are the first 25M-step chunk of a 50M run: one training seed each, and the same
+        configuration apart from randomisation. The randomised run is set up as 50M in two chunks, not as a
+        single 25M run, so that its learning-rate anneal matches the nominal policy's. It took 2.4 hours at
+        about 3 300 environment steps per second. Each cell is 100 episodes &times; 5 seeds, the same seeds
+        everywhere, and &plusmn; is the spread of the five per-seed means.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Trained</th><th>Evaluated on</th><th class="num">return</th><th class="num">upright</th><th class="num">survival</th><th class="num">trunk height p50</th><th class="num">return gap</th><th class="num">upright gap</th></tr></thead>
+        <tbody>
+          <tr><td>nominal</td><td><code>groundcontact</code></td><td class="num">332.6 &plusmn; 5.1</td><td class="num">0.47 &plusmn; 0.02</td><td class="num">0.74</td><td class="num">0.058 m</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>nominal</td><td><code>groundcontact_backlash</code></td><td class="num">317.4 &plusmn; 4.3</td><td class="num">0.38 &plusmn; 0.02</td><td class="num">0.56</td><td class="num">0.039 m</td><td class="num">&minus;15.2</td><td class="num">&minus;0.09</td></tr>
+          <tr><td>nominal</td><td><code>rollers</code></td><td class="num">373.6 &plusmn; 11.6</td><td class="num">0.73 &plusmn; 0.04</td><td class="num">0.90</td><td class="num">0.138 m</td><td class="num">+41.1</td><td class="num">+0.26</td></tr>
+          <tr class="hl"><td>randomised</td><td><code>groundcontact</code></td><td class="num">312.2 &plusmn; 5.7</td><td class="num">0.28 &plusmn; 0.01</td><td class="num">1.00</td><td class="num">0.091 m</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr class="hl"><td>randomised</td><td><code>groundcontact_backlash</code></td><td class="num">315.4 &plusmn; 4.5</td><td class="num">0.24 &plusmn; 0.01</td><td class="num">0.99</td><td class="num">0.092 m</td><td class="num">+3.2</td><td class="num">&minus;0.04</td></tr>
+          <tr class="hl"><td>randomised</td><td><code>rollers</code></td><td class="num">147.3 &plusmn; 2.3</td><td class="num">0.13 &plusmn; 0.00</td><td class="num">0.84</td><td class="num">0.042 m</td><td class="num">&minus;164.9</td><td class="num">&minus;0.15</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p><em>Upright</em> is the share of steps with the trunk within about 26&deg; of vertical. <em>Survival</em>
+        is the share with the trunk above the 4 cm fall height. Trunk height is the median of per-episode medians,
+        and 12 cm is standing. Push recovery is left out because it reads 0.93&ndash;1.00 in every cell, the
+        degenerate metric from section 13.</p>
+      <div class="note warnbox">
+        <span class="note-label">The metric that would have got this wrong</span>
+        <p>Read by survival, the randomised policy is a clear win: 1.00 against 0.74 on the training model and
+          0.99 against 0.56 on backlash, and the first version of the evaluation script led with that column.
+          But survival only asks whether the trunk is above 4 cm. The randomised policy is upright for 28% of
+          steps against 47%, its trunk sits at a median of 9 cm, and its return splits 134 from the upright term
+          against the nominal policy's 183. <strong>It learned to brace in a low, tilted crouch that never counts
+          as a fall, not to stand.</strong> Upright share and trunk height went into the metrics module after
+          that; the rerun reproduced every return to the decimal.</p>
+      </div>
+      <p><strong>Backlash:</strong> the randomised policy barely notices it (+3.2 return, &minus;0.04 upright),
+        while the nominal one loses 15 and 0.09 and falls more often. That is the robustness randomisation is meant
+        to buy, and it bought it, but around a worse posture. The nominal policy on backlash is still upright more
+        often than the randomised one on the model it trained on. <strong>Rollers:</strong> the randomised policy
+        collapses, losing 165 of return, with its median trunk 2 mm above the fall line. The nominal policy
+        does <em>better</em> on rollers than on its own model, so for a policy that actually stands this is not
+        a harder physics model at all. A crouch held up by randomised foot friction has nothing to push against on
+        free-rolling contacts. That is a hypothesis, not a measurement.</p>
+      <p><strong>Net: on this robot, under this reward, at half the schedule and one seed, domain randomisation
+        made the policy worse.</strong> That is the question step 4 was built to answer, and it is reported as it
+        came out. What it does not settle: both runs share step 3's step-size problem, milder here (approximate
+        KL rising to 0.32 against 0.76), and neither used the KL stop added afterwards. The likely cause is
+        the reward. Its height term is linear and blind to tilt, so a crouch at 9 cm earns about 1.2 per step
+        every step, against 2.0 for a stand that sometimes ends on the floor near 0.5. Randomised physics makes
+        standing harder to learn and bracing safe under every sample. Testing that needs a new reward version with
+        its own baseline, not a tweak to this one.</p>
     </div>
   </div>
 </section>
@@ -1368,8 +1416,12 @@ nice -n 10 python3 bench_wrapper.py --seconds 12        # 1 core, no load</code>
       bootstrap then ran its first 25-million-step chunk, and running it added a fifth revision to the
       throughput figure: about 3 300 environment steps per second with the policy in the loop, a quarter of the
       plan, because the eight pipe round trips and the network forward pass had never been in the estimate.
-      The chunk-1 evaluation against the PD controller is in section 13. Domain randomisation over the measured servo range with two held-out models from upstream,
-      and an ONNX export with the normaliser folded in, are written and tested and wait for the box.</p>
+      The chunk-1 evaluation against the PD controller is in section 13. Step 4 trained a second policy under
+      randomisation over the measured servo range and tested both on two held-out models from upstream. The
+      randomised policy never counted as fallen, but it had learned to brace in a crouch instead of standing. It
+      shrugged off backlash and collapsed on rollers, a model the nominal policy found easier than its own, so
+      on this reward and this schedule randomisation made things worse. The ONNX export, with the normaliser
+      folded in, runs at 0.033 ms p99 on one thread.</p>
   </div>
 </section>
 

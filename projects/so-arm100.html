@@ -304,7 +304,7 @@ a:hover{color:var(--accent)}
     <div class="steps">
       <div class="stepbox"><span class="sn">bench</span><span class="st">so-arm100-sim</span>
         <span class="sd">Scene, tasks, IK expert, DR, evaluation, instruction templates, dataset writer, vector env.</span>
-        <span class="sr">63 tests · shared floor</span></div>
+        <span class="sr">63 tests · reference numbers measured</span></div>
       <div class="stepbox"><span class="sn">route 1</span><span class="st">so-arm100-rl</span>
         <span class="sd">PPO on privileged state, reach → push → lift curriculum, nominal vs DR, held-out gap, ONNX export.</span>
         <span class="sr">16 tests · not trained yet</span></div>
@@ -480,6 +480,50 @@ a:hover{color:var(--accent)}
           waypoint and shifts its IK target by it, with anti-windup, and only once the arm has stopped slewing.
           A hover phase 1 cm above the cube exists so that this correction has converged before the descent.
           Without it the open jaw landed on the cube and pushed it away instead of straddling it.</p></div></div>
+    </div>
+    <div class="stack prose">
+      <h3>The expert's own numbers</h3>
+      <p>100 episodes × 5 seeds per cell, mean ± standard deviation of the per-seed success rate. This is the
+        ceiling every learned policy is read against.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>task</th><th class="num">nominal</th><th class="num">heavy</th><th class="num">slippery</th><th class="num">weak</th><th class="num">laggy</th><th class="num">noisy</th><th class="num">small</th></tr></thead>
+        <tbody>
+          <tr><td>reach</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td></tr>
+          <tr><td>push</td><td class="num">0.76 ± 0.07</td><td class="num">0.79 ± 0.07</td><td class="num">0.76 ± 0.07</td><td class="num">0.74 ± 0.05</td><td class="num">0.74 ± 0.05</td><td class="num">0.76 ± 0.07</td><td class="num">0.73 ± 0.06</td></tr>
+          <tr><td>lift</td><td class="num">0.93 ± 0.02</td><td class="num">0.90 ± 0.02</td><td class="num">0.93 ± 0.02</td><td class="num">0.97 ± 0.02</td><td class="num">0.92 ± 0.03</td><td class="num">0.93 ± 0.02</td><td class="num">0.73 ± 0.05</td></tr>
+          <tr><td>pick_place</td><td class="num">0.93 ± 0.01</td><td class="num">0.85 ± 0.02</td><td class="num">0.93 ± 0.01</td><td class="num">0.96 ± 0.01</td><td class="num">0.90 ± 0.04</td><td class="num">0.93 ± 0.01</td><td class="num">0.72 ± 0.05</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>The small cube is the expert's real weakness: lift and pick_place fall from 0.93 to 0.73 and 0.72.
+        No other physics change moves them by more than 0.08. Push stays at 0.73 to 0.79 in every column,
+        and its seed spread is as large as any column's gap from nominal, so the limit is the scripted push
+        itself. The one-seed, 30-episode development readings put the small cube at 0.87 and 0.80. The
+        measured spread shows why they were never the reference.</p>
+      <h3>Throughput</h3>
+      <p>Lift task on the laptop CPU under WSL2, capped at 8 threads. Mean ± sd over three sweeps that
+        passed the drift guard:</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>processes</th><th class="num">env-steps/s</th><th class="num">efficiency</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td class="num">1,954 ± 49</td><td class="num">100%</td></tr>
+          <tr><td>2</td><td class="num">3,691 ± 34</td><td class="num">94%</td></tr>
+          <tr><td>4</td><td class="num">5,918 ± 358</td><td class="num">76%</td></tr>
+          <tr><td>8</td><td class="num">7,302 ± 569</td><td class="num">47%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p>The first three sweeps drifted 25 to 58% and were thrown out. On the Windows "Balanced" power plan
+        the CPU starts at a low clock, so the first reference read low and every later row looked faster.
+        A 10 s, 8-process warm-up before the sweep fixed it. The sweep rows are 15 s bursts. Held for three
+        minutes, 8 processes settle at 5,361 env-steps/s, 28% below the first window. That plateau, not the
+        burst, is the number to budget training from.</p>
     </div>
     <div class="note warnbox">
       <span class="note-label">Found by a test, not by a policy</span>

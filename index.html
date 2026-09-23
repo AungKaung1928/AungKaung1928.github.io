@@ -192,7 +192,8 @@
                         <ul class="project-points">
                             <li>Balance-and-recover policy for a 25 cm, 14-servo open-source biped, trained with PPO in CPU MuJoCo, no GPU anywhere in the stack; the observation is only what the real robot's sensors report</li>
                             <li>Reward rebuilt from measurement, not taste: three of four penalties were under 0.25% of the return and were dropped or reweighted; the PD hold-pose baseline scores 175.2 &plusmn; 3.1 of 500 under the new reward</li>
-                            <li>PPO after the first 25M of 50M steps: 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2, trunk up 74% vs 47% of the time, 100 episodes &times; 5 seeds; no push knocked the learned policy over, so standing back up is still unmeasured; the return plateaued near 8M steps with the clip fraction at 0.7, and the loop ran at 3,300 env-steps/s, a quarter of the budgeted rate; the README says why</li>
+                            <li>PPO after the first 25M of 50M steps: 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2, trunk above the fall height 74% vs 47% of the time, 100 episodes &times; 5 seeds; no push knocked the learned policy over, so standing back up is still unmeasured; the return plateaued near 8M steps with the clip fraction at 0.7, and the loop ran at 3,300 env-steps/s, a quarter of the budgeted rate; the README says why</li>
+                            <li>Domain randomisation measured on two held-out physics models, and it made the policy worse: the randomised policy never fell by the height test but was upright only 28% of steps against 47%, because it learned to brace in a crouch; it shrugged off backlash (+3.2 return against &minus;15.2) and collapsed on rollers (147 against 374). Reported as it came out, and the height-only survival metric that hid it is fixed</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/microduck-rl.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
@@ -222,7 +223,7 @@
                         <ul class="project-points">
                             <li>One shared MuJoCo bench (four tasks, scripted IK expert, domain randomisation, six held-out physics settings, 100 episodes &times; 5 seeds) feeds three policy repos: curriculum PPO, imitation from BC through DAgger to ACT, and a language-conditioned multitask policy</li>
                             <li>Language generalisation is scored on held-out paraphrases and on task&ndash;colour pairs never seen together, with SmolVLA-base zero-shot in the same simulator as a reference line</li>
-                            <li>Code complete, 63 bench tests plus three test suites green in CI; every results table is marked not yet measured and the training runs are the next step, stated on the page rather than implied</li>
+                            <li>Bench reference measured at 100 episodes &times; 5 seeds: the scripted expert reaches 0.93 on lift and pick_place but drops to 0.73 and 0.72 on the small cube, the one physics change that breaks it. The three policy repos are code complete and green in CI, but their tables are not yet measured, and the page says so</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/so-arm100.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>

@@ -68,16 +68,25 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    500 ceiling under that reward over 20 seeds (108.7 +/- 2.9 under the old
    one) and is the baseline the policy has to beat. PPO carries a running
    observation normaliser, a truncation bootstrap, and checkpointed chunks.
-   Result: After the first 25M-step chunk, PPO scores 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk up for 74% of steps (PD 47%), 100 episodes x 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up. The second 25M chunk is the next run, with a smaller step size: the clip fraction reached 0.73 and the return stopped improving after about 8M steps.
+   Result: After the first 25M-step chunk, PPO scores 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk above the fall height for 74% of steps (PD 47%), 100 episodes x 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up. The second 25M chunk is the next run, with a smaller step size: the clip fraction reached 0.73 and the return stopped improving after about 8M steps.
    Throughput lesson, kept on the page: the budget was set from 13,300
    environment steps per second (bare physics times a wrapper factor); the
    training loop itself runs at about 3,300 because the round trip to eight
    worker processes and the policy forward pass were never in the
    composition. Fifth revision of that figure, the first measured on the
-   workload. Next, code written and tested but not yet measured: training
-   under randomised physics between four measured servo fits, evaluation on
-   two held-out model variants (backlash joints, rollers), ONNX export with
-   the normaliser folded in.
+   workload. Domain randomisation, measured: a second policy trained for the
+   same 25M steps under physics randomised between four measured servo fits
+   (plus mass, friction, latency, noise), both evaluated on two held-out model
+   variants (backlash joints, passive rollers), 100 episodes x 5 seeds. It made
+   the policy worse. By the height-only survival test it looked like a win
+   (1.00 vs 0.74), but it was upright only 28% of steps vs 47% with the trunk
+   at a median 9 cm: it learned to brace in a crouch, not stand. Robust to
+   backlash (+3.2 return vs -15.2), collapsed on rollers (147 vs 374), which
+   the nominal policy found easier than its own model. One seed, half the
+   schedule, one reward; likely cause is a height term blind to tilt. Upright
+   share and trunk height were added to the metrics after this. ONNX export
+   with the normaliser folded in: 2.4e-06 max error vs PyTorch, 0.033 ms p99
+   on one thread.
 
 2. Threaded C++ MuJoCo Backend, Bit-Identical (C++17, MuJoCo, pybind11, CMake)
    https://github.com/AungKaung1928/mujoco-vecenv-cpp
@@ -141,8 +150,14 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    pre-written under-5-s rule. Measured so far: 122 tests (63 / 16 / 19 / 24)
    green in CI; MiniLM cosines are dominated by surface words (lift green vs
    lift blue 0.82, a true paraphrase 0.59), so paraphrase generalisation has
-   to be tested, not assumed. Every results table is marked not yet measured
-   and the training runs are the next step. Say so plainly if asked.
+   to be tested, not assumed. Bench reference measured: scripted expert at
+   100 episodes x 5 seeds, reach 1.00 everywhere, lift and pick-and-place
+   0.93 nominal but 0.73 / 0.72 on the small cube (the only cell that breaks
+   it; no other cell moves them more than 0.08), push 0.73-0.79 in every
+   cell. Throughput 1,954 env-steps/s at 1 process, 7,302 at 8 in 15 s
+   bursts, 5,361 sustained. The RL, imitation and language result tables are
+   still not measured; their training runs are the next step. Say so plainly
+   if asked.
 
 4. Tabletop Clutter Detector, INT8 on One Thread (Python, PyTorch, MuJoCo,
    ONNX Runtime)
@@ -205,8 +220,8 @@ the learned method loses.
 
 Honest gaps: early career; every project is simulation, nothing transferred to
 hardware; no GPU, CUDA, TensorRT or large-scale training experience; the
-SO-ARM100 result tables are not measured yet and the Microduck
-domain-randomisation comparison and export have code but no numbers; largest
+SO-ARM100 result tables are not measured yet, and the Microduck
+domain-randomisation result is measured and negative (half schedule, one seed); largest
 model is 380,631 parameters; Nav2/SLAM/AMCL are professional experience with
 no project on this page behind them; no employers, dates or role scope
 published.
@@ -240,7 +255,7 @@ Depth — long by default
   baseline's 0.532, 1.20 ms through ONNX Runtime" beats "strong ML skills".
 - Say what is NOT covered where it matters — no hardware transfer, no GPU
   work, no accuracy or success-rate figure for the MoveIt2 project, the
-  SO-ARM100 result tables not yet measured, and no training run yet on the
+  SO-ARM100 policy result tables not yet measured, and no training run yet on the
   C++ backend. Honest limits beat padding.
 - Never answer in a single throwaway sentence.
 - End with one short follow-up question the visitor could ask next, only when
