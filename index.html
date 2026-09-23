@@ -127,15 +127,15 @@
                     <h2 class="section-title">About</h2>
                 </div>
                 <div class="about-content">
-                    <p class="lede">Robotics Software Engineer. ROS2, C++ and LiDAR perception on real mobile robots in my current role. The projects here are personal work on learned perception and control: trained in simulation, measured against a classical baseline, exported to run on device.</p>
+                    <p class="lede">Robotics Software Engineer: ROS2, C++ and LiDAR perception on real mobile robots at work. The projects here are personal: learned perception and control trained in simulation, measured against a classical baseline, exported to run on device.</p>
                     <dl class="spec-list">
                         <div class="spec-row">
                             <dt>Current Focus</dt>
-                            <dd>Robot learning on CPU: a biped balance policy, arm manipulation by RL, imitation and language, a detector quantised to INT8 · Sim-to-real method: domain randomisation, held-out physics, system identification, ONNX export · A C++ simulation backend proven bit-identical to its Python reference</dd>
+                            <dd>Robot learning on CPU: biped balance, arm manipulation by RL, imitation and language, an INT8 detector · Sim-to-real: domain randomisation, held-out physics, ONNX export · A bit-identical C++ simulation backend</dd>
                         </div>
                         <div class="spec-row">
                             <dt>Career Goal</dt>
-                            <dd>Physical AI Engineer — shipping learned behaviour onto real machines: sim-to-real transfer, legged locomotion, and perception that holds up outside a staged scene.</dd>
+                            <dd>Physical AI Engineer — shipping learned behaviour onto real machines: sim-to-real, legged locomotion, robust perception.</dd>
                         </div>
                     </dl>
                 </div>
@@ -190,10 +190,10 @@
                         <h3>Microduck Balance and Push Recovery</h3>
                         <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>ONNX</li></ul>
                         <ul class="project-points">
-                            <li>Balance-and-recover policy for a 25 cm, 14-servo open-source biped, trained with PPO in CPU MuJoCo; the observation is only what the real robot's sensors report</li>
-                            <li>Reward rebuilt from measurement: three of four penalties were under 0.25% of the return; the PD hold-pose baseline scores 175.2 &plusmn; 3.1 of 500 under the new reward</li>
-                            <li>PPO after 25M steps: 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2, trunk above the fall height 74% vs 47% of the time, 100 episodes &times; 5 seeds; no push knocked it over, so standing back up is still unmeasured</li>
-                            <li>Domain randomisation, measured on two held-out physics models, made the policy worse: upright only 28% of steps against 47%, because it learned to brace in a crouch; it shrugged off backlash and collapsed on rollers (147 against 374)</li>
+                            <li>Balance policy for a 25 cm, 14-servo open-source biped, PPO in CPU MuJoCo; the observation is only what the robot's sensors report</li>
+                            <li>Reward rebuilt after three of four penalties measured under 0.25% of the return</li>
+                            <li>After 25M steps: 332.6 ± 5.1 of 500 vs PD 175.8 ± 0.2, upright 74% vs 47% of the time, 100 episodes &times; 5 seeds; push recovery still unmeasured</li>
+                            <li>Domain randomisation, tested on two held-out physics models, made it worse: it learned to brace in a crouch (upright 28% vs 47%)</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/microduck-rl.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
@@ -206,9 +206,9 @@
                         <h3>Threaded C++ MuJoCo Backend, Bit-Identical</h3>
                         <ul class="project-tech"><li>C++17</li><li>MuJoCo</li><li>pybind11</li><li>CMake</li></ul>
                         <ul class="project-points">
-                            <li>The same environment as project 01 in C++17: N environments on T threads of one process instead of forked processes, a drop-in vector env for the same PPO loop</li>
-                            <li>6,275 of 6,275 observations bit-identical to the Python environment over 25 episodes; tested on every commit under ASan, UBSan and TSan</li>
-                            <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s, alternated in the same run)</li>
+                            <li>Project 01's environment in C++17, N envs on T threads of one process, drop-in for the same PPO loop</li>
+                            <li>6,275 of 6,275 observations bit-identical to Python; CI under ASan, UBSan and TSan</li>
+                            <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s)</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
@@ -221,9 +221,9 @@
                         <h3>SO-ARM100 Manipulation with RL, Imitation and Language</h3>
                         <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>LeRobot</li></ul>
                         <ul class="project-points">
-                            <li>One shared MuJoCo bench (four tasks, scripted IK expert, domain randomisation, six held-out physics settings) feeds three policy repos: curriculum PPO, imitation from BC through DAgger to ACT, and a language-conditioned multitask policy</li>
-                            <li>Language generalisation scored on held-out paraphrases and unseen task&ndash;colour pairs, with SmolVLA-base zero-shot as a reference line</li>
-                            <li>Scripted expert, 100 episodes &times; 5 seeds: 0.93 on lift and pick_place, 0.73 and 0.72 on the small cube. The policy repos are green in CI; their tables are not yet measured</li>
+                            <li>One MuJoCo bench (four tasks, scripted IK expert, six held-out physics settings) feeds three policy repos: curriculum PPO, imitation (BC, DAgger, ACT) and a language-conditioned policy</li>
+                            <li>Language tested on held-out paraphrases and unseen task&ndash;colour pairs, SmolVLA-base as reference</li>
+                            <li>Expert, 100 episodes &times; 5 seeds: 0.93 on lift and pick_place, 0.73 and 0.72 on the small cube; policy tables not yet measured</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/so-arm100.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
@@ -236,9 +236,9 @@
                         <h3>Tabletop Clutter Detector, INT8 on One Thread</h3>
                         <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>MuJoCo</li><li>ONNX Runtime</li></ul>
                         <ul class="project-points">
-                            <li>Anchor-free detector for 3&ndash;6 overlapping objects on a table; every label read from the renderer's segmentation buffer</li>
-                            <li>mAP@[.5:.95] of 0.911 against a fitted classical pipeline's 0.532, COCO mAP implemented from scratch; 1.20 ms per image through ONNX Runtime on 8 threads</li>
-                            <li>Static INT8 runs in 1.38 ms on one thread (2.6&times; fp32, under the classical 2.13 ms) at mAP 0.910 vs 0.911; structured pruning cost 0.065 mAP for 2.42 ms, so INT8 alone is what would ship</li>
+                            <li>Anchor-free detector for 3&ndash;6 overlapping objects, labels from the renderer's segmentation buffer</li>
+                            <li>mAP@[.5:.95] 0.911 vs a classical pipeline's 0.532, COCO mAP from scratch; 1.20 ms per image on 8 threads</li>
+                            <li>Static INT8: 1.38 ms on one thread (2.6&times; fp32, under classical 2.13 ms) at mAP 0.910; pruning cost 0.065 mAP, so INT8 alone ships</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/clutter-detect.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
