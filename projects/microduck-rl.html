@@ -1148,7 +1148,7 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
       <p>After the first 25M-step chunk, PPO scores 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk up for 74% of steps (PD 47%), 100 episodes × 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up: 797 of the 801 pushes that landed on the standing policy never moved the trunk out of the upright band at all, and the 100% is 0.995 rounded. The second 25M chunk is the next run, with a smaller step size: the clip fraction reached 0.73 and the return stopped improving after about 8M steps.</p>
       <h3>What the log showed on the way</h3>
       <p>The rolling 50-episode return rose from 155 at the first update to about 350 by 2.5M steps and peaked at 374 near 7.8M,
-        against the PD controller's 175.2. Then it stopped: the five 5M-step blocks averaged 337, 342, 332, 332 and 328, and the
+        against the PD controller's 175.2 (its 20-seed baseline; the 175.8 above is the same controller under the 100-episode × 5-seed evaluation). Then it stopped: the five 5M-step blocks averaged 337, 342, 332, 332 and 328, and the
         in-loop 20-episode evaluation averaged 354 with 0.83 survival over the first 5M steps against 330 with 0.69 over the
         last 5M. Those are block means on purpose: one evaluation is 20 episodes, and the last seven of them span 346 down to
         313, so no pair of single rows would be evidence of anything.</p>
