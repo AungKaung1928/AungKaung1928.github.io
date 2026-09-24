@@ -252,7 +252,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <span class="chip">MiniLM + FiLM</span><span class="chip">held-out physics</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Status</dt><dd>Code complete, CI green · bench measured, policy numbers pending</dd></div>
+      <div class="fact"><dt>Status</dt><dd>CI green · bench and RL measured, imitation and language pending</dd></div>
       <div class="fact"><dt>Tasks</dt><dd><em>4</em>, one success rule each</dd></div>
       <div class="fact"><dt>Protocol</dt><dd>100 episodes × 5 seeds per cell</dd></div>
       <div class="fact"><dt>Held-out physics</dt><dd>6 cells, each outside DR</dd></div>
@@ -348,7 +348,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <span class="sr">63 tests · reference numbers measured</span></div>
       <div class="stepbox"><span class="sn">route 1</span><span class="st">so-arm100-rl</span>
         <span class="sd">PPO on privileged state, reach → push → lift curriculum, nominal vs DR, held-out gap, ONNX export.</span>
-        <span class="sr">16 tests · not trained yet</span></div>
+        <span class="sr">21 tests · trained, one seed</span></div>
       <div class="stepbox"><span class="sn">route 2</span><span class="st">so-arm100-il</span>
         <span class="sd">BC, DAgger and ACT-lite from scripted demonstrations on image + proprioception; dataset-size curve.</span>
         <span class="sr">19 tests · not trained yet</span></div>
@@ -389,19 +389,20 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         </tbody>
       </table>
     </div>
-    <h3>so-arm100-rl, 1,605 lines</h3>
+    <h3>so-arm100-rl, 1,872 lines</h3>
     <div class="tablewrap">
       <table class="filemap">
         <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
         <tbody>
-          <tr><td>so_arm100_rl/ppo.py</td><td class="num">318</td><td>PPO: Gaussian actor, separate critic (2 × 256, tanh), GAE with termination and truncation distinguished, running normaliser, checkpointing, throughput monitor</td></tr>
-          <tr><td>train.py</td><td class="num">220</td><td>Entry point; chunked and resumable; curriculum and DR flags</td></tr>
+          <tr><td>so_arm100_rl/ppo.py</td><td class="num">323</td><td>PPO: Gaussian actor, separate critic (2 × 256, tanh), GAE with termination and truncation distinguished, per-epoch KL stop, running normaliser, checkpointing, throughput monitor</td></tr>
+          <tr><td>train.py</td><td class="num">232</td><td>Entry point; chunked and resumable; curriculum, DR, success-termination and warm-start flags</td></tr>
           <tr><td>export_onnx.py</td><td class="num">106</td><td>Normaliser folded into the actor's mean as one ONNX graph, verified to 1e-5 on 1,000 observations, timed on one thread</td></tr>
           <tr><td>so_arm100_rl/curriculum.py</td><td class="num">86</td><td>Stage promotion on rolling success; steps-to-threshold bookkeeping</td></tr>
           <tr><td>so_arm100_rl/normalizer.py</td><td class="num">72</td><td>Welford running mean and variance, frozen at evaluation and export</td></tr>
-          <tr><td>eval_gap.py · compare_gap.py</td><td class="num">88</td><td>Bench protocol on every held-out cell; nominal-trained vs DR-trained table</td></tr>
+          <tr><td>eval_gap.py · compare_gap.py</td><td class="num">102</td><td>Bench protocol on every held-out cell, cells in parallel processes; nominal-trained vs DR-trained table</td></tr>
           <tr><td>so_arm100_rl/boxcheck.py</td><td class="num">33</td><td>Refuse to start on a loaded machine</td></tr>
-          <tr><td>tests/ (7 files)</td><td class="num">263</td><td>16 tests: a hand-worked GAE case, normaliser, curriculum state machine, bit-exact resume, 2,048-step training smoke, ONNX round trip</td></tr>
+          <tr><td>tools/probe_hover.py</td><td class="num">31</td><td>The probe that found the hover exploit: mean-action rollouts, cube height and grasp per step</td></tr>
+          <tr><td>tests/ (10 files)</td><td class="num">370</td><td>21 tests: a hand-worked GAE case, normaliser, curriculum state machine, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</td></tr>
         </tbody>
       </table>
     </div>
@@ -617,8 +618,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <table>
         <thead><tr><th>run</th><th>steps to lift ≥ 0.6 (rolling 100)</th><th>final eval success</th><th class="num">seeds</th></tr></thead>
         <tbody>
-          <tr><td>curriculum</td><td>not yet measured</td><td>not yet measured</td><td class="num">3</td></tr>
-          <tr><td>from scratch</td><td>not yet measured</td><td>not yet measured</td><td class="num">3</td></tr>
+          <tr><td>curriculum</td><td>not yet measured</td><td>not yet measured</td><td class="num">1</td></tr>
+          <tr><td>from scratch</td><td>0.996 M</td><td>1.00 (20 episodes)</td><td class="num">1</td></tr>
         </tbody>
       </table>
     </div>
@@ -627,25 +628,47 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <p><code>--dr full</code> samples the bench's ranges at every reset; <code>--dr none</code> trains on the
         vendored model as is. Both policies are then run on every held-out cell, plus a <code>dr</code> cell
         with in-range sampling, which is the DR policy's home ground. Each cell is 100 episodes × 5 seeds.</p>
+      <h3>Three failed runs, kept</h3>
+      <p><strong>Step size.</strong> Plain clipped PPO at 8 epochs per update drove clip fraction to 0.77,
+        approximate KL to 1.44 and σ from 0.50 to 0.054 by 4.46 M steps, with success at 0.02. Fix: stop the
+        epoch loop once KL passes 0.02. <strong>Hovering.</strong> With the KL stop, lift learned to grasp and
+        then its success fell while return rose: a probe showed the cube held at 4.7–4.9 cm for 138 of 150
+        steps, just under the 5.0 cm success line, because success ended the episode and the shaping reward
+        for holding was worth more than the bonus. Fix: do not terminate on success during training; every
+        evaluation still counts the first success. <strong>DR from scratch.</strong> The same recipe under
+        full randomisation stalled: rolling success peaked at 0.09, then sat at exactly 0 for 700
+        updates up to 4.9 M steps, with normal KL and clip fraction. It was stopped and replaced by fine-tuning the
+        nominal policy under randomisation for 10 M steps. One seed, so that says the recipe failed on seed 0,
+        not that DR from scratch cannot work.</p>
+      <p>Nominal from scratch crossed 0.6 at 1.0 M steps and finished 20 M in 2 h 10 min, at 3,043
+        env-steps/s on a quiet host and 2,425 while the Windows side was busy. The exported ONNX policy (the DR
+        fine-tune, 73,990 parameters) matches PyTorch to 2.1e-6 and runs in 0.008 ms p50, 0.015 ms p99 on one
+        thread.</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>physics</th><th>nominal-trained</th><th>DR-trained</th><th>delta</th></tr></thead>
+        <thead><tr><th>physics</th><th>nominal-trained</th><th>DR fine-tuned</th><th>delta</th></tr></thead>
         <tbody>
-          <tr><td>nominal</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>heavy (mass 3×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>slippery (friction 0.3×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>weak (kp 0.45×)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>laggy (3 steps)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>noisy (3× obs noise)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>small (9 mm)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr><td>dr (in-range)</td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
-          <tr class="hl"><td><strong>mean drop vs own nominal</strong></td><td>not yet measured</td><td>not yet measured</td><td></td></tr>
+          <tr><td>nominal</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
+          <tr><td>heavy (mass 3×)</td><td>0.998 ± 0.004</td><td>0.988 ± 0.008</td><td>−0.010</td></tr>
+          <tr><td>slippery (friction 0.3×)</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
+          <tr><td>weak (kp 0.45×)</td><td>0.982 ± 0.013</td><td>1.000 ± 0.000</td><td>+0.018</td></tr>
+          <tr><td>laggy (3 steps)</td><td>0.458 ± 0.052</td><td>0.760 ± 0.030</td><td><strong>+0.302</strong></td></tr>
+          <tr><td>noisy (3× obs noise)</td><td>0.956 ± 0.017</td><td>0.948 ± 0.024</td><td>−0.008</td></tr>
+          <tr><td>small (9 mm)</td><td>0.878 ± 0.051</td><td>0.960 ± 0.020</td><td>+0.082</td></tr>
+          <tr><td>dr (in-range)</td><td>0.888 ± 0.038</td><td>0.958 ± 0.013</td><td>+0.070</td></tr>
+          <tr class="hl"><td><strong>mean drop vs own nominal</strong> (6 held-out cells)</td><td>0.120</td><td>0.056</td><td>−0.064</td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>A smaller mean drop for the DR policy would be evidence that randomising <em>these</em> factors
+      <p>The DR fine-tune halves the mean drop, and almost all of it is one cell: three steps of action
+        latency, one step past the randomised range, costs the nominal policy more than half its success and the
+        DR policy a quarter. Mass and friction shifts cost neither anything. Two things weaken the claim: one
+        training seed per column (the ± is over evaluation seeds only), and the DR column has 10 M more training
+        steps, so part of the gain may be training length. A 30 M-step nominal run is the control that would
+        separate the two, and it has not been run.</p>
+      <p>A smaller mean drop for the DR policy is evidence that randomising <em>these</em> factors
         transfers to shifts in <em>these</em> factors. It would say nothing about the physical SO-ARM100, whose
         unmodelled effects (backlash, cable friction, camera latency) are in neither column. The scripted
         expert's own numbers on the same cells, from the bench, are the ceiling to read the table against.</p>
@@ -658,12 +681,15 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         that takes raw observations, verified against PyTorch to 1e-5 on 1,000 random observations before any
         latency is quoted.</p>
     </div>
-    <pre><code>nice -n 10 python train.py --task lift --curriculum    --dr none --out runs/lift_cur_nominal --seed 0
-nice -n 10 python train.py --task lift --curriculum    --dr full --out runs/lift_cur_dr      --seed 0
-nice -n 10 python train.py --task lift --no-curriculum --dr none --out runs/lift_scr_nominal --seed 0
-python eval_gap.py --ckpt runs/lift_cur_nominal/policy.pt --task lift --tag nominal
-python eval_gap.py --ckpt runs/lift_cur_dr/policy.pt      --task lift --tag dr
-python compare_gap.py runs/gap_nominal.json runs/gap_dr.json</code></pre>
+    <pre><code>F="--seed 0 --target-kl 0.02 --no-terminate-on-success"
+nice -n 10 python train.py --task lift --no-curriculum --dr none $F --out runs/lift_scr_nominal
+nice -n 10 python train.py --task lift --curriculum    --dr none $F --out runs/lift_cur_nominal
+nice -n 10 python train.py --task lift --no-curriculum --dr full $F --total-steps 10000000 \
+    --init-from runs/lift_scr_nominal/policy.pt --out runs/lift_ft_dr
+python eval_gap.py --ckpt runs/lift_scr_nominal/policy.pt --task lift --tag nominal --jobs 8
+python eval_gap.py --ckpt runs/lift_ft_dr/policy.pt       --task lift --tag dr      --jobs 8
+python compare_gap.py runs/gap_nominal.json runs/gap_dr.json
+python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</code></pre>
   </div>
 </section>
 
@@ -852,7 +878,7 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
         <thead><tr><th>repository</th><th class="num">tests</th><th>what they pin down</th><th>CI</th></tr></thead>
         <tbody>
           <tr><td>so-arm100-sim</td><td class="num">63</td><td>vendored model hash, observation and action contract, IK, expert success gates, every held-out cell outside the DR range, vector env, recorder</td><td>green, Python 3.10 and 3.12</td></tr>
-          <tr><td>so-arm100-rl</td><td class="num">16</td><td>GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip</td><td>green</td></tr>
+          <tr><td>so-arm100-rl</td><td class="num">21</td><td>GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</td><td>green</td></tr>
           <tr><td>so-arm100-il</td><td class="num">19</td><td>action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke</td><td>green</td></tr>
           <tr><td>so-arm100-vla</td><td class="num">24</td><td>both encoders, splits, windowing, shapes, chunk ensembling, LoRA identity-at-init and exact merge, SmolVLA mapping, end-to-end smoke</td><td>green</td></tr>
         </tbody>
@@ -882,8 +908,7 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
     </div>
     <div class="note warnbox">
       <span class="note-label">Not yet measured</span>
-      <p>The expert success table, the throughput sweep, the curriculum comparison, the nominal-versus-DR
-        transfer table, the ONNX latency, the imitation scaling curve, the DAgger comparison, the held-out
+      <p>The curriculum row of the RL comparison, the imitation scaling curve, the DAgger comparison, the held-out
         physics table for the image policies, the three language splits, the encoder ablation, and the
         SmolVLA reference line. Each has a script and a JSON path named next to it in the repositories, and
         each is filled from that JSON. None is typed in.</p>

@@ -223,7 +223,8 @@
                         <ul class="project-points">
                             <li>One MuJoCo bench (four tasks, scripted IK expert, six held-out physics settings) feeds three policy repos: curriculum PPO, imitation (BC, DAgger, ACT) and a language-conditioned policy</li>
                             <li>Language tested on held-out paraphrases and unseen task&ndash;colour pairs, SmolVLA-base as reference</li>
-                            <li>Expert, 100 episodes &times; 5 seeds: 0.93 on lift and pick_place, 0.73 and 0.72 on the small cube; policy tables not yet measured</li>
+                            <li>RL, measured on one training seed: a domain-randomised fine-tune halves the held-out success drop (0.120 &rarr; 0.056), almost all of it on 3-step action latency (0.46 &rarr; 0.76)</li>
+                            <li>Expert, 100 episodes &times; 5 seeds: 0.93 on lift and pick_place, 0.73 and 0.72 on the small cube; imitation and language tables not yet measured</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/so-arm100.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>

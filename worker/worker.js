@@ -147,17 +147,24 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    held-out sentence templates per task; splits seen / paraphrase / combo;
    SmolVLA-base run zero-shot in the same simulator as a reference line only;
    a LoRA gate at 0.51 s per step on a 176.7M stand-in passed its
-   pre-written under-5-s rule. Measured so far: 122 tests (63 / 16 / 19 / 24)
-   green in CI; MiniLM cosines are dominated by surface words (lift green vs
+   pre-written under-5-s rule. Measured so far: 127 tests (63 / 21 / 19 / 24)
+   green; MiniLM cosines are dominated by surface words (lift green vs
    lift blue 0.82, a true paraphrase 0.59), so paraphrase generalisation has
    to be tested, not assumed. Bench reference measured: scripted expert at
    100 episodes x 5 seeds, reach 1.00 everywhere, lift and pick-and-place
    0.93 nominal but 0.73 / 0.72 on the small cube (the only cell that breaks
    it; no other cell moves them more than 0.08), push 0.73-0.79 in every
    cell. Throughput 1,954 env-steps/s at 1 process, 7,302 at 8 in 15 s
-   bursts, 5,361 sustained. The RL, imitation and language result tables are
-   still not measured; their training runs are the next step. Say so plainly
-   if asked.
+   bursts, 5,361 sustained. RL measured on one training seed: PPO lifts from
+   scratch at 1.0M steps; DR from scratch stalled (rolling success never
+   above 0.09) and was stopped at 4.9M; a DR fine-tune of the nominal policy halves the mean
+   held-out success drop, 0.120 -> 0.056, almost all on 3-step action latency
+   (0.458 -> 0.760). The DR policy had 10M more steps, so part of the gain may
+   be training length; the control run was not done. Two more failures kept
+   as evidence: KL blow-up without a stop, and a hover exploit under the 5 cm
+   success line. ONNX export matches PyTorch to 2.1e-6, 0.008 ms p50 on one
+   thread. The imitation and language tables are still not measured. Say so
+   plainly if asked.
 
 4. Tabletop Clutter Detector, INT8 on One Thread (Python, PyTorch, MuJoCo,
    ONNX Runtime)
@@ -220,7 +227,7 @@ the learned method loses.
 
 Honest gaps: early career; every project is simulation, nothing transferred to
 hardware; no GPU, CUDA, TensorRT or large-scale training experience; the
-SO-ARM100 result tables are not measured yet, and the Microduck
+SO-ARM100 imitation and language tables are not measured yet (RL is, one seed), and the Microduck
 domain-randomisation result is measured and negative (half schedule, one seed); largest
 model is 380,631 parameters; Nav2/SLAM/AMCL are professional experience with
 no project on this page behind them; no employers, dates or role scope
@@ -255,7 +262,7 @@ Depth — long by default
   baseline's 0.532, 1.20 ms through ONNX Runtime" beats "strong ML skills".
 - Say what is NOT covered where it matters — no hardware transfer, no GPU
   work, no accuracy or success-rate figure for the MoveIt2 project, the
-  SO-ARM100 policy result tables not yet measured, and no training run yet on the
+  SO-ARM100 imitation and language tables not yet measured, and no training run yet on the
   C++ backend. Honest limits beat padding.
 - Never answer in a single throwaway sentence.
 - End with one short follow-up question the visitor could ask next, only when
