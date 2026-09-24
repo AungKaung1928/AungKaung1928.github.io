@@ -252,7 +252,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <span class="chip">MiniLM + FiLM</span><span class="chip">held-out physics</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Status</dt><dd>CI green · bench and RL measured, imitation and language pending</dd></div>
+      <div class="fact"><dt>Status</dt><dd>CI green · bench, RL and language measured, imitation pending</dd></div>
       <div class="fact"><dt>Tasks</dt><dd><em>4</em>, one success rule each</dd></div>
       <div class="fact"><dt>Protocol</dt><dd>100 episodes × 5 seeds per cell</dd></div>
       <div class="fact"><dt>Held-out physics</dt><dd>6 cells, each outside DR</dd></div>
@@ -813,9 +813,9 @@ python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/ev
       <table>
         <thead><tr><th>split</th><th>success</th><th>± over seeds</th><th>reach</th><th>push</th><th>lift</th><th>pick_place</th></tr></thead>
         <tbody>
-          <tr><td>seen</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>paraphrase</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
-          <tr><td>combo</td><td>not yet measured</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>seen</td><td class="num">0.110</td><td class="num">0.081</td><td class="num">0.25</td><td class="num">0.04</td><td class="num">0.07</td><td class="num">0.01</td></tr>
+          <tr><td>paraphrase</td><td class="num">0.097</td><td class="num">0.060</td><td class="num">0.24</td><td class="num">0.03</td><td class="num">0.03</td><td class="num">0.03</td></tr>
+          <tr><td>combo</td><td class="num">0.027</td><td class="num">0.046</td><td class="num">—</td><td class="num">0.03</td><td class="num">0.03</td><td class="num">0.02</td></tr>
         </tbody>
       </table>
     </div>
@@ -828,6 +828,27 @@ python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/ev
         was not testing language understanding. If MiniLM wins there and ties on <code>seen</code>, the
         difference is the encoder's contribution and nothing else, because policy, data and seeds are
         identical. A third row removes FiLM, leaving language as a token only.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>encoder</th><th>seen</th><th>paraphrase</th><th>combo</th></tr></thead>
+        <tbody>
+          <tr><td>MiniLM</td><td class="num">0.110 ± 0.081</td><td class="num">0.097 ± 0.060</td><td class="num">0.027 ± 0.046</td></tr>
+          <tr><td>hashed</td><td class="num">0.092 ± 0.046</td><td class="num">0.073 ± 0.057</td><td class="num">0.027 ± 0.021</td></tr>
+          <tr><td>MiniLM, no FiLM</td><td class="num">0.137 ± 0.075</td><td class="num">0.110 ± 0.056</td><td class="num">0.033 ± 0.038</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Measured, and weak</span>
+      <p>The policy barely works: reach about a quarter of the time, push, lift and pick-place between 0 and 7%.
+        Every encoder row sits inside the others' spread, so the ablation cannot separate them; with the base
+        policy this close to the floor there is no headroom for the encoder to show. The training record says
+        why: final L1 on held-out demonstration episodes is 0.128 against 0.057 on training ones, from about 20
+        demonstrations per (task, colour) pair. The policy does not generalise from its demonstrations before
+        language enters, so the next experiment is more data per pair, not a different encoder. Protocol
+        deviations: 20 episodes per seed instead of 100 and one training seed per encoder instead of three,
+        both for evaluation time (1.7 hours per policy on this CPU).</p>
     </div>
     <div class="note key">
       <span class="note-label">One thing already measured about the encoder</span>
@@ -849,6 +870,9 @@ python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/ev
         embodiment statistics, camera placement, units and control rate make it evidence about this protocol,
         not about SmolVLA. A dry-run mode validates the observation mapping against a stub with the same
         feature keys, so the test suite covers it without the download.</p>
+      <p>Measured over 10 episodes per task: <strong>reach 0.00, push 0.00, lift 0.00, pick_place 0.00</strong>, 0 of 40 as expected. One 50-step action
+        chunk takes 3.16 s at the median (p90 3.30 s, n = 130) on 8 CPU threads, 64 times the
+        50 ms control period: on CPU a 500M-parameter VLA is not a real-time controller, whatever it scores after fine-tuning.</p>
       <h3>The LoRA gate</h3>
       <p>Before proposing a fine-tune, measure whether one step of it is affordable. The gate builds a decoder
         with SmolVLM-256M's language-model shape (hidden 576, 30 layers, 9 heads, MLP 1536), attaches rank-8
@@ -908,9 +932,8 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
     </div>
     <div class="note warnbox">
       <span class="note-label">Not yet measured</span>
-      <p>The curriculum row of the RL comparison, the imitation scaling curve, the DAgger comparison, the held-out
-        physics table for the image policies, the three language splits, the encoder ablation, and the
-        SmolVLA reference line. Each has a script and a JSON path named next to it in the repositories, and
+      <p>The curriculum row of the RL comparison, the imitation scaling curve, the DAgger comparison and the
+        held-out physics table for the image policies. Each has a script and a JSON path named next to it in the repositories, and
         each is filled from that JSON. None is typed in.</p>
     </div>
   </div>
