@@ -618,10 +618,18 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <table>
         <thead><tr><th>run</th><th>steps to lift ≥ 0.6 (rolling 100)</th><th>final eval success</th><th class="num">seeds</th></tr></thead>
         <tbody>
-          <tr><td>curriculum</td><td>not yet measured</td><td>not yet measured</td><td class="num">1</td></tr>
+          <tr><td>curriculum</td><td>not reached in 20 M (stuck on push)</td><td>0.45 on push; lift never started</td><td class="num">1</td></tr>
           <tr><td>from scratch</td><td>0.996 M</td><td>1.00 (20 episodes)</td><td class="num">1</td></tr>
         </tbody>
       </table>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Measured, and negative</span>
+      <p>The curriculum cleared reach at 54 k steps, then stalled on push: rolling success peaked at 0.60
+        against the 0.8 gate, so 99.7% of the budget went to push and lift was never trained. From scratch,
+        lift crossed 0.6 inside the first million steps. What failed is the gate, not the transfer: push at 0.8
+        is a harder bar than lift at 0.6 from scratch, so the curriculum blocked the task it was meant to help.
+        One seed; a lower push gate or a per-stage step cap is the next test.</p>
     </div>
     <div class="stack prose">
       <h3>The transfer table</h3>
@@ -932,7 +940,7 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
     </div>
     <div class="note warnbox">
       <span class="note-label">Not yet measured</span>
-      <p>The curriculum row of the RL comparison, the imitation scaling curve, the DAgger comparison and the
+      <p>The imitation scaling curve, the DAgger comparison and the
         held-out physics table for the image policies. Each has a script and a JSON path named next to it in the repositories, and
         each is filled from that JSON. None is typed in.</p>
     </div>

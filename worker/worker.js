@@ -138,6 +138,9 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    RL: PPO with a reach -> push -> lift curriculum (promotion at rolling
    success 0.8 / 0.8 / 0.6), nominal vs full randomisation, evaluated on the
    held-out cells, checkpoints proven bit-exact on resume, ONNX export.
+   Curriculum measured, one seed, negative: reach promoted at 54 k steps,
+   push stalled at rolling success 0.60 under its 0.8 gate, lift never reached
+   in 20 M; lift from scratch hit 0.6 at 1.0 M steps.
    Imitation: behaviour cloning, DAgger with a shadow expert (5 iterations, 20
    rollouts each), an action-chunking transformer, a scaling curve over 10,
    25, 50, 100 and 200 demonstrations x 3 seeds, held-out physics transfer.
