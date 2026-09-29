@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A C++ Environment That Matches Python to the Bit — Aung Kaung Myat</title>
-<meta name="description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, and measured against it on the same laptop.">
+<meta name="description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, measured against it on the same laptop, and trains a PPO policy that scores the same.">
 <meta name="author" content="Aung Kaung Myat">
 <link rel="canonical" href="https://aungkaung1928.github.io/projects/mujoco-vecenv-cpp.html">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://aungkaung1928.github.io/projects/mujoco-vecenv-cpp.html">
 <meta property="og:title" content="A C++ Environment That Matches Python to the Bit">
-<meta property="og:description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, and measured against it on the same laptop.">
+<meta property="og:description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, measured against it on the same laptop, and trains a PPO policy that scores the same.">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234e7c7a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
@@ -258,8 +258,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <span class="chip">CMake</span><span class="chip">GitHub Actions</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Equality</dt><dd><em>6,275 / 6,275</em> observations identical</dd></div>
-      <div class="fact"><dt>Diffs</dt><dd>0 reward · 0 flag · 0 info</dd></div>
+      <div class="fact"><dt>Equality</dt><dd><em>6,275 / 6,275</em> identical · 0 reward diffs</dd></div>
+      <div class="fact"><dt>PPO, 50M steps</dt><dd><em>341.9</em> vs 344.8 of 500 · 3.1 h vs 4.4 h</dd></div>
       <div class="fact"><dt>C++ vs Python, 8 workers</dt><dd><em>1.9–2.0×</em> env-steps/s</dd></div>
       <div class="fact"><dt>Full env, 8 threads</dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
       <div class="fact"><dt>Tests</dt><dd>34 C++ cases · 41 Python tests</dd></div>
@@ -277,7 +277,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     <a href="#arith">Three arithmetic details</a>
     <a href="#threads">Threading design</a>
     <a href="#san">Sanitizers and CI</a>
-    <a href="#speed">Measured throughput</a>
+    <a href="#speed">Throughput and training</a>
     <a href="#limits">What it does not prove</a>
     <a href="#run">Running it</a>
   </div>
@@ -594,7 +594,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
 </section>
 
 <section id="speed">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Measured throughput</h2><p class="sec-sub">Four measurements taken on 2026-09-22 on the same laptop, each with the guard verdict its own tool printed.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2>Measured throughput and training</h2><p class="sec-sub">Four measurements taken on 2026-09-22 on the same laptop, each with the guard verdict its own tool printed, and the full 50M-step PPO run on 2026-09-29/30.</p></div>
   <div class="stack">
     <p class="prose">The protocol is the Python project's. A sweep runs 1, 2, 4 and 8 threads for 20 seconds each,
       with a single-thread reference window before the sweep and after every row. The JSON is marked
@@ -704,9 +704,54 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         through eight pipes each step, was never in that composition. The training script itself logs its
         rate every update, and that figure, not any composed one, is the number to budget from.</p>
     </div>
-    <p class="prose">Not yet run: the Python project's PPO on this backend. <code>scripts/ppo_cpp.py</code> exists and a
-      1,024-step smoke of it wrote a checkpoint, which proves the plumbing and nothing else. Return curves and
-      wall-clock for the 50M-step budget on both backends are the open item.</p>
+    <h3>PPO on the C++ environment, 50M steps</h3>
+    <p class="prose">The Python project's step-3 run, repeated here with the same configuration and training seed, the
+      same schedule (25M steps without a KL stop, then 25M resumed with <code>--target-kl 0.02</code>), and its
+      <code>ppo.py</code> unchanged. Both final policies were then scored on the <em>Python</em> environment,
+      100 episodes on each of the same 5 evaluation seeds, ± over the seed means.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>policy trained on</th><th class="num">return of 500</th><th class="num">survival</th><th class="num">upright</th><th class="num">median trunk height</th></tr></thead>
+        <tbody>
+          <tr class="hl"><td>C++ environment</td><td class="num">341.9 ± 4.1</td><td class="num">0.95</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
+          <tr><td>Python environment</td><td class="num">344.8 ± 2.9</td><td class="num">0.73</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
+          <tr><td>PD hold-pose</td><td class="num">175.8 ± 0.2</td><td class="num">0.47</td><td class="num">—</td><td class="num">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Paired by evaluation seed, the C++-trained policy scores −2.8 lower on average (sd 3.9 over five
+      seeds, about 1.6 standard errors). That is inside the evaluation noise, and there is one training seed
+      per backend, so a second run on either could land further apart than that. A policy trained on this
+      environment scores the same on the Python one. That is what the equality test predicts, and it is
+      what this run was for.</p>
+    <p class="prose">Survival differs, 0.95 against 0.73, and it measures less than it looks. It counts steps with the
+      trunk above 4 cm, and standing height is 12 cm. Both policies are upright half the time with a median trunk
+      height of 5.9 cm, so neither stands better; one dips under 4 cm less often from a similar low posture.
+      The gap is real, about 16 standard errors of the difference over 500 episodes each, and it holds all through
+      training. The two environments draw different pushes from the same seed, and with one run each the
+      backend cannot be told apart from the draw.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>block of 12.5M steps</th><th class="num">return50 C++ / Python</th><th class="num">clip fraction C++ / Python</th><th class="num">KL max C++ / Python</th><th class="num">env-steps/s C++ / Python</th></tr></thead>
+        <tbody>
+          <tr><td>0–12.5M</td><td class="num">345.1 / 337.9</td><td class="num">0.56 / 0.58</td><td class="num">11.0 / 25.1</td><td class="num">4,725 / 3,396</td></tr>
+          <tr><td>12.5–25M</td><td class="num">331.5 / 330.4</td><td class="num">0.69 / 0.73</td><td class="num">65.7 / 173.1</td><td class="num">4,755 / 3,123</td></tr>
+          <tr><td>25–37.5M, KL stop</td><td class="num">342.3 / 332.2</td><td class="num">0.30 / 0.34</td><td class="num">0.53 / 0.57</td><td class="num">7,103 / 4,342</td></tr>
+          <tr><td>37.5–50M, KL stop</td><td class="num">349.5 / 344.3</td><td class="num">0.21 / 0.23</td><td class="num">0.08 / 0.08</td><td class="num">5,998 / 3,735</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">The Python project's step-size failure reproduced on this backend: without a KL stop the clip
+      fraction climbed to 0.69, the KL spiked to 66 and return50 fell from 345 to 332. The KL stop brought both
+      runs back to the same clip fraction and KL within a few hundredths. A failure that shows on two
+      environments with different push draws belongs to the configuration, not to one unlucky run.</p>
+    <p class="prose">50M steps took 3.1 hours here and about 4.4 on the Python environment: 1.41× faster over the first
+      25M and 1.45× over the second. That is less than the 1.9× to 2.0× under random actions above, because PPO
+      puts the policy's forward pass and its gradient update, both single-threaded, on the same critical path.
+      During the last chunk the one training process sat at 470% CPU with eight environment threads. The gain
+      grows when the update shrinks: 1.39× to 1.52× per update while every update runs all its epochs, and 1.61×
+      to 1.64× once the KL stop ends most of them early. Both backends' rates also moved 14–16% between two
+      invocations of the same stage, which is why the ratio is quoted per stage.</p>
   </div>
 </section>
 
@@ -724,8 +769,10 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         statistical, across seeds.</li>
       <li><strong>Sensor noise is not contract-tested</strong>, for the same reason: it is a Gaussian per step
         and the C++ draws its own. The contract cases run with it off.</li>
-      <li><strong>No policy has trained on this yet.</strong> The smoke run proves the training script executes
-        against it, not that a policy trained here matches one trained on the Python environment.</li>
+      <li><strong>One training seed per backend.</strong> The returns agree within the evaluation noise, but
+        survival differs by 0.22, and one run each cannot say whether that is the backend, the push draws or
+        ordinary run-to-run spread. Three training seeds per backend would settle it, at about 9 hours of CPU
+        here and 13 on the Python environment.</li>
       <li><strong>One robot.</strong> <code>Env</code> is Microduck-shaped: 14 actuators, a standing keyframe, a
         named trunk body, named gyro and orientation sensors. The threading layer is not, and a second model
         behind the same interface is the natural next step.</li>
@@ -769,7 +816,12 @@ cmake --build build-tsan -j4
 TSAN_OPTIONS=suppressions=$PWD/tests/cpp/tsan.supp setarch $(uname -m) -R ./build-tsan/vecenv_tests</code></pre>
     <h3>Training on it</h3>
     <pre><code>OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --total-steps 50000000 \
-    --chunk-steps 25000000 --tag v2cpp --reward v2       # VECENV_THREADS=8 is the default</code></pre>
+    --chunk-steps 12500000 --tag v2cpp --reward v2       # VECENV_THREADS=8 is the default
+OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --resume runs/ppo_v2cpp.ckpt.pt --tag v2cpp   # to 25M
+OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --resume runs/ppo_v2cpp.ckpt.pt --tag v2cpp \
+    --target-kl 0.02                                     # twice, to 50M
+python scripts/compare_ppo_backends.py --py ../microduck-rl/runs/ppo_v2.json --cpp runs/ppo_v2cpp.json \
+    --out runs/ppo_backend_compare.json</code></pre>
     <pre><code>import vecenv_cpp
 envs = vecenv_cpp.VecEnv(n=8, seed=0, reward="v2", dr=True)   # same kwargs as the Python env
 obs = envs.reset()
@@ -807,7 +859,10 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
       the build. The same comparison showed the Python vector environment delivering about half the rate its
       project had budgeted from physics alone, because the inter-process round trip had never been in that
       composition. Thread efficiency at eight workers, 45%, matched the Python processes' 42%, so process
-      isolation was not the scaling loss; the chip is. A policy has not yet been trained on this backend.</p>
+      isolation was not the scaling loss; the chip is. Then the proof that matters: the Python project's full
+      50M-step PPO run, repeated on this backend in 3.1 hours instead of 4.4, trains a policy that scores 341.9
+      of 500 on the Python environment against 344.8 for the one trained there, inside the evaluation noise,
+      and it reproduces the same step-size failure and the same fix along the way.</p>
   </div>
 </section>
 
@@ -818,7 +873,7 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
   Built from the source in <code>mujoco-vecenv-cpp</code>: <code>README.md</code>, <code>include/vecenv/*.hpp</code>,
   <code>src/*.cpp</code>, <code>python/bindings.cpp</code>, <code>python/vecenv_cpp/</code>, <code>bench/</code>,
   <code>tests/</code>, <code>scripts/</code>, <code>CMakeLists.txt</code> and <code>.github/workflows/ci.yml</code>,
-  plus the four measurement JSONs under <code>runs/</code>.
+  plus the measurement and training JSONs under <code>runs/</code>.
 </footer>
 
 <script>

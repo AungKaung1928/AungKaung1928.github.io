@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Microduck Balance and Push Recovery — Aung Kaung Myat</title>
-<meta name="description" content="A balance-and-recover policy for a 14-servo biped trained with PPO on a laptop CPU: the feasibility measurement, the 48-dimensional environment contract, the reward rebuilt from measurement, the PD baseline it has to beat, and the first training chunk.">
+<meta name="description" content="A balance-and-recover policy for a 14-servo biped trained with PPO on a laptop CPU: the feasibility measurement, the 48-dimensional environment contract, the reward rebuilt from measurement, the PD baseline it has to beat, and the full 50M-step PPO run.">
 <meta name="author" content="Aung Kaung Myat">
 <link rel="canonical" href="https://aungkaung1928.github.io/projects/microduck-rl.html">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://aungkaung1928.github.io/projects/microduck-rl.html">
 <meta property="og:title" content="Microduck Balance and Push Recovery">
-<meta property="og:description" content="A balance-and-recover policy for a 14-servo biped trained with PPO on a laptop CPU: feasibility gate, environment contract, a reward rebuilt from measurement, the PD baseline, the first training chunk.">
+<meta property="og:description" content="A balance-and-recover policy for a 14-servo biped trained with PPO on a laptop CPU: feasibility gate, environment contract, a reward rebuilt from measurement, the PD baseline, the full 50M-step PPO run.">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%238c6e33'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
@@ -256,7 +256,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <div class="fact"><dt>Status</dt><dd>Steps 1–3 measured, 4–5 written</dd></div>
       <div class="fact"><dt>Observation</dt><dd><em>48</em> dims, all real sensors</dd></div>
       <div class="fact"><dt>PD baseline, reward v2</dt><dd>175.2 ± 3.1 of 500</dd></div>
-      <div class="fact"><dt>PPO after chunk 1</dt><dd>333 vs 176 of 500</dd></div>
+      <div class="fact"><dt>PPO after 50M steps</dt><dd>345 vs 176 of 500</dd></div>
       <div class="fact"><dt>Training rate, measured in the loop</dt><dd>≈3 300 env-steps/s</dd></div>
       <div class="fact"><dt>Tests</dt><dd>27 contract + reward, PPO, DR, export suites</dd></div>
     </dl>
@@ -277,7 +277,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     <a href="#risks">Three open risks</a>
     <a href="#reward">The reward decision</a>
     <a href="#ppo">The training loop</a>
-    <a href="#results">Results, chunk 1</a>
+    <a href="#results">Results, 50M steps</a>
     <a href="#rate">The fifth revision</a>
     <a href="#dr">Domain randomisation</a>
     <a href="#onnx">ONNX export</a>
@@ -310,8 +310,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         if you cannot rule out the machine and the environment first. <strong>Step 3</strong> re-decides the
         reward on the numbers step 2 produced, then runs PPO against the PD controller. <strong>Step 4</strong>
         randomises the physics and measures what that is worth on held-out models; <strong>step 5</strong> exports
-        the policy. Steps 3 and 4 have each run the first half of their training; step 5 is measured on step 3's
-        policy.</p>
+        the policy. Step 3 has run its full 50M steps and step 4 the first half of its own; steps 4 and 5 are measured on
+        step 3's policy at the same halfway point.</p>
     </div>
     <h3>Why "sim-to-sim" is the real target</h3>
     <p>The robot's authors ship <strong>four</strong> physics variants of the same robot — including one with a
@@ -346,7 +346,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 </section>
 
 <section id="steps">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">Where each step stands: five measured, steps 3 and 4 on the first half of their training, one waiting for hardware.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">Where each step stands: five measured, step 3 at its full 50M steps, step 4 on the first half of its training, one waiting for hardware.</p></div>
   <div class="stack">
     <div class="steps">
       <div class="stepbox"><span class="sn">step 1 · done</span><span class="st">Feasibility gate</span>
@@ -355,8 +355,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <div class="stepbox"><span class="sn">step 2 · done</span><span class="st">Environment contract</span>
         <span class="sd">48-dim observation, 14-dim action, 50 Hz, fixed-length episodes with seeded pushes, multiprocess vector env.</span>
         <span class="sr">27 tests · PD baseline 108.7 (v1)</span></div>
-      <div class="stepbox"><span class="sn">step 3 · chunk 1 measured</span><span class="st">Reward v2 and PPO</span>
-        <span class="sd">Reward re-decided on step 2's measurements; PD baseline re-measured at 175.2; PPO with a running normaliser and truncation bootstrap, 25M of 50M steps run.</span>
+      <div class="stepbox"><span class="sn">step 3 · measured</span><span class="st">Reward v2 and PPO</span>
+        <span class="sd">Reward re-decided on step 2's measurements; PD baseline re-measured at 175.2; PPO with a running normaliser and truncation bootstrap, 50M steps in two chunks, the second with a KL stop.</span>
         <span class="sr">PD 175.2 to beat · results in section 13</span></div>
       <div class="stepbox"><span class="sn">step 4 · chunk 1 measured</span><span class="st">Domain randomisation</span>
         <span class="sd">Servo ranges from the four measured fits, mass, friction, latency, noise. Evaluated on two held-out models from upstream.</span>
@@ -1161,10 +1161,11 @@ range 12 600 – 13 800 across the band</code></pre>
 </section>
 
 <section id="results">
-  <div class="sec-head"><span class="sec-num">13</span><h2>Step 3 — results after the first chunk</h2><p class="sec-sub">PPO against the PD controller on the same seeds, at 25M of the 50M budget.</p></div>
+  <div class="sec-head"><span class="sec-num">13</span><h2>Step 3 — results, 25M and 50M steps</h2><p class="sec-sub">PPO against the PD controller on the same seeds, after each half of the 50M budget.</p></div>
   <div class="stack-lg">
     <div class="stack prose">
       <pre><code>OMP_NUM_THREADS=1 nice -n 10 python ppo.py --total-steps 50000000 --chunk-steps 25000000 --tag v2 --reward v2
+OMP_NUM_THREADS=1 nice -n 10 python ppo.py --resume runs/ppo_v2.ckpt.pt --tag v2 --target-kl 0.02 --chunk-steps 12500000   # chunk 2, until 50M
 python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/eval_v2_groundcontact.json</code></pre>
       <p>Configuration: 8 workers, batch 2,048, 5 epochs × 8 minibatches, learning rate 3e−4 annealed, γ 0.99,
         λ 0.95, clip 0.2, entropy 0, initial log-std −0.5. Evaluation: 100 episodes × 5 seeds, deterministic mean
@@ -1174,7 +1175,8 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
       <table>
         <thead><tr><th>Policy</th><th class="num">return (± over seeds)</th><th class="num">survival</th><th class="num">recovery (± over seeds)</th><th class="num">time to recover p50 / p90 s</th><th class="num">pushes on a fallen robot</th></tr></thead>
         <tbody>
-          <tr class="hl"><td>PPO v2, 25M steps (chunk 1 of 2)</td><td class="num">332.6 ± 5.1</td><td class="num">0.74</td><td class="num">1.00 ± 0.00</td><td class="num">0.00 / 0.00</td><td class="num">699</td></tr>
+          <tr class="hl"><td>PPO v2, 50M steps (chunk 2, <code>--target-kl 0.02</code>)</td><td class="num">344.8 ± 2.9</td><td class="num">0.73</td><td class="num">0.99 ± 0.00</td><td class="num">0.00 / 0.00</td><td class="num">629</td></tr>
+          <tr><td>PPO v2, 25M steps (chunk 1)</td><td class="num">332.6 ± 5.1</td><td class="num">0.74</td><td class="num">1.00 ± 0.00</td><td class="num">0.00 / 0.00</td><td class="num">699</td></tr>
           <tr><td>PD hold-pose, reward v2</td><td class="num">175.8 ± 0.2</td><td class="num">0.47</td><td class="num">0.88 ± 0.20</td><td class="num">0.00 / 0.00</td><td class="num">1443</td></tr>
         </tbody>
       </table>
@@ -1186,7 +1188,7 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
       for PD, so the learned policy was down less than half as often. Neither policy has demonstrated getting up after a fall; pushes
       strong enough to knock the learned policy over are a follow-up run.</div>
     <div class="stack prose">
-      <p>After the first 25M-step chunk, PPO scores 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk up for 74% of steps (PD 47%), 100 episodes × 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up: 797 of the 801 pushes that landed on the standing policy never moved the trunk out of the upright band at all, and the 100% is 0.995 rounded. The second 25M chunk is the next run, with a smaller step size: the clip fraction reached 0.73 and the return stopped improving after about 8M steps.</p>
+      <p>After the first 25M-step chunk, PPO scored 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and kept the trunk up for 74% of steps (PD 47%), 100 episodes × 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up: 797 of the 801 pushes that landed on the standing policy never moved the trunk out of the upright band at all, and the 100% is 0.995 rounded. After the second chunk the policy scores 344.8 ± 2.9, and all five evaluation seeds went up, by 8.6 to 16.0. Survival did not move (0.73 against 0.74, about 1.3 standard errors). Pushes on a fallen robot fell from 699 to 629, and the upright fraction rose from 0.47 to 0.50. That is a little more time standing, not a new behaviour, and getting up after a fall is still not shown.</p>
       <h3>What the log showed on the way</h3>
       <p>The rolling 50-episode return rose from 155 at the first update to about 350 by 2.5M steps and peaked at 374 near 7.8M,
         against the PD controller's 175.2 (its 20-seed baseline; the 175.8 above is the same controller under the 100-episode × 5-seed evaluation). Then it stopped: the five 5M-step blocks averaged 337, 342, 332, 332 and 328, and the
@@ -1197,11 +1199,19 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
         0.48 over the first 5M steps and 0.73 over the last 5M. The approximate KL between consecutive policies went from a median
         of 0.07 to 0.76 with spikes above 50, and the policy's standard deviation shrank from 0.61 at the first update to 0.08 at the last. After roughly 5M
         steps every update moved the policy further than the clipped objective is meant to allow, and the extra distance bought
-        nothing. That is the finding of this chunk: the step size, not the budget, is what to fix. The second chunk resumes from
-        <code>runs/ppo_v2.ckpt.pt</code> with an approximate-KL stop on the epoch loop or a learning rate of 1e−4, because two more
+        nothing. That is the finding of this chunk: the step size, not the budget, is what to fix. So the second chunk resumed from
+        <code>runs/ppo_v2.ckpt.pt</code> with an approximate-KL stop on the epoch loop (<code>--target-kl 0.02</code>), because two more
         hours at the same settings would repeat the same mistake.</p>
-      <p>The second chunk (25M to 50M steps) resumes from <code>runs/ppo_v2.ckpt.pt</code> and takes about two
-        hours at the measured rate. The action-scale question step 2 left open, 0.2 and 0.5 against the 0.35
+      <h3>What the KL stop changed</h3>
+      <p>Over chunk 1 the mean approximate KL per update was 0.53 and the mean clip fraction 0.66. Over chunk 2 they were 0.032 and 0.28, and the largest
+        KL was 0.24 against 173. The clip fraction's median fell from 0.40 over the first 5M steps of chunk 2 to 0.16 over the last 5M, and the policy's
+        standard deviation held at 0.08 to 0.09. The rolling return's five block means went 331, 332, 337, 344, 347, against chunk 1's flat-to-falling 337, 342, 332,
+        332, 328. This run has two confounds and cannot separate them. The learning rate anneals to zero over the same span, and there is no chunk 2 without the stop
+        to compare against. So the claim is that chunk 2 improved with the stop in place, not that the stop caused all of the gain.</p>
+      <p>Chunk 2 ran as three invocations of under an hour each: 58 min, then a 4-minute run stopped by hand right after a checkpoint, then 60 min. The runner rested the
+        machine 30 minutes after every 2.5 hours of work. The throughput warning fired on 86 of 12,207 updates, against 4,296 of 12,208 in chunk 1's single
+        2.4-hour run, which is more evidence that chunk 1's slowdown was heat or power. The chunk-1 policy is kept byte-identical as <code>runs/ppo_v2_chunk1.pt</code>;
+        the step 4 gap table and the step 5 export were measured on it. The action-scale question step 2 left open, 0.2 and 0.5 against the 0.35
         default, is a <code>--action-scale</code> flag and two more runs; whether it is answered or dropped is
         recorded in the repository's issues.</p>
     </div>
@@ -1288,8 +1298,8 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
         captured once at construction, so every <code>apply</code> is relative to the vendored model and nothing
         compounds; <code>restore()</code> puts every array back bit for bit, and a test checks that.</p>
       <pre><code>OMP_NUM_THREADS=1 nice -n 10 python ppo.py --total-steps 50000000 --chunk-steps 25000000 --tag v2dr --reward v2 --dr
-python eval_gap.py --nominal runs/ppo_v2.pt --dr runs/ppo_v2dr.pt          # -&gt; runs/gap.json</code></pre>
-      <p>Both policies are the first 25M-step chunk of a 50M run: one training seed each, and the same
+python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&gt; runs/gap.json</code></pre>
+      <p>Both policies are the first 25M-step chunk of a 50M run (the nominal one is <code>runs/ppo_v2_chunk1.pt</code>; its second chunk is in section 13, but this table compares like with like): one training seed each, and the same
         configuration apart from randomisation. The randomised run is set up as 50M in two chunks, not as a
         single 25M run, so that its learning-rate anneal matches the nominal policy's. It took 2.4 hours at
         about 3 300 environment steps per second. Each cell is 100 episodes &times; 5 seeds, the same seeds
@@ -1357,7 +1367,7 @@ python eval_gap.py --nominal runs/ppo_v2.pt --dr runs/ppo_v2dr.pt          # -&g
         the un-normalised actor and agrees with the training-time path, and a huge observation gives the same
         finite answer both ways, so the clip survived export. Then ONNX Runtime latency on one intra-op thread,
         batch 1, p50 and p99 over 2,000 calls, which is the shape an on-robot controller runs at 50 Hz.</p>
-      <pre><code>python export_onnx.py runs/ppo_v2.pt          # -&gt; runs/policy_v2.onnx, runs/onnx_v2.json</code></pre>
+      <pre><code>python export_onnx.py runs/ppo_v2_chunk1.pt   # -&gt; runs/policy_v2.onnx, runs/onnx_v2.json</code></pre>
       <p>Measured on the chunk-1 policy:</p>
     </div>
     <div class="tablewrap">
@@ -1382,10 +1392,13 @@ python eval_gap.py --nominal runs/ppo_v2.pt --dr runs/ppo_v2dr.pt          # -&g
       <code>ppo.py</code> on it unchanged. Its first claim is equality, not speed: 6,275 of 6,275 observations
       across 25 episodes are bit-identical to this environment's, which took matching numpy's summation order,
       Python's <code>pow</code> and a float32 constant. Its second claim is the one that matters here: alternating
-      the two backends in one run, its threads deliver 1.9 to 2.0× this vector environment at eight workers. The
-      training run on that backend, with the same configuration and seeds, is the next comparison, and its
-      curves will be read against the ones from this page across seeds rather than step by step, because the two
-      draw their pushes differently.</p>
+      the two backends in one run, its threads deliver 1.9 to 2.0× this vector environment at eight workers. Its
+      third is this page's step 3, run again on that backend with the same configuration and training seed: 50M
+      steps in 3.1 hours instead of 4.4, and a policy that scores 341.9 ± 4.1 of 500 on this environment against
+      344.8 ± 2.9 for the one trained here, inside the evaluation noise. The runaway step size of chunk 1
+      reproduced there too, and the KL stop fixed it the same way. Its survival is 0.95 against this policy's
+      0.73 at the same upright fraction and trunk height; the two backends draw their pushes differently and
+      there is one training run each, so that gap is not pinned on the backend.</p>
   </div>
 </section>
 
@@ -1409,9 +1422,9 @@ python3 baseline.py --seeds 20 --reward v2   # reward v2, the 175.2 baseline
 python3 test_reward.py && python3 test_ppo.py && python3 test_dr.py && python3 test_export.py</code></pre>
     <h3>Training, evaluation, export</h3>
     <pre><code>OMP_NUM_THREADS=1 nice -n 10 python3 ppo.py --total-steps 50000000 --chunk-steps 25000000 --tag v2 --reward v2
-OMP_NUM_THREADS=1 nice -n 10 python3 ppo.py --resume runs/ppo_v2.ckpt.pt --tag v2     # chunk 2
+OMP_NUM_THREADS=1 nice -n 10 python3 ppo.py --resume runs/ppo_v2.ckpt.pt --tag v2 --target-kl 0.02   # chunk 2
 python3 eval_policy.py runs/ppo_v2.pt --variant groundcontact
-python3 export_onnx.py runs/ppo_v2.pt</code></pre>
+python3 export_onnx.py runs/ppo_v2_chunk1.pt   # step 5 was measured on the chunk-1 policy</code></pre>
     <p class="prose">Each chunk is about two hours at the measured 3,300 env-steps/s. The loop refuses to start on a
       machine whose one-minute load average is above 4, and prints the rate every update so a throttled or
       contended run is visible while it happens.</p>
@@ -1457,7 +1470,9 @@ nice -n 10 python3 bench_wrapper.py --seconds 12        # 1 core, no load</code>
       bootstrap then ran its first 25-million-step chunk, and running it added a fifth revision to the
       throughput figure: about 3 300 environment steps per second with the policy in the loop, a quarter of the
       plan, because the eight pipe round trips and the network forward pass had never been in the estimate.
-      The chunk-1 evaluation against the PD controller is in section 13. Step 4 trained a second policy under
+      The first chunk's step size ran away, with a clip fraction of 0.73 and KL spikes above 50. The second chunk resumed with a KL stop and
+      finished the 50M steps at 344.8 ± 2.9 against the PD controller's 175.8, with every seed up on chunk 1's 332.6
+      (section 13). Step 4 trained a second policy under
       randomisation over the measured servo range and tested both on two held-out models from upstream. The
       randomised policy never counted as fallen, but it had learned to brace in a crouch instead of standing. It
       shrugged off backlash and collapsed on rollers, a model the nominal policy found easier than its own, so

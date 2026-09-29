@@ -10,7 +10,7 @@
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://aungkaung1928.github.io/projects/so-arm100.html">
 <meta property="og:title" content="One Arm, Three Ways to Learn It">
-<meta property="og:description" content="A simulated SO-ARM100 learned three ways on one shared bench: reinforcement learning, imitation, and a language-conditioned policy. Four repositories, 122 tests, results tables empty until measured.">
+<meta property="og:description" content="A simulated SO-ARM100 learned three ways on one shared bench: reinforcement learning, imitation, and a language-conditioned policy. Four repositories, 129 tests, every table filled by a script: ACT lifts 0.77 where single-step cloning lifts 0.05.">
 <meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2396605f'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
@@ -252,11 +252,11 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <span class="chip">MiniLM + FiLM</span><span class="chip">held-out physics</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Status</dt><dd>CI green · bench, RL and language measured, imitation pending</dd></div>
+      <div class="fact"><dt>Status</dt><dd>CI green · bench, RL, imitation and language measured</dd></div>
       <div class="fact"><dt>Tasks</dt><dd><em>4</em>, one success rule each</dd></div>
       <div class="fact"><dt>Protocol</dt><dd>100 episodes × 5 seeds per cell</dd></div>
       <div class="fact"><dt>Held-out physics</dt><dd>6 cells, each outside DR</dd></div>
-      <div class="fact"><dt>Tests</dt><dd>63 + 16 + 19 + 24 = <em>122</em></dd></div>
+      <div class="fact"><dt>Tests</dt><dd>63 + 21 + 21 + 24 = <em>129</em></dd></div>
       <div class="fact"><dt>Policy sizes</dt><dd>MLP · keypoint CNN · ~1M-param transformer</dd></div>
     </dl>
   </div>
@@ -406,7 +406,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         </tbody>
       </table>
     </div>
-    <h3>so-arm100-il, 1,778 lines</h3>
+    <h3>so-arm100-il, 1,828 lines</h3>
     <div class="tablewrap">
       <table class="filemap">
         <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
@@ -414,11 +414,11 @@ html.dark-mode .sb-theme .moon-icon{display:block}
           <tr><td>so_arm100_il/models.py</td><td class="num">185</td><td><code>StateMLP</code>, <code>ImagePolicy</code> (CNN → spatial soft-argmax keypoints → MLP), <code>ACTLite</code> (keypoint tokens, 2-layer encoder, 2-layer decoder, 20 queries), masked L1 loss, temporal ensembler</td></tr>
           <tr><td>so_arm100_il/data.py</td><td class="num">153</td><td>Reads the LeRobotDataset, builds k-step action windows, split by episode, normalisation from training episodes only</td></tr>
           <tr><td>so_arm100_il/human_video.py</td><td class="num">142</td><td>Experimental: MediaPipe hand landmarks from an overhead video to IK targets, replayed in the simulator</td></tr>
-          <tr><td>scaling.py</td><td class="num">120</td><td>Dataset-size curve: 10, 25, 50, 100, 200 episodes × 3 seeds, bench protocol</td></tr>
+          <tr><td>scaling.py</td><td class="num">143</td><td>Dataset-size curve: 10, 25, 50, 100, 200 episodes × 3 seeds, 20 epochs, 50 evaluation episodes each</td></tr>
           <tr><td>dagger.py</td><td class="num">111</td><td>DAgger loop: mixed control, shadow-expert labels, aggregate, retrain</td></tr>
           <tr><td>so_arm100_il/training.py · policy.py · shadow.py</td><td class="num">189</td><td>Training loop; run-time policy wrapper; the expert running in the learner's shadow</td></tr>
-          <tr><td>train_bc.py · eval_policy.py · scripts/</td><td class="num">190</td><td>BC entry point; held-out physics evaluation; demo recorder and hand-video wrapper</td></tr>
-          <tr><td>tests/ (5 files)</td><td class="num">295</td><td>19 tests: windows, models, ensembling, shadow expert with beta = 1, hand mapping, an end-to-end record → train → evaluate smoke</td></tr>
+          <tr><td>train_bc.py · eval_policy.py · scripts/</td><td class="num">381</td><td>BC entry point; held-out physics evaluation in resumable (physics, seed) units with a time budget; demo recorder, hand-video wrapper and the combined scaling figure</td></tr>
+          <tr><td>tests/ (6 files)</td><td class="num">361</td><td>21 tests: windows, models, ensembling, shadow expert with beta = 1, hand mapping, an end-to-end record → train → evaluate smoke, resumed evaluation equals serial</td></tr>
         </tbody>
       </table>
     </div>
@@ -490,7 +490,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <thead><tr><th>factor</th><th>DR range (× nominal)</th><th>held-out cell</th></tr></thead>
         <tbody>
           <tr><td>cube mass</td><td>0.5 – 2.0</td><td><code>heavy</code> 3.0</td></tr>
-          <tr><td>cube sliding friction</td><td>0.5 – 1.5</td><td><code>slippery</code> 0.3</td></tr>
+          <tr><td>cube sliding friction</td><td>0.5 – 1.5 (only above 1.0 acts)</td><td><code>slippery</code> 0.3 (inert)</td></tr>
           <tr><td>servo gain kp</td><td>0.6 – 1.4</td><td><code>weak</code> 0.45</td></tr>
           <tr><td>joint damping, frictionloss</td><td>0.5 – 2.0</td><td>–</td></tr>
           <tr><td>cube half-extent</td><td>10 – 15 mm</td><td><code>small</code> 9 mm</td></tr>
@@ -659,7 +659,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <tbody>
           <tr><td>nominal</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
           <tr><td>heavy (mass 3×)</td><td>0.998 ± 0.004</td><td>0.988 ± 0.008</td><td>−0.010</td></tr>
-          <tr><td>slippery (friction 0.3×)</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
+          <tr><td>slippery (friction 0.3×, inert)</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
           <tr><td>weak (kp 0.45×)</td><td>0.982 ± 0.013</td><td>1.000 ± 0.000</td><td>+0.018</td></tr>
           <tr><td>laggy (3 steps)</td><td>0.458 ± 0.052</td><td>0.760 ± 0.030</td><td><strong>+0.302</strong></td></tr>
           <tr><td>noisy (3× obs noise)</td><td>0.956 ± 0.017</td><td>0.948 ± 0.024</td><td>−0.008</td></tr>
@@ -672,7 +672,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     <div class="stack prose">
       <p>The DR fine-tune halves the mean drop, and almost all of it is one cell: three steps of action
         latency, one step past the randomised range, costs the nominal policy more than half its success and the
-        DR policy a quarter. Mass and friction shifts cost neither anything. Two things weaken the claim: one
+        DR policy a quarter. The mass shift costs neither anything. The friction row says nothing: the slippery cell turned out inert (see the note under the imitation tables). Two things weaken the claim: one
         training seed per column (the ± is over evaluation seeds only), and the DR column has 10 M more training
         steps, so part of the gain may be training length. A 30 M-step nominal run is the control that would
         separate the two, and it has not been run.</p>
@@ -736,20 +736,38 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
         reported rather than the best one on validation.</p>
       <h3>The experiments</h3>
       <p><strong>Scaling curve.</strong> For 10, 25, 50, 100 and 200 episodes and three seeds each, train on
-        the first <em>n</em> episodes and evaluate with the bench protocol. Every seed sees the same first
-        episodes, so seeds differ only in initialisation and shuffling.</p>
+        the first <em>n</em> episodes for 20 epochs and evaluate 50 episodes on one evaluation seed. That is
+        lighter than the bench protocol, to keep 15 runs per model affordable on a CPU. Every seed sees the
+        same first episodes, so seeds differ only in initialisation and shuffling, and a cell's spread is
+        over the three training seeds. At 50 episodes one success is 0.02.</p>
     </div>
     <div class="tablewrap">
       <table>
         <thead><tr><th class="num">episodes</th><th>state</th><th>image</th><th>act</th></tr></thead>
         <tbody>
-          <tr><td class="num">10</td><td>not yet measured</td><td>not yet measured</td><td>not yet measured</td></tr>
-          <tr><td class="num">25</td><td></td><td></td><td></td></tr>
-          <tr><td class="num">50</td><td></td><td></td><td></td></tr>
-          <tr><td class="num">100</td><td></td><td></td><td></td></tr>
-          <tr><td class="num">200</td><td></td><td></td><td></td></tr>
+          <tr><td class="num">10</td><td class="num">0.01 ± 0.01</td><td class="num">0.01 ± 0.01</td><td class="num">0.13 ± 0.13</td></tr>
+          <tr><td class="num">25</td><td class="num">0.01 ± 0.01</td><td class="num">0.03 ± 0.01</td><td class="num">0.26 ± 0.17</td></tr>
+          <tr><td class="num">50</td><td class="num">0.00 ± 0.00</td><td class="num">0.02 ± 0.03</td><td class="num">0.41 ± 0.36</td></tr>
+          <tr><td class="num">100</td><td class="num">0.02 ± 0.00</td><td class="num">0.04 ± 0.02</td><td class="num">0.49 ± 0.35</td></tr>
+          <tr><td class="num">200</td><td class="num">0.03 ± 0.01</td><td class="num">0.05 ± 0.06</td><td class="num">0.66 ± 0.37</td></tr>
         </tbody>
       </table>
+    </div>
+    <div class="stack prose">
+      <p>Three training seeds × 50 episodes per cell, mean ± sd over seeds, measured 2026-09-25 and 2026-09-30.
+        More demonstrations do not rescue single-step cloning: the image policy's validation L1 falls fivefold
+        from 10 to 200 episodes (0.181 to 0.036) while its success stays between 0.01 and 0.05, so the
+        compounding error below is not a data-quantity problem at this scale. ACT climbs, 0.13 to 0.66, and has
+        not levelled off at 200.</p>
+      <p>The spread is the other result. At 200 episodes ACT's three seeds score 0.92, 0.82 and 0.24. At 50
+        episodes the binomial standard error of a 0.5 rate is 0.07, so that is training variance, not
+        evaluation noise. One seed is worst at every size, because a seed fixes the initialisation and the
+        shuffling for every size. The ranking survives it: at 100 and 200 episodes ACT's worst seed is above the
+        image policy's best (0.12 against 0.06, 0.24 against 0.12). Validation loss does not pick the good seed:
+        at 50 episodes the seed with the middle L1 has the worst success. Every other table on this page is one
+        training seed, and this curve says their ± over evaluation seeds understates the real uncertainty. The
+        chunked-versus-single-step gap is large enough to survive that; a 0.06 difference in the held-out table
+        may not.</p>
     </div>
     <div class="stack prose">
       <p><strong>DAgger.</strong> Mixing coefficient β<sub>i</sub> = 0.5 · 0.5<sup>i</sup>, 20 rollouts per
@@ -759,13 +777,59 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
     <div class="tablewrap">
       <table>
         <thead><tr><th></th><th>BC, 200 demos</th><th>DAgger, 200 demos + 100 relabelled rollouts</th></tr></thead>
-        <tbody><tr><td>lift, nominal</td><td>not yet measured</td><td>not yet measured</td></tr></tbody>
+        <tbody><tr><td>lift, nominal</td><td>0.05 ± 0.02</td><td>0.14 ± 0.07</td></tr></tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p><strong>Held-out physics.</strong> The best image policy on every <code>EVAL_PHYSICS</code> cell,
+      <p>100 episodes × 5 seeds, mean ± sd over seeds. Per seed, DAgger scores 0.18, 0.06, 0.09, 0.22 and 0.13;
+        BC scores 0.03, 0.07, 0.05, 0.06 and 0.04. Four of the five DAgger seeds beat BC's best, a gap of about
+        three standard errors. The gain is real and small. The learner's own success per iteration (20
+        episodes each, so ±0.1 is noise) went 0.05, 0.20, 0.10, 0.05, 0.05 and never climbed. Relabelling the
+        states the learner visits does not give a single-step policy the temporal context it lacks.</p>
+    </div>
+    <div class="stack prose">
+      <p><strong>Held-out physics.</strong> Both image policies on every <code>EVAL_PHYSICS</code> cell,
         100 episodes × 5 seeds. The demonstrations were recorded on nominal physics, so this is a transfer
-        table, and the expert's own table from the bench is the reference column.</p>
+        table, and the expert's own table from the bench is the reference column. Training data: the recorder
+        kept 200 of 218 expert attempts, 14,487 frames. Final-epoch validation L1 was 0.034 for the single-step
+        policy and 0.123 for ACT, and the table shows how little that predicts.</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>physics</th><th class="num">expert</th><th class="num">BC image</th><th class="num">ACT</th></tr></thead>
+        <tbody>
+          <tr><td>nominal</td><td class="num">0.93 ± 0.02</td><td class="num">0.05 ± 0.02</td><td class="num">0.77 ± 0.05</td></tr>
+          <tr><td>heavy</td><td class="num">0.90 ± 0.02</td><td class="num">0.02 ± 0.01</td><td class="num">0.78 ± 0.06</td></tr>
+          <tr><td>slippery (inert)</td><td class="num">0.93 ± 0.02</td><td class="num">0.05 ± 0.02</td><td class="num">0.77 ± 0.05</td></tr>
+          <tr><td>weak</td><td class="num">0.97 ± 0.02</td><td class="num">0.00 ± 0.00</td><td class="num">0.70 ± 0.04</td></tr>
+          <tr><td>laggy</td><td class="num">0.92 ± 0.03</td><td class="num">0.00 ± 0.00</td><td class="num">0.65 ± 0.02</td></tr>
+          <tr><td>noisy</td><td class="num">0.93 ± 0.02</td><td class="num">0.06 ± 0.01</td><td class="num">0.72 ± 0.08</td></tr>
+          <tr><td>small</td><td class="num">0.73 ± 0.05</td><td class="num">0.01 ± 0.02</td><td class="num">0.38 ± 0.05</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p><strong>Chunking is the whole difference.</strong> Same demonstrations, same keypoint encoder, same
+        loss: the single-step policy lifts the cube 5% of the time, ACT 77%. The pipeline was checked before
+        that was believed. Replaying a recorded episode through the evaluation env reproduces the state to
+        7e-7, and on the expert's own trajectory the policy's output is within 0.005 to 0.06 rad of the
+        demonstration. Closed loop, its error against the expert grows from 0.4 to 1 to 4 rad within 50 to 150
+        steps. That is compounding error, the textbook failure of behaviour cloning, here measured.</p>
+      <p><strong>ACT transfers, with two real losses.</strong> Heavy and noisy stay within noise of nominal.
+        Three steps of latency cost it 0.12 and the weak servo 0.06, where the expert loses at most 0.01. The
+        small cube costs ACT 0.39 against the expert's 0.20. An 18 mm cube (9 mm half-extent, against 25 mm nominal) in a 96 × 128 image is a perception
+        problem, and the expert, which reads the true pose, does not have it.</p>
+    </div>
+    <div class="note warnbox">
+      <span class="note-label">Found while measuring: the slippery cell is inert</span>
+      <p>Nominal and slippery are bit-identical in every table on this page: the expert, both RL policies, BC
+        and ACT. The bench scales the cube's sliding friction by 0.3, but MuJoCo gives a contact the larger
+        friction of its two geoms, and the fingers and floor stay at 1.0, so the contact never changes. The
+        same rule means the DR friction range of 0.5 to 1.5 only acts above 1.0. The rows are kept as
+        measured. Fixing it (scale the finger friction too, or set contact <code>priority</code>) would be a
+        new experiment and would be labelled as one.</p>
+    </div>
+    <div class="stack prose">
       <h3>Experimental: demonstrations from a hand video</h3>
       <p>MediaPipe Hand Landmarker on an overhead phone video; wrist position maps to a point in the spawn
         box, thumb-to-index pinch distance to jaw angle and a two-level height; the bench's IK turns that into
@@ -776,7 +840,8 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
     <pre><code>python scripts/record_demos.py --root data/lift_red --repo-id local/so_arm100_lift_red --tasks lift:red --episodes 200
 nice -n 10 python scaling.py --root data/lift_red --repo-id local/so_arm100_lift_red --task lift:red --model image --sizes 10 25 50 100 200 --seeds 3
 nice -n 10 python dagger.py  --root data/lift_red --repo-id local/so_arm100_lift_red --task lift:red --model image --iters 5 --rollouts 20 --out runs/dagger_image_lift.pt
-python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/eval_bc_image_lift.json</code></pre>
+nice -n 10 python eval_policy.py --ckpt runs/bc_image_lift.pt --task lift:red --out runs/eval_bc_image_lift.json --jobs 4 --budget-min 110
+nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --out runs/eval_bc_act_lift.json   --jobs 4 --budget-min 110</code></pre>
   </div>
 </section>
 
@@ -911,7 +976,7 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
         <tbody>
           <tr><td>so-arm100-sim</td><td class="num">63</td><td>vendored model hash, observation and action contract, IK, expert success gates, every held-out cell outside the DR range, vector env, recorder</td><td>green, Python 3.10 and 3.12</td></tr>
           <tr><td>so-arm100-rl</td><td class="num">21</td><td>GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</td><td>green</td></tr>
-          <tr><td>so-arm100-il</td><td class="num">19</td><td>action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke</td><td>green</td></tr>
+          <tr><td>so-arm100-il</td><td class="num">21</td><td>action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke, resumed evaluation equals serial, time-budget stop and rerun</td><td>green</td></tr>
           <tr><td>so-arm100-vla</td><td class="num">24</td><td>both encoders, splits, windowing, shapes, chunk ensembling, LoRA identity-at-init and exact merge, SmolVLA mapping, end-to-end smoke</td><td>green</td></tr>
         </tbody>
       </table>
@@ -924,8 +989,9 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
           sentences that share surface words.</li>
         <li>The LoRA gate: 0.51 s per step on 8 threads for a 176.7M-parameter stand-in, rule fixed before
           measuring.</li>
-        <li>The cost of an image-policy evaluation cell: about 17 minutes for 100 episodes × 5 seeds at
-          roughly 20 ms per software-rendered frame. It bounds the imitation and language tables, not the
+        <li>The cost of an image-policy evaluation: about 52 ms per control step on one core, render plus
+          policy, so the seven-cell held-out table is about 6 core-hours per model. It ran in resumable
+          (physics, seed) units under a time budget, and it bounds the imitation and language tables, not the
           models.</li>
         <li>Bare <code>mj_step</code> on this arm model at about 18 µs single-process during development,
           roughly 2,200 env-steps/s per process before any Python overhead. A development reading, not the
@@ -935,14 +1001,7 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
       <p>The expert's success gates in the bench tests were set from 30 episodes and one seed: reach 1.00
         everywhere; lift 0.93 nominal, 0.87 small, 0.97 weak, 0.93 heavy; push 0.83, 0.80, 0.77, 0.80;
         pick_place 0.93, 0.80, 0.93, 0.90. The gates sit below those, at 0.95, 0.75, 0.65 and 0.75. The
-        100 × 5 table replaces these when it is measured, and until then they are what the tests hold the
-        expert to, not a published result.</p>
-    </div>
-    <div class="note warnbox">
-      <span class="note-label">Not yet measured</span>
-      <p>The imitation scaling curve, the DAgger comparison and the
-        held-out physics table for the image policies. Each has a script and a JSON path named next to it in the repositories, and
-        each is filled from that JSON. None is typed in.</p>
+        100 × 5 table above is the published result; these are only what the tests hold the expert to.</p>
     </div>
   </div>
 </section>
@@ -1027,9 +1086,16 @@ pip install -e .
       and proprioception, on a dataset-size curve from 10 to 200 demonstrations. And a one-million-parameter
       language-conditioned policy with a frozen MiniLM encoder modulating the image features, tested on
       held-out paraphrases and held-out task-colour pairs against a hashed-words control, with SmolVLA-base as
-      a zero-shot calibration line and a LoRA fine-tune gated on a step timing that came in at 0.51 s. All of
-      it is written, 122 tests are green, and every results table is empty on purpose until the measurement
-      phase fills it from a script.</p>
+      a zero-shot calibration line and a LoRA fine-tune gated on a step timing that came in at 0.51 s. 129 tests
+      are green and every table is filled from a script's JSON. The expert lifts 0.93. The randomised RL fine-tune
+      halves the held-out success drop (0.120 to 0.056), almost all of it on action latency. From 200 demonstrations the
+      chunked transformer lifts 0.77 from the camera while single-step cloning manages 0.05, so compounding error
+      is the whole story there, and DAgger recovers only to 0.14. On the dataset-size curve more demonstrations
+      do nothing for single-step cloning while the chunked policy climbs to 0.66 at 200, with three training seeds
+      spread from 0.24 to 0.92, the largest uncertainty on the page. The language policy is weak (0.11 seen, 0.03 on
+      unseen task-colour pairs), and SmolVLA-base scores 0 of 40 zero-shot. One cell turned out to test nothing:
+      MuJoCo takes the larger friction of two touching surfaces, so lowering only the cube's friction is inert. That
+      is reported as found.</p>
   </div>
 </section>
 

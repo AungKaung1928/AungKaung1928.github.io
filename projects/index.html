@@ -157,7 +157,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Microduck Balance and Push Recovery</h3>
             <span class="repo">microduck-rl</span></div>
-          <p>A balance-and-recover policy for a 25 cm, 14-servo biped, trained with PPO in CPU MuJoCo. The page follows the project in order: a throughput figure that had to be corrected five times, a 48-dimensional observation built only from what the real sensors report, a reward rebuilt from measurement, a PD baseline to beat, and the first 25M-step chunk: PPO 332.6 of 500 against PD 175.8 over 100 episodes × 5 seeds. Domain randomisation was run and came out negative, and is reported as such; the ONNX export is measured.</p>
+          <p>A balance-and-recover policy for a 25 cm, 14-servo biped, trained with PPO in CPU MuJoCo. The page follows the project in order: a throughput figure that had to be corrected five times, a 48-dimensional observation built only from what the real sensors report, a reward rebuilt from measurement, a PD baseline to beat, and the full 50M steps: PPO 344.8 of 500 against PD 175.8 over 100 episodes × 5 seeds, after a KL stop fixed a runaway step size in the second chunk. Domain randomisation was run and came out negative, and is reported as such; the ONNX export is measured.</p>
           <div class="tech"><span>MuJoCo</span><span>PyTorch CPU</span><span>PPO</span><span>system ID</span><span>sim-to-real</span></div>
           <div class="links">
             <a class="primary" href="microduck-rl.html">Read the walkthrough →</a>
@@ -171,7 +171,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>A C++ Environment That Matches Python to the Bit</h3>
             <span class="repo">mujoco-vecenv-cpp</span></div>
-          <p>The Microduck environment rewritten in C++17 and run on threads instead of processes. The claim is not speed first: 6,275 of 6,275 observations come out bit-identical to the Python reference, which took matching numpy's summation order, libm's <code>pow</code> and a float32 constant. Then the speed: about 2x the Python vector environment at 8 workers, measured with the two alternating in one run.</p>
+          <p>The Microduck environment rewritten in C++17 and run on threads instead of processes. The claim is not speed first: 6,275 of 6,275 observations come out bit-identical to the Python reference, which took matching numpy's summation order, libm's <code>pow</code> and a float32 constant. Then the speed: about 2x the Python vector environment at 8 workers, measured with the two alternating in one run. Then the training run: the full 50M-step PPO run took 3.1 hours instead of 4.4, and its policy scores 341.9 of 500 on the Python environment against 344.8 for the one trained there.</p>
           <div class="tech"><span>C++17</span><span>MuJoCo</span><span>pybind11</span><span>ASan / TSan</span></div>
           <div class="links">
             <a class="primary" href="mujoco-vecenv-cpp.html">Read the walkthrough →</a>
@@ -185,7 +185,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>One Arm, Three Ways to Learn It</h3>
             <span class="repo">so-arm100-sim · -rl · -il · -vla</span></div>
-          <p>A shared MuJoCo bench for the SO-ARM100 arm (four tasks, a scripted IK expert, domain randomisation, held-out physics, one evaluation protocol) and three policy projects on top of it: curriculum PPO, imitation from behaviour cloning through DAgger to ACT, and a language-conditioned policy scored on held-out paraphrases. The bench is measured: the scripted expert reaches 0.93 on lift and pick_place and 0.72–0.73 on the small cube. The policy tables are the next step and say so.</p>
+          <p>A shared MuJoCo bench for the SO-ARM100 arm (four tasks, a scripted IK expert, domain randomisation, held-out physics, one evaluation protocol) and three policy projects on top of it: curriculum PPO, imitation from behaviour cloning through DAgger to ACT, and a language-conditioned policy scored on held-out paraphrases. All of it is measured at 100 episodes × 5 seeds: the scripted expert lifts 0.93, a randomised RL fine-tune halves the held-out drop, action chunking lifts 0.77 from the camera where single-step cloning lifts 0.05, and the language policy is weak.</p>
           <div class="tech"><span>PyTorch CPU</span><span>PPO</span><span>BC · DAgger · ACT</span><span>LeRobotDataset</span><span>MiniLM</span></div>
           <div class="links">
             <a class="primary" href="so-arm100.html">Read the walkthrough →</a>

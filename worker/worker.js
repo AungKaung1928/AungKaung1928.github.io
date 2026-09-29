@@ -68,7 +68,7 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    500 ceiling under that reward over 20 seeds (108.7 +/- 2.9 under the old
    one) and is the baseline the policy has to beat. PPO carries a running
    observation normaliser, a truncation bootstrap, and checkpointed chunks.
-   Result: After the first 25M-step chunk, PPO scores 332.6 ± 5.1 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk above the fall height for 74% of steps (PD 47%), 100 episodes x 5 seeds. The push column reads 100% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up. The second 25M chunk is the next run, with a smaller step size: the clip fraction reached 0.73 and the return stopped improving after about 8M steps.
+   Result: After the full 50M steps, PPO scores 344.8 ± 2.9 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk above the fall height for 73% of steps (PD 47%), 100 episodes x 5 seeds. The first 25M-step chunk reached 332.6 ± 5.1, but its step size ran away (clip fraction 0.73, KL spikes above 50). The second chunk resumed with a KL stop at 0.02, which held the mean KL at 0.03, and every evaluation seed improved by 8.6 to 16.0. Survival did not move, and the learning rate annealing over the same span is a confound. The push column reads 99% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up; getting up after a fall is not shown.
    Throughput lesson, kept on the page: the budget was set from 13,300
    environment steps per second (bare physics times a wrapper factor); the
    training loop itself runs at about 3,300 because the round trip to eight
@@ -115,8 +115,17 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    alternating in one run: 12,327 vs 6,385 env-steps/s at 8 workers, 1.9 to
    2.0x in both runs, clearing the 1.3x rule written in advance. The
    comparison also showed the Python vector env delivering about 6,400
-   env-steps/s at 8 processes, half the 13,300 budget. Not yet done: a
-   training run on the C++ backend compared to the Python one across seeds.
+   env-steps/s at 8 processes, half the 13,300 budget. Training on it: the
+   Python project's full 50M-step PPO run, repeated with the same config and
+   training seed, took 3.1 h instead of 4.4 (1.41x over the first 25M, 1.45x
+   over the second; the forward pass and update are single-threaded on the
+   critical path). Its policy scores 341.9 ± 4.1 of 500 on the Python env
+   against 344.8 ± 2.9 for the Python-trained one (100 episodes x 5 seeds,
+   paired difference -2.8, inside the noise). Survival differs, 0.95 vs 0.73,
+   but both are upright half the time at the same 5.9 cm median trunk height,
+   and one training seed each cannot pin the gap on the backend. The
+   step-size blow-up without a KL stop reproduced on this backend (clip 0.69,
+   KL max 66) and the KL stop fixed it the same way.
 
 3. SO-ARM100 Manipulation with RL, Imitation and Language
    (Python, MuJoCo, PyTorch, LeRobot)
@@ -150,7 +159,7 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    held-out sentence templates per task; splits seen / paraphrase / combo;
    SmolVLA-base run zero-shot in the same simulator as a reference line only;
    a LoRA gate at 0.51 s per step on a 176.7M stand-in passed its
-   pre-written under-5-s rule. Measured so far: 127 tests (63 / 21 / 19 / 24)
+   pre-written under-5-s rule. Measured so far: 129 tests (63 / 21 / 21 / 24)
    green; MiniLM cosines are dominated by surface words (lift green vs
    lift blue 0.82, a true paraphrase 0.59), so paraphrase generalisation has
    to be tested, not assumed. Bench reference measured: scripted expert at
@@ -170,8 +179,20 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    on seen instructions, 0.10 on paraphrases, 0.03 on unseen task-colour
    pairs; the encoder ablation (MiniLM, hashed, no FiLM) is inside its noise;
    held-out demo L1 0.128 vs 0.057 train, so the fix is more demonstrations.
-   SmolVLA-base zero-shot 0/40, 3.2 s per 50-step chunk on CPU. The imitation
-   tables are still not measured. Say so plainly if asked.
+   SmolVLA-base zero-shot 0/40, 3.2 s per 50-step chunk on CPU. Imitation
+   measured (200 scripted demos kept of 218, lift, 100 episodes x 5 seeds):
+   single-step image BC 0.05, ACT-style chunked policy 0.77, expert 0.93;
+   DAgger 5 x 20 rollouts lifts the single-step policy to 0.14 (4 of 5 seeds
+   above BC's best), learner success per iteration never climbed. BC's
+   pipeline was verified (replay state diff 7e-7), its closed-loop error grows
+   0.4 -> 1-4 rad in 50-150 steps: compounding error. ACT on held-out physics:
+   heavy 0.78, weak 0.70, laggy 0.65, noisy 0.72, small 0.38 (expert 0.73).
+   Scaling curve (10-200 demos, 3 training seeds x 50 episodes): state and
+   single-step image BC stay near zero at every size (0.03, 0.05 at 200)
+   while image val L1 falls fivefold; ACT climbs 0.13 to 0.66, its seeds at
+   200 scoring 0.92, 0.82 and 0.24, so training-seed variance is large. Found while measuring: the slippery cell is inert in every
+   bench table (MuJoCo uses the max friction of the contacting pair; only the
+   cube was scaled), kept as measured.
 
 4. Tabletop Clutter Detector, INT8 on One Thread (Python, PyTorch, MuJoCo,
    ONNX Runtime)
@@ -234,7 +255,7 @@ the learned method loses.
 
 Honest gaps: early career; every project is simulation, nothing transferred to
 hardware; no GPU, CUDA, TensorRT or large-scale training experience; the
-SO-ARM100 imitation tables are not measured yet (RL and language are, one seed; the language policy is weak), and the Microduck
+SO-ARM100 imitation measured but single-step cloning fails (0.05; chunking fixes it, 0.77), the language policy is weak (one seed), and the Microduck
 domain-randomisation result is measured and negative (half schedule, one seed); largest
 model is 380,631 parameters; Nav2/SLAM/AMCL are professional experience with
 no project on this page behind them; no employers, dates or role scope
@@ -269,7 +290,7 @@ Depth — long by default
   baseline's 0.532, 1.20 ms through ONNX Runtime" beats "strong ML skills".
 - Say what is NOT covered where it matters — no hardware transfer, no GPU
   work, no accuracy or success-rate figure for the MoveIt2 project, the
-  SO-ARM100 imitation tables not yet measured, the language policy weak, and no training run yet on the
+  single-step cloning failing where chunking works, the slippery cell inert, the language policy weak, and no training run yet on the
   C++ backend. Honest limits beat padding.
 - Never answer in a single throwaway sentence.
 - End with one short follow-up question the visitor could ask next, only when
