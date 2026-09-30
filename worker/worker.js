@@ -152,7 +152,7 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    in 20 M; lift from scratch hit 0.6 at 1.0 M steps.
    Imitation: behaviour cloning, DAgger with a shadow expert (5 iterations, 20
    rollouts each), an action-chunking transformer, a scaling curve over 10,
-   25, 50, 100 and 200 demonstrations x 3 seeds, held-out physics transfer.
+   25, 50, 100 and 200 demonstrations x 3 seeds (6 for ACT), held-out physics transfer.
    Language: frozen MiniLM sentence encoder (hashing encoder as ablation) +
    keypoint CNN + action-chunk transformer; 12 task-colour pairs of which 3
    are held out (lift blue, push red, pick-and-place green), 5 training and 3
@@ -187,10 +187,10 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    pipeline was verified (replay state diff 7e-7), its closed-loop error grows
    0.4 -> 1-4 rad in 50-150 steps: compounding error. ACT on held-out physics:
    heavy 0.78, weak 0.70, laggy 0.65, noisy 0.72, small 0.38 (expert 0.73).
-   Scaling curve (10-200 demos, 3 training seeds x 50 episodes): state and
+   Scaling curve (10-200 demos, 3 training seeds, 6 for ACT, x 50 episodes): state and
    single-step image BC stay near zero at every size (0.03, 0.05 at 200)
-   while image val L1 falls fivefold; ACT climbs 0.13 to 0.66, its seeds at
-   200 scoring 0.92, 0.82 and 0.24, so training-seed variance is large. Found while measuring: the slippery cell is inert in every
+   while image val L1 falls fivefold; ACT's mean climbs 0.08 to 0.51, its six seeds
+   at 200 splitting into 0.76-0.92 and 0.12-0.24, so training-seed variance is large. Found while measuring: the slippery cell is inert in every
    bench table (MuJoCo uses the max friction of the contacting pair; only the
    cube was scaled), kept as measured.
 
