@@ -1396,9 +1396,11 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
       third is this page's step 3, run again on that backend with the same configuration and training seed: 50M
       steps in 3.1 hours instead of 4.4, and a policy that scores 341.9 ± 4.1 of 500 on this environment against
       344.8 ± 2.9 for the one trained here, inside the evaluation noise. The runaway step size of chunk 1
-      reproduced there too, and the KL stop fixed it the same way. Its survival is 0.95 against this policy's
-      0.73 at the same upright fraction and trunk height; the two backends draw their pushes differently and
-      there is one training run each, so that gap is not pinned on the backend.</p>
+      reproduced there too, and the KL stop fixed it the same way. Its survival was 0.95 against this policy's
+      0.73, so both backends were trained on two more seeds. This step run again on seeds 1 and 2 scores 357.3
+      and 342.2 with survival 0.999 and 0.895: the 0.73 here is the low draw of three, and across three seeds
+      per backend neither return nor survival differs (339.4 ± 2.3 against 348.1 ± 8.1, survival 0.94 ± 0.06
+      against 0.87 ± 0.14).</p>
   </div>
 </section>
 

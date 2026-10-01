@@ -119,11 +119,11 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    Python project's full 50M-step PPO run, repeated with the same config and
    training seed, took 3.1 h instead of 4.4 (1.41x over the first 25M, 1.45x
    over the second; the forward pass and update are single-threaded on the
-   critical path). Its policy scores 341.9 ± 4.1 of 500 on the Python env
-   against 344.8 ± 2.9 for the Python-trained one (100 episodes x 5 seeds,
-   paired difference -2.8, inside the noise). Survival differs, 0.95 vs 0.73,
-   but both are upright half the time at the same 5.9 cm median trunk height,
-   and one training seed each cannot pin the gap on the backend. The
+   critical path; seeds 1 and 2 ran 1.25x). Over three training seeds per
+   backend the C++-trained policies score 339.4 ± 2.3 of 500 on the Python env
+   against 348.1 ± 8.1 Python-trained (100 episodes x 5 seeds each); survival
+   0.94 ± 0.06 vs 0.87 ± 0.14. Seed 0 alone read 0.95 vs 0.73, but Python's
+   seeds span 0.73-1.00, so that gap was run-to-run spread, not the backend. The
    step-size blow-up without a KL stop reproduced on this backend (clip 0.69,
    KL max 66) and the KL stop fixed it the same way.
 

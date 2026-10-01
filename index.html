@@ -209,7 +209,7 @@
                             <li>Project 01's environment in C++17, N envs on T threads of one process, drop-in for the same PPO loop</li>
                             <li>6,275 of 6,275 observations bit-identical to Python; CI under ASan, UBSan and TSan</li>
                             <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s)</li>
-                            <li>Full 50M-step PPO run in 3.1 h instead of 4.4; its policy scores 341.9 &plusmn; 4.1 of 500 on the Python env vs 344.8 &plusmn; 2.9, one training seed each</li>
+                            <li>Full 50M-step PPO run in 3.1 h instead of 3.8&ndash;4.4; over three training seeds each its policies score 339.4 &plusmn; 2.3 of 500 on the Python env vs 348.1 &plusmn; 8.1, no backend difference in return or survival</li>
                         </ul>
                         <div class="project-links">
                             <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>

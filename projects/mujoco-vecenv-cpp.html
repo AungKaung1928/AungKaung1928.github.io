@@ -259,7 +259,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     </div>
     <dl class="factgrid">
       <div class="fact"><dt>Equality</dt><dd><em>6,275 / 6,275</em> identical · 0 reward diffs</dd></div>
-      <div class="fact"><dt>PPO, 50M steps</dt><dd><em>341.9</em> vs 344.8 of 500 · 3.1 h vs 4.4 h</dd></div>
+      <div class="fact"><dt>PPO, 50M steps</dt><dd><em>339.4</em> vs 348.1 of 500 · 3 seeds each · 3.1 h vs 3.8–4.4 h</dd></div>
       <div class="fact"><dt>C++ vs Python, 8 workers</dt><dd><em>1.9–2.0×</em> env-steps/s</dd></div>
       <div class="fact"><dt>Full env, 8 threads</dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
       <div class="fact"><dt>Tests</dt><dd>34 C++ cases · 41 Python tests</dd></div>
@@ -720,16 +720,31 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       </table>
     </div>
     <p class="prose">Paired by evaluation seed, the C++-trained policy scores −2.8 lower on average (sd 3.9 over five
-      seeds, about 1.6 standard errors). That is inside the evaluation noise, and there is one training seed
-      per backend, so a second run on either could land further apart than that. A policy trained on this
-      environment scores the same on the Python one. That is what the equality test predicts, and it is
-      what this run was for.</p>
-    <p class="prose">Survival differs, 0.95 against 0.73, and it measures less than it looks. It counts steps with the
-      trunk above 4 cm, and standing height is 12 cm. Both policies are upright half the time with a median trunk
-      height of 5.9 cm, so neither stands better; one dips under 4 cm less often from a similar low posture.
-      The gap is real, about 16 standard errors of the difference over 500 episodes each, and it holds all through
-      training. The two environments draw different pushes from the same seed, and with one run each the
-      backend cannot be told apart from the draw.</p>
+      seeds, about 1.6 standard errors). That is inside the evaluation noise. The evaluation noise is not the large
+      term, though; the run-to-run spread is, so each backend was trained on two more seeds with the same
+      protocol (four 12.5M-step invocations, the last two with the KL stop, the same evaluation).</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>training seed</th><th class="num">C++ return</th><th class="num">C++ survival</th><th class="num">Python return</th><th class="num">Python survival</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td class="num">341.9 ± 4.1</td><td class="num">0.948</td><td class="num">344.8 ± 2.9</td><td class="num">0.727</td></tr>
+          <tr><td>1</td><td class="num">338.5 ± 8.1</td><td class="num">0.998</td><td class="num">357.3 ± 7.6</td><td class="num">0.999</td></tr>
+          <tr><td>2</td><td class="num">337.7 ± 7.6</td><td class="num">0.873</td><td class="num">342.2 ± 5.1</td><td class="num">0.895</td></tr>
+          <tr class="hl"><td>mean ± sd over seeds</td><td class="num">339.4 ± 2.3</td><td class="num">0.94 ± 0.06</td><td class="num">348.1 ± 8.1</td><td class="num">0.87 ± 0.14</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="prose">Across three seeds the backends do not differ: return −8.7 (Welch t −1.8), survival +0.07
+      (t 0.75). Upright is 0.49–0.50 for all six policies. A policy trained on this environment scores like
+      one trained on the Python environment. That is what the equality test predicts, and it is what this
+      run was for.</p>
+    <p class="prose">Survival is the column that looked different on seed 0, 0.95 against 0.73, and the extra seeds
+      took the difference away. It counts steps with the trunk above 4 cm against a 12 cm standing height, so it
+      says how often a low crouch dips under 4 cm. The seed-0 gap was real for those two policies, about 16
+      standard errors over 500 episodes each, but it was run-to-run spread, not the backend: Python's seeds span
+      0.73 to 1.00 and C++'s 0.87 to 1.00, and each run settles on its level within the first 12.5M steps. Python
+      seed 1 also found the only taller posture of the six, a median trunk height of 8.8 cm instead of 5.9–6.0.
+      The training curves below are seed 0.</p>
     <div class="tablewrap">
       <table>
         <thead><tr><th>block of 12.5M steps</th><th class="num">return50 C++ / Python</th><th class="num">clip fraction C++ / Python</th><th class="num">KL max C++ / Python</th><th class="num">env-steps/s C++ / Python</th></tr></thead>
@@ -751,7 +766,9 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       During the last chunk the one training process sat at 470% CPU with eight environment threads. The gain
       grows when the update shrinks: 1.39× to 1.52× per update while every update runs all its epochs, and 1.61×
       to 1.64× once the KL stop ends most of them early. Both backends' rates also moved 14–16% between two
-      invocations of the same stage, which is why the ratio is quoted per stage.</p>
+      invocations of the same stage, which is why the ratio is quoted per stage. Seeds 1 and 2 took 3.2 and
+      3.1 hours here against 4.0 and 3.8 on the Python environment, 1.25× for both, so the end-to-end speed-up
+      is 1.25× to 1.43× depending on the run; why the Python seed-0 run was the slow one is not measured.</p>
   </div>
 </section>
 
@@ -769,10 +786,9 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         statistical, across seeds.</li>
       <li><strong>Sensor noise is not contract-tested</strong>, for the same reason: it is a Gaussian per step
         and the C++ draws its own. The contract cases run with it off.</li>
-      <li><strong>One training seed per backend.</strong> The returns agree within the evaluation noise, but
-        survival differs by 0.22, and one run each cannot say whether that is the backend, the push draws or
-        ordinary run-to-run spread. Three training seeds per backend would settle it, at about 9 hours of CPU
-        here and 13 on the Python environment.</li>
+      <li><strong>Three training seeds per backend.</strong> Enough to show the seed-0 survival gap was
+        run-to-run spread; not enough to resolve a backend difference smaller than that spread (survival sd
+        0.06 to 0.14, return sd 2 to 8 over seeds).</li>
       <li><strong>One robot.</strong> <code>Env</code> is Microduck-shaped: 14 actuators, a standing keyframe, a
         named trunk body, named gyro and orientation sensors. The threading layer is not, and a second model
         behind the same interface is the natural next step.</li>
@@ -860,8 +876,9 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
       project had budgeted from physics alone, because the inter-process round trip had never been in that
       composition. Thread efficiency at eight workers, 45%, matched the Python processes' 42%, so process
       isolation was not the scaling loss; the chip is. Then the proof that matters: the Python project's full
-      50M-step PPO run, repeated on this backend in 3.1 hours instead of 4.4, trains a policy that scores 341.9
-      of 500 on the Python environment against 344.8 for the one trained there, inside the evaluation noise,
+      50M-step PPO run, repeated on this backend on three training seeds in about 3.1 hours each instead of
+      3.8 to 4.4, trains policies that score 339.4 ± 2.3 of 500 on the Python environment against 348.1 ± 8.1
+      for the ones trained there, with no backend difference in return or survival at three seeds,
       and it reproduces the same step-size failure and the same fix along the way.</p>
   </div>
 </section>
