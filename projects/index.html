@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#3d4a57" data-title-ja="プロジェクト解説 — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Project Walkthroughs — Aung Kaung Myat</title>
-<meta name="description" content="Long-form walkthroughs of eight robotics and robot-learning projects: what each one does, how the code is arranged, what was measured, and what it does not prove.">
+<meta name="description" content="Long-form walkthroughs of eight robotics and robot-learning projects: what each one does, how the code is arranged, what was measured, and what it does not prove. English and Japanese.">
 <meta name="author" content="Aung Kaung Myat">
 <link rel="canonical" href="https://aungkaung1928.github.io/projects/">
 <meta property="og:type" content="website">
@@ -12,134 +12,41 @@
 <meta property="og:title" content="Project Walkthroughs — Aung Kaung Myat">
 <meta property="og:description" content="Eight robotics and robot-learning projects explained end to end: architecture, every file, the measurements, and the stated limits.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2337424a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%233d4a57'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-:root{
-  --bg:#ffffff;
-  --paper:#f7f8f9;
-  --ink:#171b1e;
-  --ink2:#3f484e;
-  --muted:#6b757b;
-  --line:#e5e9eb;
-  --line2:#cfd6d9;
-  --accent:#37424a;
-  --accent-soft:#f1f3f4;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:900px;margin:0 auto;padding-inline:clamp(16px,4vw,40px)}
-h1,h2,h3{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(1.9rem,5vw,2.9rem);line-height:1.05;letter-spacing:-.025em;font-weight:700}
-h2{font-family:var(--mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-h3{font-size:1.16rem;letter-spacing:-.012em;font-weight:600;line-height:1.25}
-p{margin:0}
-a{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px}
-.sitebar a:hover{background:var(--accent-soft);color:var(--ink)}
-.sb-sep{color:var(--line2)}
-
-header.top{border-bottom:1px solid var(--line)}
-.head-inner{padding-block:clamp(32px,6vw,58px) 30px;display:flex;flex-direction:column;gap:16px}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.deck{font-size:clamp(1.02rem,2.2vw,1.16rem);color:var(--ink2);max-width:60ch}
-
-main{padding-block:clamp(30px,5vw,48px) 20px;display:flex;flex-direction:column;gap:42px}
-.track{display:flex;flex-direction:column;gap:14px}
-.track-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.track-note{font-size:.88rem;color:var(--muted)}
-.cards{display:flex;flex-direction:column;gap:12px}
-
-.card{display:grid;grid-template-columns:3px 1fr;background:var(--bg);
-  border:1px solid var(--line);border-radius:5px;overflow:hidden}
-.card:hover{border-color:var(--line2)}
-.hue{background:var(--h)}
-.card-body{padding:16px 18px 15px;display:flex;flex-direction:column;gap:9px}
-.card-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.repo{font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:-.01em}
-.card p{font-size:.94rem;color:var(--ink2);line-height:1.5;max-width:64ch}
-.tech{display:flex;flex-wrap:wrap;gap:6px;margin-top:1px}
-.tech span{font-family:var(--mono);font-size:.67rem;letter-spacing:.03em;padding:3px 7px;
-  border:1px solid var(--line);background:var(--paper);color:var(--ink2);border-radius:100px}
-.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}
-.links a{font-family:var(--mono);font-size:.73rem;font-weight:600;text-decoration:none;
-  padding:6px 11px;border-radius:4px;border:1px solid var(--line2);color:var(--ink2)}
-.links a.primary{border-color:var(--h);color:var(--h)}
-.links a:hover{background:var(--paper)}
-.links a.primary:hover{background:color-mix(in srgb,var(--h) 8%,#fff)}
-
-footer{border-top:1px solid var(--line);padding-block:24px 48px;color:var(--muted);font-size:.85rem}
-@media (max-width:520px){.card p{font-size:.9rem}}
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#838a8f;
-  --accent-soft:#151b1f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
-<body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><span style="color:var(--muted);padding:4px 7px">Walkthroughs</span><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<body class="hub">
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><span class="sb-here"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></span>
+  <div class="sb-tools">
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">Project walkthroughs</div>
-    <h1>How these projects actually work</h1>
-    <p class="deck">One page per project. Each explains what the system does in plain language, walks
+    <div class="eyebrow"><span lang="en">Project walkthroughs</span><span lang="ja">プロジェクト解説</span></div>
+    <h1><span lang="en">How these projects actually work</span><span lang="ja">各プロジェクトの仕組みと計測結果</span></h1>
+    <p class="deck" lang="en">One page per project. Each explains what the system does in plain language, walks
       through every source file, sets out the numbers that were measured and how, and states what the
       result does not prove. No prior knowledge of the specific tools is assumed — each page opens with
       a glossary of its own terms.</p>
+    <p class="deck" lang="ja">1プロジェクトにつき1ページです。システムが何をするかを平易な言葉で説明し、すべてのソースファイルを順に解説し、
+      何をどう計測したかを数値で示したうえで、その結果から「言えないこと」も明記しています。
+      各ページの冒頭に用語集があるため、個々のツールの予備知識は不要です。</p>
   </div>
 </header>
 
@@ -147,8 +54,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
   <section class="track">
     <div class="track-head">
-      <h2>Robot learning · CPU only</h2>
-      <span class="track-note">Trained and measured on a laptop, no GPU anywhere in the stack.</span>
+      <h2><span lang="en">Robot learning · CPU only</span><span lang="ja">Robot learning · CPUのみ</span></h2>
+      <span class="track-note"><span lang="en">Trained and measured on a laptop, no GPU anywhere in the stack.</span><span lang="ja">すべてノートPCで学習・計測。GPUは一切使っていません。</span></span>
     </div>
     <div class="cards">
 
@@ -157,11 +64,13 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Microduck Balance and Push Recovery</h3>
             <span class="repo">microduck-rl</span></div>
-          <p>A balance-and-recover policy for a 25 cm, 14-servo biped, trained with PPO in CPU MuJoCo. The page follows the project in order: a throughput figure that had to be corrected five times, a 48-dimensional observation built only from what the real sensors report, a reward rebuilt from measurement, a PD baseline to beat, and the full 50M steps: PPO 344.8 of 500 against PD 175.8 over 100 episodes × 5 seeds, after a KL stop fixed a runaway step size in the second chunk. Domain randomisation was run and came out negative, and is reported as such; the ONNX export is measured.</p>
+          <p lang="en">A balance-and-recover policy for a 25 cm, 14-servo biped, trained with PPO in CPU MuJoCo. The page follows the project in order: a throughput figure that had to be corrected five times, a 48-dimensional observation built only from what the real sensors report, a reward rebuilt from measurement, a PD baseline to beat, and the full 50M steps, after a KL stop fixed a runaway step size in the second chunk. Domain randomisation was run and came out negative, and is reported as such; the ONNX export is measured.</p>
+          <p lang="ja">全高25 cm・14サーボの二足ロボットに、バランス維持と転倒復帰のpolicyをPPOで学習させました（CPU版MuJoCo）。ページはプロジェクトの順に進みます。5回修正したスループットの数値、実機センサーが出す値だけで構成した48次元のobservation、計測に基づいて作り直したreward、超えるべきPD baseline、そして50M stepの本学習です。2つ目のchunkではKL stopで暴走したstep sizeを止めました。Domain randomisationは結果が悪化したため、そのまま報告しています。ONNX exportも計測済みです。</p>
+          <p class="result"><b>PPO 344.8 ± 2.9</b> vs PD 175.8 ± 0.2 <span lang="en">of 500</span><span lang="ja">（500点満点）</span> · 100 episodes × 5 seeds</p>
           <div class="tech"><span>MuJoCo</span><span>PyTorch CPU</span><span>PPO</span><span>system ID</span><span>sim-to-real</span></div>
           <div class="links">
-            <a class="primary" href="microduck-rl.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="microduck-rl.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -171,11 +80,13 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>A C++ Environment That Matches Python to the Bit</h3>
             <span class="repo">mujoco-vecenv-cpp</span></div>
-          <p>The Microduck environment rewritten in C++17 and run on threads instead of processes. The claim is not speed first: 6,275 of 6,275 observations come out bit-identical to the Python reference, which took matching numpy's summation order, libm's <code>pow</code> and a float32 constant. Then the speed: about 2x the Python vector environment at 8 workers, measured with the two alternating in one run. Then the training run: the full 50M-step PPO run took 3.1 hours instead of 4.4, and its policy scores 341.9 of 500 on the Python environment against 344.8 for the one trained there.</p>
+          <p lang="en">The Microduck environment rewritten in C++17 and run on threads instead of processes. The claim is not speed first: 6,275 of 6,275 observations come out bit-identical to the Python reference, which took matching numpy's summation order, libm's <code>pow</code> and a float32 constant. Then the speed, measured with the two backends alternating in one run. Then the training run: three seeds per backend, no difference in return or survival.</p>
+          <p lang="ja">Microduckの環境をC++17で書き直し、プロセスではなくスレッドで並列実行します。主張の第一は速度ではありません。6,275個のobservationすべてがPythonの参照実装とビット単位で一致します。そのためにnumpyの加算順序、libmの<code>pow</code>、float32の定数まで合わせました。次に速度で、2つのbackendを1回の実行内で交互に走らせて計測しています。最後に学習で、backendごとに3 seedsずつ学習し、returnにも生存率にも差は出ませんでした。</p>
+          <p class="result"><b>1.9–2.0×</b> <span lang="en">the Python vector env at 8 workers</span><span lang="ja">Python vector env比（8 workers）</span> · 50M steps <b>3.1 h</b> vs 3.8–4.4 h · 339.4 ± 2.3 vs 348.1 ± 8.1</p>
           <div class="tech"><span>C++17</span><span>MuJoCo</span><span>pybind11</span><span>ASan / TSan</span></div>
           <div class="links">
-            <a class="primary" href="mujoco-vecenv-cpp.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="mujoco-vecenv-cpp.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -185,10 +96,12 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>One Arm, Three Ways to Learn It</h3>
             <span class="repo">so-arm100-sim · -rl · -il · -vla</span></div>
-          <p>A shared MuJoCo bench for the SO-ARM100 arm (four tasks, a scripted IK expert, domain randomisation, held-out physics, one evaluation protocol) and three policy projects on top of it: curriculum PPO, imitation from behaviour cloning through DAgger to ACT, and a language-conditioned policy scored on held-out paraphrases. All of it is measured at 100 episodes × 5 seeds: the scripted expert lifts 0.93, a randomised RL fine-tune halves the held-out drop, action chunking lifts 0.77 from the camera where single-step cloning lifts 0.05, and the language policy is weak.</p>
+          <p lang="en">A shared MuJoCo bench for the SO-ARM100 arm (four tasks, a scripted IK expert, domain randomisation, held-out physics, one evaluation protocol) and three policy projects on top of it: curriculum PPO, imitation from behaviour cloning through DAgger to ACT, and a language-conditioned policy scored on held-out paraphrases. All of it is measured at 100 episodes × 5 seeds.</p>
+          <p lang="ja">SO-ARM100アーム用の共通MuJoCoベンチ（4タスク、scripted IK expert、domain randomisation、held-out physics、統一された評価プロトコル）と、その上に載る3つのpolicyプロジェクトです。curriculum PPO、behaviour cloningからDAgger・ACTまでのimitation learning、そしてheld-outの言い換え文で評価するlanguage-conditioned policy。すべて100 episodes × 5 seedsで計測しています。</p>
+          <p class="result">ACT <b>0.77</b> <span lang="en">lift from the camera</span><span lang="ja">（カメラ入力でのlift成功率）</span> vs BC 0.05 · expert 0.93 · <span lang="en">DR fine-tune halves held-out drop</span><span lang="ja">DR fine-tuneでheld-out低下が半減</span> 0.120 → 0.056</p>
           <div class="tech"><span>PyTorch CPU</span><span>PPO</span><span>BC · DAgger · ACT</span><span>LeRobotDataset</span><span>MiniLM</span></div>
           <div class="links">
-            <a class="primary" href="so-arm100.html">Read the walkthrough →</a>
+            <a class="primary" href="so-arm100.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
             <a href="https://github.com/AungKaung1928/so-arm100-sim" target="_blank" rel="noopener">Bench ↗</a>
             <a href="https://github.com/AungKaung1928/so-arm100-rl" target="_blank" rel="noopener">RL ↗</a>
             <a href="https://github.com/AungKaung1928/so-arm100-il" target="_blank" rel="noopener">Imitation ↗</a>
@@ -202,13 +115,17 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Tabletop Clutter Detector</h3>
             <span class="repo">mujoco-clutter-detect</span></div>
-          <p>An anchor-free detector finds objects on a table where they hide one another. COCO mAP is
-            implemented from scratch rather than imported, and an ablation compares photometric
-            augmentation against randomising appearance at render time — the two are not symmetric.</p>
-          <div class="tech"><span>PyTorch CPU</span><span>CenterNet-style</span><span>focal loss</span><span>ONNX Runtime</span></div>
+          <p lang="en">An anchor-free detector finds objects on a table where they hide one another. COCO mAP is
+            implemented from scratch rather than imported, an ablation compares photometric augmentation
+            against randomising appearance at render time, and the model is then quantised to INT8 for a
+            single CPU thread.</p>
+          <p lang="ja">物体同士が重なり合うテーブル上で、anchor-freeの検出器が物体を見つけます。COCO mAPはライブラリを使わず自前で実装し、
+            photometric augmentationとレンダリング時の外観ランダム化をablationで比較しました。最後にCPU 1スレッド向けにINT8量子化しています。</p>
+          <p class="result">mAP <b>0.911</b> vs classical 0.532 · INT8 <b>1.38 ms</b> <span lang="en">on one thread</span><span lang="ja">（1スレッド）</span> at mAP 0.910</p>
+          <div class="tech"><span>PyTorch CPU</span><span>CenterNet-style</span><span>focal loss</span><span>ONNX Runtime</span><span>INT8</span></div>
           <div class="links">
-            <a class="primary" href="clutter-detect.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="clutter-detect.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -218,8 +135,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
   <section class="track">
     <div class="track-head">
-      <h2>Earlier learning work</h2>
-      <span class="track-note">The two projects the ones above grew out of: the PPO loop and the keypoint head are reused there.</span>
+      <h2><span lang="en">Earlier learning work</span><span lang="ja">初期の学習プロジェクト</span></h2>
+      <span class="track-note"><span lang="en">The two projects the ones above grew out of: the PPO loop and the keypoint head are reused there.</span><span lang="ja">上のプロジェクトの土台になった2件です。PPOのループとkeypoint headはここから再利用しています。</span></span>
     </div>
     <div class="cards">
 
@@ -228,13 +145,16 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>PPO Against LQR</h3>
             <span class="repo">ppo-from-scratch</span></div>
-          <p>The same cart-pole solved twice: once with an optimal linear controller derived from the
+          <p lang="en">The same cart-pole solved twice: once with an optimal linear controller derived from the
             physics, once with PPO written out from first principles. Sixteen seeds, four ablations and a
             permutation test decide where the learned policy is genuinely better and where it is not.</p>
+          <p lang="ja">同じcart-poleを2通りで解きます。1つは物理モデルから導いた最適線形制御（LQR）、もう1つはゼロから実装したPPOです。
+            16 seeds、4つのablation、permutation testで、学習したpolicyが本当に優れている点とそうでない点を判定しました。</p>
+          <p class="result">16 / 16 seeds · <span lang="en">one training run</span><span lang="ja">学習1回</span> 11.4 s · LQR <span lang="en">needs 0 samples</span><span lang="ja">はサンプル不要</span></p>
           <div class="tech"><span>PyTorch CPU</span><span>PPO / GAE</span><span>LQR</span><span>MuJoCo</span></div>
           <div class="links">
-            <a class="primary" href="ppo-from-scratch.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="ppo-from-scratch.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -244,13 +164,16 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Sub-Millimetre Cube Pose</h3>
             <span class="repo">mujoco-cube-pose-cnn</span></div>
-          <p>A small CNN recovers a cube's position and yaw angle from one rendered image. Two classical
+          <p lang="en">A small CNN recovers a cube's position and yaw angle from one rendered image. Two classical
             baselines come first — the second exposed a systematic radial bias in the first, fixed by a
             single scale factor — so the network's error is measured against something that already works.</p>
+          <p lang="ja">小さなCNNが、レンダリング画像1枚から立方体の位置とyaw角を推定します。先に古典的なbaselineを2つ作りました。
+            2つ目のbaselineが1つ目の系統的な半径方向のbiasを見つけ、1つのscale係数で修正しています。そのため、ネットワークの誤差は「すでに動くもの」と比較して計測されています。</p>
+          <p class="result"><span lang="en">Position error</span><span lang="ja">位置誤差</span> <b>0.59 mm</b> median · 27 k parameters · 0.23 ms / 1 thread</p>
           <div class="tech"><span>PyTorch CPU</span><span>MuJoCo</span><span>soft-argmax</span><span>ONNX</span></div>
           <div class="links">
-            <a class="primary" href="cube-pose-cnn.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="cube-pose-cnn.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -260,8 +183,8 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
   <section class="track">
     <div class="track-head">
-      <h2>ROS 2 · systems</h2>
-      <span class="track-note">Perception driving a motion-planning stack, and the infrastructure layer under a fleet.</span>
+      <h2>ROS 2 · <span lang="en">systems</span><span lang="ja">システム</span></h2>
+      <span class="track-note"><span lang="en">Perception driving a motion-planning stack, and the infrastructure layer under a fleet.</span><span lang="ja">認識結果で動作計画を動かすパイプラインと、複数ロボットを支えるインフラ層です。</span></span>
     </div>
     <div class="cards">
 
@@ -270,13 +193,16 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Panda Pick-and-Place Pipeline</h3>
             <span class="repo">moveit_pickplace_demo</span></div>
-          <p>A 7-axis Franka Panda clears seven balls off a table. Nothing is hard-coded: a simulated
+          <p lang="en">A 7-axis Franka Panda clears seven balls off a table. Nothing is hard-coded: a simulated
             camera renders the scene, an OpenCV node finds the balls in the picture, a C++ node discards
             anything the arm cannot reach, and a state machine grasps only what survived that chain.</p>
+          <p lang="ja">7軸のFranka Pandaがテーブル上の7個のボールを片付けます。座標のハードコードはありません。シミュレーション上のカメラが画像を描画し、
+            OpenCVノードが画像内のボールを検出し、C++ノードがアームの届かない対象を除外し、state machineはそこを通過したものだけを掴みます。</p>
+          <p class="result">7 / 7 <span lang="en">balls placed</span><span lang="ja">個を配置</span> · 11 nodes · <span lang="en">mock hardware</span><span lang="ja">mock hardware（実機不要）</span></p>
           <div class="tech"><span>ROS 2 Humble</span><span>MoveIt 2</span><span>C++17</span><span>OpenCV</span><span>OMPL</span></div>
           <div class="links">
-            <a class="primary" href="moveit-pickplace.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="moveit-pickplace.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -286,14 +212,18 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <div class="card-body">
           <div class="card-top"><h3>Watching a Robot Fleet</h3>
             <span class="repo">fleet_monitoring_ws</span></div>
-          <p>Three simulated robots publish where they are. A message bus carries it to two independent
+          <p lang="en">Three simulated robots publish where they are. A message bus carries it to two independent
             readers — one stores every reading, one notices when a robot has stopped and opens an alert
             a human can close. The whole fleet is described in one configuration file, and a job on every
             push brings the real container stack up and proves the chain end to end.</p>
+          <p lang="ja">シミュレーション上の3台のロボットが自己位置をpublishします。メッセージバスがそれを2つの独立した受信側へ届けます。
+            1つはすべての値を保存し、もう1つはロボットの停止を検知して、人が閉じられるアラートを発行します。フリート全体は1つの設定ファイルで定義され、
+            pushのたびにCIが実際のコンテナ構成を立ち上げ、end-to-endで動作を検証します。</p>
+          <p class="result">3 robots · 2 databases · CI 4 / 4 · <span lang="en">smoke run</span><span lang="ja">smoke test</span> 369 rows / 25 s</p>
           <div class="tech"><span>ROS 2 Humble</span><span>Apache Kafka</span><span>QuestDB</span><span>PostgreSQL</span><span>Docker</span></div>
           <div class="links">
-            <a class="primary" href="fleet-monitoring.html">Read the walkthrough →</a>
-            <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener">Repository ↗</a>
+            <a class="primary" href="fleet-monitoring.html"><span lang="en">Read the walkthrough →</span><span lang="ja">解説を読む →</span></a>
+            <a href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
           </div>
         </div>
       </article>
@@ -303,14 +233,7 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
 </main>
 
-<footer><div class="wrap">Aung Kaung Myat · <a href="../index.html">back to the main site</a></div></footer>
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<footer><div class="wrap">Aung Kaung Myat · <a href="../index.html"><span lang="en">back to the main site</span><span lang="ja">トップページへ戻る</span></a></div></footer>
+<script src="wt.js"></script>
 </body>
 </html>

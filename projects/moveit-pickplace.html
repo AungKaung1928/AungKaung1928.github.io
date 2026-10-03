@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#a2624a" data-title-ja="Panda Pick-and-Place パイプライン — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,339 +12,160 @@
 <meta property="og:title" content="Panda Pick-and-Place Pipeline">
 <meta property="og:description" content="A ROS 2 Humble pick-and-place system where a simulated camera, an OpenCV detector and a C++ reach validator drive a Franka Panda arm. Walkthrough of every file and parameter.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a2624a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#faf8f6;
-  --paper2:#f2eeea;
-  --ink:#1f1b18;
-  --ink2:#4b433d;
-  --muted:#7a7066;
-  --line:#e9e3dd;
-  --line2:#d6cec6;
-  --accent:#a2624a;
-  --accent-deep:#7a4632;
-  --accent-soft:#f9f1ec;
-  --accent-line:#e2cabd;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;background:var(--bg);color:var(--ink);
-  font-family:var(--body);font-size:17px;line-height:1.62;
-  -webkit-font-smoothing:antialiased;
-}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600;letter-spacing:-.004em}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);
-  padding:.1em .34em;border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);
-  border-radius:0 5px 5px 0;padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-
-/* header */
-header.top{border-bottom:1px solid var(--line);background:
-  linear-gradient(180deg,var(--accent-soft) 0%, var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
-  gap:1px;background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-
-/* nav */
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-
-/* sections */
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-
-/* callouts */
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--warn)}
-.note p{font-size:.95rem}
-
-/* pipeline */
-.pipe{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin-block:4px}
-.pnode{flex:1 1 168px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:11px 13px;display:flex;flex-direction:column;gap:4px}
-.pnode + .pnode{border-left:0}
-.pnode .pn-name{font-family:var(--mono);font-size:.79rem;font-weight:600;color:var(--ink);word-break:break-word}
-.pnode .pn-role{font-size:.82rem;color:var(--muted);line-height:1.4}
-.pnode .pn-lang{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
-.topics{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.topic{font-family:var(--mono);font-size:.72rem;border:1px dashed var(--line2);
-  padding:3px 8px;color:var(--ink2);background:var(--paper)}
-@media (max-width:640px){.pnode+.pnode{border-left:1px solid var(--line2);border-top:0}}
-
-/* tables */
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600;position:sticky;top:0}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap;color:var(--ink)}
-tbody tr:nth-child(even){background:#fdfbf9}
-
-/* fsm strip */
-.fsm{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.state{font-family:var(--mono);font-size:.78rem;font-weight:600;padding:6px 11px;
-  border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep)}
-.state.alt{border-color:var(--line2);background:var(--paper);color:var(--ink2)}
-.arrowx{color:var(--muted);font-family:var(--mono)}
-
-/* misc lists */
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li{padding-left:.15em}
-ul.tight li::marker{color:var(--accent)}
-.pair{display:grid;grid-template-columns:minmax(140px,190px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#c59e8f;
-  --accent-soft:#27201f;
-  --accent-deep:#d0b0a4;
-  --accent-line:#583b30;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/moveit_pickplace_demo" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">ROS 2 Humble · workspace <code style="background:none;padding:0;color:inherit">moveit_pickplace_demo</code></div>
+    <div class="eyebrow">ROS 2 Humble · <span lang="en">workspace</span><span lang="ja">ワークスペース</span> <code style="background:none;padding:0;color:inherit">moveit_pickplace_demo</code></div>
     <h1>Panda Pick-and-Place Pipeline</h1>
-    <p class="deck">A 7-axis Franka Panda arm clears seven red balls off a table and drops them into a box.
+    <p class="deck" lang="en">A 7-axis Franka Panda arm clears seven red balls off a table and drops them into a box.
       Nothing is hard-coded: a simulated camera renders the scene, an OpenCV node finds the balls in the
       picture, a C++ node throws away anything the arm cannot reach, and a state machine picks up
       <em>only</em> what survived that chain.</p>
+    <p class="deck" lang="ja">7軸のFranka Pandaアームが、テーブル上の赤いボール7個を拾って箱に入れます。
+      座標のハードコードはありません。シミュレーション上のカメラがシーンを描画し、OpenCVのnodeが画像内のボールを検出し、
+      C++のnodeがアームの届かない対象を除外し、state machineはその流れを通過したもの<em>だけ</em>を掴みます。</p>
     <div class="chips">
       <span class="chip">ROS 2 Humble</span><span class="chip">MoveIt 2</span><span class="chip">Python 3.10</span>
       <span class="chip">C++17</span><span class="chip">OpenCV</span><span class="chip">ros2_control (mock)</span>
       <span class="chip">RViz2</span><span class="chip">OMPL / RRTConnect</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Packages</dt><dd>2 (Python + C++)</dd></div>
-      <div class="fact"><dt>Nodes launched</dt><dd>11</dd></div>
-      <div class="fact"><dt>Hardware needed</dt><dd>None — mock</dd></div>
-      <div class="fact"><dt>Balls per run</dt><dd>7 of 7 placed</dd></div>
-      <div class="fact"><dt>Source lines</dt><dd>≈1 600</dd></div>
+      <div class="fact"><dt><span lang="en">Packages</span><span lang="ja">パッケージ数</span></dt><dd>2 (Python + C++)</dd></div>
+      <div class="fact"><dt><span lang="en">Nodes launched</span><span lang="ja">起動node数</span></dt><dd>11</dd></div>
+      <div class="fact"><dt><span lang="en">Hardware needed</span><span lang="ja">必要なハードウェア</span></dt><dd><span lang="en">None — mock</span><span lang="ja">不要（mock）</span></dd></div>
+      <div class="fact"><dt><span lang="en">Balls per run</span><span lang="ja">1回あたりのボール</span></dt><dd><span lang="en">7 of 7 placed</span><span lang="ja">7個中7個を配置</span></dd></div>
+      <div class="fact"><dt><span lang="en">Source lines</span><span lang="ja">ソース行数</span></dt><dd>≈1 600</dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#flow">Data flow</a>
-    <a href="#files">Every file</a>
-    <a href="#vision">The vision half</a>
-    <a href="#motion">The motion half</a>
-    <a href="#launch">The launch file</a>
-    <a href="#config">Parameters</a>
-    <a href="#decisions">Design decisions</a>
-    <a href="#honest">Limits</a>
-    <a href="#run">Running it</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#flow"><span lang="en">Data flow</span><span lang="ja">データの流れ</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#vision"><span lang="en">The vision half</span><span lang="ja">画像処理側</span></a>
+    <a href="#motion"><span lang="en">The motion half</span><span lang="ja">動作計画側</span></a>
+    <a href="#launch"><span lang="en">The launch file</span><span lang="ja">launchファイル</span></a>
+    <a href="#config"><span lang="en">Parameters</span><span lang="ja">パラメータ</span></a>
+    <a href="#decisions"><span lang="en">Design decisions</span><span lang="ja">設計判断</span></a>
+    <a href="#honest"><span lang="en">Limits</span><span lang="ja">限界</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the system does, and the one design choice that makes it more than a scripted animation.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What the system does, and the one design choice that makes it more than a scripted animation.</p><p class="sec-sub" lang="ja">システムが何をするのか、そして単なる台本通りのアニメーションで終わらせないための設計判断です。</p></div>
   <div class="stack prose">
-    <p>Imagine a robot arm bolted to a table. Seven red balls are scattered in front of it and there is an
+    <p lang="en">Imagine a robot arm bolted to a table. Seven red balls are scattered in front of it and there is an
       orange box off to one side. The job is: pick up every ball and put it in the box, without a human
       telling the arm where anything is.</p>
-    <p>The naive way to build this is to write the seven ball positions into the code and command the arm
+    <p lang="ja">テーブルに固定されたロボットアームを想像してください。目の前に赤いボールが7個散らばり、横にはオレンジ色の箱があります。
+      課題は、どこに何があるかを人がアームに教えることなく、すべてのボールを拾って箱に入れることです。</p>
+    <p lang="en">The naive way to build this is to write the seven ball positions into the code and command the arm
       to those coordinates. That would work, and it would prove nothing — the arm would perform the same
       dance whether the balls were there or not. This project deliberately does not do that.</p>
-    <p>Instead the positions travel a full loop. A fake camera <em>draws</em> a picture of the table. A
+    <p lang="ja">素朴な作り方は、7個のボールの位置をコードに書き込み、その座標へアームを動かすことです。それでも動きはしますが、何の証明にもなりません。
+      ボールがあってもなくても、アームは同じ動きを繰り返すだけだからです。このプロジェクトでは、あえてその方法を取っていません。</p>
+    <p lang="en">Instead the positions travel a full loop. A fake camera <em>draws</em> a picture of the table. A
       separate program looks at that picture, finds the red blobs, and converts pixel coordinates back into
       metres. A third program (written in C++) checks whether the arm's joints can physically reach each of
       those metre coordinates and drops the ones that fail. Only what comes out of the far end of that chain
       is ever grasped. The arm literally does not know where the balls "really" are.</p>
+    <p lang="ja">代わりに、位置情報はループを一周します。疑似カメラがテーブルの画像を<em>描画</em>します。別のプログラムがその画像から赤い領域を見つけ、
+      ピクセル座標をメートル単位に変換します。3つ目のプログラム（C++製）が、アームの関節でその各座標に物理的に届くかを確認し、届かないものを除外します。
+      掴む対象は、この流れの最後まで残ったものだけです。アームはボールの「本当の」位置を文字どおり知りません。</p>
     <div class="note key">
-      <span class="note-label">The one sentence that describes the architecture</span>
-      <p>Perception drives motion — the ground-truth ball positions exist only to draw the picture, and the
+      <span class="note-label"><span lang="en">The one sentence that describes the architecture</span><span lang="ja">アーキテクチャを一文で表すと</span></span>
+      <p lang="en">Perception drives motion — the ground-truth ball positions exist only to draw the picture, and the
         state machine subscribes to the validator's output, never to the truth.</p>
+      <p lang="ja">認識が動作を決めます。ボールの真の位置は画像を描くためだけに存在し、state machineがsubscribeするのはvalidatorの出力であって、真値ではありません。</p>
     </div>
-    <h3>Why a "fake" camera counts</h3>
-    <p>The camera node is not a real driver, it is an OpenCV drawing routine: grey background, grid lines, an
+    <h3><span lang="en">Why a "fake" camera counts</span><span lang="ja">「偽物」のカメラでも意味がある理由</span></h3>
+    <p lang="en">The camera node is not a real driver, it is an OpenCV drawing routine: grey background, grid lines, an
       orange rectangle for the box, red filled circles for the balls. But it publishes on the exact same ROS 2
       topic type a real camera driver uses (<code>sensor_msgs/Image</code>) with real intrinsics on
       <code>/camera/camera_info</code>. So every node downstream of it is the code you would ship. Replacing
       the simulator with a RealSense driver means changing one line in the launch file and nothing else.</p>
-    <p>What this <strong>does not</strong> give you is robustness. There is no sensor noise, no motion blur,
+    <p lang="ja">カメラnodeは実際のドライバではなく、OpenCVの描画処理です。灰色の背景、グリッド線、箱を表すオレンジの矩形、ボールを表す赤い塗りつぶし円を描きます。
+      ただし、実カメラのドライバと全く同じROS 2のtopic型（<code>sensor_msgs/Image</code>）でpublishし、<code>/camera/camera_info</code>には実際の内部パラメータを流します。
+      そのため、下流のnodeはすべて、そのまま製品に載せられるコードです。シミュレータをRealSenseドライバに置き換える場合も、launchファイルを1行変えるだけで済みます。</p>
+    <p lang="en">What this <strong>does not</strong> give you is robustness. There is no sensor noise, no motion blur,
       no lighting variation, no shadow. Detection here is HSV thresholding on a synthetic frame — it works
       perfectly because the image is perfect. That limitation is stated in the repository's own README
       rather than glossed over, and it is worth repeating here.</p>
+    <p lang="ja">一方で、ロバスト性は<strong>得られません</strong>。センサーノイズも、モーションブラーも、照明の変化も、影もありません。
+      ここでの検出は合成画像に対するHSVの閾値処理であり、画像が完璧だから完璧に動いているだけです。この制約はリポジトリのREADME自体にごまかさずに書かれており、ここでも改めて明記しておきます。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>node</b><span>One running program. A ROS 2 system is many small programs, each with one job.</span></div>
-    <div class="gterm"><b>topic</b><span>A named channel. One node publishes messages onto it; any number of nodes subscribe.</span></div>
-    <div class="gterm"><b>MoveIt 2</b><span>The motion-planning library. Given a target pose it returns a joint trajectory that avoids obstacles.</span></div>
-    <div class="gterm"><b>URDF / SRDF</b><span>URDF lists the robot's links and joints. SRDF adds joint groups and which link pairs can never collide.</span></div>
-    <div class="gterm"><b>planning scene</b><span>MoveIt's model of the world: the robot plus every obstacle it has to plan around.</span></div>
-    <div class="gterm"><b>ros2_control (mock)</b><span>The layer between a trajectory and motors. In mock mode it reports the commanded position back as if the motors had moved.</span></div>
-    <div class="gterm"><b>OMPL / RRTConnect</b><span>The sampling-based planner MoveIt calls. It grows two random trees, one from the start and one from the goal, until they meet.</span></div>
-    <div class="gterm"><b>back-projection</b><span>Turning a pixel back into a world coordinate. Possible here because the height of the table is known in advance.</span></div>
-    <div class="gterm"><b>TF</b><span>The transform tree — the running record of where every coordinate frame sits relative to every other.</span></div>
-    <div class="gterm"><b>pose</b><span>A position (x, y, z) plus an orientation, stored as a quaternion.</span></div>
+    <div class="gterm"><b>node</b><span lang="en">One running program. A ROS 2 system is many small programs, each with one job.</span><span lang="ja">実行中の1つのプログラム。ROS 2のシステムは、それぞれ1つの役割を持つ小さなプログラムの集まりです。</span></div>
+    <div class="gterm"><b>topic</b><span lang="en">A named channel. One node publishes messages onto it; any number of nodes subscribe.</span><span lang="ja">名前付きの通信路。あるnodeがメッセージをpublishし、任意の数のnodeがsubscribeします。</span></div>
+    <div class="gterm"><b>MoveIt 2</b><span lang="en">The motion-planning library. Given a target pose it returns a joint trajectory that avoids obstacles.</span><span lang="ja">動作計画ライブラリ。目標poseを与えると、障害物を避ける関節軌道を返します。</span></div>
+    <div class="gterm"><b>URDF / SRDF</b><span lang="en">URDF lists the robot's links and joints. SRDF adds joint groups and which link pairs can never collide.</span><span lang="ja">URDFはロボットのリンクと関節を記述します。SRDFは関節グループと、決して衝突しないリンクの組を追加します。</span></div>
+    <div class="gterm"><b>planning scene</b><span lang="en">MoveIt's model of the world: the robot plus every obstacle it has to plan around.</span><span lang="ja">MoveItが持つ世界モデル。ロボット本体と、計画時に避けるべきすべての障害物です。</span></div>
+    <div class="gterm"><b>ros2_control (mock)</b><span lang="en">The layer between a trajectory and motors. In mock mode it reports the commanded position back as if the motors had moved.</span><span lang="ja">軌道とモーターの間の層。mockモードでは、モーターが動いたものとして指令位置をそのまま返します。</span></div>
+    <div class="gterm"><b>OMPL / RRTConnect</b><span lang="en">The sampling-based planner MoveIt calls. It grows two random trees, one from the start and one from the goal, until they meet.</span><span lang="ja">MoveItが呼び出すサンプリングベースのプランナ。始点とゴールから1本ずつランダムな木を伸ばし、両者がつながるまで探索します。</span></div>
+    <div class="gterm"><b>back-projection</b><span lang="en">Turning a pixel back into a world coordinate. Possible here because the height of the table is known in advance.</span><span lang="ja">ピクセルをワールド座標に戻す処理。ここではテーブルの高さが事前にわかっているため可能です。</span></div>
+    <div class="gterm"><b>TF</b><span lang="en">The transform tree — the running record of where every coordinate frame sits relative to every other.</span><span lang="ja">座標変換のツリー。すべての座標系が互いにどの位置関係にあるかを常に記録しています。</span></div>
+    <div class="gterm"><b>pose</b><span lang="en">A position (x, y, z) plus an orientation, stored as a quaternion.</span><span lang="ja">位置（x, y, z）と姿勢の組。姿勢はquaternionで保持します。</span></div>
   </div>
 </div>
 </section>
 
 <section id="flow">
-  <div class="sec-head"><span class="sec-num">02</span><h2>How data moves through the system</h2><p class="sec-sub">The five nodes, the topics between them, and the feedback loop that closes when a ball is removed.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">How data moves through the system</span><span lang="ja">システム内のデータの流れ</span></h2><p class="sec-sub" lang="en">The five nodes, the topics between them, and the feedback loop that closes when a ball is removed.</p><p class="sec-sub" lang="ja">5つのnode、その間をつなぐtopic、そしてボールが取り除かれたときに閉じるフィードバックループです。</p></div>
   <div class="stack">
-    <p class="prose">Six programs run at once and talk over ROS 2 topics. Read the strip left to right —
+    <p class="prose" lang="en">Six programs run at once and talk over ROS 2 topics. Read the strip left to right —
       each box is one node, and the labels underneath are the topics carrying data between them.</p>
+    <p class="prose" lang="ja">6つのプログラムが同時に動き、ROS 2のtopicで通信します。下の図は左から右へ読んでください。
+      各ボックスが1つのnodeで、その下のラベルがnode間でデータを運ぶtopicです。</p>
 
     <div class="pipe">
       <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">scene_manager</span>
-        <span class="pn-role">Owns the truth: spawns collision balls, the table and the box into MoveIt's
-          planning scene, and publishes the ball layout once.</span></div>
+        <span class="pn-role" lang="en">Owns the truth: spawns collision balls, the table and the box into MoveIt's
+          planning scene, and publishes the ball layout once.</span>
+        <span class="pn-role" lang="ja">真値を管理します。衝突判定用のボール、テーブル、箱をMoveItのplanning sceneに配置し、ボール配置を1回だけpublishします。</span></div>
       <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">camera_simulator</span>
-        <span class="pn-role">Draws a 640×480 top-down BGR image of whatever balls it was told about, at 10 Hz.</span></div>
+        <span class="pn-role" lang="en">Draws a 640×480 top-down BGR image of whatever balls it was told about, at 10 Hz.</span>
+        <span class="pn-role" lang="ja">知らされたボールを真上から見た640×480のBGR画像を10 Hzで描画します。</span></div>
       <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">vision_detector</span>
-        <span class="pn-role">HSV red mask → contours → centroid → pinhole back-projection onto the table plane.</span></div>
+        <span class="pn-role" lang="en">HSV red mask → contours → centroid → pinhole back-projection onto the table plane.</span>
+        <span class="pn-role" lang="ja">HSVの赤マスク → 輪郭抽出 → 重心 → ピンホールモデルでテーブル平面へback-projection。</span></div>
       <div class="pnode"><span class="pn-lang">c++</span><span class="pn-name">workspace_validator</span>
-        <span class="pn-role">Rejects any detection outside the Panda's reachable cylinder. Publishes only survivors.</span></div>
+        <span class="pn-role" lang="en">Rejects any detection outside the Panda's reachable cylinder. Publishes only survivors.</span>
+        <span class="pn-role" lang="ja">Pandaの到達可能な円筒の外にある検出結果を除外し、残ったものだけをpublishします。</span></div>
       <div class="pnode"><span class="pn-lang">python</span><span class="pn-name">smart_pick_place</span>
-        <span class="pn-role">The state machine. Picks the nearest validated target, asks MoveIt for a path,
-          executes, repeats.</span></div>
+        <span class="pn-role" lang="en">The state machine. Picks the nearest validated target, asks MoveIt for a path,
+          executes, repeats.</span>
+        <span class="pn-role" lang="ja">state machine本体。検証済みの最も近い対象を選び、MoveItに経路を求め、実行し、これを繰り返します。</span></div>
     </div>
 
     <div class="topics">
@@ -359,12 +180,15 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     </div>
 
     <div class="note">
-      <span class="note-label">The loop that closes</span>
-      <p>When a ball is grasped, the state machine publishes <code>remove:ball_3</code> on
+      <span class="note-label"><span lang="en">The loop that closes</span><span lang="ja">閉じるループ</span></span>
+      <p lang="en">When a ball is grasped, the state machine publishes <code>remove:ball_3</code> on
         <code>/scene_object_updates</code>. The camera simulator receives that and stops drawing ball 3. On the
         next frame the detector sees six balls instead of seven, the validator forwards six, and the state
         machine has one fewer target. That is what makes it a loop rather than a list — the picture changes
         because the arm acted on it.</p>
+      <p lang="ja">ボールを掴むと、state machineが<code>/scene_object_updates</code>に<code>remove:ball_3</code>をpublishします。
+        カメラシミュレータはそれを受け取り、ボール3の描画をやめます。次のフレームでは検出器が7個ではなく6個を検出し、validatorも6個を転送し、state machineの対象が1つ減ります。
+        アームが動いた結果として画像が変わる。これが、単なるリストではなくループである理由です。</p>
     </div>
 
     <figure>
@@ -395,288 +219,349 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <text x="500" y="146" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">one pixel → one world point,</text>
         <text x="500" y="162" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">because z is assumed to be 0</text>
       </svg>
-      <figcaption>The whole depth problem, solved by an assumption. A single camera cannot measure distance —
+      <figcaption lang="en">The whole depth problem, solved by an assumption. A single camera cannot measure distance —
         a pixel corresponds to a <em>ray</em>, not a point. Assuming every ball sits on the table (z = 0) turns
         that ray into exactly one intersection. Honest for a flat table, wrong the moment something is stacked.</figcaption>
+      <figcaption lang="ja">奥行きの問題全体を、1つの仮定で解いています。単眼カメラは距離を測れません。1つのピクセルは点ではなく<em>光線</em>に対応します。
+        すべてのボールがテーブル上（z = 0）にあると仮定すれば、その光線との交点がちょうど1つに決まります。平らなテーブルなら正しく、何かが積み重なった時点で誤りになります。</figcaption>
     </figure>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file in both packages, how big it is, and the single job it owns.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file in both packages, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">2つのパッケージに含まれる全ソースファイルの規模と、それぞれが担う1つの役割です。</p></div>
   <div class="stack">
-    <p class="prose">A ROS 2 workspace has a fixed shape: source packages under <code>src/</code>, and
+    <p class="prose" lang="en">A ROS 2 workspace has a fixed shape: source packages under <code>src/</code>, and
       <code>build/</code>, <code>install/</code>, <code>log/</code> generated by the build tool
       (<code>colcon</code>). Only <code>src/</code> is written by hand.</p>
+    <p class="prose" lang="ja">ROS 2のワークスペースは決まった構成を持ちます。ソースパッケージは<code>src/</code>以下に置き、
+      <code>build/</code>、<code>install/</code>、<code>log/</code>はビルドツール（<code>colcon</code>）が生成します。手で書くのは<code>src/</code>だけです。</p>
 
-    <h3>Package 1 — <code>simple_moveit_demo</code> (Python, <code>ament_python</code>)</h3>
+    <h3><span lang="en">Package 1</span><span lang="ja">パッケージ1</span> — <code>simple_moveit_demo</code> (Python, <code>ament_python</code>)</h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr><td>simple_moveit_demo/<wbr>camera_simulator.py</td><td class="num">149</td>
-            <td>The synthetic camera. Subscribes to <code>/scene_balls</code> (a latched topic, so it gets the
+            <td><span lang="en">The synthetic camera. Subscribes to <code>/scene_balls</code> (a latched topic, so it gets the
               layout even if it started late) and to removal messages. Every 100 ms it composes a 640×480 image:
               grey base, 40 px grid, the orange box outline, then one filled red circle per visible ball, and
               publishes it together with a <code>CameraInfo</code> carrying <code>fx=fy=520</code>,
               <code>cx=320</code>, <code>cy=240</code>. A <code>threading.Lock</code> guards the ball list because
-              subscription callbacks and the timer run on different threads.</td></tr>
+              subscription callbacks and the timer run on different threads.</span><span lang="ja">合成カメラです。<code>/scene_balls</code>（latched topicなので、遅れて起動しても配置を受け取れます）と削除メッセージをsubscribeします。
+              100 msごとに640×480の画像を生成します。灰色の下地、40 pxのグリッド、オレンジの箱の輪郭を描き、見えている各ボールを赤い塗りつぶし円で描いたうえで、
+              <code>fx=fy=520</code>、<code>cx=320</code>、<code>cy=240</code>を持つ<code>CameraInfo</code>と一緒にpublishします。
+              subscriptionのcallbackとtimerは別スレッドで動くため、ボールのリストは<code>threading.Lock</code>で保護しています。</span></td></tr>
           <tr><td>simple_moveit_demo/<wbr>vision_detector.py</td><td class="num">144</td>
-            <td>The perception node. Converts the image to HSV, builds a red mask from <em>two</em> hue windows
+            <td><span lang="en">The perception node. Converts the image to HSV, builds a red mask from <em>two</em> hue windows
               (red wraps around the hue axis at 0/180, so one window cannot cover it), morphologically opens then
               closes to remove speckle and fill holes, finds external contours, drops anything under 400 px²,
               takes the image moments to get a sub-pixel centroid, and back-projects that centroid onto the table
-              plane. Publishes a <code>MarkerArray</code> of spheres plus an annotated debug image.</td></tr>
+              plane. Publishes a <code>MarkerArray</code> of spheres plus an annotated debug image.</span><span lang="ja">認識nodeです。画像をHSVに変換し、<em>2つ</em>の色相範囲から赤マスクを作ります（赤は色相軸の0/180で折り返すため、1つの範囲では覆えません）。
+              モルフォロジーのopen、closeの順で小さなノイズを除去して穴を埋め、外側の輪郭を抽出し、400 px²未満を捨てます。
+              画像モーメントからサブピクセル精度の重心を求め、テーブル平面へback-projectionします。球の<code>MarkerArray</code>と注釈付きのデバッグ画像をpublishします。</span></td></tr>
           <tr><td>simple_moveit_demo/<wbr>smart_pick_place.py</td><td class="num">346</td>
-            <td>The controller and the biggest file. Declares all 28 parameters, builds the grasp planner and
+            <td><span lang="en">The controller and the biggest file. Declares all 28 parameters, builds the grasp planner and
               scene manager, waits for MoveIt's action server, then runs the pick loop on a background thread.
               Contains both motion strategies (Cartesian and OMPL), the trajectory retimer, and a generic
-              action-goal helper that turns ROS 2's callback-based action API into a blocking call.</td></tr>
+              action-goal helper that turns ROS 2's callback-based action API into a blocking call.</span><span lang="ja">コントローラで、最大のファイルです。28個のパラメータをすべて宣言し、grasp plannerとscene managerを構築し、MoveItのaction serverを待ってから、バックグラウンドスレッドでpickループを回します。
+              2つの動作方式（CartesianとOMPL）、軌道のretimer、そしてROS 2のcallbackベースのaction APIをブロッキング呼び出しに変える汎用ヘルパーを含みます。</span></td></tr>
           <tr><td>simple_moveit_demo/<wbr>scene_manager.py</td><td class="num">190</td>
-            <td>Not a node — a plain class owned by the controller. Publishes <code>CollisionObject</code>
+            <td><span lang="en">Not a node — a plain class owned by the controller. Publishes <code>CollisionObject</code>
               messages so MoveIt knows the table, the seven ball spheres and the five box panels are solid and
               must be planned around. Also colours them via <code>PlanningScene</code> diffs, maps a detected
               (x, y) back to a collision-object id by nearest neighbour within 8 cm, and re-adds a ball inside
-              the box after placement using a 2×2 slot grid that stacks into a second layer past four balls.</td></tr>
+              the box after placement using a 2×2 slot grid that stacks into a second layer past four balls.</span><span lang="ja">nodeではなく、コントローラが持つ普通のクラスです。<code>CollisionObject</code>メッセージをpublishし、テーブル、7個のボール球、箱の5枚のパネルが実体のある障害物で、避けて計画すべきものだとMoveItに伝えます。
+              また、<code>PlanningScene</code>の差分で色を付け、検出した(x, y)を8 cm以内の最近傍でcollision objectのidに対応付けます。
+              配置後は2×2のスロットに箱の中のボールを再追加し、4個を超えると2段目に積みます。</span></td></tr>
           <tr><td>simple_moveit_demo/<wbr>grasp_planner.py</td><td class="num">67</td>
-            <td>Pure geometry, no ROS. Given an object at (x, y), returns three stamped poses: pre-grasp 20 cm
+            <td><span lang="en">Pure geometry, no ROS. Given an object at (x, y), returns three stamped poses: pre-grasp 20 cm
               above, grasp at 4 cm above (floored at 16 cm so the wrist never dives into the table), and lift at
               28 cm. Every pose carries roll = 180° so the gripper points straight down. Includes a hand-written
-              Euler-to-quaternion conversion rather than pulling in a transform library for four lines of algebra.</td></tr>
+              Euler-to-quaternion conversion rather than pulling in a transform library for four lines of algebra.</span><span lang="ja">ROSに依存しない純粋な幾何計算です。(x, y)にある物体に対し、3つのstamped poseを返します。20 cm上のpre-grasp、4 cm上のgrasp（手首がテーブルに突っ込まないよう下限16 cm）、28 cmのliftです。
+              どのposeもroll = 180°で、グリッパーは真下を向きます。わずか4行の計算のために変換ライブラリを入れず、オイラー角からquaternionへの変換は手書きしています。</span></td></tr>
           <tr><td>simple_moveit_demo/<wbr>image_utils.py</td><td class="num">61</td>
-            <td>A 40-line replacement for <code>cv_bridge</code>, the standard image conversion library.
+            <td><span lang="en">A 40-line replacement for <code>cv_bridge</code>, the standard image conversion library.
               Converts a NumPy array to <code>sensor_msgs/Image</code> and back for the single encoding this
               package uses (<code>bgr8</code>). Handles the row-stride subtlety — publishers may pad rows, and
-              some leave <code>step</code> at 0 — and raises loudly on any other encoding.</td></tr>
+              some leave <code>step</code> at 0 — and raises loudly on any other encoding.</span><span lang="ja">標準の画像変換ライブラリ<code>cv_bridge</code>を置き換える40行のコードです。このパッケージが使う唯一のエンコーディング（<code>bgr8</code>）について、NumPy配列と<code>sensor_msgs/Image</code>を相互変換します。
+              行ストライドの細かい問題（publisherが行をパディングすることがあり、<code>step</code>を0のままにするものもある）に対応し、それ以外のエンコーディングでは明示的に例外を出します。</span></td></tr>
           <tr><td>launch/<wbr>smart_pick_place.launch.py</td><td class="num">198</td>
-            <td>Starts all eleven nodes in the right order with the right parameters. Described in full below.</td></tr>
+            <td><span lang="en">Starts all eleven nodes in the right order with the right parameters. Described in full below.</span><span lang="ja">11個のnodeすべてを、正しい順序と正しいパラメータで起動します。詳細は後述します。</span></td></tr>
           <tr><td>config/<wbr>demo_params.yaml</td><td class="num">53</td>
-            <td>Ball layout, motion tuning, grasp geometry, box position, and the validator's reach bounds.</td></tr>
+            <td><span lang="en">Ball layout, motion tuning, grasp geometry, box position, and the validator's reach bounds.</span><span lang="ja">ボール配置、動作の調整値、把持の幾何、箱の位置、validatorの到達範囲。</span></td></tr>
           <tr><td>config/<wbr>camera.yaml</td><td class="num">35</td>
-            <td>Camera intrinsics, mount pose, ball render radius, and the two HSV red windows.</td></tr>
+            <td><span lang="en">Camera intrinsics, mount pose, ball render radius, and the two HSV red windows.</span><span lang="ja">カメラの内部パラメータ、取り付けpose、ボールの描画半径、HSVの2つの赤範囲。</span></td></tr>
           <tr><td>test/<wbr>test_image_utils.py</td><td class="num">92</td>
-            <td>Fifteen contract tests for the one file that reimplements a standard library: exact round-trip,
-              padded stride, zero stride, truncated buffer, wrong encoding. No node, no camera, pure NumPy.</td></tr>
+            <td><span lang="en">Fifteen contract tests for the one file that reimplements a standard library: exact round-trip,
+              padded stride, zero stride, truncated buffer, wrong encoding. No node, no camera, pure NumPy.</span><span lang="ja">標準ライブラリを再実装した唯一のファイルに対する15個の契約テストです。完全な往復変換、パディングされたストライド、ストライド0、途中で切れたバッファ、誤ったエンコーディングを確認します。nodeもカメラも使わない、純粋なNumPyのテストです。</span></td></tr>
           <tr><td>rviz/<wbr>vision_moveit.rviz</td><td class="num">—</td>
-            <td>Saved RViz layout so the visualiser opens with the right displays already enabled.</td></tr>
+            <td><span lang="en">Saved RViz layout so the visualiser opens with the right displays already enabled.</span><span lang="ja">保存済みのRVizレイアウト。必要な表示が有効な状態で可視化ツールが開きます。</span></td></tr>
           <tr><td>setup.py · package.xml</td><td class="num">36 · 48</td>
-            <td>Build metadata. <code>setup.py</code> declares the three console entry points that become
+            <td><span lang="en">Build metadata. <code>setup.py</code> declares the three console entry points that become
               <code>ros2 run</code> executables and installs launch/config/rviz files into the share directory;
-              <code>package.xml</code> declares the dependency list that <code>rosdep</code> resolves.</td></tr>
+              <code>package.xml</code> declares the dependency list that <code>rosdep</code> resolves.</span><span lang="ja">ビルド用のメタデータです。<code>setup.py</code>は<code>ros2 run</code>の実行ファイルになる3つのconsole entry pointを宣言し、launch/config/rvizファイルをshareディレクトリへインストールします。
+              <code>package.xml</code>は<code>rosdep</code>が解決する依存関係の一覧を宣言します。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Package 2 — <code>moveit_grasp_utils</code> (C++, <code>ament_cmake</code>)</h3>
+    <h3><span lang="en">Package 2</span><span lang="ja">パッケージ2</span> — <code>moveit_grasp_utils</code> (C++, <code>ament_cmake</code>)</h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr><td>include/…/<wbr>workspace_validator.hpp</td>
-            <td>A header-only class with no ROS dependency at all — just <code>&lt;cmath&gt;</code> and
+            <td><span lang="en">A header-only class with no ROS dependency at all — just <code>&lt;cmath&gt;</code> and
               <code>&lt;string&gt;</code>. Holds four bounds in a <code>Params</code> struct and exposes
               <code>is_reachable(x, y, z)</code> (marked <code>noexcept</code>) plus
               <code>rejection_reason(...)</code> which returns a human-readable string for the log. Separating
-              the geometry from the node means the rule can be unit-tested or reused without spinning ROS.</td></tr>
+              the geometry from the node means the rule can be unit-tested or reused without spinning ROS.</span><span lang="ja">ROSに一切依存しないheader-onlyのクラスで、使うのは<code>&lt;cmath&gt;</code>と<code>&lt;string&gt;</code>だけです。
+              4つの境界値を<code>Params</code>構造体に持ち、<code>is_reachable(x, y, z)</code>（<code>noexcept</code>付き）と、ログ用に人が読める文字列を返す<code>rejection_reason(...)</code>を公開します。
+              幾何計算をnodeから分離しているため、ROSを動かさずに単体テストや再利用ができます。</span></td></tr>
           <tr><td>src/<wbr>workspace_validator_node.cpp</td>
-            <td>The ROS wrapper. Declares the four bounds as parameters, subscribes to
+            <td><span lang="en">The ROS wrapper. Declares the four bounds as parameters, subscribes to
               <code>/detected_objects</code>, filters, publishes <code>/validated_targets</code>, and on a 2-second
               timer draws two translucent cylinders in RViz so you can see the reachable shell and the excluded
-              inner column.</td></tr>
+              inner column.</span><span lang="ja">ROS側のラッパーです。4つの境界値をパラメータとして宣言し、<code>/detected_objects</code>をsubscribeしてフィルタし、<code>/validated_targets</code>をpublishします。
+              2秒周期のtimerでRVizに半透明の円筒を2つ描き、到達可能な領域と除外される内側の柱を目で確認できるようにしています。</span></td></tr>
           <tr><td>CMakeLists.txt · package.xml</td>
-            <td>C++17, <code>-Wall -Wextra -Wpedantic</code>, one executable, install rules for the binary and the
-              public header, and the ament linters wired into <code>BUILD_TESTING</code>.</td></tr>
+            <td><span lang="en">C++17, <code>-Wall -Wextra -Wpedantic</code>, one executable, install rules for the binary and the
+              public header, and the ament linters wired into <code>BUILD_TESTING</code>.</span><span lang="ja">C++17、<code>-Wall -Wextra -Wpedantic</code>、実行ファイル1つ、バイナリと公開ヘッダのinstallルール、そして<code>BUILD_TESTING</code>に組み込んだament linter。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Workspace root</h3>
+    <h3><span lang="en">Workspace root</span><span lang="ja">ワークスペース直下</span></h3>
     <dl class="pair">
-      <dt>README.md</dt><dd>The accurate, current description of the system — architecture diagram, decision table, parameters, and the honest-simulation note.</dd>
-      <dt>CONTEXT.md</dt><dd>A running work log: current status, verified run, and a newest-first list of solved problems. Useful because it records what was <em>removed</em>, not just what was added.</dd>
-      <dt>build/ install/ log/</dt><dd>Generated by <code>colcon</code>. <code>install/setup.bash</code> is the file you source to make the packages visible to <code>ros2 run</code> and <code>ros2 launch</code>.</dd>
-      <dt>src/simple_moveit_demo/README.md</dt><dd>Stale. It documents an older, larger version of this package — YOLOv8, ArUco markers, a depth estimator, colour-sorted bins, a seven-state machine. All of that was deliberately deleted (see the log in <code>CONTEXT.md</code>). Read the root README instead.</dd>
+      <dt>README.md</dt><dd lang="en">The accurate, current description of the system — architecture diagram, decision table, parameters, and the honest-simulation note.</dd><dd lang="ja">システムの正確な最新の説明です。アーキテクチャ図、設計判断の表、パラメータ、そしてシミュレーションの限界についての注記を含みます。</dd>
+      <dt>CONTEXT.md</dt><dd lang="en">A running work log: current status, verified run, and a newest-first list of solved problems. Useful because it records what was <em>removed</em>, not just what was added.</dd><dd lang="ja">作業ログです。現在の状況、動作確認済みの実行、解決した問題の一覧（新しい順）を記録しています。追加したものだけでなく、<em>削除</em>したものも記録している点が役立ちます。</dd>
+      <dt>build/ install/ log/</dt><dd lang="en">Generated by <code>colcon</code>. <code>install/setup.bash</code> is the file you source to make the packages visible to <code>ros2 run</code> and <code>ros2 launch</code>.</dd><dd lang="ja"><code>colcon</code>が生成します。<code>install/setup.bash</code>をsourceすると、<code>ros2 run</code>と<code>ros2 launch</code>からパッケージが見えるようになります。</dd>
+      <dt>src/simple_moveit_demo/README.md</dt><dd lang="en">Stale. It documents an older, larger version of this package — YOLOv8, ArUco markers, a depth estimator, colour-sorted bins, a seven-state machine. All of that was deliberately deleted (see the log in <code>CONTEXT.md</code>). Read the root README instead.</dd><dd lang="ja">内容が古くなっています。このパッケージの以前の、より大きな版（YOLOv8、ArUcoマーカー、深度推定器、色別の仕分け箱、7状態のstate machine）を説明したものです。これらはすべて意図的に削除しました（<code>CONTEXT.md</code>のログを参照）。代わりにルートのREADMEを読んでください。</dd>
     </dl>
   </div>
 </section>
 
 <section id="vision">
-  <div class="sec-head"><span class="sec-num">04</span><h2>The vision half, step by step</h2><p class="sec-sub">From a drawn image to a metre coordinate — HSV masking, contour filtering, and the pinhole back-projection.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">The vision half, step by step</span><span lang="ja">画像処理側の詳細</span></h2><p class="sec-sub" lang="en">From a drawn image to a metre coordinate — HSV masking, contour filtering, and the pinhole back-projection.</p><p class="sec-sub" lang="ja">描画された画像からメートル座標まで。HSVマスク、輪郭のフィルタリング、ピンホールモデルによるback-projectionです。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Why red is detected with two hue ranges, not one</h3>
-      <p>HSV separates colour (hue) from brightness and vividness, which is why it is used for colour
+      <h3><span lang="en">Why red is detected with two hue ranges, not one</span><span lang="ja">赤の検出に色相範囲を2つ使う理由</span></h3>
+      <p lang="en">HSV separates colour (hue) from brightness and vividness, which is why it is used for colour
         thresholding instead of raw RGB — a red ball in shadow and the same ball in light have very different
         RGB values but nearly the same hue. OpenCV stores hue as 0–179. Red sits at the seam: pure red is hue 0,
         and slightly-purple red is hue 179. A single window <code>[0, 10]</code> would miss half of it. So the
         node builds two masks and ORs them together:</p>
+      <p lang="ja">HSVは色（色相）を明るさや鮮やかさから分離します。そのため、色の閾値処理には生のRGBではなくHSVを使います。影の中の赤いボールと光の当たった同じボールでは、RGB値は大きく違っても色相はほぼ同じだからです。
+        OpenCVは色相を0〜179で表します。赤はその継ぎ目にあり、純粋な赤は色相0、やや紫寄りの赤は色相179です。<code>[0, 10]</code>の1範囲だけでは半分を取りこぼします。そこでnodeは2つのマスクを作り、ORで結合します。</p>
       <pre><code>hsv_red_lo1: [0,   120, 80]     hsv_red_hi1: [10,  255, 255]
 hsv_red_lo2: [170, 120, 80]     hsv_red_hi2: [180, 255, 255]</code></pre>
-      <p>The second and third numbers matter as much as the hue: saturation ≥ 120 excludes washed-out greys
+      <p lang="en">The second and third numbers matter as much as the hue: saturation ≥ 120 excludes washed-out greys
         that happen to lean red, and value ≥ 80 excludes near-black pixels where hue is meaningless noise.</p>
+      <p lang="ja">2番目と3番目の値も色相と同じくらい重要です。彩度 ≥ 120は、たまたま赤寄りになった色あせた灰色を除外し、明度 ≥ 80は、色相が意味のないノイズになる黒に近いピクセルを除外します。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Open, then close</h3>
-      <p>The raw mask is noisy at the edges. Two morphological operations clean it with a 7×7 elliptical
+      <h3><span lang="en">Open, then close</span><span lang="ja">openしてからclose</span></h3>
+      <p lang="en">The raw mask is noisy at the edges. Two morphological operations clean it with a 7×7 elliptical
         kernel:</p>
+      <p lang="ja">生のマスクは境界付近にノイズがあります。7×7の楕円カーネルを使った2つのモルフォロジー演算で整えます。</p>
       <dl class="pair">
-        <dt>MORPH_OPEN</dt><dd>Erode then dilate. Removes isolated specks smaller than the kernel without shrinking the real blobs.</dd>
-        <dt>MORPH_CLOSE</dt><dd>Dilate then erode. Fills small holes inside a blob — such as the white outline stroke drawn around each rendered ball.</dd>
+        <dt>MORPH_OPEN</dt><dd lang="en">Erode then dilate. Removes isolated specks smaller than the kernel without shrinking the real blobs.</dd><dd lang="ja">収縮してから膨張。本物の領域を縮めずに、カーネルより小さい孤立したノイズを取り除きます。</dd>
+        <dt>MORPH_CLOSE</dt><dd lang="en">Dilate then erode. Fills small holes inside a blob — such as the white outline stroke drawn around each rendered ball.</dd><dd lang="ja">膨張してから収縮。描画された各ボールの周りの白い輪郭線のような、領域内部の小さな穴を埋めます。</dd>
       </dl>
-      <p>Order matters. Closing first would fuse two nearby specks into one fake object before opening had a
+      <p lang="en">Order matters. Closing first would fuse two nearby specks into one fake object before opening had a
         chance to delete them.</p>
+      <p lang="ja">順序が重要です。先にcloseすると、openで消す前に、近くにある2つのノイズが1つの偽物体に融合してしまいます。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Centroid from image moments, not from the bounding box</h3>
-      <p>Once a contour survives the 400 px² area filter, the centre is computed from moments:
+      <h3><span lang="en">Centroid from image moments, not from the bounding box</span><span lang="ja">重心はbounding boxではなく画像モーメントから</span></h3>
+      <p lang="en">Once a contour survives the 400 px² area filter, the centre is computed from moments:
         <code>u = m10/m00</code>, <code>v = m01/m00</code>. That is the area-weighted average pixel position —
         a sub-pixel value, and it is robust to a ragged edge in a way that the centre of a bounding rectangle
         is not. For a circular ball the difference is small; for a partly-clipped blob it is not.</p>
+      <p lang="ja">400 px²の面積フィルタを通過した輪郭は、モーメントから中心を計算します（<code>u = m10/m00</code>、<code>v = m01/m00</code>）。
+        これは面積で重み付けしたピクセル位置の平均で、サブピクセル精度の値になります。外接矩形の中心と違い、ギザギザした境界にも強い手法です。
+        円形のボールでは差は小さいものの、一部が欠けた領域では大きな差になります。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Back-projection, and where the intrinsics come from</h3>
-      <p>The two lines that turn pixels into metres are, in the code:</p>
+      <h3><span lang="en">Back-projection, and where the intrinsics come from</span><span lang="ja">back-projectionと内部パラメータの出どころ</span></h3>
+      <p lang="en">The two lines that turn pixels into metres are, in the code:</p>
+      <p lang="ja">ピクセルをメートルに変換する2行は、コード上では次のとおりです。</p>
       <pre><code>wy = cam_y + (u - cx) * cam_h / fx
 wx = cam_x - (v - cy) * cam_h / fy
 wz = 0.0        # DETECT_Z — the table plane assumption</code></pre>
-      <p>Note the sign flip and the axis swap. Image <code>u</code> grows to the right and maps to the robot's
+      <p lang="en">Note the sign flip and the axis swap. Image <code>u</code> grows to the right and maps to the robot's
         <em>y</em>; image <code>v</code> grows <em>downward</em> and maps to the robot's <em>x</em> with a minus
         sign. Getting this wrong produces a system that runs cleanly and reaches for the mirror image of every
         ball, which is exactly the class of bug that never raises an exception.</p>
-      <p>The detector starts with hard-coded defaults for <code>fx, fy, cx, cy</code> but overwrites them the
+      <p lang="ja">符号の反転と軸の入れ替えに注意してください。画像の<code>u</code>は右方向に増え、ロボットの<em>y</em>に対応します。画像の<code>v</code>は<em>下</em>方向に増え、マイナス符号付きでロボットの<em>x</em>に対応します。
+        ここを間違えると、システムはエラーなく動いたまま、すべてのボールの鏡像の位置へ手を伸ばします。まさに例外が一切出ない種類のバグです。</p>
+      <p lang="en">The detector starts with hard-coded defaults for <code>fx, fy, cx, cy</code> but overwrites them the
         moment a <code>CameraInfo</code> message arrives on <code>/camera/camera_info</code>. That is how a real
         driver publishes calibration, so the node reads it the way it would read a real one. Only the
         <em>extrinsics</em> — where the camera is mounted — come from the YAML, and they are shared with the
         simulator so both ends agree by construction.</p>
+      <p lang="ja">検出器は<code>fx, fy, cx, cy</code>のハードコードされた初期値で起動しますが、<code>/camera/camera_info</code>に<code>CameraInfo</code>メッセージが届いた時点で上書きします。
+        実際のドライバもこの方法でcalibrationをpublishするため、nodeは実機と同じやり方で読み込みます。YAMLから読むのはカメラの取り付け位置である<em>外部パラメータ</em>だけで、これはシミュレータと共有しているため、両者は構造的に一致します。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Why <code>cv_bridge</code> was replaced by 40 lines</h3>
-      <p><code>cv_bridge</code> is the standard ROS library for converting between OpenCV arrays and
+      <h3><span lang="en">Why <code>cv_bridge</code> was replaced by 40 lines</span><span lang="ja"><code>cv_bridge</code>を40行のコードに置き換えた理由</span></h3>
+      <p lang="en"><code>cv_bridge</code> is the standard ROS library for converting between OpenCV arrays and
         <code>sensor_msgs/Image</code>. It exists to handle roughly twenty pixel encodings from C++, and it ships
         as a compiled extension linked against a specific NumPy major version. In this package both ends of the
         image path are internal and both are <code>bgr8</code>, so the conversion is a reshape and a copy.</p>
-      <p>The tricky part is <code>step</code>, the row stride in bytes. A publisher may pad rows, so
+      <p lang="ja"><code>cv_bridge</code>は、OpenCVの配列と<code>sensor_msgs/Image</code>を相互変換するROSの標準ライブラリです。C++から約20種類のピクセルエンコーディングを扱うためのもので、特定のNumPyメジャーバージョンにリンクしたコンパイル済み拡張として配布されています。
+        このパッケージでは画像経路の両端がどちらも内部実装で、どちらも<code>bgr8</code>なので、変換はreshapeとコピーだけで済みます。</p>
+      <p lang="en">The tricky part is <code>step</code>, the row stride in bytes. A publisher may pad rows, so
         <code>step</code> is not always <code>width × 3</code>, and some publishers leave it at 0. The code
         treats 0 as unpadded rather than dividing by it — dividing would reshape to a zero-width image and fail
         much later with an error about something else entirely. It then validates that the stride is a whole
         number of pixels and that the buffer is long enough, slices off the padding, and copies so OpenCV
         receives a writable contiguous array.</p>
+      <p lang="ja">難しいのは、バイト単位の行ストライドである<code>step</code>です。publisherは行をパディングすることがあるため、<code>step</code>が常に<code>width × 3</code>とは限らず、0のままにするpublisherもあります。
+        コードは0で割らず、0を「パディングなし」として扱います。割り算をすると幅0の画像にreshapeされ、ずっと後でまったく別の原因に見えるエラーで失敗するからです。
+        続いて、ストライドがピクセル数の整数倍であることとバッファ長が足りていることを検証し、パディングを切り落とし、OpenCVが書き込み可能な連続配列を受け取れるようにコピーします。</p>
       <div class="note">
-        <span class="note-label">The reasoning, stated honestly in the source</span>
-        <p>The trigger was a NumPy 2 incompatibility, but that error will not appear on a stock Humble install,
+        <span class="note-label"><span lang="en">The reasoning, stated honestly in the source</span><span lang="ja">ソースコードに正直に書かれた理由</span></span>
+        <p lang="en">The trigger was a NumPy 2 incompatibility, but that error will not appear on a stock Humble install,
           whose system NumPy is 1.x — so it is not the justification. The justification is that the workspace no
           longer carries a compiled dependency, or a workspace-wide version pin, that it does not need. The file's
           own docstring says <code>cv_bridge</code> should come back the moment a real camera does, because most
           drivers publish <code>rgb8</code> and RealSense depth is <code>16UC1</code>.</p>
+        <p lang="ja">きっかけはNumPy 2との非互換でした。ただし、システムのNumPyが1.xである標準のHumble環境ではこのエラーは出ないため、それは正当な理由になりません。
+          本当の理由は、不要なコンパイル済み依存や、ワークスペース全体のバージョン固定を持たずに済むことです。ファイル自身のdocstringにも、実カメラを使う時点で<code>cv_bridge</code>に戻すべきだと書かれています。多くのドライバは<code>rgb8</code>でpublishし、RealSenseの深度は<code>16UC1</code>だからです。</p>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>The C++ reachability filter</h3>
-      <p>A Franka Panda cannot reach everywhere. The validator approximates its workspace as a cylinder and
+      <h3><span lang="en">The C++ reachability filter</span><span lang="ja">C++の到達可能性フィルタ</span></h3>
+      <p lang="en">A Franka Panda cannot reach everywhere. The validator approximates its workspace as a cylinder and
         applies four bounds plus one extra rule:</p>
+      <p lang="ja">Franka Pandaはどこにでも届くわけではありません。validatorは作業領域を円筒で近似し、4つの境界値と1つの追加ルールを適用します。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Test</th><th class="num">Bound</th><th>Reason</th></tr></thead>
+          <thead><tr><th><span lang="en">Test</span><span lang="ja">判定</span></th><th class="num"><span lang="en">Bound</span><span lang="ja">範囲</span></th><th><span lang="en">Reason</span><span lang="ja">理由</span></th></tr></thead>
           <tbody>
-            <tr><td>height</td><td class="num">−0.05 … 0.98 m</td><td>Below the table surface or above the arm's vertical span.</td></tr>
-            <tr><td>horizontal radius</td><td class="num">0.18 … 0.82 m</td><td>√(x² + y²) from the base axis. Too close is folded onto itself; too far is simply out of reach.</td></tr>
-            <tr><td>singularity column</td><td class="num">r &lt; 0.08 m</td><td>Directly above the base the wrist axes line up and inverse kinematics becomes ill-conditioned — many joint solutions map to nearly the same pose, and the planner produces wild motions.</td></tr>
+            <tr><td><span lang="en">height</span><span lang="ja">高さ</span></td><td class="num">−0.05 … 0.98 m</td><td><span lang="en">Below the table surface or above the arm's vertical span.</span><span lang="ja">テーブル面より下、またはアームの上下方向の可動範囲より上。</span></td></tr>
+            <tr><td><span lang="en">horizontal radius</span><span lang="ja">水平半径</span></td><td class="num">0.18 … 0.82 m</td><td><span lang="en">√(x² + y²) from the base axis. Too close is folded onto itself; too far is simply out of reach.</span><span lang="ja">ベース軸からの√(x² + y²)。近すぎるとアームが折りたたまれ、遠すぎると単純に届きません。</span></td></tr>
+            <tr><td><span lang="en">singularity column</span><span lang="ja">特異点の柱</span></td><td class="num">r &lt; 0.08 m</td><td><span lang="en">Directly above the base the wrist axes line up and inverse kinematics becomes ill-conditioned — many joint solutions map to nearly the same pose, and the planner produces wild motions.</span><span lang="ja">ベースの真上では手首の軸が一直線に並び、逆運動学が悪条件になります。多数の関節解がほぼ同じposeに対応し、プランナが激しい動きを生成してしまいます。</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p>Rejections are logged with a reason string rather than silently dropped, and the surviving points are
+      <p lang="en">Rejections are logged with a reason string rather than silently dropped, and the surviving points are
         republished as a <code>PoseArray</code> with identity orientation — the validator has an opinion about
         <em>where</em>, not about <em>how</em>. The two RViz cylinders it draws every two seconds are the same
         bounds made visible, so an out-of-reach ball is obvious on screen before you read a log line.</p>
-      <p>This node exists in C++ rather than Python for a stated reason: it runs on every camera frame at 10 Hz
+      <p lang="ja">除外した対象は黙って捨てず、理由の文字列とともにログに残します。残った点は、姿勢を単位回転にした<code>PoseArray</code>として再publishします。validatorが判断するのは<em>どこか</em>であって、<em>どう掴むか</em>ではありません。
+        2秒ごとにRVizへ描く2つの円筒は同じ境界値を可視化したものなので、届かないボールはログを読む前に画面上で一目でわかります。</p>
+      <p lang="en">This node exists in C++ rather than Python for a stated reason: it runs on every camera frame at 10 Hz
         and must never become the reason the controller waits. It is also the natural place to demonstrate a
         multi-language workspace, which is what real ROS 2 systems are.</p>
+      <p lang="ja">このnodeをPythonではなくC++で書いたのには明確な理由があります。10 Hzのカメラフレームごとに実行されるため、コントローラを待たせる原因になってはならないからです。
+        また、実際のROS 2システムがそうであるように、複数言語が混在するワークスペースを示すのにも自然な場所です。</p>
     </div>
   </div>
 </section>
 
 <section id="motion">
-  <div class="sec-head"><span class="sec-num">05</span><h2>The motion half, step by step</h2><p class="sec-sub">How a validated coordinate becomes a grasp: pose construction, Cartesian planning, the fallback, and the state machine.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">The motion half, step by step</span><span lang="ja">動作計画側の詳細</span></h2><p class="sec-sub" lang="en">How a validated coordinate becomes a grasp: pose construction, Cartesian planning, the fallback, and the state machine.</p><p class="sec-sub" lang="ja">検証済みの座標が把持動作になるまで。poseの構築、Cartesian計画、fallback、そしてstate machineです。</p></div>
   <div class="stack-lg">
     <div class="stack">
-      <h3>The state machine</h3>
+      <h3><span lang="en">The state machine</span><span lang="ja">状態遷移（state machine）</span></h3>
       <div class="fsm">
         <span class="state alt">IDLE</span><span class="arrowx">→</span>
         <span class="state">GRASPING</span><span class="arrowx">→</span>
         <span class="state">PLACING</span><span class="arrowx">→</span>
-        <span class="state alt">next ball…</span><span class="arrowx">→</span>
+        <span class="state alt"><span lang="en">next ball…</span><span lang="ja">次のボール…</span></span><span class="arrowx">→</span>
         <span class="state alt">DONE</span>
-        <span class="arrowx" style="margin-left:12px">on failure →</span>
+        <span class="arrowx" style="margin-left:12px"><span lang="en">on failure →</span><span lang="ja">失敗時 →</span></span>
         <span class="state alt">HOMING</span>
         <span class="arrowx">·</span>
         <span class="state alt">ERROR</span>
       </div>
       <div class="prose stack">
-        <p>Five real states plus a fatal one. The loop lives in a <code>while</code> inside
+        <p lang="en">Five real states plus a fatal one. The loop lives in a <code>while</code> inside
           <code>_run()</code>, not in recursion — a recursive state machine that runs for seven balls and several
           retries would grow a stack frame per transition for no reason.</p>
-        <p>Each cycle: wait for a validated target that maps to a ball still on the table (with an eight-second
+        <p lang="ja">実質的な状態が5つと、致命的エラーの状態が1つです。ループは再帰ではなく<code>_run()</code>内の<code>while</code>で回しています。再帰で書いたstate machineを7個のボールと数回のリトライ分走らせると、遷移のたびに無意味にスタックフレームが積み上がるためです。</p>
+        <p lang="en">Each cycle: wait for a validated target that maps to a ball still on the table (with an eight-second
           grace period, after which any remaining unreachable balls are reported and the run ends cleanly),
           build the three grasp poses, show a "ghost" marker, remove the collision ball, move, place, repeat.</p>
+        <p lang="ja">1サイクルの流れは次のとおりです。まだテーブル上にあるボールに対応する検証済みの対象を待ちます（8秒の猶予があり、それを過ぎると残った届かないボールを報告して正常終了します）。
+          次に3つのgrasp poseを作り、「ゴースト」markerを表示し、衝突判定用のボールを削除し、移動し、配置し、これを繰り返します。</p>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>The ghost-ball trick</h3>
-      <p>There is a genuine conflict here. MoveIt refuses to plan a path that ends inside a collision object —
+      <h3><span lang="en">The ghost-ball trick</span><span lang="ja">ゴーストボールの工夫</span></h3>
+      <p lang="en">There is a genuine conflict here. MoveIt refuses to plan a path that ends inside a collision object —
         and the grasp pose is, by definition, at the ball. Attaching the ball to the gripper
         (<code>AttachedCollisionObject</code>, the textbook answer) was tried and caused self-collision failures
         against <code>panda_link7</code> plus a green sphere artefact stuck to the gripper.</p>
-      <p>The solution splits the ball into two things. The <em>collision</em> ball is removed just before the
+      <p lang="ja">ここには本質的な矛盾があります。MoveItはcollision objectの内部で終わる経路を計画しません。しかしgrasp poseは、定義上ボールの位置にあります。
+        教科書どおりの答えであるボールをグリッパーに取り付ける方法（<code>AttachedCollisionObject</code>）も試しましたが、<code>panda_link7</code>との自己干渉で失敗し、さらにグリッパーに緑の球が貼り付いて表示される不具合も出ました。</p>
+      <p lang="en">The solution splits the ball into two things. The <em>collision</em> ball is removed just before the
         approach so the planner has a clear goal. A <em>visual</em> ball — an RViz <code>Marker</code>, which has
         no physics and no collision meaning — is shown in the same place so the operator still sees it during
         the approach, then deleted the instant the gripper arrives. After the place motion succeeds, a fresh
         collision sphere is added inside the box. The result on screen is what a viewer expects, and the planner
         never fights an obstacle that is about to be picked up.</p>
+      <p lang="ja">解決策は、ボールを2つに分けることです。<em>衝突判定用</em>のボールはアプローチ直前に削除し、プランナが障害物のないゴールを得られるようにします。
+        同じ位置には<em>表示用</em>のボール（物理も衝突判定も持たないRVizの<code>Marker</code>）を出しておき、オペレータがアプローチ中もボールを確認できるようにし、グリッパーが到着した瞬間に削除します。
+        配置動作が成功したら、箱の中に新しい衝突判定用の球を追加します。画面上は見る人の期待どおりになり、プランナがこれから拾う障害物と競合することもありません。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Cartesian first, OMPL second</h3>
-      <p>Two ways to get the gripper from A to B:</p>
+      <h3><span lang="en">Cartesian first, OMPL second</span><span lang="ja">まずCartesian、次にOMPL</span></h3>
+      <p lang="en">Two ways to get the gripper from A to B:</p>
+      <p lang="ja">グリッパーをAからBへ動かす方法は2つあります。</p>
       <dl class="pair">
         <dt>Cartesian path</dt>
-        <dd>Service <code>/compute_cartesian_path</code>. Interpolates the end-effector along a straight line in
+        <dd lang="en">Service <code>/compute_cartesian_path</code>. Interpolates the end-effector along a straight line in
           1 cm steps and solves inverse kinematics at each one. Predictable, human-legible motion — glide over the
           ball, straight down; straight up, across to the box. Returns a <code>fraction</code>: how much of the
           requested path it actually managed. Below 0.95 the result is rejected.</dd>
+        <dd lang="ja">service <code>/compute_cartesian_path</code>。エンドエフェクタを1 cm刻みで直線補間し、各点で逆運動学を解きます。
+          ボールの上まで滑らかに移動して真下へ、真上に上げて箱へ、と予測しやすく人が読み取れる動きになります。要求した経路のうち実際に達成できた割合を<code>fraction</code>として返し、0.95未満なら結果を棄却します。</dd>
         <dt>OMPL RRTConnect</dt>
-        <dd>Action <code>/move_action</code>. A sampling-based planner that finds <em>some</em> collision-free
+        <dd lang="en">Action <code>/move_action</code>. A sampling-based planner that finds <em>some</em> collision-free
           path through joint space. It will always find one if it exists, but the path can include large,
           alarming wrist excursions because nothing in the objective asks for a tidy route. Used only as a
           fallback.</dd>
+        <dd lang="ja">action <code>/move_action</code>。関節空間内で衝突のない経路を<em>何かしら</em>見つけるサンプリングベースのプランナです。経路が存在すれば必ず見つけますが、目的関数に整った経路を求める項がないため、手首が大きく危なっかしく振れる経路になることがあります。fallback専用です。</dd>
       </dl>
-      <p>The controller tries Cartesian, and on failure falls back with the same target expressed as a
+      <p lang="en">The controller tries Cartesian, and on failure falls back with the same target expressed as a
         constrained OMPL goal. That ordering is why the demo looks deliberate rather than chaotic.</p>
+      <p lang="ja">コントローラはまずCartesianを試し、失敗したら同じ対象を制約付きのOMPLゴールとして表現してfallbackします。デモの動きが無秩序ではなく意図的に見えるのは、この順序のおかげです。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Retiming the trajectory afterwards</h3>
-      <p>The OMPL path lets you request <code>max_velocity_scaling_factor</code>. Humble's
+      <h3><span lang="en">Retiming the trajectory afterwards</span><span lang="ja">計画後の軌道のretiming</span></h3>
+      <p lang="en">The OMPL path lets you request <code>max_velocity_scaling_factor</code>. Humble's
         <code>GetCartesianPath</code> service has no such field — it returns a trajectory timed at full speed.
         So the code stretches the timing after planning:</p>
+      <p lang="ja">OMPLの経路では<code>max_velocity_scaling_factor</code>を指定できます。しかしHumbleの<code>GetCartesianPath</code> serviceにはこのフィールドがなく、全速の時間配分で軌道を返します。
+        そこで、計画後にコード側で時間を引き伸ばします。</p>
       <pre><code>t_new       = t_old / scale
 velocities  ×= scale
 accelerations ×= scale²</code></pre>
-      <p>With <code>cartesian_speed_scale = 0.5</code> everything takes twice as long. The acceleration term is
+      <p lang="en">With <code>cartesian_speed_scale = 0.5</code> everything takes twice as long. The acceleration term is
         squared because acceleration has units of distance per time <em>squared</em> — scaling only the velocities
         would hand the controller a trajectory whose numbers contradict each other, and a well-behaved controller
         will reject it.</p>
+      <p lang="ja"><code>cartesian_speed_scale = 0.5</code>なら、すべての動作に2倍の時間がかかります。加速度の項が2乗になるのは、加速度の単位が距離÷時間の<em>2乗</em>だからです。
+        速度だけをスケールすると、数値同士が矛盾した軌道をコントローラに渡すことになり、まともなコントローラはそれを拒否します。</p>
     </div>
 
     <div class="stack prose">
-      <h3>The goal constraints</h3>
-      <p>An OMPL goal is not a pose, it is a set of constraints. The controller builds two:</p>
-      <ul class="tight">
+      <h3><span lang="en">The goal constraints</span><span lang="ja">ゴールの制約</span></h3>
+      <p lang="en">An OMPL goal is not a pose, it is a set of constraints. The controller builds two:</p>
+      <p lang="ja">OMPLのゴールはposeではなく、制約の集合です。コントローラは2つの制約を作ります。</p>
+      <ul class="tight" lang="en">
         <li><strong>Position</strong> — a box-shaped region 4 cm on a side for a grasp, 6 cm for a place,
           centred on the target, attached to link <code>panda_link8</code>. A tolerance region rather than a
           point, because demanding an exact pose from a 7-axis arm makes the IK solver work far harder for no
@@ -686,43 +571,59 @@ accelerations ×= scale²</code></pre>
           every angle of wrist rotation, so constraining that rotation only removes solutions the planner could
           have used.</li>
       </ul>
-      <p>All grasps use yaw = 0° so the wrist keeps the same orientation from grasp to place to the next grasp,
+      <ul class="tight" lang="ja">
+        <li><strong>位置</strong>：対象を中心とする箱形の領域で、一辺は把持時4 cm、配置時6 cm。リンク<code>panda_link8</code>に対して設定します。
+          点ではなく許容領域にしているのは、7軸アームに厳密なposeを要求すると、IKソルバの負担が大きく増えるだけで利点がないためです。</li>
+        <li><strong>姿勢</strong>：グリッパーが下を向いたままになるよう、x軸とy軸の傾き許容値は0.25 radですが、<strong>z軸は3.14 rad</strong>、つまり自由です。
+          球は手首をどの角度に回しても同じに見えるため、その回転を制約しても、プランナが使えたはずの解を減らすだけです。</li>
+      </ul>
+      <p lang="en">All grasps use yaw = 0° so the wrist keeps the same orientation from grasp to place to the next grasp,
         which gives OMPL simpler joint-space paths to find.</p>
+      <p lang="ja">すべての把持でyaw = 0°を使うため、把持から配置、次の把持まで手首の向きが変わりません。そのぶん、OMPLが探す関節空間の経路も単純になります。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Making an asynchronous action look synchronous</h3>
-      <p>ROS 2 actions are two-stage and callback-driven: send a goal, get a handle telling you whether it was
+      <h3><span lang="en">Making an asynchronous action look synchronous</span><span lang="ja">非同期のactionを同期的に見せる</span></h3>
+      <p lang="en">ROS 2 actions are two-stage and callback-driven: send a goal, get a handle telling you whether it was
         accepted, then register another callback for the result. Written literally, a five-step pick sequence
         becomes five levels of nested callbacks. <code>_send_goal()</code> collapses that using a
         <code>threading.Event</code> and a one-element list to smuggle the result out of the closure, then blocks
         with a 60-second timeout. The state machine reads as straight-line code.</p>
-      <p>This only works because the node spins on a <code>MultiThreadedExecutor</code> with the action clients
+      <p lang="ja">ROS 2のactionは2段階のcallback駆動です。goalを送ると受理されたかを示すhandleが返り、さらに結果用のcallbackを登録します。
+        そのまま書くと、5ステップのpick処理は5段にネストしたcallbackになります。<code>_send_goal()</code>は<code>threading.Event</code>と要素1つのリストを使ってclosureの外へ結果を持ち出し、60秒のタイムアウト付きでブロックすることで、これを平坦にしています。
+        その結果、state machineは上から順に読めるコードになります。</p>
+      <p lang="en">This only works because the node spins on a <code>MultiThreadedExecutor</code> with the action clients
         in a <code>ReentrantCallbackGroup</code>, and because the pick loop runs on its own thread. On a
         single-threaded executor the blocking wait would prevent the very callback it is waiting for from ever
         running — a classic ROS 2 deadlock.</p>
+      <p lang="ja">これが成り立つのは、nodeを<code>MultiThreadedExecutor</code>でspinし、action clientを<code>ReentrantCallbackGroup</code>に入れ、さらにpickループを専用スレッドで回しているからです。
+        シングルスレッドのexecutorでは、ブロッキング待ちが、待っているcallbackそのものの実行を妨げてしまいます。ROS 2の典型的なデッドロックです。</p>
     </div>
   </div>
 </section>
 
 <section id="launch">
-  <div class="sec-head"><span class="sec-num">06</span><h2>The launch file, line by line</h2><p class="sec-sub">What the launch file starts, in what order, and why each delay exists.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The launch file, line by line</span><span lang="ja">launchファイルの逐行解説</span></h2><p class="sec-sub" lang="en">What the launch file starts, in what order, and why each delay exists.</p><p class="sec-sub" lang="ja">launchファイルが何を、どの順序で起動するか、そして各遅延がなぜ必要かを説明します。</p></div>
   <div class="stack">
-    <p class="prose">One command starts eleven processes. A ROS 2 launch file is Python that returns a
+    <p class="prose" lang="en">One command starts eleven processes. A ROS 2 launch file is Python that returns a
       <code>LaunchDescription</code> — a list of things to start, in order, with parameters.</p>
+    <p class="prose" lang="ja">1つのコマンドで11個のプロセスが起動します。ROS 2のlaunchファイルは、<code>LaunchDescription</code>を返すPythonコードです。起動するものを、順序とパラメータ付きで並べたリストです。</p>
 
-    <h3>1 — Domain isolation, first</h3>
+    <h3>1 — <span lang="en">Domain isolation, first</span><span lang="ja">最初にドメインを分離</span></h3>
     <div class="stack prose">
       <pre><code>domain_id_arg = DeclareLaunchArgument('domain_id', default_value='42')
 set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('domain_id'))</code></pre>
-      <p>ROS 2 nodes discover each other over the network automatically. A simulation left on the default domain
+      <p lang="en">ROS 2 nodes discover each other over the network automatically. A simulation left on the default domain
         will find — and be found by — a real robot on the same network. Domain 42 walls this off. It must come
         before every <code>Node</code> action in the returned list, or nodes launch before the variable is set.
         To inspect topics from another terminal you need the same domain:
         <code>ROS_DOMAIN_ID=42 ros2 topic list</code>.</p>
+      <p lang="ja">ROS 2のnodeは、ネットワーク上で互いを自動的に発見します。シミュレーションをデフォルトのドメインのままにすると、同じネットワーク上の実機ロボットを発見し、逆に実機からも発見されます。
+        ドメイン42はこれを遮断します。返すリストの中ですべての<code>Node</code> actionより前に置く必要があります。そうしないと、環境変数が設定される前にnodeが起動してしまいます。
+        別のターミナルからtopicを確認するときも、同じドメインを指定します（<code>ROS_DOMAIN_ID=42 ros2 topic list</code>）。</p>
     </div>
 
-    <h3>2 — Building the MoveIt configuration</h3>
+    <h3>2 — <span lang="en">Building the MoveIt configuration</span><span lang="ja">MoveItの設定を組み立てる</span></h3>
     <div class="stack prose">
       <pre><code>MoveItConfigsBuilder("moveit_resources_panda",
     package_name="moveit_resources_panda_moveit_config")
@@ -734,101 +635,108 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
   .planning_pipelines(pipelines=["ompl"])
   .joint_limits()
   .to_moveit_configs()</code></pre>
-      <p>MoveIt needs roughly a dozen separate parameter sets. <code>MoveItConfigsBuilder</code> assembles them
+      <p lang="en">MoveIt needs roughly a dozen separate parameter sets. <code>MoveItConfigsBuilder</code> assembles them
         from the community Panda configuration package. Two pieces are worth naming:</p>
+      <p lang="ja">MoveItには十数個の独立したパラメータセットが必要です。<code>MoveItConfigsBuilder</code>は、コミュニティ製のPanda設定パッケージからそれらを組み立てます。特に挙げておくべき要素は次のとおりです。</p>
       <dl class="pair">
-        <dt>URDF</dt><dd>The physical robot: links, joints, limits, meshes.</dd>
-        <dt>SRDF</dt><dd>The <em>semantic</em> layer: which joints form the group named <code>panda_arm</code>,
+        <dt>URDF</dt><dd lang="en">The physical robot: links, joints, limits, meshes.</dd><dd lang="ja">物理的なロボットの記述。リンク、関節、可動範囲、メッシュ。</dd>
+        <dt>SRDF</dt><dd lang="en">The <em>semantic</em> layer: which joints form the group named <code>panda_arm</code>,
           which link pairs can never collide, what named poses exist. Planning needs both.</dd>
-        <dt>mock_components</dt><dd>A <code>ros2_control</code> hardware plugin that reports back whatever
+        <dd lang="ja"><em>意味</em>の層。<code>panda_arm</code>というグループをどの関節が構成するか、どのリンクの組が決して衝突しないか、どんな名前付きposeがあるかを定義します。計画にはURDFとSRDFの両方が必要です。</dd>
+        <dt>mock_components</dt><dd lang="en">A <code>ros2_control</code> hardware plugin that reports back whatever
           position it was commanded, instantly. The controller stack, the action interfaces and the state
           publishing are all real; only the physics is absent. Swapping this string for a Gazebo or a real
           hardware interface changes nothing above it.</dd>
+        <dd lang="ja">指令された位置を即座にそのまま返す<code>ros2_control</code>のハードウェアプラグインです。コントローラ群、actionインターフェース、状態のpublishはすべて本物で、欠けているのは物理だけです。
+          この文字列をGazeboや実機のハードウェアインターフェースに差し替えても、その上の層は何も変わりません。</dd>
       </dl>
     </div>
 
-    <h3>3 — The eleven nodes</h3>
+    <h3>3 — <span lang="en">The eleven nodes</span><span lang="ja">11個のnode</span></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Node</th><th class="num">Delay</th><th>Role</th></tr></thead>
+        <thead><tr><th>Node</th><th class="num"><span lang="en">Delay</span><span lang="ja">遅延</span></th><th><span lang="en">Role</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr><td><code>move_group</code></td><td class="num">0 s</td><td>The MoveIt planning server. Holds the planning scene, runs OMPL, serves the Cartesian-path service, executes trajectories. The heaviest process — takes 5–10 s to load.</td></tr>
-          <tr><td><code>robot_state_publisher</code></td><td class="num">0 s</td><td>Reads <code>/joint_states</code> and publishes the resulting TF transform tree so every node agrees where each link is.</td></tr>
-          <tr><td><code>static_transform_publisher</code></td><td class="num">0 s</td><td>Ties <code>world</code> to <code>panda_link0</code> at the identity transform.</td></tr>
-          <tr><td><code>camera_tf</code></td><td class="num">0 s</td><td>A second static transform placing <code>camera_link</code> at (0.40, 0, 0.80) with roll = π, i.e. looking straight down. Matches <code>camera.yaml</code> exactly.</td></tr>
-          <tr><td><code>ros2_control_node</code></td><td class="num">0 s</td><td>The controller manager. Loads the mock hardware and hosts the controllers.</td></tr>
-          <tr><td><code>joint_state_broadcaster</code></td><td class="num">2 s</td><td>Publishes <code>/joint_states</code> from the hardware interface.</td></tr>
-          <tr><td><code>panda_arm_controller</code></td><td class="num">3 s</td><td>The joint-trajectory controller that MoveIt sends executions to.</td></tr>
-          <tr><td><code>rviz2</code></td><td class="num">0 s</td><td>Visualisation, loaded with the saved layout.</td></tr>
-          <tr><td><code>camera_simulator</code></td><td class="num">0 s</td><td>Parameters from <code>camera.yaml</code>.</td></tr>
-          <tr><td><code>vision_detector</code></td><td class="num">0 s</td><td>Parameters from <code>camera.yaml</code> — same file as the simulator, so intrinsics and mount cannot drift apart.</td></tr>
-          <tr><td><code>workspace_validator</code></td><td class="num">0 s</td><td>Parameters from <code>demo_params.yaml</code> (the <code>workspace_validator:</code> block).</td></tr>
-          <tr><td><code>smart_pick_place</code></td><td class="num">4 s</td><td>Parameters from <code>demo_params.yaml</code>. Delayed so MoveIt and the controllers have a head start; it also polls for the action server every second regardless, so the delay is an optimisation, not the safety mechanism.</td></tr>
+          <tr><td><code>move_group</code></td><td class="num">0 s</td><td><span lang="en">The MoveIt planning server. Holds the planning scene, runs OMPL, serves the Cartesian-path service, executes trajectories. The heaviest process — takes 5–10 s to load.</span><span lang="ja">MoveItの計画サーバ。planning sceneを保持し、OMPLを実行し、Cartesian path serviceを提供し、軌道を実行します。最も重いプロセスで、読み込みに5〜10 sかかります。</span></td></tr>
+          <tr><td><code>robot_state_publisher</code></td><td class="num">0 s</td><td><span lang="en">Reads <code>/joint_states</code> and publishes the resulting TF transform tree so every node agrees where each link is.</span><span lang="ja"><code>/joint_states</code>を読み、そこから得たTFの変換ツリーをpublishします。これで全nodeが各リンクの位置について一致します。</span></td></tr>
+          <tr><td><code>static_transform_publisher</code></td><td class="num">0 s</td><td><span lang="en">Ties <code>world</code> to <code>panda_link0</code> at the identity transform.</span><span lang="ja"><code>world</code>と<code>panda_link0</code>を恒等変換で結びます。</span></td></tr>
+          <tr><td><code>camera_tf</code></td><td class="num">0 s</td><td><span lang="en">A second static transform placing <code>camera_link</code> at (0.40, 0, 0.80) with roll = π, i.e. looking straight down. Matches <code>camera.yaml</code> exactly.</span><span lang="ja">2つ目の静的変換。<code>camera_link</code>を(0.40, 0, 0.80)にroll = πで配置します。つまり真下を向いています。<code>camera.yaml</code>と完全に一致させています。</span></td></tr>
+          <tr><td><code>ros2_control_node</code></td><td class="num">0 s</td><td><span lang="en">The controller manager. Loads the mock hardware and hosts the controllers.</span><span lang="ja">controller manager。mock hardwareを読み込み、コントローラをホストします。</span></td></tr>
+          <tr><td><code>joint_state_broadcaster</code></td><td class="num">2 s</td><td><span lang="en">Publishes <code>/joint_states</code> from the hardware interface.</span><span lang="ja">ハードウェアインターフェースから<code>/joint_states</code>をpublishします。</span></td></tr>
+          <tr><td><code>panda_arm_controller</code></td><td class="num">3 s</td><td><span lang="en">The joint-trajectory controller that MoveIt sends executions to.</span><span lang="ja">MoveItが軌道の実行を送るjoint-trajectoryコントローラ。</span></td></tr>
+          <tr><td><code>rviz2</code></td><td class="num">0 s</td><td><span lang="en">Visualisation, loaded with the saved layout.</span><span lang="ja">可視化。保存済みのレイアウトで起動します。</span></td></tr>
+          <tr><td><code>camera_simulator</code></td><td class="num">0 s</td><td><span lang="en">Parameters from <code>camera.yaml</code>.</span><span lang="ja">パラメータは<code>camera.yaml</code>から読み込みます。</span></td></tr>
+          <tr><td><code>vision_detector</code></td><td class="num">0 s</td><td><span lang="en">Parameters from <code>camera.yaml</code> — same file as the simulator, so intrinsics and mount cannot drift apart.</span><span lang="ja">パラメータは<code>camera.yaml</code>から読み込みます。シミュレータと同じファイルなので、内部パラメータと取り付け位置がずれることはありません。</span></td></tr>
+          <tr><td><code>workspace_validator</code></td><td class="num">0 s</td><td><span lang="en">Parameters from <code>demo_params.yaml</code> (the <code>workspace_validator:</code> block).</span><span lang="ja">パラメータは<code>demo_params.yaml</code>（<code>workspace_validator:</code>ブロック）から読み込みます。</span></td></tr>
+          <tr><td><code>smart_pick_place</code></td><td class="num">4 s</td><td><span lang="en">Parameters from <code>demo_params.yaml</code>. Delayed so MoveIt and the controllers have a head start; it also polls for the action server every second regardless, so the delay is an optimisation, not the safety mechanism.</span><span lang="ja">パラメータは<code>demo_params.yaml</code>から読み込みます。MoveItとコントローラが先に立ち上がるよう遅らせています。ただし遅延の有無にかかわらず毎秒action serverを確認するため、この遅延は最適化であり、安全機構ではありません。</span></td></tr>
         </tbody>
       </table>
     </div>
     <div class="note warnbox">
-      <span class="note-label">Why the delays are marked "do not touch"</span>
-      <p>The 2 / 3 / 4 second sequence is not arbitrary — a spawner that runs before its controller manager
+      <span class="note-label"><span lang="en">Why the delays are marked "do not touch"</span><span lang="ja">遅延が「変更禁止」とされている理由</span></span>
+      <p lang="en">The 2 / 3 / 4 second sequence is not arbitrary — a spawner that runs before its controller manager
         exists fails permanently rather than retrying, and both spawners must be up before the controller can
         accept a trajectory. The repository's own notes flag this ordering as tested and not to be adjusted
         casually.</p>
+      <p lang="ja">2 / 3 / 4秒という順序は適当に決めたものではありません。controller managerが存在する前に実行されたspawnerは、リトライせずにそのまま失敗します。また、コントローラが軌道を受け付けるには、両方のspawnerが立ち上がっている必要があります。
+        リポジトリ自身のメモにも、この順序はテスト済みであり、安易に変更しないよう明記されています。</p>
     </div>
   </div>
 </section>
 
 <section id="config">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Every tunable number</h2><p class="sec-sub">The two YAML files that hold every parameter, with what each one changes if you touch it.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Every tunable number</span><span lang="ja">調整可能な全数値</span></h2><p class="sec-sub" lang="en">The two YAML files that hold every parameter, with what each one changes if you touch it.</p><p class="sec-sub" lang="ja">全パラメータを保持する2つのYAMLファイルと、各値を変えたときに何が変わるかです。</p></div>
   <div class="stack">
-    <p class="prose">Nothing numeric is hard-coded in the nodes. Every value below is declared as a ROS 2
+    <p class="prose" lang="en">Nothing numeric is hard-coded in the nodes. Every value below is declared as a ROS 2
       parameter with a default and loaded from YAML at launch, which means it can also be overridden on the
       command line without a rebuild.</p>
+    <p class="prose" lang="ja">node内に数値はハードコードしていません。以下の値はすべてデフォルト値付きのROS 2パラメータとして宣言し、起動時にYAMLから読み込みます。そのため、再ビルドなしでコマンドラインから上書きすることもできます。</p>
 
-    <h3>Motion — <code>demo_params.yaml</code></h3>
+    <h3><span lang="en">Motion</span><span lang="ja">動作</span> — <code>demo_params.yaml</code></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <thead><tr><th><span lang="en">Parameter</span><span lang="ja">パラメータ</span></th><th class="num"><span lang="en">Value</span><span lang="ja">値</span></th><th><span lang="en">Meaning</span><span lang="ja">意味</span></th></tr></thead>
         <tbody>
-          <tr><td><code>planning_attempts</code></td><td class="num">20</td><td>OMPL is randomised; 20 independent tries, best one kept.</td></tr>
-          <tr><td><code>planning_time_s</code></td><td class="num">10.0</td><td>Per-segment budget.</td></tr>
-          <tr><td><code>velocity_scaling</code> / <code>acceleration_scaling</code></td><td class="num">0.2 / 0.2</td><td>20 % of the arm's limits on OMPL paths.</td></tr>
-          <tr><td><code>cartesian_eef_step</code></td><td class="num">0.01 m</td><td>Interpolation step along the straight line.</td></tr>
-          <tr><td><code>cartesian_min_fraction</code></td><td class="num">0.95</td><td>Below this the Cartesian result is discarded and OMPL takes over.</td></tr>
-          <tr><td><code>cartesian_speed_scale</code></td><td class="num">0.5</td><td>Post-planning time stretch (see retiming, above).</td></tr>
-          <tr><td><code>grasp_pos_tol</code> / <code>place_pos_tol</code></td><td class="num">0.04 / 0.06 m</td><td>Side length of the goal tolerance box.</td></tr>
-          <tr><td><code>orient_tol_rad</code></td><td class="num">0.25</td><td>Tilt tolerance ≈ 14°, keeps the gripper down.</td></tr>
-          <tr><td><code>orient_yaw_tol_rad</code></td><td class="num">3.14</td><td>Wrist spin left completely free.</td></tr>
+          <tr><td><code>planning_attempts</code></td><td class="num">20</td><td><span lang="en">OMPL is randomised; 20 independent tries, best one kept.</span><span lang="ja">OMPLはランダム性があるため、独立に20回試行して最良の結果を採用します。</span></td></tr>
+          <tr><td><code>planning_time_s</code></td><td class="num">10.0</td><td><span lang="en">Per-segment budget.</span><span lang="ja">区間ごとの計画時間の上限。</span></td></tr>
+          <tr><td><code>velocity_scaling</code> / <code>acceleration_scaling</code></td><td class="num">0.2 / 0.2</td><td><span lang="en">20 % of the arm's limits on OMPL paths.</span><span lang="ja">OMPLの経路で、アームの上限値の20 %。</span></td></tr>
+          <tr><td><code>cartesian_eef_step</code></td><td class="num">0.01 m</td><td><span lang="en">Interpolation step along the straight line.</span><span lang="ja">直線に沿った補間の刻み幅。</span></td></tr>
+          <tr><td><code>cartesian_min_fraction</code></td><td class="num">0.95</td><td><span lang="en">Below this the Cartesian result is discarded and OMPL takes over.</span><span lang="ja">これを下回るとCartesianの結果を捨て、OMPLに切り替えます。</span></td></tr>
+          <tr><td><code>cartesian_speed_scale</code></td><td class="num">0.5</td><td><span lang="en">Post-planning time stretch (see retiming, above).</span><span lang="ja">計画後の時間の引き伸ばし（前述のretimingを参照）。</span></td></tr>
+          <tr><td><code>grasp_pos_tol</code> / <code>place_pos_tol</code></td><td class="num">0.04 / 0.06 m</td><td><span lang="en">Side length of the goal tolerance box.</span><span lang="ja">ゴールの許容領域（箱形）の一辺の長さ。</span></td></tr>
+          <tr><td><code>orient_tol_rad</code></td><td class="num">0.25</td><td><span lang="en">Tilt tolerance ≈ 14°, keeps the gripper down.</span><span lang="ja">傾きの許容値 ≈ 14°。グリッパーを下向きに保ちます。</span></td></tr>
+          <tr><td><code>orient_yaw_tol_rad</code></td><td class="num">3.14</td><td><span lang="en">Wrist spin left completely free.</span><span lang="ja">手首の回転は完全に自由。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Geometry — <code>demo_params.yaml</code></h3>
+    <h3><span lang="en">Geometry</span><span lang="ja">幾何</span> — <code>demo_params.yaml</code></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <thead><tr><th><span lang="en">Parameter</span><span lang="ja">パラメータ</span></th><th class="num"><span lang="en">Value</span><span lang="ja">値</span></th><th><span lang="en">Meaning</span><span lang="ja">意味</span></th></tr></thead>
         <tbody>
-          <tr><td><code>ball_x</code> / <code>ball_y</code></td><td class="num">7 pairs</td><td>Ground-truth layout, all inside reach, inside the camera view, clear of the box.</td></tr>
-          <tr><td><code>ball_radius</code> / <code>ball_z</code></td><td class="num">0.03 / 0.025 m</td><td>Sphere size and resting height.</td></tr>
-          <tr><td><code>approach_clearance</code></td><td class="num">0.20 m</td><td>Height of the pre-grasp hover.</td></tr>
-          <tr><td><code>grasp_clearance</code> / <code>min_grasp_z</code></td><td class="num">0.04 / 0.16 m</td><td>Gripper stops 4 cm above the object, never below 16 cm absolute.</td></tr>
-          <tr><td><code>lift_height</code></td><td class="num">0.28 m</td><td>Straight-up retreat before crossing to the box.</td></tr>
-          <tr><td><code>box_x</code> / <code>box_y</code> / <code>box_drop_z</code></td><td class="num">0.55 / 0.25 / 0.30 m</td><td>Container position and release height.</td></tr>
-          <tr><td><code>home_x/y/z</code></td><td class="num">0.3 / 0.0 / 0.6 m</td><td>Recovery pose, used only after a planning failure.</td></tr>
+          <tr><td><code>ball_x</code> / <code>ball_y</code></td><td class="num"><span lang="en">7 pairs</span><span lang="ja">7組</span></td><td><span lang="en">Ground-truth layout, all inside reach, inside the camera view, clear of the box.</span><span lang="ja">真値の配置。すべて到達範囲内かつカメラの視野内で、箱とは重なりません。</span></td></tr>
+          <tr><td><code>ball_radius</code> / <code>ball_z</code></td><td class="num">0.03 / 0.025 m</td><td><span lang="en">Sphere size and resting height.</span><span lang="ja">球の大きさと静止時の高さ。</span></td></tr>
+          <tr><td><code>approach_clearance</code></td><td class="num">0.20 m</td><td><span lang="en">Height of the pre-grasp hover.</span><span lang="ja">pre-graspで待機する高さ。</span></td></tr>
+          <tr><td><code>grasp_clearance</code> / <code>min_grasp_z</code></td><td class="num">0.04 / 0.16 m</td><td><span lang="en">Gripper stops 4 cm above the object, never below 16 cm absolute.</span><span lang="ja">グリッパーは物体の4 cm上で止まり、絶対高さ16 cmより下には行きません。</span></td></tr>
+          <tr><td><code>lift_height</code></td><td class="num">0.28 m</td><td><span lang="en">Straight-up retreat before crossing to the box.</span><span lang="ja">箱へ移動する前に真上へ退避する高さ。</span></td></tr>
+          <tr><td><code>box_x</code> / <code>box_y</code> / <code>box_drop_z</code></td><td class="num">0.55 / 0.25 / 0.30 m</td><td><span lang="en">Container position and release height.</span><span lang="ja">箱の位置とリリース高さ。</span></td></tr>
+          <tr><td><code>home_x/y/z</code></td><td class="num">0.3 / 0.0 / 0.6 m</td><td><span lang="en">Recovery pose, used only after a planning failure.</span><span lang="ja">復帰用のpose。計画失敗後にのみ使います。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Camera — <code>camera.yaml</code></h3>
+    <h3><span lang="en">Camera</span><span lang="ja">カメラ</span> — <code>camera.yaml</code></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Meaning</th></tr></thead>
+        <thead><tr><th><span lang="en">Parameter</span><span lang="ja">パラメータ</span></th><th class="num"><span lang="en">Value</span><span lang="ja">値</span></th><th><span lang="en">Meaning</span><span lang="ja">意味</span></th></tr></thead>
         <tbody>
-          <tr><td><code>publish_rate</code></td><td class="num">10 Hz</td><td>Frame rate of the synthetic camera.</td></tr>
-          <tr><td><code>image_width</code> / <code>image_height</code></td><td class="num">640 × 480</td><td>Frame size.</td></tr>
-          <tr><td><code>fx</code> / <code>fy</code></td><td class="num">520 / 520</td><td>Focal length in pixels. Equal, so pixels are square.</td></tr>
-          <tr><td><code>cx</code> / <code>cy</code></td><td class="num">320 / 240</td><td>Principal point — exactly the image centre, no lens offset.</td></tr>
-          <tr><td><code>cam_x</code> / <code>cam_y</code> / <code>cam_h</code></td><td class="num">0.40 / 0.00 / 0.80 m</td><td>Mount pose in the robot base frame. Shared by simulator and detector.</td></tr>
-          <tr><td><code>min_contour_area_px</code></td><td class="num">400</td><td>Anything smaller is noise, not a ball.</td></tr>
+          <tr><td><code>publish_rate</code></td><td class="num">10 Hz</td><td><span lang="en">Frame rate of the synthetic camera.</span><span lang="ja">合成カメラのフレームレート。</span></td></tr>
+          <tr><td><code>image_width</code> / <code>image_height</code></td><td class="num">640 × 480</td><td><span lang="en">Frame size.</span><span lang="ja">フレームサイズ。</span></td></tr>
+          <tr><td><code>fx</code> / <code>fy</code></td><td class="num">520 / 520</td><td><span lang="en">Focal length in pixels. Equal, so pixels are square.</span><span lang="ja">ピクセル単位の焦点距離。値が等しいので、ピクセルは正方形です。</span></td></tr>
+          <tr><td><code>cx</code> / <code>cy</code></td><td class="num">320 / 240</td><td><span lang="en">Principal point — exactly the image centre, no lens offset.</span><span lang="ja">主点。画像のちょうど中心で、レンズのオフセットはありません。</span></td></tr>
+          <tr><td><code>cam_x</code> / <code>cam_y</code> / <code>cam_h</code></td><td class="num">0.40 / 0.00 / 0.80 m</td><td><span lang="en">Mount pose in the robot base frame. Shared by simulator and detector.</span><span lang="ja">ロボットのベース座標系での取り付けpose。シミュレータと検出器で共有します。</span></td></tr>
+          <tr><td><code>min_contour_area_px</code></td><td class="num">400</td><td><span lang="en">Anything smaller is noise, not a ball.</span><span lang="ja">これより小さいものはボールではなくノイズとみなします。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -836,30 +744,30 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
 </section>
 
 <section id="decisions">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Decisions worth defending</h2><p class="sec-sub">Places where a different choice was available, and the reason this one was taken.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Decisions worth defending</span><span lang="ja">説明できる設計判断</span></h2><p class="sec-sub" lang="en">Places where a different choice was available, and the reason this one was taken.</p><p class="sec-sub" lang="ja">別の選択肢があった箇所と、この方法を選んだ理由です。</p></div>
   <div class="stack">
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Decision</th><th>Reasoning</th></tr></thead>
+        <thead><tr><th><span lang="en">Decision</span><span lang="ja">判断</span></th><th><span lang="en">Reasoning</span><span lang="ja">理由</span></th></tr></thead>
         <tbody>
-          <tr><td>Reachability filter in C++, everything else Python</td>
-            <td>It runs per frame and sits between perception and the controller, so it must never be the thing that stalls. Python is the right language for orchestration and for OpenCV work where the heavy lifting is already in C.</td></tr>
-          <tr><td>The state machine subscribes to <code>/validated_targets</code></td>
-            <td>An earlier version published that topic and never read it — the arm used ground truth while a validator ran decoratively alongside. Closing that loop is the difference between a system and a demonstration of one.</td></tr>
-          <tr><td>Ghost marker instead of <code>AttachedCollisionObject</code></td>
-            <td>The textbook approach produced <code>panda_link7</code> self-collision failures and a visual artefact. Separating "what the planner must avoid" from "what the operator sees" solved both.</td></tr>
-          <tr><td>Cartesian first, OMPL as fallback</td>
-            <td>Straight-line end-effector motion is predictable and inspectable. RRTConnect is a safety net, not the default.</td></tr>
-          <tr><td>Yaw unconstrained at the goal</td>
-            <td>A sphere has no observable orientation. Constraining wrist spin removes valid IK solutions and buys nothing.</td></tr>
-          <tr><td>Retiming after planning</td>
-            <td>Works around a genuine gap in Humble's Cartesian-path service rather than accepting full-speed motion.</td></tr>
-          <tr><td>All values in YAML</td>
-            <td>Retuning the demo is a text edit and a relaunch, not a rebuild. It also makes the tuning legible in one place.</td></tr>
-          <tr><td><code>ROS_DOMAIN_ID=42</code> in the launch file</td>
-            <td>A simulation on a shared network must not discover, or be discovered by, real hardware.</td></tr>
-          <tr><td>Fifteen tests on <code>image_utils.py</code> only</td>
-            <td>It is the one file that reimplements a standard library, so it is the one file that has to prove it round-trips and fails loudly on anything unsupported.</td></tr>
+          <tr><td><span lang="en">Reachability filter in C++, everything else Python</span><span lang="ja">到達可能性フィルタはC++、それ以外はPython</span></td>
+            <td><span lang="en">It runs per frame and sits between perception and the controller, so it must never be the thing that stalls. Python is the right language for orchestration and for OpenCV work where the heavy lifting is already in C.</span><span lang="ja">フレームごとに実行され、認識とコントローラの間に位置するため、処理が詰まる原因になってはなりません。全体の制御や、重い処理がすでにC側にあるOpenCVの処理には、Pythonが適しています。</span></td></tr>
+          <tr><td><span lang="en">The state machine subscribes to <code>/validated_targets</code></span><span lang="ja">state machineが<code>/validated_targets</code>をsubscribeする</span></td>
+            <td><span lang="en">An earlier version published that topic and never read it — the arm used ground truth while a validator ran decoratively alongside. Closing that loop is the difference between a system and a demonstration of one.</span><span lang="ja">以前の版はこのtopicをpublishするだけで、誰も読んでいませんでした。アームは真値を使い、validatorは飾りとして横で動いていただけです。このループを閉じることが、「システム」と「システムの見せかけ」の違いです。</span></td></tr>
+          <tr><td><span lang="en">Ghost marker instead of <code>AttachedCollisionObject</code></span><span lang="ja"><code>AttachedCollisionObject</code>の代わりにゴーストmarker</span></td>
+            <td><span lang="en">The textbook approach produced <code>panda_link7</code> self-collision failures and a visual artefact. Separating "what the planner must avoid" from "what the operator sees" solved both.</span><span lang="ja">教科書どおりの方法では、<code>panda_link7</code>の自己干渉による失敗と表示上の不具合が出ました。「プランナが避けるべきもの」と「オペレータに見せるもの」を分けることで、両方を解決しました。</span></td></tr>
+          <tr><td><span lang="en">Cartesian first, OMPL as fallback</span><span lang="ja">まずCartesian、OMPLはfallback</span></td>
+            <td><span lang="en">Straight-line end-effector motion is predictable and inspectable. RRTConnect is a safety net, not the default.</span><span lang="ja">エンドエフェクタの直線動作は予測しやすく、確認もしやすいためです。RRTConnectはセーフティネットであり、標準の手段ではありません。</span></td></tr>
+          <tr><td><span lang="en">Yaw unconstrained at the goal</span><span lang="ja">ゴールでyawを制約しない</span></td>
+            <td><span lang="en">A sphere has no observable orientation. Constraining wrist spin removes valid IK solutions and buys nothing.</span><span lang="ja">球には観測できる向きがありません。手首の回転を制約しても、有効なIK解が減るだけで得るものはありません。</span></td></tr>
+          <tr><td><span lang="en">Retiming after planning</span><span lang="ja">計画後のretiming</span></td>
+            <td><span lang="en">Works around a genuine gap in Humble's Cartesian-path service rather than accepting full-speed motion.</span><span lang="ja">全速の動作を受け入れるのではなく、HumbleのCartesian path serviceに実際にある機能の欠落を回避しています。</span></td></tr>
+          <tr><td><span lang="en">All values in YAML</span><span lang="ja">すべての値をYAMLに集約</span></td>
+            <td><span lang="en">Retuning the demo is a text edit and a relaunch, not a rebuild. It also makes the tuning legible in one place.</span><span lang="ja">デモの再調整はテキストの編集と再起動だけで済み、再ビルドは不要です。調整値を1か所で見渡せる利点もあります。</span></td></tr>
+          <tr><td><span lang="en"><code>ROS_DOMAIN_ID=42</code> in the launch file</span><span lang="ja">launchファイルで<code>ROS_DOMAIN_ID=42</code>を設定</span></td>
+            <td><span lang="en">A simulation on a shared network must not discover, or be discovered by, real hardware.</span><span lang="ja">共有ネットワーク上のシミュレーションが実機を発見したり、実機から発見されたりしてはならないためです。</span></td></tr>
+          <tr><td><span lang="en">Fifteen tests on <code>image_utils.py</code> only</span><span lang="ja">テスト15個は<code>image_utils.py</code>のみ</span></td>
+            <td><span lang="en">It is the one file that reimplements a standard library, so it is the one file that has to prove it round-trips and fails loudly on anything unsupported.</span><span lang="ja">標準ライブラリを再実装した唯一のファイルなので、往復変換が正しいことと、非対応の入力で明示的に失敗することを証明すべきなのはこのファイルだけだからです。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -867,11 +775,23 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
 </section>
 
 <section id="honest">
-  <div class="sec-head"><span class="sec-num">09</span><h2>What this does not demonstrate</h2><p class="sec-sub">The limits of a mock-hardware, synthetic-image system, stated plainly.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">What this does not demonstrate</span><span lang="ja">このプロジェクトが示していないこと</span></h2><p class="sec-sub" lang="en">The limits of a mock-hardware, synthetic-image system, stated plainly.</p><p class="sec-sub" lang="ja">mock hardwareと合成画像で構成したシステムの限界を、はっきり書いておきます。</p></div>
   <div class="stack prose">
-    <p>Stating the boundary is part of the work. The following are true and are not hidden in the repository
+    <p lang="en">Stating the boundary is part of the work. The following are true and are not hidden in the repository
       either.</p>
-    <ul class="tight">
+    <p lang="ja">限界を明記することも仕事のうちです。以下はすべて事実であり、リポジトリでも隠していません。</p>
+    <ul class="tight" lang="ja">
+      <li><strong>センサーのリアリティがない。</strong>画像は撮影ではなく描画したものです。ノイズ、ブラー、露出の変化、影、レンズ歪みはありません。
+        ここでHSVの閾値処理が成功するのは、意図的に問題を簡単にしたからです。実カメラでは真っ先に破綻する部分です。</li>
+      <li><strong>深度がない。</strong>位置は計測ではなく平面の仮定から求めています。ボールを2個積むと、上のボールは誤った位置に、確信を持って報告されます。</li>
+      <li><strong>物理がない。</strong><code>mock_components</code>は指令された値をそのまま返します。重力も接触もグリッパーの把持力もありません。
+        「把持」はアームが到達するposeにすぎず、ボールはscene managerによって箱の中へ瞬間移動させています。</li>
+      <li><strong>学習ベースの要素がない。</strong>閾値処理、輪郭、モーメント、ピンホール幾何、サンプリングベースの計画と、すべて古典的な手法です。
+        無地のテーブル上の赤い球を検出するには、それが工学的に正しい選択です。ただし、このプロジェクト自体は学習済みモデルを示すものではありません。</li>
+      <li><strong>到達可能性のモデルは円筒です。</strong>Pandaの実際の作業領域は、姿勢によって境界が変わる複雑な形状です。円筒は保守的な近似であり、近似であることを明記しています。</li>
+      <li><strong>パッケージ内のREADMEは古い</strong>ままで、削除済みの版のシステムを説明しています。実際にビルドされるものを反映しているのは、ルートのREADMEだけです。</li>
+    </ul>
+    <ul class="tight" lang="en">
       <li><strong>No sensor realism.</strong> The images are drawn, not captured. No noise, no blur, no
         exposure variation, no shadows, no lens distortion. HSV thresholding succeeds here because the
         problem was made easy on purpose; on a real camera it would be the first thing to break.</li>
@@ -890,24 +810,27 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
         system. Only the root README tracks what is actually built.</li>
     </ul>
     <div class="note key">
-      <span class="note-label">The stated next steps</span>
-      <p>Swap <code>mock_components</code> for Gazebo Ignition with a Panda plugin — the perception and planning
+      <span class="note-label"><span lang="en">The stated next steps</span><span lang="ja">明記している次のステップ</span></span>
+      <p lang="en">Swap <code>mock_components</code> for Gazebo Ignition with a Panda plugin — the perception and planning
         stack needs no changes. Then add a learned component where the problem is genuinely hard — grasp pose
         and orientation prediction for non-spherical objects — and export it to ONNX and TensorRT for a Jetson.
         Detection stays HSV; a neural network for red spheres would be the wrong tool.</p>
+      <p lang="ja"><code>mock_components</code>を、Pandaプラグイン付きのGazebo Ignitionに置き換えます。認識と計画の部分は変更不要です。
+        次に、本当に難しい問題である非球形物体のgrasp poseと姿勢の予測に学習ベースの要素を加え、Jetson向けにONNXとTensorRTへexportします。
+        検出はHSVのままにします。赤い球の検出にニューラルネットワークを使うのは、道具の選び方として誤りです。</p>
     </div>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">10</span><h2>Building and running it</h2><p class="sec-sub">Dependencies, the build command, and what a correct run looks like on screen.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Building and running it</span><span lang="ja">ビルドと実行</span></h2><p class="sec-sub" lang="en">Dependencies, the build command, and what a correct run looks like on screen.</p><p class="sec-sub" lang="ja">依存関係、ビルドコマンド、そして正しく動いたときの画面の様子です。</p></div>
   <div class="stack">
     <div class="stack prose">
-      <h4>System dependencies</h4>
+      <h4><span lang="en">System dependencies</span><span lang="ja">システムの依存関係</span></h4>
       <pre><code>sudo apt install ros-humble-moveit ros-humble-ros2-control \
     ros-humble-ros2-controllers ros-humble-moveit-ros-move-group \
     ros-humble-moveit-planners-ompl</code></pre>
-      <h4>Build</h4>
+      <h4><span lang="en">Build</span><span lang="ja">ビルド</span></h4>
       <pre><code>mkdir -p ~/moveit_project_ws/src
 cd ~/moveit_project_ws/src
 git clone https://github.com/AungKaung1928/moveit_pickplace_demo.git .
@@ -916,15 +839,16 @@ cd ~/moveit_project_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash</code></pre>
-      <h4>Run</h4>
+      <h4><span lang="en">Run</span><span lang="ja">実行</span></h4>
       <pre><code>ros2 launch simple_moveit_demo smart_pick_place.launch.py</code></pre>
-      <p><code>--symlink-install</code> links Python sources into the install space instead of copying them,
+      <p lang="en"><code>--symlink-install</code> links Python sources into the install space instead of copying them,
         so editing a node does not require a rebuild. <code>rosdep</code> reads every
         <code>package.xml</code> and installs the declared dependencies.</p>
+      <p lang="ja"><code>--symlink-install</code>はPythonのソースをinstall空間にコピーせずリンクするため、nodeを編集しても再ビルドは不要です。<code>rosdep</code>はすべての<code>package.xml</code>を読み、宣言された依存関係をインストールします。</p>
     </div>
 
-    <h3>What you should see</h3>
-    <ul class="tight prose">
+    <h3><span lang="en">What you should see</span><span lang="ja">正しく動いたときの様子</span></h3>
+    <ul class="tight prose" lang="en">
       <li>RViz opens immediately; the arm starts moving after 5–10 seconds of MoveIt warm-up.</li>
       <li>Seven red balls on a brown table, one orange box.</li>
       <li>The ball stays visible while the arm approaches, and disappears the moment the gripper arrives.</li>
@@ -933,21 +857,29 @@ source install/setup.bash</code></pre>
       <li>The ball reappears inside the box in a 2×2 grid, stacking into a second layer for balls 5 to 7.</li>
       <li>Two translucent cylinders showing the reachable workspace, refreshed every two seconds.</li>
     </ul>
+    <ul class="tight prose" lang="ja">
+      <li>RVizはすぐに開き、MoveItのウォームアップの5〜10秒後にアームが動き始めます。</li>
+      <li>茶色のテーブルに赤いボールが7個、オレンジの箱が1つあります。</li>
+      <li>アームが近づく間もボールは表示されたままで、グリッパーが到着した瞬間に消えます。</li>
+      <li>直線的な動き：ボールの上へ滑らかに移動 → 真下へ、真上へ → 箱へ移動。途中でホームposeには戻りません。</li>
+      <li>ボールは箱の中に2×2の配置で再表示され、5〜7個目は2段目に積まれます。</li>
+      <li>到達可能な作業領域を示す半透明の円筒が2つあり、2秒ごとに更新されます。</li>
+    </ul>
 
-    <h3>Inspecting it while it runs</h3>
+    <h3><span lang="en">Inspecting it while it runs</span><span lang="ja">実行中の確認</span></h3>
     <pre><code>ROS_DOMAIN_ID=42 ros2 topic echo /pick_place_status     # IDLE / GRASPING / PLACING / DONE
 ROS_DOMAIN_ID=42 ros2 topic echo /validated_targets     # what the FSM is allowed to pick
 ROS_DOMAIN_ID=42 ros2 topic hz /camera/image_raw        # should read ~10 Hz
 ROS_DOMAIN_ID=42 ros2 node list</code></pre>
 
-    <h3>Known harmless shutdown noise</h3>
+    <h3><span lang="en">Known harmless shutdown noise</span><span lang="ja">終了時に出る既知の無害なメッセージ</span></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Message</th><th>Cause</th></tr></thead>
+        <thead><tr><th><span lang="en">Message</span><span lang="ja">メッセージ</span></th><th><span lang="en">Cause</span><span lang="ja">原因</span></th></tr></thead>
         <tbody>
-          <tr><td><code>rviz2 exit code -11</code></td><td>A known MoveIt 2 Humble segfault in a destructor. Shutdown only.</td></tr>
-          <tr><td><code>move_group SIGKILL after 10 s</code></td><td>A known Humble shutdown race. Shutdown only.</td></tr>
-          <tr><td>Arm never leaves IDLE</td><td>Nothing is arriving on <code>/validated_targets</code> — check that the camera and detector started cleanly, and that the domain id matches.</td></tr>
+          <tr><td><code>rviz2 exit code -11</code></td><td><span lang="en">A known MoveIt 2 Humble segfault in a destructor. Shutdown only.</span><span lang="ja">MoveIt 2 Humbleのデストラクタで起きる既知のsegfault。終了時のみ発生します。</span></td></tr>
+          <tr><td><code>move_group SIGKILL after 10 s</code></td><td><span lang="en">A known Humble shutdown race. Shutdown only.</span><span lang="ja">Humbleの既知の終了時競合。終了時のみ発生します。</span></td></tr>
+          <tr><td><span lang="en">Arm never leaves IDLE</span><span lang="ja">アームがIDLEのまま動かない</span></td><td><span lang="en">Nothing is arriving on <code>/validated_targets</code> — check that the camera and detector started cleanly, and that the domain id matches.</span><span lang="ja"><code>/validated_targets</code>に何も届いていません。カメラと検出器が正常に起動したか、domain idが一致しているかを確認してください。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -955,9 +887,9 @@ ROS_DOMAIN_ID=42 ros2 node list</code></pre>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The whole project compressed into one paragraph.</p><p class="sec-sub" lang="ja">プロジェクト全体を1段落にまとめます。</p></div>
   <div class="stack prose">
-    <p>A two-package ROS 2 Humble workspace in which a Franka Panda clears seven balls into a box using only
+    <p lang="en">A two-package ROS 2 Humble workspace in which a Franka Panda clears seven balls into a box using only
       what a camera saw. A Python node renders a synthetic 640×480 top-down frame; a second Python node finds
       the balls by HSV thresholding and recovers their table-plane positions by exact pinhole back-projection;
       a C++ node filters those positions against the arm's reachable cylinder; a Python state machine picks up
@@ -966,6 +898,11 @@ ROS_DOMAIN_ID=42 ros2 node list</code></pre>
       number lives in two YAML files. The one file that reimplements a standard library carries fifteen
       contract tests. The simulation boundary — drawn images, a plane assumption, mock hardware — is documented
       rather than implied.</p>
+    <p lang="ja">2つのパッケージからなるROS 2 Humbleのワークスペースで、Franka Pandaがカメラで見たものだけを頼りに7個のボールを箱へ片付けます。
+      Pythonのnodeが真上から見た640×480の合成フレームを描画し、2つ目のPython nodeがHSVの閾値処理でボールを見つけ、厳密なピンホールback-projectionでテーブル平面上の位置を復元します。
+      C++のnodeがその位置をアームの到達可能な円筒と照合してフィルタし、Pythonのstate machineが残ったものだけを拾います。動作は直線的なCartesian動作を優先し、失敗時はOMPLにfallbackします。
+      HumbleのserviceがCartesian軌道の速度スケーリングを提供していないため、軌道のretimingは自前で行っています。調整可能な数値はすべて2つのYAMLファイルにあります。
+      標準ライブラリを再実装した唯一のファイルには、15個の契約テストがあります。シミュレーションの境界（描画画像、平面の仮定、mock hardware）は、暗黙の前提にせず明記しています。</p>
   </div>
 </section>
 
@@ -973,45 +910,13 @@ ROS_DOMAIN_ID=42 ros2 node list</code></pre>
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>moveit_pickplace_demo</code> — root <code>README.md</code>,
+  <span lang="en">Built from the source in <code>moveit_pickplace_demo</code> — root <code>README.md</code>,
   <code>CONTEXT.md</code>, both <code>package.xml</code> files, the launch file, both YAML configs,
-  all seven Python modules, the C++ header and node, and the test suite.
+  all seven Python modules, the C++ header and node, and the test suite.</span>
+  <span lang="ja"><code>moveit_pickplace_demo</code>のソースをもとに作成しました。ルートの<code>README.md</code>、<code>CONTEXT.md</code>、2つの<code>package.xml</code>、launchファイル、2つのYAML設定、
+  7つのPythonモジュールすべて、C++のヘッダとnode、テストスイートを参照しています。</span>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

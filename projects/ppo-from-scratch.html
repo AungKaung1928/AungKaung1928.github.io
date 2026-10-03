@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#4f7d93" data-title-ja="PPO vs LQR — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,392 +12,223 @@
 <meta property="og:title" content="PPO Against LQR">
 <meta property="og:description" content="PPO implemented from scratch and measured against an optimal LQR controller on the same cart-pole, across sixteen seeds and four ablations. Full walkthrough.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f7d93'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#f7f9fa;
-  --paper2:#ecf1f3;
-  --ink:#151c21;
-  --ink2:#3c4a52;
-  --muted:#68757e;
-  --line:#e2e9ec;
-  --line2:#ccd8de;
-  --accent:#4f7d93;
-  --accent-deep:#375b6d;
-  --accent-soft:#eff5f8;
-  --accent-line:#bcd3de;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--warn)}
-.note p{font-size:.95rem}
-.steps{display:flex;flex-wrap:wrap;margin-block:4px}
-.stepbox{flex:1 1 155px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
-.stepbox + .stepbox{border-left:0}
-.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
-.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
-.stepbox .sr{font-family:var(--mono);font-size:.74rem;color:var(--ink);font-weight:600;
-  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
-@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fbfcfd}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-.vs{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
-.vs > div{background:var(--bg);padding:16px 18px;display:flex;flex-direction:column;gap:8px}
-.vs h4{font-size:1rem}
-.vs .tag{font-family:var(--mono);font-size:.64rem;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-.vs p{font-size:.92rem;color:var(--ink2)}
-.vs .big{font-family:var(--disp);font-size:1.5rem;font-weight:700;color:var(--accent);line-height:1}
-@media (max-width:640px){.vs{grid-template-columns:1fr}}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#92aebc;
-  --accent-soft:#19252b;
-  --accent-deep:#a7bec9;
-  --accent-line:#2f4855;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/ppo-from-scratch" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">CPU-only robot-learning track · secondary project · repo <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></div>
+    <div class="eyebrow"><span lang="en">CPU-only robot-learning track · secondary project · repo <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></span><span lang="ja">CPUのみのrobot learningトラック · サブプロジェクト · リポジトリ <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></span></div>
     <h1>PPO Against LQR</h1>
-    <p class="deck">Reinforcement learning, implemented from nothing, and then measured against a controller
+    <p class="deck" lang="en">Reinforcement learning, implemented from nothing, and then measured against a controller
       you can solve for with pen and paper. Both balance the pole perfectly. The learned one paid 62 144
       environment steps for that, and its recoverable region is <strong>half the size</strong> — a difference
       the usual score cannot see at all.</p>
+    <p class="deck" lang="ja">強化学習をゼロから実装し、紙とペンで解ける制御器と比較計測しました。どちらもポールを完璧に立て続けます。
+      ただし学習側はそのために62 144環境ステップを費やし、復帰できる領域は<strong>半分の広さ</strong>しかありません。
+      この差は通常のスコアにはまったく現れません。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">NumPy</span><span class="chip">MuJoCo</span>
       <span class="chip">no gymnasium</span><span class="chip">no stable-baselines3</span>
       <span class="chip">no scipy</span><span class="chip">no cleanrl</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Environment</dt><dd>hand-written, 13/13 checks</dd></div>
-      <div class="fact"><dt>Baseline</dt><dd>LQR · <em>0 samples</em></dd></div>
-      <div class="fact"><dt>PPO cost</dt><dd>62 144 steps · 16/16 seeds</dd></div>
-      <div class="fact"><dt>One training run</dt><dd>11.4 s</dd></div>
-      <div class="fact"><dt>Seeds per result</dt><dd>16</dd></div>
-      <div class="fact"><dt>Reward curves shown</dt><dd>zero, on purpose</dd></div>
+      <div class="fact"><dt><span lang="en">Environment</span><span lang="ja">環境</span></dt><dd><span lang="en">hand-written, 13/13 checks</span><span lang="ja">自作・検証13/13</span></dd></div>
+      <div class="fact"><dt><span lang="en">Baseline</span><span lang="ja">基準制御器</span></dt><dd>LQR · <em><span lang="en">0 samples</span><span lang="ja">サンプル0</span></em></dd></div>
+      <div class="fact"><dt><span lang="en">PPO cost</span><span lang="ja">PPOのコスト</span></dt><dd><span lang="en">62 144 steps · 16/16 seeds</span><span lang="ja">62 144ステップ · 16/16 seed</span></dd></div>
+      <div class="fact"><dt><span lang="en">One training run</span><span lang="ja">学習1回あたり</span></dt><dd>11.4 s</dd></div>
+      <div class="fact"><dt><span lang="en">Seeds per result</span><span lang="ja">結果あたりのseed数</span></dt><dd>16</dd></div>
+      <div class="fact"><dt><span lang="en">Reward curves shown</span><span lang="ja">掲載したreward曲線</span></dt><dd><span lang="en">zero, on purpose</span><span lang="ja">0本（意図的）</span></dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#steps">Six steps</a>
-    <a href="#files">Every file</a>
-    <a href="#env">The environment</a>
-    <a href="#lqr">The LQR baseline</a>
-    <a href="#ppo">PPO, written out</a>
-    <a href="#study">Seeds &amp; ablations</a>
-    <a href="#basin">Where it counts</a>
-    <a href="#continuous">Continuous actions</a>
-    <a href="#limits">Limits</a>
-    <a href="#run">Running it</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#steps"><span lang="en">Six steps</span><span lang="ja">6つのステップ</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">ファイル一覧</span></a>
+    <a href="#env"><span lang="en">The environment</span><span lang="ja">環境</span></a>
+    <a href="#lqr"><span lang="en">The LQR baseline</span><span lang="ja">LQRによるbaseline</span></a>
+    <a href="#ppo"><span lang="en">PPO, written out</span><span lang="ja">PPOの実装</span></a>
+    <a href="#study"><span lang="en">Seeds &amp; ablations</span><span lang="ja">seedとablation</span></a>
+    <a href="#basin"><span lang="en">Where it counts</span><span lang="ja">差が出る指標</span></a>
+    <a href="#continuous"><span lang="en">Continuous actions</span><span lang="ja">連続action</span></a>
+    <a href="#limits"><span lang="en">Limits</span><span lang="ja">制約</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">Two controllers for the same cart-pole: one solved with linear algebra, one learned from nothing.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">Two controllers for the same cart-pole: one solved with linear algebra, one learned from nothing.</p><p class="sec-sub" lang="ja">同じcart-poleに対する2つの制御器。一方は線形代数で解き、もう一方はゼロから学習します。</p></div>
   <div class="stack prose">
-    <p>Cart-pole is the "hello world" of reinforcement learning: a pole hinged on a cart, and a controller that
+    <p lang="en">Cart-pole is the "hello world" of reinforcement learning: a pole hinged on a cart, and a controller that
       can push the cart left or right. Let it go and the pole falls. Keep it upright for 500 steps and you have
       "solved" the task.</p>
-    <p>Almost every tutorial trains a policy on it, plots a reward curve that goes up, and stops. This project
+    <p lang="ja">cart-poleは強化学習の「hello world」です。台車にヒンジで取り付けたポールがあり、制御器は台車を左右に押せます。
+      放っておけばポールは倒れます。500ステップ立て続ければタスクを「解いた」ことになります。</p>
+    <p lang="en">Almost every tutorial trains a policy on it, plots a reward curve that goes up, and stops. This project
       asks a different question, and the difference is the whole point:</p>
+    <p lang="ja">ほとんどのチュートリアルはpolicyを学習させ、右肩上がりのreward曲線を描いて終わります。
+      このプロジェクトは別の問いを立てます。その違いこそが本題です。</p>
     <div class="note key">
-      <span class="note-label">The question</span>
-      <p>What does a learned policy actually buy over a controller you can solve for in closed form — and what
+      <span class="note-label"><span lang="en">The question</span><span lang="ja">問い</span></span>
+      <p lang="en">What does a learned policy actually buy over a controller you can solve for in closed form — and what
         does it cost in samples?</p>
+      <p lang="ja">閉形式で解ける制御器に対して、学習したpolicyは実際に何をもたらすのか。そしてサンプル数でどれだけのコストを払うのか。</p>
     </div>
-    <p>Because cart-pole has an answer that does not require learning at all. Linearise the physics around
+    <p lang="en">Because cart-pole has an answer that does not require learning at all. Linearise the physics around
       upright, solve one matrix equation, and out comes an optimal linear feedback controller. It consumes
       <strong>zero</strong> environment steps. It scores a perfect 500.0 out of 500 on the first try, and on
       every try after that.</p>
-    <p>So the learned policy cannot beat the baseline on the usual metric. It can only match it. That framing
+    <p lang="ja">cart-poleには、学習をまったく必要としない答えがあるからです。倒立点まわりで物理を線形化し、行列方程式を1つ解けば、
+      最適な線形フィードバック制御器が得られます。消費する環境ステップは<strong>ゼロ</strong>です。
+      初回から500点満点中500.0を出し、その後も毎回同じです。</p>
+    <p lang="en">So the learned policy cannot beat the baseline on the usual metric. It can only match it. That framing
       forces two better questions, which is what the project measures: how many samples does matching cost, and
       is there any axis on which the two controllers actually differ?</p>
-    <h3>Nothing is imported</h3>
-    <p>No gymnasium, no stable-baselines3, no rllib, no cleanrl copy-paste, no scipy. The environment is
+    <p lang="ja">つまり通常の指標では、学習したpolicyはbaselineに勝てず、並ぶことしかできません。この前提から、より良い2つの問いが生まれます。
+      並ぶまでに何サンプル必要か、そして2つの制御器が実際に異なる軸はあるのか。このプロジェクトが計測しているのはこの2点です。</p>
+    <h3><span lang="en">Nothing is imported</span><span lang="ja">外部実装は一切使わない</span></h3>
+    <p lang="en">No gymnasium, no stable-baselines3, no rllib, no cleanrl copy-paste, no scipy. The environment is
       hand-written from the 1983 paper's equations. The discrete Riccati equation is solved by iterating the
       recursion rather than calling a library, because understanding that recursion is the point — it is the
       exact same object PPO's critic estimates by regression, except here it can be computed exactly.</p>
+    <p lang="ja">gymnasium、stable-baselines3、rllib、cleanrlからのコピー、scipyはいずれも使っていません。環境は1983年の論文の式から自作しました。
+      離散Riccati方程式もライブラリを呼ばず、漸化式を反復して解いています。この漸化式を理解することが目的だからです。
+      これはPPOのcriticが回帰で推定しているものとまったく同じ対象ですが、ここでは厳密に計算できます。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>cart-pole</b><span>A pole hinged on a cart. Push the cart left or right to keep the pole upright. The standard first control problem.</span></div>
-    <div class="gterm"><b>LQR</b><span>Linear-quadratic regulator — the optimal controller for a linearised system, solved with matrix algebra. No learning involved.</span></div>
-    <div class="gterm"><b>PPO</b><span>Proximal policy optimisation — a reinforcement-learning algorithm that limits how far each update is allowed to move the policy.</span></div>
-    <div class="gterm"><b>GAE</b><span>Generalised advantage estimation — how the algorithm estimates whether an action was better or worse than average.</span></div>
-    <div class="gterm"><b>episode / return</b><span>One run from reset until failure or the time limit. The return is the total reward collected in it.</span></div>
-    <div class="gterm"><b>terminated vs truncated</b><span>Terminated means the pole actually fell. Truncated means the clock ran out while it was still up. Treating them the same corrupts the value estimate.</span></div>
-    <div class="gterm"><b>seed</b><span>The random-number starting point. One seed proves nothing, so results here are reported across sixteen.</span></div>
-    <div class="gterm"><b>basin of attraction</b><span>The set of starting states a controller can still recover from. Wider is better.</span></div>
+    <div class="gterm"><b>cart-pole</b><span lang="en">A pole hinged on a cart. Push the cart left or right to keep the pole upright. The standard first control problem.</span><span lang="ja">台車にヒンジで取り付けたポール。台車を左右に押してポールを立て続けます。最初に扱う定番の制御問題です。</span></div>
+    <div class="gterm"><b>LQR</b><span lang="en">Linear-quadratic regulator — the optimal controller for a linearised system, solved with matrix algebra. No learning involved.</span><span lang="ja">Linear-quadratic regulator。線形化したシステムに対する最適制御器で、行列計算で解きます。学習は一切ありません。</span></div>
+    <div class="gterm"><b>PPO</b><span lang="en">Proximal policy optimisation — a reinforcement-learning algorithm that limits how far each update is allowed to move the policy.</span><span lang="ja">Proximal policy optimisation。1回の更新でpolicyが動ける幅を制限する強化学習アルゴリズムです。</span></div>
+    <div class="gterm"><b>GAE</b><span lang="en">Generalised advantage estimation — how the algorithm estimates whether an action was better or worse than average.</span><span lang="ja">Generalised advantage estimation。あるactionが平均より良かったか悪かったかを推定する方法です。</span></div>
+    <div class="gterm"><b>episode / return</b><span lang="en">One run from reset until failure or the time limit. The return is the total reward collected in it.</span><span lang="ja">リセットから失敗または制限時間までの1回の試行がepisodeです。returnはその間に得たrewardの合計です。</span></div>
+    <div class="gterm"><b>terminated vs truncated</b><span lang="en">Terminated means the pole actually fell. Truncated means the clock ran out while it was still up. Treating them the same corrupts the value estimate.</span><span lang="ja">terminatedはポールが実際に倒れたこと、truncatedはポールが立ったまま時間切れになったことを指します。両者を同じに扱うと価値推定が壊れます。</span></div>
+    <div class="gterm"><b>seed</b><span lang="en">The random-number starting point. One seed proves nothing, so results here are reported across sixteen.</span><span lang="ja">乱数の初期値。seed 1つでは何も証明できないため、ここでは16 seedで結果を報告しています。</span></div>
+    <div class="gterm"><b>basin of attraction</b><span lang="en">The set of starting states a controller can still recover from. Wider is better.</span><span lang="ja">制御器が復帰できる初期状態の集合。広いほど良いです。</span></div>
   </div>
 </div>
 </section>
 
 <section id="steps">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps</h2><p class="sec-sub">The six build steps, and what each had to produce before the next could start.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">The six steps</span><span lang="ja">6つのステップ</span></h2><p class="sec-sub" lang="en">The six build steps, and what each had to produce before the next could start.</p><p class="sec-sub" lang="ja">構築の6ステップと、次へ進む前に各ステップで出す必要があった成果。</p></div>
   <div class="stack">
     <div class="steps">
-      <div class="stepbox"><span class="sn">step 1</span><span class="st">The environment</span>
-        <span class="sd">Cart-pole written from the published equations, verified against an independent solve of the Lagrangian.</span>
-        <span class="sr">13/13 checks</span></div>
-      <div class="stepbox"><span class="sn">step 2</span><span class="st">LQR baseline</span>
-        <span class="sd">Linearise, iterate the Riccati recursion, project to two actions. Zero sample cost by construction.</span>
-        <span class="sr">7/7 checks · 500.0</span></div>
-      <div class="stepbox"><span class="sn">step 3</span><span class="st">PPO from scratch</span>
-        <span class="sd">GAE, advantage normalisation, the clipped surrogate, multi-epoch minibatching — each switchable.</span>
-        <span class="sr">358 lines · 11.4 s/run</span></div>
-      <div class="stepbox"><span class="sn">step 4</span><span class="st">Seed study</span>
-        <span class="sd">16 seeds, median and interquartile range, steps-to-threshold with censoring handled honestly.</span>
-        <span class="sr">16/16 · 62 144 steps</span></div>
-      <div class="stepbox"><span class="sn">step 5</span><span class="st">Ablations</span>
-        <span class="sd">One switch off at a time, 16 seeds each, permutation test for significance.</span>
-        <span class="sr">clipping dominates</span></div>
-      <div class="stepbox"><span class="sn">step 6</span><span class="st">Continuous actions</span>
-        <span class="sd">Gaussian policy on a MuJoCo plant proved identical to the numpy one. Does the ranking survive?</span>
-        <span class="sr">16 seeds + 3 ablations</span></div>
+      <div class="stepbox"><span class="sn">step 1</span><span class="st"><span lang="en">The environment</span><span lang="ja">環境</span></span>
+        <span class="sd" lang="en">Cart-pole written from the published equations, verified against an independent solve of the Lagrangian.</span><span class="sd" lang="ja">公開された式からcart-poleを実装し、Lagrangianを独立に解いた結果と照合して検証。</span>
+        <span class="sr"><span lang="en">13/13 checks</span><span lang="ja">検証13/13</span></span></div>
+      <div class="stepbox"><span class="sn">step 2</span><span class="st"><span lang="en">LQR baseline</span><span lang="ja">LQRによるbaseline</span></span>
+        <span class="sd" lang="en">Linearise, iterate the Riccati recursion, project to two actions. Zero sample cost by construction.</span><span class="sd" lang="ja">線形化し、Riccati漸化式を反復し、2つのactionに射影。構造上サンプルコストはゼロ。</span>
+        <span class="sr"><span lang="en">7/7 checks · 500.0</span><span lang="ja">検証7/7 · 500.0</span></span></div>
+      <div class="stepbox"><span class="sn">step 3</span><span class="st"><span lang="en">PPO from scratch</span><span lang="ja">PPOをゼロから実装</span></span>
+        <span class="sd" lang="en">GAE, advantage normalisation, the clipped surrogate, multi-epoch minibatching — each switchable.</span><span class="sd" lang="ja">GAE、advantage正規化、clipped surrogate、複数epochのミニバッチ更新。いずれも個別にON/OFF可能。</span>
+        <span class="sr"><span lang="en">358 lines · 11.4 s/run</span><span lang="ja">358行 · 11.4 s/回</span></span></div>
+      <div class="stepbox"><span class="sn">step 4</span><span class="st"><span lang="en">Seed study</span><span lang="ja">seed別の検証</span></span>
+        <span class="sd" lang="en">16 seeds, median and interquartile range, steps-to-threshold with censoring handled honestly.</span><span class="sd" lang="ja">16 seed、中央値と四分位範囲。閾値到達ステップ数は打ち切り（censoring）を正直に扱って集計。</span>
+        <span class="sr"><span lang="en">16/16 · 62 144 steps</span><span lang="ja">16/16 · 62 144ステップ</span></span></div>
+      <div class="stepbox"><span class="sn">step 5</span><span class="st"><span lang="en">Ablations</span><span lang="ja">Ablation実験</span></span>
+        <span class="sd" lang="en">One switch off at a time, 16 seeds each, permutation test for significance.</span><span class="sd" lang="ja">スイッチを1つずつOFFにし、それぞれ16 seed。有意性は並べ替え検定で判定。</span>
+        <span class="sr"><span lang="en">clipping dominates</span><span lang="ja">clipの影響が最大</span></span></div>
+      <div class="stepbox"><span class="sn">step 6</span><span class="st"><span lang="en">Continuous actions</span><span lang="ja">連続action</span></span>
+        <span class="sd" lang="en">Gaussian policy on a MuJoCo plant proved identical to the numpy one. Does the ranking survive?</span><span class="sd" lang="ja">numpy版と同一であることを証明したMuJoCoプラント上でGaussian policyを学習。順位は維持されるか。</span>
+        <span class="sr"><span lang="en">16 seeds + 3 ablations</span><span lang="ja">16 seed + ablation 3種</span></span></div>
     </div>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">各ソースファイルの規模と、それぞれが担う唯一の役割。</p></div>
   <div class="stack">
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>cartpole.py</td><td class="num">209</td>
-            <td>The plant and the environment, numpy only. The four physical parameters, the closed-form
+            <td><span lang="en">The plant and the environment, numpy only. The four physical parameters, the closed-form
               accelerations, the explicit-Euler step, energy and momentum functions used by the checks, and an
               environment class with separate <code>terminated</code> and <code>truncated</code> flags and its
-              own random generator.</td></tr>
+              own random generator.</span><span lang="ja">プラントと環境（numpyのみ）。4つの物理パラメータ、閉形式の加速度、陽的Euler法の1ステップ、
+              検証で使うエネルギー・運動量の関数、そして<code>terminated</code>と<code>truncated</code>を別フラグで持ち、
+              独自の乱数生成器を備えた環境クラス。</span></td></tr>
           <tr><td>verify_env.py</td><td class="num">456</td>
-            <td>Thirteen checks in about six seconds on one core. Independent Lagrangian solve, energy and
+            <td><span lang="en">Thirteen checks in about six seconds on one core. Independent Lagrangian solve, energy and
               momentum conservation under RK4, the closed-form divergence rate, every termination and truncation
               contract, determinism, RNG isolation, the published random-policy return, and a golden-trajectory
-              regression fixture.</td></tr>
+              regression fixture.</span><span lang="ja">1コアで約6秒、13項目の検証。Lagrangianの独立解、RK4でのエネルギー・運動量保存、閉形式の発散率、
+              terminationとtruncationの全仕様、決定性、RNGの分離、文献値どおりのランダムpolicyのreturn、
+              そしてgolden trajectoryによる回帰テスト。</span></td></tr>
           <tr class="hl"><td>lqr.py</td><td class="num">496</td>
-            <td>The baseline. Analytic linearisation, finite-difference Jacobian cross-checks, exact
+            <td><span lang="en">The baseline. Analytic linearisation, finite-difference Jacobian cross-checks, exact
               discretisation, the Riccati recursion, the gain, the sign projection to two actions, seven
-              verification checks, the basin bisection, and the Q-sensitivity sweep.</td></tr>
+              verification checks, the basin bisection, and the Q-sensitivity sweep.</span><span lang="ja">baseline本体。解析的な線形化、有限差分Jacobianとの照合、厳密な離散化、Riccati漸化式、ゲイン、
+              2つのactionへの符号射影、7項目の検証、basinの二分探索、Q感度スイープ。</span></td></tr>
           <tr><td>lqr_baseline.json</td><td class="num">—</td>
-            <td>The baseline's numbers, written out so later steps compare against a file rather than a memory.</td></tr>
+            <td><span lang="en">The baseline's numbers, written out so later steps compare against a file rather than a memory.</span><span lang="ja">baselineの数値。後のステップが記憶ではなくファイルと比較できるよう書き出したもの。</span></td></tr>
           <tr class="hl"><td>ppo.py</td><td class="num">360</td>
-            <td>PPO itself. Separate 64-64 tanh actor and critic, orthogonal initialisation, GAE, the clipped
+            <td><span lang="en">PPO itself. Separate 64-64 tanh actor and critic, orthogonal initialisation, GAE, the clipped
               surrogate, multi-epoch minibatch updates, the truncation bootstrap, and command-line switches that
-              turn each of the four PPO ingredients off individually.</td></tr>
+              turn each of the four PPO ingredients off individually.</span><span lang="ja">PPO本体。独立した64-64 tanhのactorとcritic、直交初期化、GAE、clipped surrogate、複数epochのミニバッチ更新、
+              truncation時のbootstrap、そしてPPOの4要素をそれぞれ個別にOFFにできるコマンドラインスイッチ。</span></td></tr>
           <tr><td>ppo_continuous.py</td><td class="num">305</td>
-            <td>The Gaussian-policy version. Imports <code>compute_gae</code> and <code>layer_init</code> from
+            <td><span lang="en">The Gaussian-policy version. Imports <code>compute_gae</code> and <code>layer_init</code> from
               <code>ppo.py</code> rather than copying them, so the two implementations cannot drift apart. Only
-              the head changes.</td></tr>
+              the head changes.</span><span lang="ja">Gaussian policy版。<code>compute_gae</code>と<code>layer_init</code>はコピーせず<code>ppo.py</code>からimportしているため、
+              2つの実装がずれることはありません。変わるのは出力層（head）だけです。</span></td></tr>
           <tr><td>mj_cartpole.py</td><td class="num">291</td>
-            <td>The MuJoCo environment for step 6, plus six verification checks — including the one that proves
-              the two simulators describe the same rigid body to 1.4e−14.</td></tr>
+            <td><span lang="en">The MuJoCo environment for step 6, plus six verification checks — including the one that proves
+              the two simulators describe the same rigid body to 1.4e−14.</span><span lang="ja">step 6用のMuJoCo環境と6項目の検証。2つのシミュレータが同じ剛体を1.4e−14の精度で記述していることを証明する検証も含みます。</span></td></tr>
           <tr><td>study.py</td><td class="num">277</td>
-            <td>The experiment driver. Seed lists (0–15 for reporting, 100–103 for hyperparameter search, kept
-              disjoint), parallel launching, censoring, and a permutation test written without scipy.</td></tr>
+            <td><span lang="en">The experiment driver. Seed lists (0–15 for reporting, 100–103 for hyperparameter search, kept
+              disjoint), parallel launching, censoring, and a permutation test written without scipy.</span><span lang="ja">実験ドライバ。seedリスト（報告用は0–15、ハイパーパラメータ探索用は100–103で重複なし）、並列起動、censoring処理、
+              scipyを使わずに書いた並べ替え検定。</span></td></tr>
           <tr><td>compare.py</td><td class="num">148</td>
-            <td>LQR against all sixteen trained checkpoints on the axis that can actually separate them: the
-              basin of attraction, by bisection, plus a widened-initial-condition sweep.</td></tr>
+            <td><span lang="en">LQR against all sixteen trained checkpoints on the axis that can actually separate them: the
+              basin of attraction, by bisection, plus a widened-initial-condition sweep.</span><span lang="ja">LQRと学習済みcheckpoint 16個すべてを、実際に差が出る軸で比較します。二分探索によるbasin of attractionと、
+              初期条件を広げたスイープです。</span></td></tr>
           <tr><td>visualize.py</td><td class="num">172</td>
-            <td>Watch it. MuJoCo is used as a <em>renderer only</em> — <code>mj_forward</code> for kinematics,
+            <td><span lang="en">Watch it. MuJoCo is used as a <em>renderer only</em> — <code>mj_forward</code> for kinematics,
               never <code>mj_step</code> — and the numpy plant supplies the state. Letting MuJoCo integrate would
-              silently be a different plant.</td></tr>
+              silently be a different plant.</span><span lang="ja">動作の可視化。MuJoCoは<em>描画専用</em>で、運動学には<code>mj_forward</code>を使い、<code>mj_step</code>は一切使いません。
+              状態はnumpyのプラントが供給します。MuJoCoに積分させると、気付かないうちに別のプラントになってしまうからです。</span></td></tr>
           <tr><td>boxcheck.py</td><td class="num">49</td>
-            <td>Refuses to start training above a 1-minute load average of 4.0, and prints the offending process.
-              Called by every entry point that trains, not just the study driver — for a reason recorded below.</td></tr>
+            <td><span lang="en">Refuses to start training above a 1-minute load average of 4.0, and prints the offending process.
+              Called by every entry point that trains, not just the study driver — for a reason recorded below.</span><span lang="ja">1分間のload averageが4.0を超えていれば学習の開始を拒否し、原因のプロセスを表示します。
+              study driverだけでなく学習を行うすべてのエントリポイントから呼ばれます。理由は後述します。</span></td></tr>
           <tr><td>cartpole.xml · cartpole_mj.xml</td><td class="num">42 · 60</td>
-            <td>Two MJCF models. The first is for visualisation only. The second sets inertias by hand
-              (<code>inertiafromgeom="false"</code>) so its rigid body is provably identical to the numpy one.</td></tr>
+            <td><span lang="en">Two MJCF models. The first is for visualisation only. The second sets inertias by hand
+              (<code>inertiafromgeom="false"</code>) so its rigid body is provably identical to the numpy one.</span><span lang="ja">2つのMJCFモデル。1つ目は可視化専用です。2つ目は慣性を手で設定（<code>inertiafromgeom="false"</code>）しており、
+              その剛体がnumpy版と同一であることを証明できます。</span></td></tr>
           <tr><td>golden_traj.npz</td><td class="num">—</td>
-            <td>201 frozen states. A regression fixture, not a correctness proof — it stops a refactor during
-              steps 3–5 from moving the environment silently.</td></tr>
+            <td><span lang="en">201 frozen states. A regression fixture, not a correctness proof — it stops a refactor during
+              steps 3–5 from moving the environment silently.</span><span lang="ja">固定した201個の状態。正しさの証明ではなく回帰テスト用で、step 3–5のリファクタリング中に環境が気付かないうちに変わるのを防ぎます。</span></td></tr>
           <tr><td>runs/ · runs_c/</td><td class="num">—</td>
-            <td>Checkpoints and per-run JSON for the discrete and continuous studies.</td></tr>
+            <td><span lang="en">Checkpoints and per-run JSON for the discrete and continuous studies.</span><span lang="ja">離散版・連続版studyのcheckpointと、各runのJSON。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -405,439 +236,549 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 </section>
 
 <section id="env">
-  <div class="sec-head"><span class="sec-num">04</span><h2>Step 1 — the environment, and why it is hand-written</h2><p class="sec-sub">Why the environment is hand-written rather than imported, and how it is checked against a saved trajectory.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">Step 1 — the environment, and why it is hand-written</span><span lang="ja">Step 1 — 環境と、自作する理由</span></h2><p class="sec-sub" lang="en">Why the environment is hand-written rather than imported, and how it is checked against a saved trajectory.</p><p class="sec-sub" lang="ja">環境をimportせず自作した理由と、保存済みtrajectoryとの照合方法。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>The reason</h3>
-      <p>PPO will fail to learn several times before step 5 is finished. Every time it does, the first question
+      <h3><span lang="en">The reason</span><span lang="ja">理由</span></h3>
+      <p lang="en">PPO will fail to learn several times before step 5 is finished. Every time it does, the first question
         is <em>algorithm or environment</em>. That question is only cheap to answer if the environment was
         verified before any reinforcement learning existed. This one was.</p>
+      <p lang="ja">step 5が終わるまでに、PPOは何度も学習に失敗します。そのたびに最初に問うのは<em>アルゴリズムか、環境か</em>です。
+        この問いに安く答えられるのは、強化学習を書く前に環境が検証済みだった場合だけです。この環境はそうしてあります。</p>
     </div>
 
     <div class="stack prose">
-      <h3>The dynamics</h3>
-      <p>Barto, Sutton &amp; Anderson (1983), appendix. θ is measured from upright; positive θ leans the pole
+      <h3><span lang="en">The dynamics</span><span lang="ja">ダイナミクス</span></h3>
+      <p lang="en">Barto, Sutton &amp; Anderson (1983), appendix. θ is measured from upright; positive θ leans the pole
         toward +x.</p>
+      <p lang="ja">Barto, Sutton &amp; Anderson（1983）の付録に基づきます。θは鉛直上向きから測り、正のθでポールは+x方向に傾きます。</p>
       <pre><code>temp      = (F + m·l·θ̇²·sin θ) / (M + m)
 θ̈         = (g·sin θ − cos θ · temp) / (l·(4/3 − m·cos²θ/(M+m)))
 ẍ         = temp − m·l·θ̈·cos θ / (M + m)</code></pre>
-      <p>Two conventions hide inside those three lines and both are classic bug sources. <code>l = 0.5</code> is
+      <p lang="en">Two conventions hide inside those three lines and both are classic bug sources. <code>l = 0.5</code> is
         the <strong>half</strong>-length, not the full pole length. And the <code>4/3</code> is
         <code>1 + I_cm/(m·l²)</code> for a uniform rod, whose moment of inertia about its own centre is
         <code>m(2l)²/12 = m·l²/3</code>. Getting the half-length convention wrong is the most common bug in a
         hand-written cart-pole, so one check exists purely to catch it.</p>
+      <p lang="ja">この3行には2つの規約が隠れており、どちらも典型的なバグの原因です。<code>l = 0.5</code>はポール全長ではなく<strong>半分</strong>の長さです。
+        また<code>4/3</code>は一様な棒に対する<code>1 + I_cm/(m·l²)</code>で、棒自身の重心まわりの慣性モーメントは
+        <code>m(2l)²/12 = m·l²/3</code>です。半長の規約を間違えるのは自作cart-poleで最も多いバグなので、これを検出するためだけの検証を1つ用意しています。</p>
     </div>
 
     <div class="stack">
-      <h3>Thirteen checks</h3>
+      <h3><span lang="en">Thirteen checks</span><span lang="ja">13項目の検証</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th class="num">#</th><th>Check</th><th class="num">Result</th></tr></thead>
+          <thead><tr><th class="num">#</th><th><span lang="en">Check</span><span lang="ja">検証内容</span></th><th class="num"><span lang="en">Result</span><span lang="ja">結果</span></th></tr></thead>
           <tbody>
-            <tr class="hl"><td class="num">1</td><td>Scalar formulas against an independent solve of the Lagrangian mass matrix, 10 000 random states, |θ| up to π</td><td class="num">max rel diff <strong>2.6e−15</strong></td></tr>
-            <tr><td class="num">2a</td><td>Energy conserved under RK4, F = 0, 2 s at dt = 1e−4</td><td class="num">2.4e−14</td></tr>
-            <tr><td class="num">2b</td><td>Horizontal momentum conserved, same run</td><td class="num">5.4e−15</td></tr>
-            <tr class="hl"><td class="num">3</td><td>Pinned cart, divergence rate against the closed form √(3g/4l)</td><td class="num">3.834058 vs 3.834058, rel err <strong>3.4e−11</strong></td></tr>
-            <tr><td class="num">4a–d</td><td>Truncation fires exactly at the cap with <code>terminated</code> false; stepping a finished episode raises; reward is 1.0 on every step including the terminal one; the bounds are |x|&gt;2.4 and |θ|&gt;12°</td><td class="num">exact</td></tr>
-            <tr><td class="num">4e</td><td>Action sign: bang-bang on <code>θ + 0.5·θ̇</code> balances</td><td class="num">500.0 / 500</td></tr>
-            <tr><td class="num">5a–b</td><td>Same seed gives a bitwise identical trajectory; the environment ignores the global numpy RNG</td><td class="num">exact</td></tr>
-            <tr><td class="num">6</td><td>Random-policy mean return against the published ≈22, over 10 000 episodes</td><td class="num">22.09 ± 0.12</td></tr>
-            <tr><td class="num">7</td><td>Golden-trajectory regression, 201 states</td><td class="num">bitwise identical</td></tr>
+            <tr class="hl"><td class="num">1</td><td><span lang="en">Scalar formulas against an independent solve of the Lagrangian mass matrix, 10 000 random states, |θ| up to π</span><span lang="ja">スカラー式をLagrangian質量行列の独立解と照合。ランダムな10 000状態、|θ|は最大π</span></td><td class="num"><span lang="en">max rel diff</span><span lang="ja">最大相対差</span> <strong>2.6e−15</strong></td></tr>
+            <tr><td class="num">2a</td><td><span lang="en">Energy conserved under RK4, F = 0, 2 s at dt = 1e−4</span><span lang="ja">RK4でのエネルギー保存。F = 0、dt = 1e−4で2 s</span></td><td class="num">2.4e−14</td></tr>
+            <tr><td class="num">2b</td><td><span lang="en">Horizontal momentum conserved, same run</span><span lang="ja">水平方向の運動量保存（同じ実行）</span></td><td class="num">5.4e−15</td></tr>
+            <tr class="hl"><td class="num">3</td><td><span lang="en">Pinned cart, divergence rate against the closed form √(3g/4l)</span><span lang="ja">台車固定時の発散率を閉形式√(3g/4l)と照合</span></td><td class="num">3.834058 vs 3.834058, <span lang="en">rel err</span><span lang="ja">相対誤差</span> <strong>3.4e−11</strong></td></tr>
+            <tr><td class="num">4a–d</td><td><span lang="en">Truncation fires exactly at the cap with <code>terminated</code> false; stepping a finished episode raises; reward is 1.0 on every step including the terminal one; the bounds are |x|&gt;2.4 and |θ|&gt;12°</span><span lang="ja">truncationは上限ちょうどで<code>terminated</code>がfalseのまま発生。終了済みepisodeをstepすると例外。rewardは終端を含む全ステップで1.0。境界は|x|&gt;2.4と|θ|&gt;12°</span></td><td class="num"><span lang="en">exact</span><span lang="ja">完全一致</span></td></tr>
+            <tr><td class="num">4e</td><td><span lang="en">Action sign: bang-bang on <code>θ + 0.5·θ̇</code> balances</span><span lang="ja">actionの符号確認：<code>θ + 0.5·θ̇</code>によるbang-bangで倒立を維持</span></td><td class="num">500.0 / 500</td></tr>
+            <tr><td class="num">5a–b</td><td><span lang="en">Same seed gives a bitwise identical trajectory; the environment ignores the global numpy RNG</span><span lang="ja">同じseedでビット単位まで同一のtrajectory。環境はnumpyのグローバルRNGの影響を受けない</span></td><td class="num"><span lang="en">exact</span><span lang="ja">完全一致</span></td></tr>
+            <tr><td class="num">6</td><td><span lang="en">Random-policy mean return against the published ≈22, over 10 000 episodes</span><span lang="ja">ランダムpolicyの平均returnを文献値≈22と比較（10 000 episode）</span></td><td class="num">22.09 ± 0.12</td></tr>
+            <tr><td class="num">7</td><td><span lang="en">Golden-trajectory regression, 201 states</span><span lang="ja">golden trajectoryによる回帰テスト（201状態）</span></td><td class="num"><span lang="en">bitwise identical</span><span lang="ja">ビット単位で一致</span></td></tr>
           </tbody>
         </table>
       </div>
       <div class="prose stack">
-        <p>Check 1 is the strong one. The mass matrix is assembled from the Lagrangian and inverted with
+        <p lang="en">Check 1 is the strong one. The mass matrix is assembled from the Lagrangian and inverted with
           <code>np.linalg.solve</code> — it shares no algebra with the hand-eliminated formulas the environment
           uses, so agreement to 2.6e−15 rules out sign errors and bad elimination. Check 3 reaches outside the
           code entirely: √(3g/4l) = 3.834058 s⁻¹ is a number you can derive on paper, and the simulator
           reproduces it to eleven digits.</p>
+        <p lang="ja">最も強い検証は1です。質量行列をLagrangianから組み立てて<code>np.linalg.solve</code>で解くため、環境が使う手計算で消去した式とは
+          代数を一切共有しません。したがって2.6e−15での一致は、符号ミスや消去の誤りがないことを示します。検証3はコードの外側に根拠を持ちます。
+          √(3g/4l) = 3.834058 s⁻¹は紙の上で導出できる値で、シミュレータはこれを11桁まで再現します。</p>
         <div class="note warnbox">
-          <span class="note-label">What none of this proves</span>
-          <p>gymnasium is not installed, so there is no bit-diff against the reference implementation. Checks 1–3
+          <span class="note-label"><span lang="en">What none of this proves</span><span lang="ja">これらが証明しないこと</span></span>
+          <p lang="en">gymnasium is not installed, so there is no bit-diff against the reference implementation. Checks 1–3
             prove the equations are the published ones and internally consistent; check 6 is the only externally
             published number reproduced. Check 7 is a regression fixture, not a correctness proof.</p>
+          <p lang="ja">gymnasiumはインストールしていないため、参照実装とのビット単位の比較はしていません。検証1–3は式が文献どおりで内部的に整合していることを証明し、
+            外部で公表された数値を再現したのは検証6だけです。検証7は回帰テストであり、正しさの証明ではありません。</p>
         </div>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>Three decisions worth arguing with</h3>
+      <h3><span lang="en">Three decisions worth arguing with</span><span lang="ja">議論の余地がある3つの判断</span></h3>
       <div class="pair">
-        <dt>explicit Euler</dt>
-        <dd>Position is advanced with the <em>old</em> velocity. Semi-implicit Euler is the better integrator and
+        <dt><span lang="en">explicit Euler</span><span lang="ja">陽的Euler法</span></dt>
+        <dd lang="en">Position is advanced with the <em>old</em> velocity. Semi-implicit Euler is the better integrator and
           is deliberately not used, because the deliverable is a number ("475/500") that is only comparable to
           published results if the plant is the same plant. The cost is measured rather than hidden: after 25
           controlled steps the two integrators differ by 7.8e−3 rad, which is 3.7 % of the failure angle.</dd>
-        <dt>no combined <code>done</code></dt>
-        <dd><code>terminated</code> and <code>truncated</code> are kept separate and the environment refuses to
+        <dd lang="ja">位置は<em>更新前</em>の速度で進めます。半陰的Euler法の方が優れた積分器ですが、あえて使っていません。
+          成果物は「475/500」という数値であり、プラントが同一でなければ公表結果と比較できないからです。
+          そのコストは隠さず計測しました。制御下で25ステップ後、2つの積分器の差は7.8e−3 radで、失敗角度の3.7 %です。</dd>
+        <dt><span lang="en">no combined <code>done</code></span><span lang="ja"><code>done</code>を統合しない</span></dt>
+        <dd lang="en"><code>terminated</code> and <code>truncated</code> are kept separate and the environment refuses to
           expose a merged flag. Collapsing them makes the value target at the 500-step cap treat a perfectly
           healthy upright state as worth zero future return — a real bug worth roughly 100 points of final
           performance.</dd>
-        <dt>no vectorised environment</dt>
-        <dd>The plan assumed the Python-loop environment would be the bottleneck. Measured: 374 000 steps/s, so a
+        <dd lang="ja"><code>terminated</code>と<code>truncated</code>は分けたまま保持し、環境は統合したフラグを公開しません。
+          両者を1つにすると、500ステップの上限で正常に立っている状態の価値目標が将来return 0として扱われます。
+          最終性能で約100点に相当する、実際に起こるバグです。</dd>
+        <dt><span lang="en">no vectorised environment</span><span lang="ja">ベクトル化環境なし</span></dt>
+        <dd lang="en">The plan assumed the Python-loop environment would be the bottleneck. Measured: 374 000 steps/s, so a
           200 k-step run spends 0.5 s total inside the environment — about 1 % of the budget. It was never written,
           and step 3 confirmed it was never needed.</dd>
+        <dd lang="ja">当初の計画では、Pythonループの環境がボトルネックになると想定していました。計測すると374 000 steps/sで、
+          200 kステップの実行でも環境内で費やすのは合計0.5 s、全体の約1 %です。そのため実装せず、step 3で不要だったことも確認しました。</dd>
       </div>
       <div class="note">
-        <span class="note-label">A comparison that was deliberately not reported</span>
-        <p>A full-episode Euler-vs-RK4 comparison is absent, and check 3 is the reason: at λ = 3.834 s⁻¹, any
+        <span class="note-label"><span lang="en">A comparison that was deliberately not reported</span><span lang="ja">あえて報告しなかった比較</span></span>
+        <p lang="en">A full-episode Euler-vs-RK4 comparison is absent, and check 3 is the reason: at λ = 3.834 s⁻¹, any
           difference between two integrators is amplified by e³⁸ ≈ 3e16 over a ten-second episode. That number
           would be about Lyapunov exponents, not about integrators. An early draft reported it anyway and got
           <code>max |Δθ| = 12.9 rad</code>, which is how the mistake was caught.</p>
+        <p lang="ja">episode全体でのEuler対RK4の比較は載せていません。理由は検証3にあります。λ = 3.834 s⁻¹では、2つの積分器のわずかな差も
+          10秒のepisodeでe³⁸ ≈ 3e16倍に増幅されます。その数値が示すのは積分器の差ではなくLyapunov指数です。
+          初期の草稿ではそれでも報告してしまい、<code>max |Δθ| = 12.9 rad</code>という値が出たことで誤りに気付きました。</p>
       </div>
-      <p>Complete list of deviations from the standard CartPole-v1: observations are float64 not float32;
+      <p lang="en">Complete list of deviations from the standard CartPole-v1: observations are float64 not float32;
         stepping a finished episode raises rather than warning; the two done flags are never merged. Everything
         else — constants, equations, integrator and its ordering, initial distribution, thresholds, reward,
         500-step cap — matches.</p>
+      <p lang="ja">標準のCartPole-v1との相違点は次がすべてです。observationがfloat32ではなくfloat64であること、終了済みepisodeのstepは警告ではなく例外になること、
+        2つのdoneフラグを統合しないこと。それ以外（定数、式、積分器とその順序、初期分布、閾値、reward、500ステップの上限）はすべて一致しています。</p>
     </div>
   </div>
 </section>
 
 <section id="lqr">
-  <div class="sec-head"><span class="sec-num">05</span><h2>Step 2 — the baseline that costs nothing</h2><p class="sec-sub">LQR from first principles: linearisation, discretisation, the Riccati recursion, and what it costs to run.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Step 2 — the baseline that costs nothing</span><span lang="ja">Step 2 — コストゼロのbaseline</span></h2><p class="sec-sub" lang="en">LQR from first principles: linearisation, discretisation, the Riccati recursion, and what it costs to run.</p><p class="sec-sub" lang="ja">第一原理からのLQR。線形化、離散化、Riccati漸化式、そして実行コスト。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>What LQR is</h3>
-      <p>Linear-Quadratic Regulator. If a system is linear and the cost you want to minimise is quadratic, the
+      <h3><span lang="en">What LQR is</span><span lang="ja">LQRとは</span></h3>
+      <p lang="en">Linear-Quadratic Regulator. If a system is linear and the cost you want to minimise is quadratic, the
         optimal controller is a matrix multiplication: <code>u = −Kx</code>. The gain <code>K</code> is
         computed from the model, not learned from data. Cart-pole is not linear, but near upright it is close
         enough — so linearise, solve, and use the result.</p>
+      <p lang="ja">Linear-Quadratic Regulatorの略です。システムが線形で、最小化したいコストが二次形式なら、最適制御器は行列の掛け算<code>u = −Kx</code>になります。
+        ゲイン<code>K</code>はデータから学習するのではなく、モデルから計算します。cart-poleは線形ではありませんが、倒立点付近では十分に線形に近いため、
+        線形化して解き、その結果を使います。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Linearising</h3>
-      <p>Dropping second-order terms about the origin, with <code>D = l(4/3 − m/M)</code>:</p>
+      <h3><span lang="en">Linearising</span><span lang="ja">線形化</span></h3>
+      <p lang="en">Dropping second-order terms about the origin, with <code>D = l(4/3 − m/M)</code>:</p>
+      <p lang="ja">原点まわりで2次以上の項を落とし、<code>D = l(4/3 − m/M)</code>とすると次のようになります。</p>
       <pre><code>θ̈ = (g/D)·θ − (1/(M·D))·F
 ẍ = F/M − (m·l/M)·θ̈</code></pre>
-      <p><code>Ac[3,2] = g/D = 15.7756 s⁻²</code>, and √15.7756 = 3.9719 s⁻¹ is the growth rate of the
+      <p lang="en"><code>Ac[3,2] = g/D = 15.7756 s⁻²</code>, and √15.7756 = 3.9719 s⁻¹ is the growth rate of the
         <em>free</em> cart-pole — slightly faster than the pinned-cart 3.834058 s⁻¹ measured in step 1, because
         a free cart lets the base slide out from under the pole. Two related numbers, both derivable, both
         matching.</p>
+      <p lang="ja"><code>Ac[3,2] = g/D = 15.7756 s⁻²</code>であり、√15.7756 = 3.9719 s⁻¹が<em>台車が自由な</em>cart-poleの発散率です。
+        step 1で計測した台車固定時の3.834058 s⁻¹よりわずかに速いのは、台車が自由だとポールの根元が下から滑り出てしまうためです。
+        関連する2つの数値が、どちらも導出可能で、どちらも一致しています。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Discretisation is exact here — and that is the payoff for step 1's integrator choice</h3>
-      <p>Every acceleration in <code>euler_step()</code> is evaluated at the <em>old</em> state, so the plant
+      <h3><span lang="en">Discretisation is exact here — and that is the payoff for step 1's integrator choice</span><span lang="ja">ここでは離散化が厳密 — step 1の積分器選択が効いてくる</span></h3>
+      <p lang="en">Every acceleration in <code>euler_step()</code> is evaluated at the <em>old</em> state, so the plant
         genuinely is <code>s' = s + τ·f(s,u)</code> and therefore</p>
+      <p lang="ja"><code>euler_step()</code>内の加速度はすべて<em>更新前</em>の状態で評価されるため、プラントはまさに<code>s' = s + τ·f(s,u)</code>であり、したがって</p>
       <pre><code>Ad = I + τ·Ac        Bd = τ·Bc</code></pre>
-      <p>with no approximation at all. A semi-implicit or exact zero-order-hold plant would need a matrix
+      <p lang="en">with no approximation at all. A semi-implicit or exact zero-order-hold plant would need a matrix
         exponential here. It was verified against a finite-difference Jacobian of the actual step function
         anyway: max absolute difference <strong>7.57e−14</strong>.</p>
+      <p lang="ja">となり、近似は一切ありません。半陰的、あるいは厳密なゼロ次ホールドのプラントであれば、ここで行列指数関数が必要になります。
+        念のため実際のstep関数の有限差分Jacobianとも照合しました。最大絶対差は<strong>7.57e−14</strong>です。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Riccati by iteration, not by library call</h3>
+      <h3><span lang="en">Riccati by iteration, not by library call</span><span lang="ja">Riccatiはライブラリではなく反復で解く</span></h3>
       <pre><code>P_{k+1} = Q + Adᵀ P_k Ad − Adᵀ P_k Bd (R + Bdᵀ P_k Bd)⁻¹ Bdᵀ P_k Ad,   P₀ = Q
 K       = (R + Bdᵀ P Bd)⁻¹ Bdᵀ P Ad,      u = −Kx</code></pre>
-      <p><code>P_k</code> is the cost-to-go matrix with <code>k</code> steps of horizon remaining, so this is
+      <p lang="en"><code>P_k</code> is the cost-to-go matrix with <code>k</code> steps of horizon remaining, so this is
         literally value iteration for a quadratic value function. <strong>It is the same object PPO's critic
         estimates by regression</strong> — the difference is that here it can be computed exactly, which is the
         whole reason to write the recursion out longhand.</p>
-      <p>Converged in <strong>866 sweeps</strong> / 22 ms. The theory says the convergence rate is
+      <p lang="ja"><code>P_k</code>は残りホライズンが<code>k</code>ステップのときのcost-to-go行列なので、これは文字どおり二次形式の価値関数に対するvalue iterationです。
+        <strong>PPOのcriticが回帰で推定しているものと同じ対象です</strong>。違いは、ここでは厳密に計算できることであり、漸化式を手で書き下す理由はまさにそこにあります。</p>
+      <p lang="en">Converged in <strong>866 sweeps</strong> / 22 ms. The theory says the convergence rate is
         <code>ρ(Ad−BdK)² = 0.96810</code> per sweep, predicting about 923 sweeps to reach 1e−13 relative.
         Measured 866. That agreement is the check that the recursion is the textbook one and not something that
         merely happens to converge.</p>
+      <p lang="ja"><strong>866回の反復</strong>・22 msで収束しました。理論上の収束率は1反復あたり<code>ρ(Ad−BdK)² = 0.96810</code>で、
+        相対誤差1e−13に達するまで約923回と予測されます。実測は866回です。この一致が、漸化式が教科書どおりのものであり、
+        たまたま収束しただけの別物ではないことの確認になります。</p>
       <pre><code>K = [−0.910126, −2.132488, −30.594563, −7.841506]
 ρ(Ad − Bd·K) = 0.983919</code></pre>
     </div>
 
     <div class="stack">
-      <h3>Seven checks</h3>
+      <h3><span lang="en">Seven checks</span><span lang="ja">7項目の検証</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th class="num">#</th><th>Check</th><th class="num">Result</th></tr></thead>
+          <thead><tr><th class="num">#</th><th><span lang="en">Check</span><span lang="ja">検証内容</span></th><th class="num"><span lang="en">Result</span><span lang="ja">結果</span></th></tr></thead>
           <tbody>
-            <tr><td class="num">L1</td><td>Analytic Ac, Bc against a central-difference Jacobian of the derivative</td><td class="num">3.78e−12</td></tr>
-            <tr><td class="num">L2</td><td>Ad = I + τ·Ac against a finite-difference Jacobian of the actual step</td><td class="num">7.57e−14</td></tr>
-            <tr><td class="num">L3</td><td>Converged P satisfies the discrete algebraic Riccati equation</td><td class="num">residual 6.63e−10</td></tr>
-            <tr><td class="num">L4</td><td>Closed-loop spectral radius below 1</td><td class="num">0.983919</td></tr>
-            <tr class="hl"><td class="num">L5</td><td>xᵀPx against the simulated linear closed-loop cost-to-go</td><td class="num">max rel <strong>5.46e−12</strong></td></tr>
-            <tr><td class="num">L6</td><td>Scaling both Q and R by c leaves the gain unchanged, c ∈ [1e−3, 1e3]</td><td class="num">5.81e−16</td></tr>
-            <tr><td class="num">L7</td><td>Mean return ≥ 475 over 100 consecutive episodes</td><td class="num">500.0 (min 500, max 500)</td></tr>
+            <tr><td class="num">L1</td><td><span lang="en">Analytic Ac, Bc against a central-difference Jacobian of the derivative</span><span lang="ja">解析的なAc, Bcを微分の中心差分Jacobianと照合</span></td><td class="num">3.78e−12</td></tr>
+            <tr><td class="num">L2</td><td><span lang="en">Ad = I + τ·Ac against a finite-difference Jacobian of the actual step</span><span lang="ja">Ad = I + τ·Acを実際のstepの有限差分Jacobianと照合</span></td><td class="num">7.57e−14</td></tr>
+            <tr><td class="num">L3</td><td><span lang="en">Converged P satisfies the discrete algebraic Riccati equation</span><span lang="ja">収束したPが離散代数Riccati方程式を満たす</span></td><td class="num"><span lang="en">residual</span><span lang="ja">残差</span> 6.63e−10</td></tr>
+            <tr><td class="num">L4</td><td><span lang="en">Closed-loop spectral radius below 1</span><span lang="ja">閉ループのスペクトル半径が1未満</span></td><td class="num">0.983919</td></tr>
+            <tr class="hl"><td class="num">L5</td><td><span lang="en">xᵀPx against the simulated linear closed-loop cost-to-go</span><span lang="ja">xᵀPxを線形閉ループのシミュレーションによるcost-to-goと照合</span></td><td class="num"><span lang="en">max rel</span><span lang="ja">最大相対差</span> <strong>5.46e−12</strong></td></tr>
+            <tr><td class="num">L6</td><td><span lang="en">Scaling both Q and R by c leaves the gain unchanged, c ∈ [1e−3, 1e3]</span><span lang="ja">QとRを両方c倍してもゲインは不変（c ∈ [1e−3, 1e3]）</span></td><td class="num">5.81e−16</td></tr>
+            <tr><td class="num">L7</td><td><span lang="en">Mean return ≥ 475 over 100 consecutive episodes</span><span lang="ja">連続100 episodeの平均return ≥ 475</span></td><td class="num">500.0 (min 500, max 500)</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">L5 is the one that matters most: it checks <code>P</code> against something
+      <p class="prose" lang="en">L5 is the one that matters most: it checks <code>P</code> against something
         <code>P</code> was not used to compute. Roll the <em>linear</em> closed loop forward, accumulate
         <code>xᵀQx + uᵀRu</code>, and compare the total to <code>x₀ᵀPx₀</code>. Agreement to 5e−12 means the
         converged matrix really is the cost-to-go and not just a fixed point of some recursion that was typed in.</p>
+      <p class="prose" lang="ja">最も重要なのはL5です。<code>P</code>の計算に使っていないものと<code>P</code>を照合するからです。
+        <em>線形</em>閉ループを前に進めて<code>xᵀQx + uᵀRu</code>を累積し、その合計を<code>x₀ᵀPx₀</code>と比べます。
+        5e−12での一致は、収束した行列が本当にcost-to-goであり、入力した何らかの漸化式の不動点にすぎないわけではないことを意味します。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Bridging a continuous controller to two discrete actions</h3>
-      <p>The environment offers ±10 N. LQR returns a real number. The bridge is a design decision, not a detail:</p>
+      <h3><span lang="en">Bridging a continuous controller to two discrete actions</span><span lang="ja">連続値の制御器を2つの離散actionにつなぐ</span></h3>
+      <p lang="en">The environment offers ±10 N. LQR returns a real number. The bridge is a design decision, not a detail:</p>
+      <p lang="ja">環境が受け付けるのは±10 Nで、LQRが返すのは実数です。この橋渡しは細部ではなく設計判断です。</p>
       <pre><code>action = 1 if −Kx &gt; 0 else 0</code></pre>
-      <p>Bang-bang control with an LQR-derived switching surface. Only the <em>sign</em> of <code>−Kx</code>
+      <p lang="en">Bang-bang control with an LQR-derived switching surface. Only the <em>sign</em> of <code>−Kx</code>
         reaches the plant, so the policy is invariant to any positive rescaling of <code>K</code>, and therefore
         to scaling the whole cost — which is exactly what check L6 confirms.</p>
+      <p lang="ja">LQRから導いた切替面を持つbang-bang制御です。プラントに届くのは<code>−Kx</code>の<em>符号</em>だけなので、policyは<code>K</code>の正のスケーリングに対して不変であり、
+        したがってコスト全体のスケーリングにも不変です。検証L6が確認しているのはまさにこの点です。</p>
     </div>
 
     <div class="stack">
-      <h3>The number PPO has to justify itself against</h3>
+      <h3><span lang="en">The number PPO has to justify itself against</span><span lang="ja">PPOが自らの価値を示すべき基準値</span></h3>
       <div class="vs">
         <div>
-          <span class="tag">Baseline performance</span>
+          <span class="tag"><span lang="en">Baseline performance</span><span lang="ja">Baselineの性能</span></span>
           <span class="big">500.00</span>
-          <p>Mean return over 1000 episodes. Zero failures. Metric fully saturated.</p>
+          <p lang="en">Mean return over 1000 episodes. Zero failures. Metric fully saturated.</p>
+          <p lang="ja">1000 episodeの平均return。失敗ゼロ。指標は完全に飽和しています。</p>
         </div>
         <div>
-          <span class="tag">Baseline sample cost</span>
-          <span class="big">0 steps</span>
-          <p>The design consumed no environment interaction at all. Steps-to-threshold is 0 by construction.</p>
+          <span class="tag"><span lang="en">Baseline sample cost</span><span lang="ja">Baselineのサンプルコスト</span></span>
+          <span class="big"><span lang="en">0 steps</span><span lang="ja">0ステップ</span></span>
+          <p lang="en">The design consumed no environment interaction at all. Steps-to-threshold is 0 by construction.</p>
+          <p lang="ja">設計に環境とのやり取りを一切使っていません。閾値到達ステップ数は構造上0です。</p>
         </div>
       </div>
       <div class="note key">
-        <span class="note-label">The framing this step delivers</span>
-        <p>PPO cannot beat this. The metric is saturated. The most it can do is match it, and the only honest
+        <span class="note-label"><span lang="en">The framing this step delivers</span><span lang="ja">このステップで決まる前提</span></span>
+        <p lang="en">PPO cannot beat this. The metric is saturated. The most it can do is match it, and the only honest
           axes left are sample cost — where LQR wins by construction — and everything the LQR does not have,
           which is <em>independence from the model</em>.</p>
+        <p lang="ja">PPOはこれに勝てません。指標が飽和しているからです。できるのはせいぜい並ぶことで、残る正直な比較軸は、
+          LQRが構造上勝つサンプルコストと、LQRが持たないもの、すなわち<em>モデルからの独立性</em>だけです。</p>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>Return is a saturating metric — measured, not asserted</h3>
-      <p>An early claim in the repository was that the cost weight <code>R</code> cannot matter because it only
+      <h3><span lang="en">Return is a saturating metric — measured, not asserted</span><span lang="ja">returnは飽和する指標 — 主張ではなく計測</span></h3>
+      <p lang="en">An early claim in the repository was that the cost weight <code>R</code> cannot matter because it only
         rescales <code>K</code>. That is false — the Riccati equation is not linear in <code>R</code> — and
         sweeping <code>R</code> from 0.01 to 100 rotates the normalised gain direction by 0.130. The check caught
         it. The interesting part is what happened next: <strong>that rotation moved the measured return by
         0.0.</strong> Every one of those controllers scores 500.0.</p>
-      <p>So return cannot rank controllers on this task once they are all merely good enough. Steps 4 and 5
+      <p lang="ja">リポジトリの初期には「コスト重み<code>R</code>は<code>K</code>をスケーリングするだけなので影響しない」という主張がありました。
+        これは誤りです。Riccati方程式は<code>R</code>について線形ではなく、<code>R</code>を0.01から100までスイープすると正規化したゲインの向きが0.130回転します。
+        検証がこれを見つけました。興味深いのはその先で、<strong>この回転による計測returnの変化は0.0でした。</strong>どの制御器も500.0を出します。</p>
+      <p lang="en">So return cannot rank controllers on this task once they are all merely good enough. Steps 4 and 5
         therefore rank on steps-to-threshold, and <strong>this repository does not contain a single reward
         curve.</strong></p>
-      <p>What <em>can</em> tell controllers apart is the <em>basin</em> — how large a disturbance they can
+      <p lang="ja">つまりこのタスクでは、どの制御器も一定以上の性能になった時点で、returnでは順位を付けられません。
+        そのためstep 4と5は閾値到達ステップ数で順位を付けており、<strong>このリポジトリにはreward曲線が1本もありません。</strong></p>
+      <p lang="en">What <em>can</em> tell controllers apart is the <em>basin</em> — how large a disturbance they can
         recover from — found by bisecting on the initial state one axis at a time:</p>
+      <p lang="ja">制御器を区別<em>できる</em>のは<em>basin</em>、つまりどれだけ大きな外乱から復帰できるかです。初期状態を1軸ずつ二分探索して求めます。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Perturbation from upright</th><th class="num">Bang-bang (±10 N only)</th><th class="num">Continuous force, clipped to ±10 N</th></tr></thead>
+          <thead><tr><th><span lang="en">Perturbation from upright</span><span lang="ja">倒立状態からの摂動</span></th><th class="num"><span lang="en">Bang-bang (±10 N only)</span><span lang="ja">Bang-bang（±10 Nのみ）</span></th><th class="num"><span lang="en">Continuous force, clipped to ±10 N</span><span lang="ja">連続値の力（±10 Nでclip）</span></th></tr></thead>
           <tbody>
-            <tr><td>critical θ̇₀</td><td class="num"><strong>2.1693 rad/s</strong></td><td class="num">1.9632 rad/s</td></tr>
-            <tr><td>critical ẋ₀</td><td class="num"><strong>2.4354 m/s</strong></td><td class="num">1.9593 m/s</td></tr>
-            <tr><td>critical θ₀</td><td class="num">0.2094 rad = the termination limit</td><td class="num">0.2094 rad</td></tr>
+            <tr><td><span lang="en">critical θ̇₀</span><span lang="ja">臨界θ̇₀</span></td><td class="num"><strong>2.1693 rad/s</strong></td><td class="num">1.9632 rad/s</td></tr>
+            <tr><td><span lang="en">critical ẋ₀</span><span lang="ja">臨界ẋ₀</span></td><td class="num"><strong>2.4354 m/s</strong></td><td class="num">1.9593 m/s</td></tr>
+            <tr><td><span lang="en">critical θ₀</span><span lang="ja">臨界θ₀</span></td><td class="num">0.2094 rad <span lang="en">= the termination limit</span><span lang="ja">= 終了判定の限界</span></td><td class="num">0.2094 rad</td></tr>
           </tbody>
         </table>
       </div>
-      <p>Bang-bang has the <em>larger</em> basin than the same law with a proportional actuator of equal
+      <p lang="en">Bang-bang has the <em>larger</em> basin than the same law with a proportional actuator of equal
         strength. Not a paradox: recovering from a large disturbance is a time-optimal problem, and the
         time-optimal solution to a bounded-input problem <em>is</em> bang-bang. The linear law under-commands
         near the edge because it is minimising a quadratic cost, not maximising survival. Angle finds nothing —
         every angle inside the termination limit is recoverable, which is why the sweep runs on velocity.</p>
+      <p lang="ja">同じ制御則を同じ強さの比例アクチュエータで動かした場合よりも、bang-bangの方がbasinは<em>広く</em>なります。
+        これは矛盾ではありません。大きな外乱からの復帰は時間最適問題であり、入力に上限がある問題の時間最適解<em>こそ</em>bang-bangだからです。
+        線形の制御則は生存の最大化ではなく二次コストの最小化をしているため、境界付近で指令が不足します。角度では差が出ません。
+        終了判定の限界内の角度はすべて復帰可能なので、スイープは速度で行っています。</p>
     </div>
 
     <div class="stack">
-      <h3>Q sensitivity — and the row that shows what return hides</h3>
+      <h3><span lang="en">Q sensitivity — and the row that shows what return hides</span><span lang="ja">Q感度 — returnが隠すものを示す行</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Q</th><th class="num">Sweeps</th><th class="num">ρ</th><th class="num">Return</th><th class="num">Critical θ̇₀</th><th class="num">Max |x|</th></tr></thead>
+          <thead><tr><th>Q</th><th class="num"><span lang="en">Sweeps</span><span lang="ja">反復回数</span></th><th class="num">ρ</th><th class="num">Return</th><th class="num"><span lang="en">Critical θ̇₀</span><span lang="ja">臨界θ̇₀</span></th><th class="num">Max |x|</th></tr></thead>
           <tbody>
             <tr><td><code>I₄</code></td><td class="num">866</td><td class="num">0.9839</td><td class="num">500.0</td><td class="num">2.17 rad/s</td><td class="num">0.136 m</td></tr>
-            <tr><td><code>diag(1,1,10,10)</code> pole-weighted</td><td class="num">887</td><td class="num">0.9842</td><td class="num">500.0</td><td class="num">2.14 rad/s</td><td class="num">0.143 m</td></tr>
-            <tr><td><code>diag(10,10,1,1)</code> cart-weighted</td><td class="num">664</td><td class="num">0.9786</td><td class="num">500.0</td><td class="num">1.89 rad/s</td><td class="num">0.081 m</td></tr>
-            <tr class="bad"><td><code>diag(0,0,1,1)</code> pole only</td><td class="num">240</td><td class="num"><strong>1.0000</strong></td><td class="num">500.0</td><td class="num"><strong>0.40 rad/s</strong></td><td class="num">0.245 m</td></tr>
+            <tr><td><code>diag(1,1,10,10)</code> <span lang="en">pole-weighted</span><span lang="ja">ポール重視</span></td><td class="num">887</td><td class="num">0.9842</td><td class="num">500.0</td><td class="num">2.14 rad/s</td><td class="num">0.143 m</td></tr>
+            <tr><td><code>diag(10,10,1,1)</code> <span lang="en">cart-weighted</span><span lang="ja">台車重視</span></td><td class="num">664</td><td class="num">0.9786</td><td class="num">500.0</td><td class="num">1.89 rad/s</td><td class="num">0.081 m</td></tr>
+            <tr class="bad"><td><code>diag(0,0,1,1)</code> <span lang="en">pole only</span><span lang="ja">ポールのみ</span></td><td class="num">240</td><td class="num"><strong>1.0000</strong></td><td class="num">500.0</td><td class="num"><strong>0.40 rad/s</strong></td><td class="num">0.245 m</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">The last row is the interesting one. With no cost on cart position or velocity the cart
+      <p class="prose" lang="en">The last row is the interesting one. With no cost on cart position or velocity the cart
         mode is uncontrolled: ρ = 1.0000 exactly, the closed loop is only marginally stable, and the cart drifts.
         It still scores 500.0, because 500 steps is not long enough to drift 2.4 m. <strong>Return says these
         four designs are identical. The spectral radius and the basin say the fourth is broken.</strong></p>
+      <p class="prose" lang="ja">注目すべきは最後の行です。台車の位置にも速度にもコストがないため台車のモードは制御されず、ρはちょうど1.0000、
+        閉ループは安定限界にとどまり、台車はドリフトします。それでも500.0を出すのは、500ステップでは2.4 mドリフトするには足りないからです。
+        <strong>returnはこの4つの設計を同一と判定します。スペクトル半径とbasinは、4つ目が壊れていることを示しています。</strong></p>
       <div class="note warnbox">
-        <span class="note-label">A bug worth writing down</span>
-        <p>The Riccati loop originally used an <em>absolute</em> tolerance of 1e−14. <code>P</code> has entries
+        <span class="note-label"><span lang="en">A bug worth writing down</span><span lang="ja">記録に値するバグ</span></span>
+        <p lang="en">The Riccati loop originally used an <em>absolute</em> tolerance of 1e−14. <code>P</code> has entries
           near 7e3, so machine epsilon times 7e3 is about 1.5e−12 — the tolerance was below the float64
           resolution of <code>P</code> itself and could only ever be met by luck. <code>Q = I₄</code> landed on an
           exact fixed point and converged; <code>Q = diag(10,10,1,1)</code> chattered in the last bit for 200 000
           sweeps and looked exactly like a stabilisability failure. It was not. The general lesson, which comes
           back in step 3: <strong>an absolute tolerance on a quantity whose scale you have not measured is not a
           convergence criterion.</strong></p>
+        <p lang="ja">Riccatiのループは当初、1e−14の<em>絶対</em>許容誤差を使っていました。<code>P</code>の要素は7e3前後なので、マシンイプシロン×7e3は約1.5e−12です。
+          つまり許容誤差は<code>P</code>自体のfloat64分解能を下回っており、満たされるかどうかは運次第でした。<code>Q = I₄</code>は厳密な不動点に到達して収束しましたが、
+          <code>Q = diag(10,10,1,1)</code>は最下位ビットで200 000回振動し続け、可安定性の破綻とまったく同じに見えました。実際はそうではありません。
+          step 3でも再び出てくる一般的な教訓は、<strong>スケールを計測していない量に対する絶対許容誤差は、収束判定にならない</strong>ということです。</p>
       </div>
     </div>
   </div>
 </section>
 
 <section id="ppo">
-  <div class="sec-head"><span class="sec-num">06</span><h2>Step 3 — PPO, written out</h2><p class="sec-sub">PPO written out in full — GAE, the clipped objective, and the truncation bootstrap that is easy to get wrong.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Step 3 — PPO, written out</span><span lang="ja">Step 3 — PPOを書き下す</span></h2><p class="sec-sub" lang="en">PPO written out in full — GAE, the clipped objective, and the truncation bootstrap that is easy to get wrong.</p><p class="sec-sub" lang="ja">PPOの完全な実装。GAE、clipped objective、そして間違えやすいtruncation時のbootstrap。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>The four ingredients</h3>
-      <p>PPO is policy gradient plus four specific additions. Each is written longhand here, and each can be
+      <h3><span lang="en">The four ingredients</span><span lang="ja">4つの要素</span></h3>
+      <p lang="en">PPO is policy gradient plus four specific additions. Each is written longhand here, and each can be
         switched off from the command line — which is what step 5 measures.</p>
+      <p lang="ja">PPOはpolicy gradientに4つの特定の追加要素を加えたものです。ここではそれぞれを手で書き下しており、
+        いずれもコマンドラインからOFFにできます。step 5で計測するのはまさにこの点です。</p>
       <div class="pair">
         <dt>GAE(γ, λ)</dt>
-        <dd>Generalised advantage estimation. "How much better was this action than average?" can be estimated
+        <dd lang="en">Generalised advantage estimation. "How much better was this action than average?" can be estimated
           from one step (low variance, biased) or from the whole episode (unbiased, high variance). GAE
           interpolates between them with λ.</dd>
-        <dt>advantage normalisation</dt>
-        <dd>Standardise the advantages within each batch so the gradient scale does not depend on how large the
+        <dd lang="ja">Generalised advantage estimation。「このactionは平均よりどれだけ良かったか」は、1ステップから推定する（低分散だがバイアスあり）ことも、
+          episode全体から推定する（不偏だが高分散）こともできます。GAEはλでその間を補間します。</dd>
+        <dt><span lang="en">advantage normalisation</span><span lang="ja">advantage正規化</span></dt>
+        <dd lang="en">Standardise the advantages within each batch so the gradient scale does not depend on how large the
           rewards happen to be.</dd>
+        <dd lang="ja">バッチごとにadvantageを標準化し、勾配のスケールがrewardの大きさに左右されないようにします。</dd>
         <dt>the clipped surrogate</dt>
-        <dd>The core of PPO. The update is weighted by the ratio of new to old action probability; clipping that
+        <dd lang="en">The core of PPO. The update is weighted by the ratio of new to old action probability; clipping that
           ratio to [1−ε, 1+ε] removes the incentive to move the policy far in one update.</dd>
-        <dt>multi-epoch minibatching</dt>
-        <dd>Reuse each batch of experience for several optimisation epochs instead of throwing it away — which is
+        <dd lang="ja">PPOの中核です。更新は新旧のaction確率の比で重み付けされ、その比を[1−ε, 1+ε]にclipすることで、1回の更新でpolicyを大きく動かす動機をなくします。</dd>
+        <dt><span lang="en">multi-epoch minibatching</span><span lang="ja">複数epochのミニバッチ更新</span></dt>
+        <dd lang="en">Reuse each batch of experience for several optimisation epochs instead of throwing it away — which is
           only legal <em>because</em> of the clip.</dd>
+        <dd lang="ja">集めた経験のバッチを捨てずに複数epochの最適化に再利用します。これが許されるのはclipが<em>あるから</em>です。</dd>
       </div>
-      <p>Architecture: separate 64-64 tanh actor and critic trunks, orthogonal initialisation (gain √2, 0.01 on
+      <p lang="en">Architecture: separate 64-64 tanh actor and critic trunks, orthogonal initialisation (gain √2, 0.01 on
         the policy head, 1.0 on the value head), Adam with eps = 1e−5, linear learning-rate anneal,
         gradient-norm clipping at 0.5, and 8 environments × 128 steps = 1024-step batches.</p>
+      <p lang="ja">構成：独立した64-64 tanhのactorとcritic、直交初期化（ゲイン√2、policy headは0.01、value headは1.0）、eps = 1e−5のAdam、
+        学習率の線形減衰、勾配ノルムのclip 0.5、8環境 × 128ステップ = 1024ステップのバッチ。</p>
     </div>
 
     <div class="stack prose">
-      <h3>The truncation bootstrap — what step 1 was for</h3>
-      <p>At the 500-step cap the pole has <strong>not</strong> fallen. The episode was cut by the clock.
+      <h3><span lang="en">The truncation bootstrap — what step 1 was for</span><span lang="ja">truncation時のbootstrap — step 1の意味</span></h3>
+      <p lang="en">At the 500-step cap the pole has <strong>not</strong> fallen. The episode was cut by the clock.
         Bootstrapping <code>V(s_final)</code> there is correct; treating it as terminal teaches the critic that
         surviving 500 steps is worth zero future return. That is the single most common silent bug in a
         hand-written PPO, and it is only avoidable here because step 1 refused to merge the two done flags.</p>
-      <p>Implemented by folding the bootstrap into the reward of the truncated step,
+      <p lang="ja">500ステップの上限では、ポールは倒れて<strong>いません</strong>。episodeは時間で打ち切られただけです。
+        そこで<code>V(s_final)</code>をbootstrapするのが正解で、終端として扱うと「500ステップ生き延びることの将来returnはゼロ」とcriticに教えてしまいます。
+        これは自作PPOで最も多い、表に出ないバグです。ここで回避できるのは、step 1で2つのdoneフラグの統合を拒否したからにほかなりません。</p>
+      <p lang="en">Implemented by folding the bootstrap into the reward of the truncated step,
         <code>r_t += γ·V(s_final)</code>, and then treating that step as an episode boundary for GAE — which it
         is, since the next observation comes from a fresh reset.</p>
+      <p lang="ja">実装では、bootstrapをtruncatedステップのrewardに<code>r_t += γ·V(s_final)</code>として組み込み、そのステップをGAE上のepisode境界として扱います。
+        次のobservationは新たなリセットから得られるので、実際に境界です。</p>
     </div>
 
     <div class="stack">
-      <h3>Hyperparameters were searched — on seeds that are not the reported ones</h3>
+      <h3><span lang="en">Hyperparameters were searched — on seeds that are not the reported ones</span><span lang="ja">ハイパーパラメータ探索 — 報告用とは別のseedで実施</span></h3>
       <div class="prose stack">
-        <p>The first configuration written down (lr 3e−4, 4 epochs) <strong>never reached threshold</strong> in
+        <p lang="en">The first configuration written down (lr 3e−4, 4 epochs) <strong>never reached threshold</strong> in
           150 k steps, and reported a clip fraction of 0.000 on every single update: the policy was moving so
           little per update that the clip never engaged. That is worth stating rather than quietly deleting,
           because a PPO whose clip never engages is not PPO — it is A2C with extra arithmetic, and it would have
           made the step-5 clipping ablation come out as "makes no difference".</p>
-        <p>The search ran on seeds 100–103, disjoint from the study seeds 0–15.</p>
+        <p lang="ja">最初に書いた設定（lr 3e−4、4 epoch）は150 kステップで<strong>一度も閾値に到達せず</strong>、すべての更新でclip fractionが0.000でした。
+          1回の更新でpolicyがほとんど動かず、clipが一度も効いていなかったのです。これは黙って消すのではなく明記する価値があります。
+          clipが効かないPPOはPPOではなく、余計な計算をしているだけのA2Cであり、step 5のclip ablationが「差なし」という結果になっていたはずだからです。</p>
+        <p lang="en">The search ran on seeds 100–103, disjoint from the study seeds 0–15.</p>
+        <p lang="ja">探索はseed 100–103で行い、study用のseed 0–15とは重複させていません。</p>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Configuration</th><th class="num">Solved</th><th class="num">Steps-to-threshold, median</th><th class="num">IQR</th></tr></thead>
+          <thead><tr><th><span lang="en">Configuration</span><span lang="ja">設定</span></th><th class="num"><span lang="en">Solved</span><span lang="ja">達成</span></th><th class="num"><span lang="en">Steps-to-threshold, median</span><span lang="ja">閾値到達ステップ数（中央値）</span></th><th class="num">IQR</th></tr></thead>
           <tbody>
-            <tr class="hl"><td><strong>lr 2e−3, 10 epochs — adopted</strong></td><td class="num">4/4</td><td class="num"><strong>63 028</strong></td><td class="num">[62 020, 63 428]</td></tr>
+            <tr class="hl"><td><strong>lr 2e−3, <span lang="en">10 epochs — adopted</span><span lang="ja">10 epoch — 採用</span></strong></td><td class="num">4/4</td><td class="num"><strong>63 028</strong></td><td class="num">[62 020, 63 428]</td></tr>
             <tr><td>lr 1e−3, 8 epochs, 8 minibatches</td><td class="num">4/4</td><td class="num">66 520</td><td class="num">[65 076, 69 772]</td></tr>
             <tr><td>lr 1.5e−3, 10 epochs</td><td class="num">4/4</td><td class="num">73 412</td><td class="num">[68 910, 78 664]</td></tr>
             <tr><td>lr 1e−3, 10 epochs</td><td class="num">4/4</td><td class="num">76 104</td><td class="num">[73 346, 85 050]</td></tr>
             <tr><td>lr 2.5e−3, 4 epochs</td><td class="num">3/4</td><td class="num">112 104</td><td class="num">[83 832, 141 888]</td></tr>
             <tr><td>lr 3e−4, 10 epochs</td><td class="num">2/4</td><td class="num">148 808</td><td class="num">—</td></tr>
             <tr><td>lr 1e−3, 4 epochs</td><td class="num">1/4</td><td class="num">&gt;150 000</td><td class="num">—</td></tr>
-            <tr class="bad"><td>lr 3e−4, 4 epochs — first attempt</td><td class="num">0/4</td><td class="num">&gt;150 000</td><td class="num">—</td></tr>
+            <tr class="bad"><td>lr 3e−4, <span lang="en">4 epochs — first attempt</span><span lang="ja">4 epoch — 最初の試行</span></td><td class="num">0/4</td><td class="num">&gt;150 000</td><td class="num">—</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">With the adopted configuration the clip fraction runs at 0.03–0.05 instead of 0.000.</p>
+      <p class="prose" lang="en">With the adopted configuration the clip fraction runs at 0.03–0.05 instead of 0.000.</p>
+      <p class="prose" lang="ja">採用した設定では、clip fractionは0.000ではなく0.03–0.05で推移します。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Cost, and a prediction confirmed</h3>
+      <h3><span lang="en">Cost, and a prediction confirmed</span><span lang="ja">コストと、確認された予測</span></h3>
       <div class="pair">
-        <dt>one 150 k-step run</dt><dd>11.4 s sequential — 13 187 environment steps per second</dd>
-        <dt>64 runs</dt><dd>344 s at four-way parallel, <code>nice 10</code></dd>
-        <dt>threads</dt><dd><code>torch.set_num_threads(1)</code>, deliberately. The networks are 64×64;
+        <dt><span lang="en">one 150 k-step run</span><span lang="ja">150 kステップの学習1回</span></dt><dd lang="en">11.4 s sequential — 13 187 environment steps per second</dd><dd lang="ja">逐次実行で11.4 s — 毎秒13 187環境ステップ</dd>
+        <dt><span lang="en">64 runs</span><span lang="ja">64回の学習</span></dt><dd lang="en">344 s at four-way parallel, <code>nice 10</code></dd><dd lang="ja">4並列・<code>nice 10</code>で344 s</dd>
+        <dt><span lang="en">threads</span><span lang="ja">スレッド数</span></dt><dd lang="en"><code>torch.set_num_threads(1)</code>, deliberately. The networks are 64×64;
           intra-op threading costs more in synchronisation than it saves, and this machine shares eight threads
           with a detection-training job that has priority.</dd>
+        <dd lang="ja">意図的に<code>torch.set_num_threads(1)</code>としています。ネットワークは64×64で、演算内のマルチスレッド化は削減分より同期コストの方が大きくなります。
+          またこのマシンの8スレッドは、優先度の高い物体検出の学習ジョブと共有しています。</dd>
       </div>
-      <p>Step 1 predicted the environment would not be the bottleneck — 374 k steps/s standalone against 13 k
+      <p lang="en">Step 1 predicted the environment would not be the bottleneck — 374 k steps/s standalone against 13 k
         inside training. Confirmed: the environment is about 3 % of the wall clock. The vectorised rewrite was
         never needed and was never written.</p>
+      <p lang="ja">step 1では、環境はボトルネックにならないと予測していました（単体で374 k steps/s、学習中は13 k）。結果はそのとおりで、
+        環境が占めるのは実時間の約3 %です。ベクトル化した書き直しは不要で、実装もしていません。</p>
     </div>
   </div>
 </section>
 
 <section id="study">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Steps 4 and 5 — seeds and ablations</h2><p class="sec-sub">Sixteen seeds, four ablations, and a permutation test written without scipy.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Steps 4 and 5 — seeds and ablations</span><span lang="ja">Step 4・5 — seedとablation</span></h2><p class="sec-sub" lang="en">Sixteen seeds, four ablations, and a permutation test written without scipy.</p><p class="sec-sub" lang="ja">16 seed、4種のablation、そしてscipyを使わずに書いた並べ替え検定。</p></div>
   <div class="stack-lg">
     <div class="stack">
-      <h3>The seed study</h3>
+      <h3><span lang="en">The seed study</span><span lang="ja">seed別の検証</span></h3>
       <div class="tablewrap">
         <table>
           <thead><tr><th></th><th class="num">Baseline PPO</th><th class="num">LQR</th></tr></thead>
           <tbody>
-            <tr><td>solved (≥475 over 100 consecutive episodes)</td><td class="num"><strong>16/16</strong></td><td class="num">yes</td></tr>
-            <tr class="hl"><td>steps-to-threshold, median</td><td class="num"><strong>62 144</strong></td><td class="num"><strong>0</strong></td></tr>
-            <tr><td>steps-to-threshold, IQR</td><td class="num">[60 442, 63 448]</td><td class="num">—</td></tr>
-            <tr><td>greedy evaluation, 100 episodes, median</td><td class="num">500.0</td><td class="num">500.0</td></tr>
-            <tr><td>greedy evaluation, worst seed</td><td class="num">500.0</td><td class="num">—</td></tr>
+            <tr><td><span lang="en">solved (≥475 over 100 consecutive episodes)</span><span lang="ja">達成（連続100 episodeで≥475）</span></td><td class="num"><strong>16/16</strong></td><td class="num"><span lang="en">yes</span><span lang="ja">達成</span></td></tr>
+            <tr class="hl"><td><span lang="en">steps-to-threshold, median</span><span lang="ja">閾値到達ステップ数（中央値）</span></td><td class="num"><strong>62 144</strong></td><td class="num"><strong>0</strong></td></tr>
+            <tr><td><span lang="en">steps-to-threshold, IQR</span><span lang="ja">閾値到達ステップ数（IQR）</span></td><td class="num">[60 442, 63 448]</td><td class="num">—</td></tr>
+            <tr><td><span lang="en">greedy evaluation, 100 episodes, median</span><span lang="ja">greedy評価、100 episode、中央値</span></td><td class="num">500.0</td><td class="num">500.0</td></tr>
+            <tr><td><span lang="en">greedy evaluation, worst seed</span><span lang="ja">greedy評価、最悪seed</span></td><td class="num">500.0</td><td class="num">—</td></tr>
           </tbody>
         </table>
       </div>
       <div class="note key">
-        <span class="note-label">The honest headline</span>
-        <p>PPO matches the baseline and pays 62 144 environment steps for what the model gave away free. That is
+        <span class="note-label"><span lang="en">The honest headline</span><span lang="ja">率直な結論</span></span>
+        <p lang="en">PPO matches the baseline and pays 62 144 environment steps for what the model gave away free. That is
           not an argument against PPO — it is a precise statement of what PPO is buying, which is independence
           from the model, and of what that costs on a plant where the model happens to be exact.</p>
+        <p lang="ja">PPOはbaselineに並びますが、モデルがタダでくれたものに62 144環境ステップを支払っています。これはPPOを否定する主張ではありません。
+          PPOが手に入れているもの（モデルからの独立性）と、たまたまモデルが厳密なプラントでそれにかかるコストを、正確に述べたものです。</p>
       </div>
-      <p class="prose"><strong>Censoring.</strong> A run that never reaches threshold has no steps-to-threshold.
+      <p class="prose" lang="en"><strong>Censoring.</strong> A run that never reaches threshold has no steps-to-threshold.
         Dropping those and taking the median of the survivors is the standard way to make a bad configuration
         look good, so they are entered as <code>budget + 1</code> instead. The median is then correct whenever
         fewer than half the runs fail, and reports as <code>&gt;150000</code> when more than half do. Solved
         counts are printed next to every median.</p>
+      <p class="prose" lang="ja"><strong>Censoringの扱い。</strong>閾値に到達しなかったrunには閾値到達ステップ数がありません。それらを除いて残りの中央値を取るのは、
+        悪い設定を良く見せる典型的な手口です。そのため代わりに<code>budget + 1</code>として記録します。こうすると失敗が半数未満なら中央値は正しく、
+        半数を超えれば<code>&gt;150000</code>と報告されます。すべての中央値の横に達成数を併記しています。</p>
     </div>
 
     <div class="stack">
-      <h3>Ablations — one switch at a time, 16 seeds each</h3>
+      <h3><span lang="en">Ablations — one switch at a time, 16 seeds each</span><span lang="ja">Ablation — スイッチを1つずつ、各16 seed</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Ablation</th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">vs baseline</th><th class="num">Permutation p</th></tr></thead>
+          <thead><tr><th>Ablation</th><th class="num"><span lang="en">Solved</span><span lang="ja">達成</span></th><th class="num"><span lang="en">Steps median</span><span lang="ja">ステップ数中央値</span></th><th class="num"><span lang="en">vs baseline</span><span lang="ja">対baseline</span></th><th class="num"><span lang="en">Permutation p</span><span lang="ja">並べ替え検定 p</span></th></tr></thead>
           <tbody>
             <tr><td>baseline</td><td class="num">16/16</td><td class="num">62 144</td><td class="num">1.00×</td><td class="num">—</td></tr>
-            <tr><td>no advantage normalisation</td><td class="num">16/16</td><td class="num">64 884</td><td class="num">1.04×</td><td class="num">0.054</td></tr>
-            <tr><td>no GAE (λ = 1)</td><td class="num">16/16</td><td class="num">68 948</td><td class="num">1.11×</td><td class="num">0.0006</td></tr>
-            <tr class="bad"><td><strong>no ratio clipping</strong></td><td class="num"><strong>8/16</strong></td><td class="num"><strong>145 368</strong></td><td class="num"><strong>2.34×</strong></td><td class="num">0.0001</td></tr>
+            <tr><td><span lang="en">no advantage normalisation</span><span lang="ja">advantage正規化なし</span></td><td class="num">16/16</td><td class="num">64 884</td><td class="num">1.04×</td><td class="num">0.054</td></tr>
+            <tr><td><span lang="en">no GAE (λ = 1)</span><span lang="ja">GAEなし（λ = 1）</span></td><td class="num">16/16</td><td class="num">68 948</td><td class="num">1.11×</td><td class="num">0.0006</td></tr>
+            <tr class="bad"><td><strong><span lang="en">no ratio clipping</span><span lang="ja">ratio clipなし</span></strong></td><td class="num"><strong>8/16</strong></td><td class="num"><strong>145 368</strong></td><td class="num"><strong>2.34×</strong></td><td class="num">0.0001</td></tr>
           </tbody>
         </table>
       </div>
       <div class="prose stack">
-        <p><strong>Ratio clipping is the only one that actually matters, and it matters by a lot.</strong> Half
+        <p lang="en"><strong>Ratio clipping is the only one that actually matters, and it matters by a lot.</strong> Half
           the seeds never reach threshold without it. GAE is worth 11 % of the sample budget here, and advantage
           normalisation is not distinguishable from noise at the 5 % level on this task.</p>
-        <p>That ordering is task-specific and the reason is visible in the setup. Cart-pole episodes are short
+        <p lang="ja"><strong>実際に効いているのはratio clipだけで、その効果は非常に大きいものです。</strong>clipがないとseedの半数が閾値に到達しません。
+          GAEの効果はここではサンプル予算の11 %分で、advantage正規化はこのタスクでは5 %水準でノイズと区別できません。</p>
+        <p lang="en">That ordering is task-specific and the reason is visible in the setup. Cart-pole episodes are short
           and γ = 0.99 over 128-step rollouts, so λ = 1 costs much less variance than it would on a long-horizon
           task. Clipping, by contrast, is what makes ten epochs on the same batch legal at all — without it the
           objective is a correct policy gradient for the first epoch and an increasingly wrong one for the next
           nine.</p>
+        <p lang="ja">この順位はタスク固有のもので、理由は設定から読み取れます。cart-poleのepisodeは短く、128ステップのrolloutでγ = 0.99なので、
+          λ = 1による分散の増加は長ホライズンのタスクよりはるかに小さく済みます。一方clipは、同じバッチで10 epoch回すことをそもそも成立させるものです。
+          clipがなければ、目的関数は最初のepochでは正しいpolicy gradientですが、残り9 epochでは次第に誤ったものになります。</p>
         <div class="pair">
-          <dt>"no GAE" = λ&nbsp;1.0</dt>
-          <dd>GAE(γ, 1) <em>is</em> the plain Monte-Carlo advantage. Implementing the ablation as a single number
+          <dt><span lang="en">"no GAE" = λ&nbsp;1.0</span><span lang="ja">「GAEなし」= λ&nbsp;1.0</span></dt>
+          <dd lang="en">GAE(γ, 1) <em>is</em> the plain Monte-Carlo advantage. Implementing the ablation as a single number
             change means the comparison is about GAE rather than about two different implementations.</dd>
-          <dt>significance</dt>
-          <dd>Steps-to-threshold is right-skewed and censored, so a t-test is the wrong tool. A two-sided
+          <dd lang="ja">GAE(γ, 1)は単純なMonte-Carlo advantage<em>そのもの</em>です。ablationを数値1つの変更として実装しているので、
+            比較の対象は2つの異なる実装ではなくGAEそのものになります。</dd>
+          <dt><span lang="en">significance</span><span lang="ja">有意性</span></dt>
+          <dd lang="en">Steps-to-threshold is right-skewed and censored, so a t-test is the wrong tool. A two-sided
             permutation test on the difference of medians is used instead — exhaustive when the number of splits
             allows, 100 000 Monte-Carlo resamples otherwise. It assumes only exchangeability under the null,
             which is exactly what "this ablation changed nothing" means. Written without scipy.</dd>
+          <dd lang="ja">閾値到達ステップ数は右に歪んでおり、censoringもあるため、t検定は不適切です。代わりに中央値の差に対する両側の並べ替え検定を使います。
+            分割数が許せば全数、そうでなければ100 000回のMonte-Carlo再標本化です。仮定するのは帰無仮説の下での交換可能性だけで、
+            これはまさに「このablationは何も変えなかった」という意味です。scipyは使っていません。</dd>
         </div>
       </div>
       <div class="note warnbox">
-        <span class="note-label">Why the seed count is 16 and not 8</span>
-        <p>The study ran at eight seeds first. It gave: no GAE 1.03×, no advantage normalisation 1.11×. At
+        <span class="note-label"><span lang="en">Why the seed count is 16 and not 8</span><span lang="ja">seed数が8ではなく16である理由</span></span>
+        <p lang="en">The study ran at eight seeds first. It gave: no GAE 1.03×, no advantage normalisation 1.11×. At
           sixteen: no GAE 1.11×, no advantage normalisation 1.04×. <strong>The ranking of the two small
           ablations is exactly reversed.</strong> Both runs were honest, both used the same code, and eight
           seeds — already above the usual "at least five" — was enough to get the order backwards. The
           conclusion that survived was only the large one. Small effects need either more seeds or an explicit
           statement that they were not resolved, and the p-values are reported so a reader can see which is
           which.</p>
+        <p lang="ja">studyは最初8 seedで実施し、GAEなし1.03×、advantage正規化なし1.11×という結果でした。16 seedではGAEなし1.11×、advantage正規化なし1.04×です。
+          <strong>効果の小さい2つのablationの順位が完全に逆転しました。</strong>どちらの実行も正当で同じコードを使っており、
+          一般的な「最低5 seed」を上回る8 seedでも順位を取り違えるには十分だったということです。残った結論は効果の大きいものだけでした。
+          小さな効果には、seedを増やすか、判別できなかったと明記するかのどちらかが必要です。どれがどちらに当たるか読者が判断できるよう、p値を併記しています。</p>
       </div>
     </div>
   </div>
 </section>
 
 <section id="basin">
-  <div class="sec-head"><span class="sec-num">08</span><h2>LQR against PPO, where it counts</h2><p class="sec-sub">Where the learned policy beats the optimal linear controller, and where it plainly does not.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">LQR against PPO, where it counts</span><span lang="ja">LQR対PPO — 差が出る指標で比べる</span></h2><p class="sec-sub" lang="en">Where the learned policy beats the optimal linear controller, and where it plainly does not.</p><p class="sec-sub" lang="ja">学習したpolicyが最適線形制御器に勝る点と、明らかに及ばない点。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>Both controllers score 500.0/500. Step 2 already showed return saturates and cannot rank anything
+      <p lang="en">Both controllers score 500.0/500. Step 2 already showed return saturates and cannot rank anything
         competent, so the comparison runs on the basin instead — the same bisection and the same widened
         initial-condition sweep, same plant, same termination test, LQR against all sixteen trained
         checkpoints.</p>
+      <p lang="ja">どちらの制御器も500.0/500です。step 2で示したとおりreturnは飽和しており、一定以上の性能の制御器には順位を付けられません。
+        そこで比較はbasinで行います。同じ二分探索、同じく初期条件を広げたスイープ、同じプラント、同じ終了判定で、LQRと学習済みcheckpoint 16個すべてを比べます。</p>
     </div>
 
     <div class="stack">
       <div class="tablewrap">
         <table>
-          <thead><tr><th></th><th class="num">LQR</th><th class="num">PPO, median over 16 seeds</th><th class="num">PPO best seed</th></tr></thead>
+          <thead><tr><th></th><th class="num">LQR</th><th class="num"><span lang="en">PPO, median over 16 seeds</span><span lang="ja">PPO（16 seedの中央値）</span></th><th class="num"><span lang="en">PPO best seed</span><span lang="ja">PPO最良seed</span></th></tr></thead>
           <tbody>
-            <tr><td>nominal return, 100 episodes</td><td class="num">500.0</td><td class="num">500.0</td><td class="num">500.0</td></tr>
-            <tr class="hl"><td>critical θ̇₀</td><td class="num"><strong>2.169 rad/s</strong></td><td class="num">1.082 rad/s</td><td class="num">2.004 rad/s</td></tr>
-            <tr class="hl"><td>critical ẋ₀</td><td class="num"><strong>2.435 m/s</strong></td><td class="num">0.824 m/s</td><td class="num">1.935 m/s</td></tr>
+            <tr><td><span lang="en">nominal return, 100 episodes</span><span lang="ja">公称条件でのreturn（100 episode）</span></td><td class="num">500.0</td><td class="num">500.0</td><td class="num">500.0</td></tr>
+            <tr class="hl"><td><span lang="en">critical θ̇₀</span><span lang="ja">臨界θ̇₀</span></td><td class="num"><strong>2.169 rad/s</strong></td><td class="num">1.082 rad/s</td><td class="num">2.004 rad/s</td></tr>
+            <tr class="hl"><td><span lang="en">critical ẋ₀</span><span lang="ja">臨界ẋ₀</span></td><td class="num"><strong>2.435 m/s</strong></td><td class="num">0.824 m/s</td><td class="num">1.935 m/s</td></tr>
           </tbody>
         </table>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Failures out of 200 episodes, initial velocities widened</th><th class="num">LQR</th><th class="num">PPO median</th><th class="num">PPO worst seed</th></tr></thead>
+          <thead><tr><th><span lang="en">Failures out of 200 episodes, initial velocities widened</span><span lang="ja">200 episode中の失敗数（初期速度を拡大）</span></th><th class="num">LQR</th><th class="num"><span lang="en">PPO median</span><span lang="ja">PPO中央値</span></th><th class="num"><span lang="en">PPO worst seed</span><span lang="ja">PPO最悪seed</span></th></tr></thead>
           <tbody>
             <tr><td>U(−0.5, 0.5)</td><td class="num"><strong>0</strong></td><td class="num">1</td><td class="num">22</td></tr>
             <tr><td>U(−1.0, 1.0)</td><td class="num"><strong>0</strong></td><td class="num">48</td><td class="num">83</td></tr>
@@ -848,159 +789,195 @@ K       = (R + Bdᵀ P Bd)⁻¹ Bdᵀ P Ad,      u = −Kx</code></pre>
         </table>
       </div>
       <div class="note key">
-        <span class="note-label">The result worth keeping from the whole project</span>
-        <p>PPO's basin is roughly <strong>half</strong> the LQR's on angular rate and <strong>a third</strong> on
+        <span class="note-label"><span lang="en">The result worth keeping from the whole project</span><span lang="ja">プロジェクト全体で最も残すべき結果</span></span>
+        <p lang="en">PPO's basin is roughly <strong>half</strong> the LQR's on angular rate and <strong>a third</strong> on
           cart velocity, at identical nominal return. It learned the initial-state distribution it was trained
           on — U(−0.05, 0.05) on every state — and nothing outside it, because nothing outside it was ever
           sampled and the reward never asked. A policy that holds the nominal task with a small basin is a policy
           that falls over the first time a real plant hands it a disturbance the training distribution did not
           contain. Fixing that is what domain randomisation is for, and this measurement is the thing domain
           randomisation would have to move.</p>
+        <p lang="ja">公称returnは同じでも、PPOのbasinは角速度でLQRの約<strong>半分</strong>、台車速度で約<strong>3分の1</strong>です。
+          PPOが学習したのは学習時の初期状態分布（全状態でU(−0.05, 0.05)）だけで、その外側は何も学んでいません。外側は一度もサンプルされず、rewardもそれを求めなかったからです。
+          公称タスクはこなせてもbasinが狭いpolicyは、実機のプラントが学習分布にない外乱を与えた最初の瞬間に倒れます。
+          それを直すのがdomain randomisationの役割であり、この計測値こそdomain randomisationが動かさなければならない指標です。</p>
       </div>
     </div>
 
     <div class="stack">
-      <h3>The same finding, watchable in three windows</h3>
+      <h3><span lang="en">The same finding, watchable in three windows</span><span lang="ja">同じ結果を3つのウィンドウで観察する</span></h3>
       <div class="prose stack">
-        <p>Same disturbance, applied from the exact origin, no random initialisation:</p>
+        <p lang="en">Same disturbance, applied from the exact origin, no random initialisation:</p>
+        <p lang="ja">ランダム初期化なしで、厳密な原点から同じ外乱を与えます。</p>
         <pre><code>python visualize.py --controller lqr --zero-init --theta-dot0 1.5
 python visualize.py --controller ppo --ckpt runs/study/baseline_seed2.pt --zero-init --theta-dot0 1.5
 python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-init --theta-dot0 1.5</code></pre>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Controller</th><th>Outcome at θ̇₀ = 1.5 rad/s</th><th class="num">Peak |θ|</th></tr></thead>
+          <thead><tr><th><span lang="en">Controller</span><span lang="ja">制御器</span></th><th><span lang="en">Outcome at θ̇₀ = 1.5 rad/s</span><span lang="ja">θ̇₀ = 1.5 rad/sでの結果</span></th><th class="num"><span lang="en">Peak |θ|</span><span lang="ja">最大|θ|</span></th></tr></thead>
           <tbody>
-            <tr><td>LQR</td><td>survives 500 steps</td><td class="num">46 % of the limit</td></tr>
-            <tr class="bad"><td>PPO seed 2</td><td><strong>falls at step 18</strong> (0.36 s)</td><td class="num">113 %</td></tr>
-            <tr><td>PPO seed 0</td><td>survives 500 steps</td><td class="num">52 %</td></tr>
+            <tr><td>LQR</td><td><span lang="en">survives 500 steps</span><span lang="ja">500ステップ維持</span></td><td class="num"><span lang="en">46 % of the limit</span><span lang="ja">限界の46 %</span></td></tr>
+            <tr class="bad"><td>PPO seed 2</td><td><span lang="en"><strong>falls at step 18</strong> (0.36 s)</span><span lang="ja"><strong>18ステップ目で転倒</strong>（0.36 s）</span></td><td class="num">113 %</td></tr>
+            <tr><td>PPO seed 0</td><td><span lang="en">survives 500 steps</span><span lang="ja">500ステップ維持</span></td><td class="num">52 %</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">Both findings in one experiment: the learned policy is worse than the model-based one at
+      <p class="prose" lang="en">Both findings in one experiment: the learned policy is worse than the model-based one at
         the median, <em>and</em> the spread across seeds is enormous — critical θ̇₀ is 2.004 rad/s for seed 0 and
         0.831 rad/s for seed 2, from identical hyperparameters and an identical step budget. All three score
         500.0 on the nominal task and are indistinguishable by return.</p>
-      <p class="prose"><code>--zero-init</code> matters. Without it the random ±0.05 initialisation is still
+      <p class="prose" lang="ja">1つの実験で2つの結果が見えます。学習したpolicyは中央値でモデルベースの制御器より劣り、<em>しかも</em>seed間のばらつきが非常に大きいことです。
+        ハイパーパラメータもステップ予算も同一なのに、臨界θ̇₀はseed 0で2.004 rad/s、seed 2で0.831 rad/sです。3つとも公称タスクでは500.0を出し、returnでは区別できません。</p>
+      <p class="prose" lang="en"><code>--zero-init</code> matters. Without it the random ±0.05 initialisation is still
         present, and a negative θ₀ paired with a positive θ̇₀ is the pole rotating <em>back towards</em> upright —
         easier, not harder. Every basin number is bisected from the origin, so reproducing them needs the flag.
         And <code>baseline_seed0</code> is the best of the sixteen, not a typical one; it is the default
         checkpoint only because it is the first.</p>
+      <p class="prose" lang="ja"><code>--zero-init</code>は重要です。これがないと±0.05のランダム初期化が残り、負のθ₀と正のθ̇₀の組み合わせではポールが倒立方向へ<em>戻る</em>回転になるため、
+        難しくなるどころか易しくなります。basinの数値はすべて原点から二分探索したものなので、再現にはこのフラグが必要です。
+        また<code>baseline_seed0</code>は16個の中で最良のものであり、典型例ではありません。デフォルトのcheckpointになっているのは、単に最初の1つだからです。</p>
     </div>
   </div>
 </section>
 
 <section id="continuous">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Step 6 — continuous actions on MuJoCo</h2><p class="sec-sub">The same algorithm on continuous actions and MuJoCo physics, and the saturation problem that exposed.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Step 6 — continuous actions on MuJoCo</span><span lang="ja">Step 6 — MuJoCo上の連続action</span></h2><p class="sec-sub" lang="en">The same algorithm on continuous actions and MuJoCo physics, and the saturation problem that exposed.</p><p class="sec-sub" lang="ja">同じアルゴリズムを連続actionとMuJoCoの物理で動かした結果と、そこで露呈した飽和の問題。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>Two things change from steps 1–5 at once — the physics engine and the action space — so both are
+      <p lang="en">Two things change from steps 1–5 at once — the physics engine and the action space — so both are
         pinned down separately before anything is concluded.</p>
-      <h3>The plant is identical, verified to 1.4e−14</h3>
-      <p><code>cartpole_mj.xml</code> sets the inertias by hand rather than letting MuJoCo derive them from a
+      <p lang="ja">step 1–5から物理エンジンとaction空間の2つが同時に変わるため、結論を出す前にそれぞれを個別に確定させます。</p>
+      <h3><span lang="en">The plant is identical, verified to 1.4e−14</span><span lang="ja">プラントは同一 — 1.4e−14で検証</span></h3>
+      <p lang="en"><code>cartpole_mj.xml</code> sets the inertias by hand rather than letting MuJoCo derive them from a
         geometry primitive. A capsule adds hemispherical caps and a cylinder adds a <code>3r²/12</code> term; the
         <code>4/3</code> in the numpy plant is exactly the uniform-thin-rod assumption. Deriving inertia from the
         geometry would have made the two plants <em>nearly</em> the same object, which is the worst possible
         state to be in.</p>
-      <p>Check V1 compares MuJoCo's <code>qacc</code> against the numpy accelerations over 5000 random states:
+      <p lang="ja"><code>cartpole_mj.xml</code>では、MuJoCoに形状プリミティブから慣性を導出させず、手で設定しています。capsuleなら半球の端部が加わり、
+        cylinderなら<code>3r²/12</code>の項が加わりますが、numpy版プラントの<code>4/3</code>はまさに一様な細い棒の仮定です。
+        形状から慣性を導出すると2つのプラントは<em>ほぼ</em>同じものになってしまい、それが考えうる最悪の状態です。</p>
+      <p lang="en">Check V1 compares MuJoCo's <code>qacc</code> against the numpy accelerations over 5000 random states:
         max absolute difference <strong>1.42e−14</strong>. The two simulators describe the same rigid body.
         Anything that differs from here on is the integrator or the action space, and cannot be blamed on the
         model.</p>
+      <p lang="ja">検証V1では、ランダムな5000状態についてMuJoCoの<code>qacc</code>をnumpyの加速度と比較し、最大絶対差は<strong>1.42e−14</strong>でした。
+        2つのシミュレータは同じ剛体を記述しています。ここから先に生じる差は積分器かaction空間によるもので、モデルのせいにはできません。</p>
     </div>
 
     <div class="stack">
-      <h3>The integrator is different, and that is not reconcilable</h3>
+      <h3><span lang="en">The integrator is different, and that is not reconcilable</span><span lang="ja">積分器は異なり、それは揃えられない</span></h3>
       <div class="prose stack">
-        <p>MuJoCo's Euler is semi-implicit: velocity first, then position advanced with the <em>new</em> velocity.
+        <p lang="en">MuJoCo's Euler is semi-implicit: velocity first, then position advanced with the <em>new</em> velocity.
           The numpy plant uses the explicit ordering because that is what the reference cart-pole does.</p>
+        <p lang="ja">MuJoCoのEuler法は半陰的で、先に速度を更新し、その<em>新しい</em>速度で位置を進めます。numpy版プラントは陽的な順序を使っています。
+          参照実装のcart-poleがそうしているからです。</p>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Energy drift, zero control, θ₀ = 0.5 rad</th><th class="num">at 50 steps</th><th class="num">at 500 steps</th></tr></thead>
+          <thead><tr><th><span lang="en">Energy drift, zero control, θ₀ = 0.5 rad</span><span lang="ja">エネルギードリフト（制御なし、θ₀ = 0.5 rad）</span></th><th class="num"><span lang="en">at 50 steps</span><span lang="ja">50ステップ</span></th><th class="num"><span lang="en">at 500 steps</span><span lang="ja">500ステップ</span></th></tr></thead>
           <tbody>
-            <tr><td>MuJoCo semi-implicit</td><td class="num">+6.69 %</td><td class="num"><strong>+9.85 %</strong></td></tr>
-            <tr><td>explicit Euler (step 1)</td><td class="num"><strong>+0.43 %</strong></td><td class="num">+145.0 %</td></tr>
+            <tr><td><span lang="en">MuJoCo semi-implicit</span><span lang="ja">MuJoCo（半陰的）</span></td><td class="num">+6.69 %</td><td class="num"><strong>+9.85 %</strong></td></tr>
+            <tr><td><span lang="en">explicit Euler (step 1)</span><span lang="ja">陽的Euler法（step 1）</span></td><td class="num"><strong>+0.43 %</strong></td><td class="num">+145.0 %</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">Semi-implicit Euler is worse in the short run and dramatically better in the long run: its
+      <p class="prose" lang="en">Semi-implicit Euler is worse in the short run and dramatically better in the long run: its
         energy error oscillates with bounded amplitude, while the explicit version's grows without bound. Neither
         is "the correct plant" — they are two discretisations of the same continuous system, which is why step 6
         gets its own baseline instead of borrowing step 4's numbers. One-step gap between them: median
         |Δθ| 5.84e−3 rad, 3.35 % of the failure angle.</p>
+      <p class="prose" lang="ja">半陰的Euler法は短期的には劣り、長期的には圧倒的に優れています。エネルギー誤差は有界な振幅で振動するのに対し、陽的版の誤差は際限なく増えます。
+        どちらも「正しいプラント」ではなく、同じ連続系の2通りの離散化です。だからこそstep 6はstep 4の数値を借りず、独自のbaselineを持ちます。
+        両者の1ステップあたりの差は、|Δθ|の中央値で5.84e−3 rad、失敗角度の3.35 %です。</p>
     </div>
 
     <div class="stack">
-      <h3>The step-2 gain transfers unchanged — the smallest honest sim-to-real argument here</h3>
+      <h3><span lang="en">The step-2 gain transfers unchanged — the smallest honest sim-to-real argument here</span><span lang="ja">step 2のゲインはそのまま移植できる — このページで最小かつ正直なsim-to-realの論拠</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Step-2 gain K applied to the MuJoCo plant</th><th class="num">Mean return, 100 episodes</th></tr></thead>
+          <thead><tr><th><span lang="en">Step-2 gain K applied to the MuJoCo plant</span><span lang="ja">step 2のゲインKをMuJoCoプラントに適用</span></th><th class="num"><span lang="en">Mean return, 100 episodes</span><span lang="ja">平均return（100 episode）</span></th></tr></thead>
           <tbody>
-            <tr class="hl"><td>bang-bang, sign only, ±10 N</td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
-            <tr class="hl"><td>continuous, clipped to ±10 N</td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
+            <tr class="hl"><td><span lang="en">bang-bang, sign only, ±10 N</span><span lang="ja">bang-bang（符号のみ、±10 N）</span></td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
+            <tr class="hl"><td><span lang="en">continuous, clipped to ±10 N</span><span lang="ja">連続値（±10 Nでclip）</span></td><td class="num"><strong>500.0</strong> (min 500)</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">The gain was computed against the numpy plant, in step 2, before this file existed. A
+      <p class="prose" lang="en">The gain was computed against the numpy plant, in step 2, before this file existed. A
         model-based design survived being moved to a different integrator at zero cost, because it depends on the
         plant and not on the discretisation. That is the one thing the learned policy in step 4 was never asked
         to do.</p>
+      <p class="prose" lang="ja">このゲインは、このファイルが存在する前のstep 2でnumpy版プラントに対して計算したものです。モデルベースの設計は、
+        別の積分器に移してもコストゼロでそのまま機能しました。依存しているのがプラントであって離散化ではないからです。
+        これこそ、step 4の学習したpolicyには一度も求められなかったことです。</p>
     </div>
-
     <div class="stack prose">
-      <h3>The Gaussian policy, and a bias that is reported rather than hidden</h3>
-      <p>Only the head changes: <code>Categorical(logits)</code> becomes <code>Normal(μ(s), exp(log σ))</code>
+      <h3><span lang="en">The Gaussian policy, and a bias that is reported rather than hidden</span><span lang="ja">Gaussian policyと、隠さずに報告するバイアス</span></h3>
+      <p lang="en">Only the head changes: <code>Categorical(logits)</code> becomes <code>Normal(μ(s), exp(log σ))</code>
         with <code>log σ</code> a free parameter, log-probability summed over action dimensions, and Gaussian
         differential entropy. The entropy coefficient defaults to <strong>0.0</strong> here against 0.01 in the
         discrete version, because Gaussian differential entropy is unbounded below and can go negative, so an
         entropy bonus pushes σ up with no floor — the same coefficient does not mean the same thing in the two
         files.</p>
+      <p lang="ja">変わるのは出力層（head）だけです。<code>Categorical(logits)</code>が<code>Normal(μ(s), exp(log σ))</code>になり、<code>log σ</code>は自由パラメータ、
+        対数確率はaction次元で総和を取り、エントロピーはGaussianの微分エントロピーを使います。エントロピー係数のデフォルトは離散版の0.01に対しここでは<strong>0.0</strong>です。
+        Gaussianの微分エントロピーは下に有界でなく負にもなりうるため、エントロピーボーナスはσを下限なしに押し上げてしまうからです。
+        同じ係数でも、2つのファイルでは意味が異なります。</p>
       <div class="note warnbox">
-        <span class="note-label">Action clipping is biased, and the size of the bias is measured</span>
-        <p>The Gaussian has support on all of ℝ; the actuator saturates at ±1. The action is clipped at the
+        <span class="note-label"><span lang="en">Action clipping is biased, and the size of the bias is measured</span><span lang="ja">actionのclipにはバイアスがあり、その大きさを計測</span></span>
+        <p lang="en">The Gaussian has support on all of ℝ; the actuator saturates at ±1. The action is clipped at the
           environment boundary while the log-probability is computed on the <em>unclipped</em> sample, so every
           out-of-range sample is credited with a density it did not act under. The honest alternatives are a
           tanh-squashed policy with the change-of-variables correction, or a Beta policy on the bounded interval;
           neither is used. Instead every run reports its saturation fraction, so the size of the problem is
           visible in the results table.</p>
+        <p lang="ja">Gaussianの台はℝ全体ですが、アクチュエータは±1で飽和します。actionは環境の境界でclipされる一方、対数確率は<em>clip前</em>のサンプルで計算されるため、
+          範囲外のサンプルはすべて、実際には作用していない確率密度で評価されます。正しい代替策は、変数変換の補正付きのtanh-squashed policyか、有界区間上のBeta policyですが、
+          どちらも使っていません。代わりに各runで飽和率を報告し、問題の大きさが結果表で見えるようにしています。</p>
       </div>
-      <p>The search table makes the case for why initialising σ matters on a bounded action space. At
+      <p lang="en">The search table makes the case for why initialising σ matters on a bounded action space. At
         <code>init_log_std = 0</code>, σ = 1 on a ±1 action range means <strong>37 % of sampled actions are
         outside the actuator range</strong> — the policy spends most of its probability mass on actions the plant
         cannot execute, and it costs roughly 50 % more environment steps. The adopted setting, −1.0, ends at
         σ = 0.133 with 0.5 % saturation.</p>
+      <p lang="ja">探索結果の表は、有界なaction空間でσの初期化が重要である理由を示しています。<code>init_log_std = 0</code>では±1のaction範囲に対してσ = 1となり、
+        <strong>サンプルしたactionの37 %がアクチュエータの範囲外</strong>になります。policyは確率質量の大半をプラントが実行できないactionに費やし、
+        環境ステップが約50 %余分にかかります。採用した設定−1.0では、最終的にσ = 0.133、飽和率0.5 %です。</p>
     </div>
 
     <div class="stack">
-      <h3>Seed study and ablations, continuous</h3>
+      <h3><span lang="en">Seed study and ablations, continuous</span><span lang="ja">連続版のseed studyとablation</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th></th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">IQR</th><th class="num">Greedy eval</th></tr></thead>
+          <thead><tr><th></th><th class="num"><span lang="en">Solved</span><span lang="ja">達成</span></th><th class="num"><span lang="en">Steps median</span><span lang="ja">ステップ数中央値</span></th><th class="num">IQR</th><th class="num"><span lang="en">Greedy eval</span><span lang="ja">greedy評価</span></th></tr></thead>
           <tbody>
-            <tr><td>discrete, <code>ppo.py</code> (step 4)</td><td class="num">16/16</td><td class="num">62 144</td><td class="num">[60 442, 63 448]</td><td class="num">500.0</td></tr>
-            <tr class="hl"><td><strong>continuous, <code>ppo_continuous.py</code></strong></td><td class="num">16/16</td><td class="num"><strong>63 748</strong></td><td class="num">[62 008, 65 636]</td><td class="num">500.0</td></tr>
+            <tr><td><span lang="en">discrete, <code>ppo.py</code> (step 4)</span><span lang="ja">離散、<code>ppo.py</code>（step 4）</span></td><td class="num">16/16</td><td class="num">62 144</td><td class="num">[60 442, 63 448]</td><td class="num">500.0</td></tr>
+            <tr class="hl"><td><strong><span lang="en">continuous, <code>ppo_continuous.py</code></span><span lang="ja">連続、<code>ppo_continuous.py</code></span></strong></td><td class="num">16/16</td><td class="num"><strong>63 748</strong></td><td class="num">[62 008, 65 636]</td><td class="num">500.0</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose">Moving from two discrete actions to a one-dimensional Gaussian costs 2.6 % of the sample
+      <p class="prose" lang="en">Moving from two discrete actions to a one-dimensional Gaussian costs 2.6 % of the sample
         budget on this task, and the interquartile ranges overlap. That is smaller than expected, and it is not
         evidence that continuous control is free in general — it is evidence that on a plant this small, with the
         action range matched to the force the discrete policy was already applying, the extra difficulty of
         learning a mean <em>and</em> a standard deviation is nearly paid for by the finer control authority.</p>
+      <p class="prose" lang="ja">2つの離散actionから1次元のGaussianに移ると、このタスクではサンプル予算が2.6 %増え、四分位範囲は重なります。予想より小さな差ですが、
+        連続制御が一般にコストなしである証拠ではありません。これほど小さなプラントで、action範囲を離散policyが既に加えていた力に合わせた場合には、
+        平均<em>と</em>標準偏差の両方を学習する難しさが、より細かな制御能力でほぼ相殺される、という証拠にすぎません。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Ablation</th><th class="num">Solved</th><th class="num">Steps median</th><th class="num">vs baseline</th><th class="num">p</th><th class="num">Final σ</th><th class="num">Saturation</th></tr></thead>
+          <thead><tr><th>Ablation</th><th class="num"><span lang="en">Solved</span><span lang="ja">達成</span></th><th class="num"><span lang="en">Steps median</span><span lang="ja">ステップ数中央値</span></th><th class="num"><span lang="en">vs baseline</span><span lang="ja">対baseline</span></th><th class="num">p</th><th class="num"><span lang="en">Final σ</span><span lang="ja">最終σ</span></th><th class="num"><span lang="en">Saturation</span><span lang="ja">飽和率</span></th></tr></thead>
           <tbody>
             <tr><td>baseline</td><td class="num">16/16</td><td class="num">63 748</td><td class="num">1.00×</td><td class="num">—</td><td class="num">0.136</td><td class="num">0.5 %</td></tr>
-            <tr><td>no advantage normalisation</td><td class="num">16/16</td><td class="num">64 664</td><td class="num">1.01×</td><td class="num">0.73</td><td class="num">0.144</td><td class="num">0.1 %</td></tr>
-            <tr><td>no GAE (λ = 1)</td><td class="num">16/16</td><td class="num">71 760</td><td class="num">1.13×</td><td class="num">0.0032</td><td class="num">0.218</td><td class="num">0.8 %</td></tr>
-            <tr class="bad"><td><strong>no ratio clipping</strong></td><td class="num"><strong>0/16</strong></td><td class="num"><strong>&gt;150 000</strong></td><td class="num">2.35×</td><td class="num">0.0008</td><td class="num">0.088</td><td class="num"><strong>28.2 %</strong></td></tr>
+            <tr><td><span lang="en">no advantage normalisation</span><span lang="ja">advantage正規化なし</span></td><td class="num">16/16</td><td class="num">64 664</td><td class="num">1.01×</td><td class="num">0.73</td><td class="num">0.144</td><td class="num">0.1 %</td></tr>
+            <tr><td><span lang="en">no GAE (λ = 1)</span><span lang="ja">GAEなし（λ = 1）</span></td><td class="num">16/16</td><td class="num">71 760</td><td class="num">1.13×</td><td class="num">0.0032</td><td class="num">0.218</td><td class="num">0.8 %</td></tr>
+            <tr class="bad"><td><strong><span lang="en">no ratio clipping</span><span lang="ja">ratio clipなし</span></strong></td><td class="num"><strong>0/16</strong></td><td class="num"><strong>&gt;150 000</strong></td><td class="num">2.35×</td><td class="num">0.0008</td><td class="num">0.088</td><td class="num"><strong>28.2 %</strong></td></tr>
           </tbody>
         </table>
       </div>
       <div class="note key">
-        <span class="note-label">The ordering survives; the magnitude of the top effect does not</span>
-        <p>Without clipping the discrete policy still gets half its seeds to threshold. The Gaussian policy gets
+        <span class="note-label"><span lang="en">The ordering survives; the magnitude of the top effect does not</span><span lang="ja">順位は維持され、最大の効果の大きさは維持されない</span></span>
+        <p lang="en">Without clipping the discrete policy still gets half its seeds to threshold. The Gaussian policy gets
           <strong>none</strong>. The mechanism is visible in the two right-hand columns: <code>no_clip</code> ends
           with the <em>smallest</em> σ of any configuration (0.088) and by far the <em>largest</em> saturation
           (28.2 %, up to 80.6 % on the worst seed). A Gaussian with σ = 0.088 only puts 28 % of its mass outside
@@ -1010,19 +987,27 @@ python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-
           epochs on that batch reinforce a policy that is already off the plant's control range. A categorical
           ratio cannot do this — it is bounded by <code>1/π_old(a)</code> on a two-element support, and the worst
           it can do is become deterministic between two executable actions.</p>
-        <p><strong>So the conclusion is narrower than "clipping matters more in continuous control". It is: on an
+        <p lang="ja">clipがなくても、離散policyではseedの半数が閾値に到達します。Gaussian policyでは<strong>1つも</strong>到達しません。
+          その仕組みは右側の2列に表れています。<code>no_clip</code>は全設定の中で最終σが<em>最も小さく</em>（0.088）、飽和率は群を抜いて<em>最も大きい</em>
+          （28.2 %、最悪seedでは80.6 %）です。σ = 0.088のGaussianが質量の28 %を[−1, 1]の外に置くのは、平均が約±0.95にある場合だけです。
+          つまり平均がアクチュエータの上限に張り付き、その周りで標準偏差がつぶれています。連続の確率密度ではimportance ratioに上限がないため、
+          都合の良いミニバッチが1つあれば平均は勾配の向きにどこまでも動き、そのバッチでの残り9 epochが、既にプラントの制御範囲外にあるpolicyをさらに強化します。
+          categoricalのratioではこれは起こりません。2要素の台では<code>1/π_old(a)</code>で上限があり、最悪でも実行可能な2つのactionの間で決定的になるだけです。</p>
+        <p lang="en"><strong>So the conclusion is narrower than "clipping matters more in continuous control". It is: on an
           action space where the policy can place mass outside the actuator range, removing the clip is not a
           slowdown, it is a failure mode.</strong></p>
+        <p lang="ja"><strong>したがって結論は「連続制御ではclipがより重要」よりも限定的です。policyがアクチュエータの範囲外に確率質量を置けるaction空間では、
+          clipを外すことは学習の遅れではなく、失敗モードになる、ということです。</strong></p>
       </div>
     </div>
   </div>
 </section>
 
 <section id="limits">
-  <div class="sec-head"><span class="sec-num">10</span><h2>What this does not prove, and one process failure</h2><p class="sec-sub">The limits of the comparison, plus one mistake in the process worth recording.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">What this does not prove, and one process failure</span><span lang="ja">この結果が証明しないことと、1つのプロセス上の失敗</span></h2><p class="sec-sub" lang="en">The limits of the comparison, plus one mistake in the process worth recording.</p><p class="sec-sub" lang="ja">比較の限界と、記録しておくべきプロセス上の誤り。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <ul class="tight">
+      <ul class="tight" lang="en">
         <li><strong>No real exploration problem.</strong> Cart-pole rewards every timestep and a random policy
           already scores 22. The ablation ordering would very likely change on a sparse-reward task.</li>
         <li><strong>The ablations are one-at-a-time.</strong> Interactions were not measured.</li>
@@ -1037,21 +1022,38 @@ python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-
           are the same, so it tests whether the conclusion is an artefact of the categorical head — not whether
           it holds anywhere else.</li>
       </ul>
+      <ul class="tight" lang="ja">
+        <li><strong>本当の意味での探索問題がない。</strong>cart-poleは毎タイムステップrewardを与え、ランダムpolicyでも既に22点を取ります。
+          sparse rewardのタスクでは、ablationの順位はおそらく変わります。</li>
+        <li><strong>ablationは1つずつ。</strong>要素間の相互作用は計測していません。</li>
+        <li><strong>ハイパーパラメータ設定は1つ</strong>で、4 seed・8候補から探索したものです。別の設定ではablationの大きさが変わる可能性があります。
+          ただしclipの結果は十分に大きいため、逆転する可能性は低いと考えます。</li>
+        <li><strong><code>no_clip</code>の失敗は<em>この</em>学習率とepoch数で計測したもの。</strong>clipが重要なのは10 epochだからで、1 epochなら影響はずっと小さくなります。</li>
+        <li><strong>basinの比較はgreedy policyで行っている。</strong>学習中に使う確率的policyのbasinは別物で、より狭くなります。</li>
+        <li><strong>step 6で変わるのはaction空間であり、タスクではない。</strong>プラント、reward、ホライズンは同じなので、
+          検証しているのは結論がcategorical headによる見かけの効果かどうかであって、他の条件でも成り立つかどうかではありません。</li>
+      </ul>
     </div>
 
     <div class="stack">
-      <h3>Box etiquette, and the time the guard failed</h3>
+      <h3><span lang="en">Box etiquette, and the time the guard failed</span><span lang="ja">マシン共有のルールと、ガードが機能しなかった件</span></h3>
       <div class="prose stack">
-        <p>This machine shares eight threads with a higher-priority detection-training job. Every entry point
+        <p lang="en">This machine shares eight threads with a higher-priority detection-training job. Every entry point
           that starts training calls <code>boxcheck.require_quiet_box()</code> and refuses above a 1-minute load
           average of 4.0.</p>
-        <p>That guard originally lived only in <code>study.py</code>, and it did not help. The step-6
+        <p lang="ja">このマシンの8スレッドは、優先度の高い物体検出の学習ジョブと共有しています。学習を開始するエントリポイントはすべて
+          <code>boxcheck.require_quiet_box()</code>を呼び、1分間のload averageが4.0を超えていれば開始を拒否します。</p>
+        <p lang="en">That guard originally lived only in <code>study.py</code>, and it did not help. The step-6
           hyperparameter sweep was launched from a bare shell loop, which never called <code>study.py</code>, and
           it ran straight through a training job using 770 % CPU. <strong>A guard on the front door is not a
           guard</strong>, so it now lives in its own module and is called by every training entry point alike,
           and it prints the offending process.</p>
-        <p>The consequences are stated rather than buried:</p>
-        <ul class="tight">
+        <p lang="ja">当初このガードは<code>study.py</code>の中にしかなく、役に立ちませんでした。step 6のハイパーパラメータスイープは素のシェルループから起動したため
+          <code>study.py</code>を一度も通らず、CPU 770 %を使う学習ジョブの最中にそのまま走ってしまいました。<strong>正面玄関だけのガードはガードではありません。</strong>
+          そのため現在は独立したモジュールにして、学習のエントリポイントすべてから同じように呼び、原因のプロセスを表示するようにしています。</p>
+        <p lang="en">The consequences are stated rather than buried:</p>
+        <p lang="ja">影響は伏せずに明記します。</p>
+        <ul class="tight" lang="en">
           <li>The step-6 search wall-clock numbers are contaminated and are not reported. The <em>learning</em>
             outcomes are not: runs are seeded and single-threaded, and two identical configurations submitted
             under different tags during that window returned bitwise-identical steps-to-threshold — which is the
@@ -1063,13 +1065,20 @@ python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-
           <li>Steps 1–5 are clean. The 64-run study finished six minutes before the detection job started, and
             the guard passed at launch.</li>
         </ul>
+        <ul class="tight" lang="ja">
+          <li>step 6の探索の実時間の数値は汚染されているため報告していません。<em>学習</em>結果は汚染されていません。runはseed固定かつシングルスレッドで、
+            その時間帯に別タグで投入した同一設定2つが、ビット単位まで同一の閾値到達ステップ数を返しました。競合で変わったのは時間だけで、それ以外は何も変わっていない証拠です。</li>
+          <li>負荷下で計測したthroughputは再計測で誤りと判明しました。競合時73 962 steps/s、静かな状態で145 458 steps/sで、1.97×の差です。
+            したがってMuJoCoはnumpy環境より、最初に記録した5×ではなく2.6×遅いだけです。<strong>throughputの数値は、計測時のload averageとセットでなければ意味がありません。</strong></li>
+          <li>step 1–5は汚染されていません。64回のstudyは物体検出ジョブ開始の6分前に終わっており、起動時にガードも通過しています。</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定実行時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/ppo-from-scratch.git
 cd ppo-from-scratch
@@ -1087,20 +1096,24 @@ python study.py --family continuous --mode ablations --out runs_c   # ~7 min
 python visualize.py --controller lqr                 # MuJoCo viewer
 python visualize.py --controller lqr --record out/frames   # offscreen, no window</code></pre>
     <div class="prose stack">
-      <p><code>numpy</code> and CPU <code>torch</code> are the only hard dependencies. <code>mujoco</code> is
+      <p lang="en"><code>numpy</code> and CPU <code>torch</code> are the only hard dependencies. <code>mujoco</code> is
         imported lazily and is needed only by the step-6 environment and the visualiser — the cart-pole plant
         itself is numpy, so every number in the repository reproduces without a physics engine installed at all.</p>
-      <p><code>visualize.py</code> opens a window, so it needs a rendering backend: set <code>MUJOCO_GL</code> to
+      <p lang="ja">必須の依存は<code>numpy</code>とCPU版<code>torch</code>だけです。<code>mujoco</code>は遅延importで、必要なのはstep 6の環境と可視化ツールだけです。
+        cart-poleのプラント自体はnumpyなので、リポジトリ内のすべての数値は物理エンジンをまったくインストールせずに再現できます。</p>
+      <p lang="en"><code>visualize.py</code> opens a window, so it needs a rendering backend: set <code>MUJOCO_GL</code> to
         whatever your machine has (<code>glfw</code>, <code>egl</code>, <code>osmesa</code>).
         <code>--record</code> writes frames offscreen and needs no window.</p>
+      <p lang="ja"><code>visualize.py</code>はウィンドウを開くため、描画バックエンドが必要です。<code>MUJOCO_GL</code>をマシンで使えるもの
+        （<code>glfw</code>、<code>egl</code>、<code>osmesa</code>）に設定してください。<code>--record</code>はオフスクリーンでフレームを書き出すため、ウィンドウは不要です。</p>
     </div>
   </div>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">12</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The whole project compressed into one paragraph.</p><p class="sec-sub" lang="ja">プロジェクト全体を1段落に凝縮。</p></div>
   <div class="stack prose">
-    <p>A cart-pole environment hand-written from the 1983 equations and verified thirteen ways — including
+    <p lang="en">A cart-pole environment hand-written from the 1983 equations and verified thirteen ways — including
       against an independent solve of the Lagrangian (2.6e−15) and a closed-form divergence rate derivable on
       paper (3.4e−11). An LQR baseline built by linearising, discretising exactly, and iterating the Riccati
       recursion by hand, converging in 866 sweeps against a theory prediction of 923, scoring a perfect 500.0
@@ -1113,6 +1126,13 @@ python visualize.py --controller lqr --record out/frames   # offscreen, no windo
       velocity that LQR does, at identical nominal score. A stretch step repeats it with a Gaussian policy on a
       MuJoCo plant proved identical to 1.4e−14, where removing the clip stops being a slowdown and becomes a
       0/16 failure mode. No reward curve appears anywhere in the repository.</p>
+    <p lang="ja">1983年の式から自作し、13通りの方法で検証したcart-pole環境。検証にはLagrangianの独立解との照合（2.6e−15）と、紙の上で導出できる閉形式の発散率との照合（3.4e−11）を含みます。
+      線形化、厳密な離散化、Riccati漸化式の手動反復で構築したLQR baselineは、理論予測923回に対して866回で収束し、サンプルコストゼロで満点の500.0を出します。
+      続いてPPOをゼロから実装し（gymnasium、stable-baselines3、cleanrlは不使用）、16/16 seedで62 144環境ステップをかけてbaselineに並びました。
+      16 seedのablationと並べ替え検定から、支配的な要素はratio clipだけであり（2.34×、clipなしでは8/16のみ達成）、GAEの効果は11 %、advantage正規化は5 %水準で判別できないことが分かりました。
+      returnは飽和して一定以上の制御器に順位を付けられないため、実際の比較はbasin of attractionで行いました。公称スコアは同じでも、PPOが復帰できる外乱はLQRに比べ角速度で約半分、台車速度で約3分の1です。
+      発展ステップとして、1.4e−14の精度で同一と証明したMuJoCoプラント上でGaussian policyを用いて同じ比較を繰り返し、そこではclipを外すことが学習の遅れではなく0/16の失敗モードになりました。
+      リポジトリにはreward曲線が1本もありません。</p>
   </div>
 </section>
 
@@ -1120,46 +1140,16 @@ python visualize.py --controller lqr --record out/frames   # offscreen, no windo
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>ppo-from-scratch</code> — <code>README.md</code>, <code>cartpole.py</code>,
+  <p lang="en">Built from the source in <code>ppo-from-scratch</code> — <code>README.md</code>, <code>cartpole.py</code>,
   <code>verify_env.py</code>, <code>lqr.py</code>, <code>ppo.py</code>, <code>ppo_continuous.py</code>,
   <code>mj_cartpole.py</code>, <code>study.py</code>, <code>compare.py</code>, <code>visualize.py</code> and
-  <code>boxcheck.py</code>.
+  <code>boxcheck.py</code>.</p>
+  <p lang="ja"><code>ppo-from-scratch</code>のソース（<code>README.md</code>、<code>cartpole.py</code>、
+  <code>verify_env.py</code>、<code>lqr.py</code>、<code>ppo.py</code>、<code>ppo_continuous.py</code>、
+  <code>mj_cartpole.py</code>、<code>study.py</code>、<code>compare.py</code>、<code>visualize.py</code>、
+  <code>boxcheck.py</code>）をもとに作成しました。</p>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#96605f" data-title-ja="SO-ARM100：1本のアーム、3通りの学習 — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,236 +12,40 @@
 <meta property="og:title" content="One Arm, Three Ways to Learn It">
 <meta property="og:description" content="A simulated SO-ARM100 learned three ways on one shared bench: reinforcement learning, imitation, and a language-conditioned policy. Four repositories, 129 tests, every table filled by a script: ACT lifts 0.77 where single-step cloning lifts 0.05.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2396605f'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#faf7f6;
-  --paper2:#f3ebea;
-  --ink:#1f1817;
-  --ink2:#4a3f3e;
-  --muted:#7d6e6d;
-  --line:#eadfde;
-  --line2:#d9c9c7;
-  --accent:#96605f;
-  --accent-deep:#74484a;
-  --accent-soft:#f9f1f0;
-  --accent-line:#dfc0bd;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--bad)}
-.note p{font-size:.95rem}
-.steps{display:flex;flex-wrap:wrap;margin-block:4px}
-.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
-.stepbox + .stepbox{border-left:0}
-.stepbox.todo{background:var(--paper)}
-.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.stepbox.todo .sn{color:var(--muted)}
-.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
-.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
-.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
-  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
-.stepbox.todo .sr{color:var(--muted);font-weight:400}
-@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fdfaf9}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-.obsbar{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
-.obsseg{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px;flex:1 1 130px}
-.obsseg .od{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--accent);line-height:1}
-.obsseg .on{font-family:var(--disp);font-size:.85rem;font-weight:600}
-.obsseg .os{font-size:.78rem;color:var(--muted);line-height:1.35}
-.obsseg.drop{background:var(--paper)}
-.obsseg.drop .od{color:var(--bad);text-decoration:line-through}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#be9c9c;
-  --accent-soft:#252023;
-  --accent-deep:#cab0af;
-  --accent-line:#523a3b;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/so-arm100-sim" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/so-arm100-sim" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">CPU-only robot-learning track · four repositories · <code style="background:none;padding:0;color:inherit">so-arm100-sim</code> · <code style="background:none;padding:0;color:inherit">so-arm100-rl</code> · <code style="background:none;padding:0;color:inherit">so-arm100-il</code> · <code style="background:none;padding:0;color:inherit">so-arm100-vla</code></div>
-    <h1>One Arm, Three Ways to Learn It</h1>
-    <p class="deck">The SO-ARM100 is the low-cost 5-DOF arm behind most of the open LeRobot datasets. This is
+    <div class="eyebrow"><span lang="en">CPU-only robot-learning track · four repositories</span><span lang="ja">Robot learning（CPUのみ）· 4リポジトリ</span> · <code style="background:none;padding:0;color:inherit">so-arm100-sim</code> · <code style="background:none;padding:0;color:inherit">so-arm100-rl</code> · <code style="background:none;padding:0;color:inherit">so-arm100-il</code> · <code style="background:none;padding:0;color:inherit">so-arm100-vla</code></div>
+    <h1><span lang="en">One Arm, Three Ways to Learn It</span><span lang="ja">1本のアームを、3通りの方法で学習させる</span></h1>
+    <p class="deck" lang="ja">SO-ARM100は、公開されているLeRobotデータセットの大半で使われている低価格な5自由度アームです。
+      本プロジェクトでは同じアームをMuJoCo上に置き、キューブへのリーチ・押し出し・持ち上げ・配置を3通りの方法で学習させました。
+      rewardからの強化学習、スクリプト化したデモンストレーターのimitation、そして指示文を読む小さなlanguage-conditioned policyです。
+      タスク、物理パラメータの変化、成功判定のプロトコルは共通のベンチ1つで定義しているため、3つの結果表を並べて比較できます。</p>
+    <p class="deck" lang="en">The SO-ARM100 is the low-cost 5-DOF arm behind most of the open LeRobot datasets. This is
       the same arm in MuJoCo, taught to reach, push, lift and place a cube three different ways: by
       reinforcement learning from a reward, by imitation of a scripted demonstrator, and by a small
       language-conditioned policy that reads the instruction. One shared bench defines the tasks, the
@@ -252,285 +56,340 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       <span class="chip">MiniLM + FiLM</span><span class="chip">held-out physics</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Status</dt><dd>CI green · bench, RL, imitation and language measured</dd></div>
-      <div class="fact"><dt>Tasks</dt><dd><em>4</em>, one success rule each</dd></div>
-      <div class="fact"><dt>Protocol</dt><dd>100 episodes × 5 seeds per cell</dd></div>
-      <div class="fact"><dt>Held-out physics</dt><dd>6 cells, each outside DR</dd></div>
-      <div class="fact"><dt>Tests</dt><dd>63 + 21 + 21 + 24 = <em>129</em></dd></div>
-      <div class="fact"><dt>Policy sizes</dt><dd>MLP · keypoint CNN · ~1M-param transformer</dd></div>
+      <div class="fact"><dt><span lang="en">Status</span><span lang="ja">状況</span></dt><dd><span lang="en">CI green · bench, RL, imitation and language measured</span><span lang="ja">CI green · ベンチ・RL・imitation・languageすべて計測済み</span></dd></div>
+      <div class="fact"><dt><span lang="en">Tasks</span><span lang="ja">タスク</span></dt><dd><em>4</em><span lang="en">, one success rule each</span><span lang="ja">（各1つの成功条件）</span></dd></div>
+      <div class="fact"><dt><span lang="en">Protocol</span><span lang="ja">評価プロトコル</span></dt><dd><span lang="en">100 episodes × 5 seeds per cell</span><span lang="ja">1セルあたり100 episode × 5 seed</span></dd></div>
+      <div class="fact"><dt><span lang="en">Held-out physics</span><span lang="ja">Held-out物理条件</span></dt><dd><span lang="en">6 cells, each outside DR</span><span lang="ja">6セル（すべてDR範囲外）</span></dd></div>
+      <div class="fact"><dt><span lang="en">Tests</span><span lang="ja">テスト数</span></dt><dd>63 + 21 + 21 + 24 = <em>129</em></dd></div>
+      <div class="fact"><dt><span lang="en">Policy sizes</span><span lang="ja">Policyの規模</span></dt><dd><span lang="en">MLP · keypoint CNN · ~1M-param transformer</span><span lang="ja">MLP · keypoint CNN · 約1Mパラメータのtransformer</span></dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#shared">One bench, three projects</a>
-    <a href="#files">Every file</a>
-    <a href="#bench">The bench</a>
-    <a href="#rl">Reinforcement learning</a>
-    <a href="#il">Imitation</a>
-    <a href="#vla">Language</a>
-    <a href="#measured">What is measured</a>
-    <a href="#limits">Limits</a>
-    <a href="#run">Running it</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#shared"><span lang="en">One bench, three projects</span><span lang="ja">共通ベンチと3プロジェクト</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">ファイル一覧</span></a>
+    <a href="#bench"><span lang="en">The bench</span><span lang="ja">ベンチ</span></a>
+    <a href="#rl"><span lang="en">Reinforcement learning</span><span lang="ja">強化学習</span></a>
+    <a href="#il"><span lang="en">Imitation</span><span lang="ja">模倣（imitation）</span></a>
+    <a href="#vla"><span lang="en">Language</span><span lang="ja">言語条件付け</span></a>
+    <a href="#measured"><span lang="en">What is measured</span><span lang="ja">計測済みの項目</span></a>
+    <a href="#limits"><span lang="en">Limits</span><span lang="ja">限界</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the arm is, what it is asked to do, and why the same task is solved three times.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What the arm is, what it is asked to do, and why the same task is solved three times.</p><p class="sec-sub" lang="ja">どんなアームか、何をさせるのか、そして同じタスクをなぜ3通りで解くのか。</p></div>
   <div class="stack prose">
-    <p>The SO-ARM100 is a 3D-printed arm with five joints and a parallel gripper, driven by hobby servos.
+    <p lang="en">The SO-ARM100 is a 3D-printed arm with five joints and a parallel gripper, driven by hobby servos.
       It costs a few hundred dollars and it is the arm most of the open LeRobot community data was recorded
       on, which makes it the natural target for a project about learning manipulation from data.</p>
-    <p>Here the arm lives in MuJoCo, a physics simulator, on a laptop with no graphics card. The
+    <p lang="ja">SO-ARM100は、5つの関節と平行グリッパーを持つ3Dプリント製のアームで、ホビー用サーボで駆動します。
+      価格は数百ドル程度で、LeRobotコミュニティの公開データの大半がこのアームで収録されています。
+      そのため、データからマニピュレーションを学習するプロジェクトの対象として自然な選択です。</p>
+    <p lang="en">Here the arm lives in MuJoCo, a physics simulator, on a laptop with no graphics card. The
       description comes from MuJoCo Menagerie, unchanged. On top of it sit a table, three coloured cubes,
       a target marker and three cameras. The policy's job is one of four things: hover the gripper over a
       cube, push it onto the marker, lift it clear of the table, or carry it to the marker and let go.</p>
-    <p>Three separate repositories learn those tasks in three different ways, and the point of running
+    <p lang="ja">ここではアームを物理シミュレーターのMuJoCo上で動かします。実行環境はGPUのないノートPCです。
+      モデル記述はMuJoCo Menagerieのものを無改変で使い、その上にテーブル、色の異なる3つのキューブ、目標マーカー、3台のカメラを配置しています。
+      Policyに課すタスクは4つのうちいずれかです。グリッパーをキューブの上に移動させる、キューブをマーカーまで押す、
+      テーブルから持ち上げる、マーカーまで運んで離す、の4つです。</p>
+    <p lang="en">Three separate repositories learn those tasks in three different ways, and the point of running
       all three on one bench is the comparison.</p>
+    <p lang="ja">3つの独立したリポジトリが、これらのタスクをそれぞれ異なる方法で学習します。
+      3つを同じベンチ上で動かす目的は、比較することにあります。</p>
     <div class="note key">
-      <span class="note-label">The three routes</span>
-      <p><strong>Reinforcement learning</strong> gets a reward signal and privileged information (the cube's
+      <span class="note-label"><span lang="en">The three routes</span><span lang="ja">3つのアプローチ</span></span>
+      <p lang="en"><strong>Reinforcement learning</strong> gets a reward signal and privileged information (the cube's
         true position) and has to discover the motion itself. <strong>Imitation learning</strong> gets a few
         hundred demonstrations from a scripted expert, a camera image and the arm's own joint readings, and
         copies. <strong>The language policy</strong> gets the same image and joints plus a sentence, and has
         to work out from the sentence which cube and which task is meant, including sentences and
         task-colour pairs it never saw in training.</p>
+      <p lang="ja"><strong>強化学習</strong>は、reward信号と特権情報（キューブの真の位置）を受け取り、動作を自力で見つけ出します。
+        <strong>Imitation learning</strong>は、スクリプト化したエキスパートによる数百件のデモンストレーション、カメラ画像、アーム自身の関節値を受け取り、それを真似します。
+        <strong>Language policy</strong>は、同じ画像と関節値に加えて1つの文を受け取り、どのキューブに対するどのタスクなのかを文から読み取る必要があります。
+        学習中に一度も見ていない文や、タスクと色の組み合わせも含みます。</p>
     </div>
-    <h3>Where things stand</h3>
-    <p>All four repositories are written, tested and green in continuous integration. The measurement
-      phase, in which every results table on this page gets its numbers from a named script on an idle
-      machine, has not started. Every table below says so explicitly. Nothing here is a claim about the
+    <h3><span lang="en">Where things stand</span><span lang="ja">現在の状況</span></h3>
+    <p lang="en">All four repositories are written, tested and green in continuous integration, and every
+      results table on this page carries numbers produced by a named script on an idle machine: the bench,
+      the imitation policies and the language policy at 100 episodes × 5 seeds, the RL policies on one
+      training seed. Where a table is thinner than that, it says so. Nothing here is a claim about the
       physical arm.</p>
+    <p lang="ja">4つのリポジトリはすべて実装・テスト済みで、CIもgreenです。
+      このページの結果表の数値はすべて、負荷のないマシン上で名前付きスクリプトを実行して得たものです。ベンチ、imitation policy、language policyは100 episodes × 5 seeds、RL policyは学習1 seedで計測しています。
+      それより薄い表には、その旨を明記しています。ここに書かれた内容は、実機アームについての主張ではありません。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>SO-ARM100</b><span>Standard Open Arm 100: a 5-DOF arm plus gripper from TheRobotStudio, driven by position-controlled servos. Version 1.3 of its MuJoCo model is used, from the Menagerie collection.</span></div>
-    <div class="gterm"><b>MJCF / MjSpec</b><span>MJCF is MuJoCo's XML model format. MjSpec is the programmatic editor for it, used here to attach the table, cubes, marker and cameras to the arm without editing the vendored file.</span></div>
-    <div class="gterm"><b>inverse kinematics</b><span>Given a target pose for the gripper, find joint angles that put it there. Solved iteratively with damped least squares; the scripted expert is built on it.</span></div>
-    <div class="gterm"><b>scripted expert</b><span>A hand-written controller that reads the cube's true position from the simulator and moves through IK waypoints. It produces demonstrations and reference success rates. It is not a controller a real arm could run.</span></div>
-    <div class="gterm"><b>domain randomisation (DR)</b><span>Sampling physics parameters (mass, friction, servo gain, latency) from a range at every reset, so a policy is not fitted to one exact model.</span></div>
-    <div class="gterm"><b>held-out physics</b><span>Fixed physics settings a trained policy is tested on, each outside the DR range. Success there is a transfer claim, not interpolation.</span></div>
-    <div class="gterm"><b>PPO</b><span>Proximal Policy Optimization, the standard on-policy RL algorithm: collect rollouts, estimate advantages, take clipped gradient steps so the policy does not move too far per update.</span></div>
-    <div class="gterm"><b>curriculum</b><span>Training on an easier task first and promoting to a harder one once a success threshold is reached, keeping the network weights across the switch.</span></div>
-    <div class="gterm"><b>behaviour cloning (BC)</b><span>Supervised learning from demonstrations: given what the expert saw, predict what the expert did.</span></div>
-    <div class="gterm"><b>DAgger</b><span>Dataset Aggregation. Let the learner drive, ask the expert what it would have done at the states the learner reached, add those labels, retrain. Fixes the drift BC suffers when it leaves the demonstrated states.</span></div>
-    <div class="gterm"><b>ACT / action chunking</b><span>Action Chunking with Transformers: predict a chunk of future actions per forward pass instead of one, and blend overlapping chunks at run time. Used here without the variational latent the original has.</span></div>
-    <div class="gterm"><b>VLA</b><span>Vision-language-action model: a policy conditioned on an image and a sentence. The one here is small and trained from scratch; it is not a fine-tuned foundation model.</span></div>
-    <div class="gterm"><b>sentence embedding</b><span>A fixed-size vector for a sentence from a pretrained text model, here MiniLM (384 numbers). Similar meanings should land near each other.</span></div>
-    <div class="gterm"><b>FiLM</b><span>Feature-wise Linear Modulation: the sentence embedding produces a scale and shift applied to the image features, so the instruction changes what the vision layers look for.</span></div>
-    <div class="gterm"><b>LoRA</b><span>Low-Rank Adaptation: fine-tuning a large network by training small rank-8 matrices added to a few weight matrices, leaving the original weights frozen.</span></div>
-    <div class="gterm"><b>LeRobotDataset v3</b><span>The on-disk format Hugging Face LeRobot uses for robot demonstrations: parquet tables plus video or image frames, with episode indexing.</span></div>
+    <div class="gterm"><b>SO-ARM100</b><span lang="en">Standard Open Arm 100: a 5-DOF arm plus gripper from TheRobotStudio, driven by position-controlled servos. Version 1.3 of its MuJoCo model is used, from the Menagerie collection.</span><span lang="ja">Standard Open Arm 100。TheRobotStudioによる5自由度アームとグリッパーで、位置制御サーボで駆動します。MuJoCoモデルはMenagerieコレクションのバージョン1.3を使用しています。</span></div>
+    <div class="gterm"><b>MJCF / MjSpec</b><span lang="en">MJCF is MuJoCo's XML model format. MjSpec is the programmatic editor for it, used here to attach the table, cubes, marker and cameras to the arm without editing the vendored file.</span><span lang="ja">MJCFはMuJoCoのXMLモデル形式です。MjSpecはそれをプログラムから編集するAPIで、ここではvendoringしたファイルを書き換えずに、テーブル・キューブ・マーカー・カメラをアームに追加するために使っています。</span></div>
+    <div class="gterm"><b>inverse kinematics</b><span lang="en">Given a target pose for the gripper, find joint angles that put it there. Solved iteratively with damped least squares; the scripted expert is built on it.</span><span lang="ja">逆運動学。グリッパーの目標姿勢から、そこに到達する関節角を求めます。Damped least squaresで反復的に解き、スクリプト化したエキスパートはこれを土台にしています。</span></div>
+    <div class="gterm"><b>scripted expert</b><span lang="en">A hand-written controller that reads the cube's true position from the simulator and moves through IK waypoints. It produces demonstrations and reference success rates. It is not a controller a real arm could run.</span><span lang="ja">シミュレーターからキューブの真の位置を読み取り、IKのウェイポイントを順にたどる手書きのコントローラーです。デモンストレーションと基準となる成功率を生成します。実機アームで動かせるコントローラーではありません。</span></div>
+    <div class="gterm"><b>domain randomisation (DR)</b><span lang="en">Sampling physics parameters (mass, friction, servo gain, latency) from a range at every reset, so a policy is not fitted to one exact model.</span><span lang="ja">リセットのたびに物理パラメータ（質量、摩擦、サーボゲイン、latency）を範囲内からサンプリングし、policyが特定の1つのモデルに過適合しないようにする手法です。</span></div>
+    <div class="gterm"><b>held-out physics</b><span lang="en">Fixed physics settings a trained policy is tested on, each outside the DR range. Success there is a transfer claim, not interpolation.</span><span lang="ja">学習済みpolicyをテストする固定の物理設定で、いずれもDR範囲の外にあります。ここでの成功は内挿ではなく、転移の主張になります。</span></div>
+    <div class="gterm"><b>PPO</b><span lang="en">Proximal Policy Optimization, the standard on-policy RL algorithm: collect rollouts, estimate advantages, take clipped gradient steps so the policy does not move too far per update.</span><span lang="ja">Proximal Policy Optimization。標準的なon-policy RLアルゴリズムです。Rolloutを収集してadvantageを推定し、1回の更新でpolicyが動きすぎないようclipした勾配ステップを取ります。</span></div>
+    <div class="gterm"><b>curriculum</b><span lang="en">Training on an easier task first and promoting to a harder one once a success threshold is reached, keeping the network weights across the switch.</span><span lang="ja">まず簡単なタスクで学習し、成功率がしきい値に達したら難しいタスクへ進める方式です。切り替え時もネットワークの重みは引き継ぎます。</span></div>
+    <div class="gterm"><b>behaviour cloning (BC)</b><span lang="en">Supervised learning from demonstrations: given what the expert saw, predict what the expert did.</span><span lang="ja">デモンストレーションからの教師あり学習です。エキスパートが見たものを入力として、エキスパートの行動を予測します。</span></div>
+    <div class="gterm"><b>DAgger</b><span lang="en">Dataset Aggregation. Let the learner drive, ask the expert what it would have done at the states the learner reached, add those labels, retrain. Fixes the drift BC suffers when it leaves the demonstrated states.</span><span lang="ja">Dataset Aggregation。学習側に操作させ、学習側が到達した状態でエキスパートならどう動いたかを問い合わせ、そのラベルを追加して再学習します。デモにない状態へ外れたときにBCで起きるドリフトを補正します。</span></div>
+    <div class="gterm"><b>ACT / action chunking</b><span lang="en">Action Chunking with Transformers: predict a chunk of future actions per forward pass instead of one, and blend overlapping chunks at run time. Used here without the variational latent the original has.</span><span lang="ja">Action Chunking with Transformers。1回の順伝播で1つではなく将来のactionのchunkを予測し、実行時には重なり合うchunkをブレンドします。ここではオリジナルにある変分潜在変数を省いて使っています。</span></div>
+    <div class="gterm"><b>VLA</b><span lang="en">Vision-language-action model: a policy conditioned on an image and a sentence. The one here is small and trained from scratch; it is not a fine-tuned foundation model.</span><span lang="ja">Vision-language-actionモデル。画像と文で条件付けされたpolicyです。ここで扱うのは小規模でゼロから学習したもので、基盤モデルをfine-tuneしたものではありません。</span></div>
+    <div class="gterm"><b>sentence embedding</b><span lang="en">A fixed-size vector for a sentence from a pretrained text model, here MiniLM (384 numbers). Similar meanings should land near each other.</span><span lang="ja">事前学習済みテキストモデル（ここではMiniLM、384次元）が文から作る固定長ベクトルです。意味の近い文は近い位置に来るはずです。</span></div>
+    <div class="gterm"><b>FiLM</b><span lang="en">Feature-wise Linear Modulation: the sentence embedding produces a scale and shift applied to the image features, so the instruction changes what the vision layers look for.</span><span lang="ja">Feature-wise Linear Modulation。Sentence embeddingから画像特徴に掛けるスケールとシフトを生成し、指示文によって視覚層が注目するものを変えます。</span></div>
+    <div class="gterm"><b>LoRA</b><span lang="en">Low-Rank Adaptation: fine-tuning a large network by training small rank-8 matrices added to a few weight matrices, leaving the original weights frozen.</span><span lang="ja">Low-Rank Adaptation。元の重みは固定したまま、一部の重み行列に追加したrank 8の小さな行列だけを学習して大規模ネットワークをfine-tuneする手法です。</span></div>
+    <div class="gterm"><b>LeRobotDataset v3</b><span lang="en">The on-disk format Hugging Face LeRobot uses for robot demonstrations: parquet tables plus video or image frames, with episode indexing.</span><span lang="ja">Hugging Face LeRobotがロボットのデモンストレーション保存に使う形式です。Parquetのテーブルと動画または画像フレームで構成され、episode単位のインデックスを持ちます。</span></div>
   </div>
 </div>
 </section>
 
 <section id="shared">
-  <div class="sec-head"><span class="sec-num">02</span><h2>One bench, three projects</h2><p class="sec-sub">Why the tasks, the physics shifts and the evaluation protocol live in a separate repository that the other three depend on.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">One bench, three projects</span><span lang="ja">共通ベンチ1つと3つのプロジェクト</span></h2><p class="sec-sub" lang="en">Why the tasks, the physics shifts and the evaluation protocol live in a separate repository that the other three depend on.</p><p class="sec-sub" lang="ja">タスク、物理パラメータの変化、評価プロトコルを、他の3つが依存する独立したリポジトリに置いている理由。</p></div>
   <div class="stack prose">
-    <p>A comparison between three learning methods is only worth reading if all three are measured the
+    <p lang="ja">3つの学習手法の比較は、3つとも同じ方法で計測されていなければ読む価値がありません。
+      そこで、policyを後で評価する基準はすべて<code>so-arm100-sim</code>の1か所で定義しています。
+      4つのタスクとその成功条件、2種類のobservation構成、DR範囲、6つのheld-out物理セル、
+      評価プロトコル（1セルあたり100 episode × 5 seed、seed間の平均とばらつき）、スクリプト化したエキスパートとその成功率表、
+      指示文テンプレートと学習用／held-outの分割、そしてデータセットレコーダーです。</p>
+    <p lang="ja">3つのpolicyリポジトリは、固定したリリースタグ（<code>v0.1.0</code>）からベンチをインストールしてimportします。
+      どのリポジトリもタスクやしきい値を再定義しません。ベンチのテストがvendoringしたアーム記述のハッシュを検証しているため、
+      ロボットモデルを誤って編集すると、下流のすべての数値が黙って変わるのではなく、CIが失敗します。</p>
+    <p lang="en">A comparison between three learning methods is only worth reading if all three are measured the
       same way. So everything a policy is later judged against is defined once, in
       <code>so-arm100-sim</code>: the four tasks and their success rules, the two observation layouts,
       the DR ranges, the six held-out physics cells, the evaluation protocol (100 episodes × 5 seeds per
       cell, mean and spread over seeds), the scripted expert and its own success table, the language
       templates and their train/held-out split, and the dataset recorder.</p>
-    <p>The three policy repositories install the bench from a pinned release tag (<code>v0.1.0</code>) and
+    <p lang="en">The three policy repositories install the bench from a pinned release tag (<code>v0.1.0</code>) and
       import from it. None of them redefines a task or a threshold. A test in the bench hashes the vendored
       arm description, so an accidental edit to the robot model fails CI rather than silently changing
       every downstream number.</p>
     <div class="steps">
-      <div class="stepbox"><span class="sn">bench</span><span class="st">so-arm100-sim</span>
-        <span class="sd">Scene, tasks, IK expert, DR, evaluation, instruction templates, dataset writer, vector env.</span>
-        <span class="sr">63 tests · reference numbers measured</span></div>
-      <div class="stepbox"><span class="sn">route 1</span><span class="st">so-arm100-rl</span>
-        <span class="sd">PPO on privileged state, reach → push → lift curriculum, nominal vs DR, held-out gap, ONNX export.</span>
-        <span class="sr">21 tests · trained, one seed</span></div>
-      <div class="stepbox"><span class="sn">route 2</span><span class="st">so-arm100-il</span>
-        <span class="sd">BC, DAgger and ACT-lite from scripted demonstrations on image + proprioception; dataset-size curve.</span>
-        <span class="sr">19 tests · not trained yet</span></div>
-      <div class="stepbox"><span class="sn">route 3</span><span class="st">so-arm100-vla</span>
-        <span class="sd">Language-conditioned multitask policy; seen / paraphrase / combo splits; encoder ablation; LoRA gate.</span>
-        <span class="sr">24 tests · gate measured</span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">bench</span><span lang="ja">ベンチ</span></span><span class="st">so-arm100-sim</span>
+        <span class="sd" lang="en">Scene, tasks, IK expert, DR, evaluation, instruction templates, dataset writer, vector env.</span>
+        <span class="sd" lang="ja">シーン、タスク、IKエキスパート、DR、評価、指示文テンプレート、データセット書き出し、vector env。</span>
+        <span class="sr"><span lang="en">63 tests · reference numbers measured</span><span lang="ja">63テスト · 基準値は計測済み</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">route 1</span><span lang="ja">アプローチ1</span></span><span class="st">so-arm100-rl</span>
+        <span class="sd" lang="en">PPO on privileged state, reach → push → lift curriculum, nominal vs DR, held-out gap, ONNX export.</span>
+        <span class="sd" lang="ja">特権状態を入力とするPPO、reach → push → liftのcurriculum、nominalとDRの比較、held-outでの性能差、ONNX export。</span>
+        <span class="sr"><span lang="en">21 tests · trained, one seed</span><span lang="ja">21テスト · 学習済み（1 seed）</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">route 2</span><span lang="ja">アプローチ2</span></span><span class="st">so-arm100-il</span>
+        <span class="sd" lang="en">BC, DAgger and ACT-lite from scripted demonstrations on image + proprioception; dataset-size curve.</span>
+        <span class="sd" lang="ja">画像と固有受容感覚（proprioception）を入力に、スクリプトのデモからBC・DAgger・ACT-liteを学習。データセットサイズ曲線。</span>
+        <span class="sr"><span lang="en">21 tests · trained, 5 seeds</span><span lang="ja">21テスト · 学習済み（5 seeds）</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">route 3</span><span lang="ja">アプローチ3</span></span><span class="st">so-arm100-vla</span>
+        <span class="sd" lang="en">Language-conditioned multitask policy; seen / paraphrase / combo splits; encoder ablation; LoRA gate.</span>
+        <span class="sd" lang="ja">Language-conditionedなマルチタスクpolicy。seen / paraphrase / comboの3分割、エンコーダーのablation、LoRAの可否判定。</span>
+        <span class="sr"><span lang="en">24 tests · gate measured</span><span lang="ja">24テスト · 可否判定は計測済み</span></span></div>
     </div>
-    <p>What the shared protocol buys: the expert's success rate is the ceiling every learned policy is read
+    <p lang="en">What the shared protocol buys: the expert's success rate is the ceiling every learned policy is read
       against; the RL policy's drop on <code>heavy</code> physics and the imitation policy's drop on the same
       cell are the same experiment; and "unseen paraphrase" in the language project means exactly the
       sentences the imitation recorder refused to write.</p>
+    <p lang="ja">共通プロトコルによって得られるものは3つです。エキスパートの成功率が、学習したすべてのpolicyを評価する上限になること。
+      <code>heavy</code>物理条件でのRL policyの低下と、同じセルでのimitation policyの低下が、同一の実験になること。
+      そしてlanguageプロジェクトの「未見のparaphrase」が、imitation用レコーダーが書き出しを拒否した文とまったく同じものを指すことです。</p>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">The source files across the four repositories, with line counts, grouped by repository.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">The source files across the four repositories, with line counts, grouped by repository.</p><p class="sec-sub" lang="ja">4つのリポジトリのソースファイルを、行数とともにリポジトリ別にまとめています。</p></div>
   <div class="stack">
-    <h3>so-arm100-sim, 3,424 lines</h3>
+    <h3>so-arm100-sim<span lang="en">, 3,424 lines</span><span lang="ja">（3,424行）</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <thead><tr><th><span lang="en">file</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">lines</span><span lang="ja">行数</span></th><th><span lang="en">job</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr><td>so_arm100_sim/env.py</td><td class="num">455</td><td><code>ArmEnv</code>: four tasks, <code>state</code> (25-d) and <code>proprio</code> (15-d) observations, <code>delta</code> and <code>absolute</code> actions, 20 Hz control over 2 ms physics, success rules, termination and truncation kept apart</td></tr>
-          <tr><td>so_arm100_sim/scene.py</td><td class="num">247</td><td>Builds the tabletop with <code>MjSpec</code>: floor, three cubes, marker, three cameras, an end-effector site on the fixed jaw. Spawn box and cube size constants</td></tr>
-          <tr><td>so_arm100_sim/expert.py</td><td class="num">247</td><td><code>ScriptedExpert</code>: per-task phase machine over IK waypoints, grasp-branch resolution, Cartesian integral correction, rate limiting</td></tr>
-          <tr><td>so_arm100_sim/dr.py</td><td class="num">173</td><td><code>DRConfig</code> training ranges, <code>EVAL_PHYSICS</code> held-out cells, exact apply and restore against the vendored model</td></tr>
-          <tr><td>so_arm100_sim/vec_env.py</td><td class="num">135</td><td>N environments in N forked processes, one observation batch per step, <code>terminal_obs</code> carried on truncation</td></tr>
-          <tr><td>so_arm100_sim/evaluate.py</td><td class="num">113</td><td>The protocol: 100 episodes × 5 seeds per cell, JSON with provenance (package versions, model hash)</td></tr>
-          <tr><td>so_arm100_sim/ik.py</td><td class="num">111</td><td>Damped least-squares IK on the end-effector site, orientation down-weighted because one rotational degree is structurally unreachable on a 5-DOF arm</td></tr>
-          <tr><td>so_arm100_sim/record.py</td><td class="num">100</td><td>Records successful expert episodes as a LeRobotDataset v3 (proprio, image, absolute joint targets, instruction)</td></tr>
-          <tr><td>so_arm100_sim/instructions.py</td><td class="num">99</td><td>Five training and three held-out sentence templates per task, and the held-out (task, colour) pairs</td></tr>
-          <tr><td>so_arm100_sim/datasets.py</td><td class="num">80</td><td>LeRobotDataset writer wrapper; <code>finalize()</code> is mandatory or the parquet is corrupt</td></tr>
-          <tr><td>so_arm100_sim/render.py · gym_adapter.py</td><td class="num">96</td><td>Offscreen camera rendering; a gymnasium wrapper</td></tr>
-          <tr><td>scripts/bench_throughput.py</td><td class="num">110</td><td>1/2/4/8-process sweep bracketed by a single-process reference; refuses to certify a drifting table</td></tr>
-          <tr><td>scripts/expert_success.py · view_scene.py · record_dataset.py</td><td class="num">125</td><td>The expert's headline table; a viewer; a thin wrapper around the recorder</td></tr>
-          <tr><td>tools/reach_map.py · probe_model.py</td><td class="num">121</td><td>Where a top-down grasp is IK-reachable; measured frames of the vendored model</td></tr>
-          <tr><td>tests/ (8 files)</td><td class="num">731</td><td>63 tests: scene hash, contract, IK, expert gates, DR outside-range property, vector env, recorder</td></tr>
+          <tr><td>so_arm100_sim/env.py</td><td class="num">455</td><td><span lang="en"><code>ArmEnv</code>: four tasks, <code>state</code> (25-d) and <code>proprio</code> (15-d) observations, <code>delta</code> and <code>absolute</code> actions, 20 Hz control over 2 ms physics, success rules, termination and truncation kept apart</span><span lang="ja"><code>ArmEnv</code>：4タスク、<code>state</code>（25次元）と<code>proprio</code>（15次元）のobservation、<code>delta</code>と<code>absolute</code>のaction、2 ms物理ステップ上の20 Hz制御、成功条件、terminationとtruncationの区別</span></td></tr>
+          <tr><td>so_arm100_sim/scene.py</td><td class="num">247</td><td><span lang="en">Builds the tabletop with <code>MjSpec</code>: floor, three cubes, marker, three cameras, an end-effector site on the fixed jaw. Spawn box and cube size constants</span><span lang="ja"><code>MjSpec</code>で卓上シーンを構築：床、キューブ3個、マーカー、カメラ3台、固定ジョー上のエンドエフェクタsite。出現範囲とキューブサイズの定数</span></td></tr>
+          <tr><td>so_arm100_sim/expert.py</td><td class="num">247</td><td><span lang="en"><code>ScriptedExpert</code>: per-task phase machine over IK waypoints, grasp-branch resolution, Cartesian integral correction, rate limiting</span><span lang="ja"><code>ScriptedExpert</code>：IKウェイポイント上のタスク別フェーズ遷移、把持ブランチの選択、デカルト空間の積分補正、変化率制限</span></td></tr>
+          <tr><td>so_arm100_sim/dr.py</td><td class="num">173</td><td><span lang="en"><code>DRConfig</code> training ranges, <code>EVAL_PHYSICS</code> held-out cells, exact apply and restore against the vendored model</span><span lang="ja"><code>DRConfig</code>の学習範囲、<code>EVAL_PHYSICS</code>のheld-outセル、vendoringしたモデルに対する厳密な適用と復元</span></td></tr>
+          <tr><td>so_arm100_sim/vec_env.py</td><td class="num">135</td><td><span lang="en">N environments in N forked processes, one observation batch per step, <code>terminal_obs</code> carried on truncation</span><span lang="ja">N個の環境をN個のforkプロセスで実行、1ステップごとにobservationを1バッチで返す、truncation時は<code>terminal_obs</code>を引き渡す</span></td></tr>
+          <tr><td>so_arm100_sim/evaluate.py</td><td class="num">113</td><td><span lang="en">The protocol: 100 episodes × 5 seeds per cell, JSON with provenance (package versions, model hash)</span><span lang="ja">評価プロトコル：1セルあたり100 episode × 5 seed、来歴情報（パッケージバージョン、モデルハッシュ）付きのJSON</span></td></tr>
+          <tr><td>so_arm100_sim/ik.py</td><td class="num">111</td><td><span lang="en">Damped least-squares IK on the end-effector site, orientation down-weighted because one rotational degree is structurally unreachable on a 5-DOF arm</span><span lang="ja">エンドエフェクタsiteに対するdamped least-squares IK。5自由度アームでは回転1自由度が構造的に到達不能なため、姿勢の重みを下げている</span></td></tr>
+          <tr><td>so_arm100_sim/record.py</td><td class="num">100</td><td><span lang="en">Records successful expert episodes as a LeRobotDataset v3 (proprio, image, absolute joint targets, instruction)</span><span lang="ja">成功したエキスパートのepisodeをLeRobotDataset v3として記録（proprio、画像、絶対関節目標値、指示文）</span></td></tr>
+          <tr><td>so_arm100_sim/instructions.py</td><td class="num">99</td><td><span lang="en">Five training and three held-out sentence templates per task, and the held-out (task, colour) pairs</span><span lang="ja">タスクごとに学習用5個・held-out用3個の文テンプレートと、held-outの（タスク, 色）ペア</span></td></tr>
+          <tr><td>so_arm100_sim/datasets.py</td><td class="num">80</td><td><span lang="en">LeRobotDataset writer wrapper; <code>finalize()</code> is mandatory or the parquet is corrupt</span><span lang="ja">LeRobotDataset書き出しのラッパー。<code>finalize()</code>を呼ばないとparquetが壊れる</span></td></tr>
+          <tr><td>so_arm100_sim/render.py · gym_adapter.py</td><td class="num">96</td><td><span lang="en">Offscreen camera rendering; a gymnasium wrapper</span><span lang="ja">オフスクリーンのカメラ描画、gymnasiumラッパー</span></td></tr>
+          <tr><td>scripts/bench_throughput.py</td><td class="num">110</td><td><span lang="en">1/2/4/8-process sweep bracketed by a single-process reference; refuses to certify a drifting table</span><span lang="ja">前後を単一プロセスの基準値で挟んだ1/2/4/8プロセスのスイープ。値がドリフトした表は採用しない</span></td></tr>
+          <tr><td>scripts/expert_success.py · view_scene.py · record_dataset.py</td><td class="num">125</td><td><span lang="en">The expert's headline table; a viewer; a thin wrapper around the recorder</span><span lang="ja">エキスパートの主要結果表、ビューアー、レコーダーの薄いラッパー</span></td></tr>
+          <tr><td>tools/reach_map.py · probe_model.py</td><td class="num">121</td><td><span lang="en">Where a top-down grasp is IK-reachable; measured frames of the vendored model</span><span lang="ja">真上からの把持がIKで到達可能な領域、vendoringしたモデルの座標系の実測</span></td></tr>
+          <tr><td>tests/ (8 files)</td><td class="num">731</td><td><span lang="en">63 tests: scene hash, contract, IK, expert gates, DR outside-range property, vector env, recorder</span><span lang="ja">63テスト：シーンのハッシュ、インターフェース契約、IK、エキスパートの合格基準、DR範囲外の性質、vector env、レコーダー</span></td></tr>
         </tbody>
       </table>
     </div>
-    <h3>so-arm100-rl, 1,872 lines</h3>
+    <h3>so-arm100-rl<span lang="en">, 1,872 lines</span><span lang="ja">（1,872行）</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <thead><tr><th><span lang="en">file</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">lines</span><span lang="ja">行数</span></th><th><span lang="en">job</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr><td>so_arm100_rl/ppo.py</td><td class="num">323</td><td>PPO: Gaussian actor, separate critic (2 × 256, tanh), GAE with termination and truncation distinguished, per-epoch KL stop, running normaliser, checkpointing, throughput monitor</td></tr>
-          <tr><td>train.py</td><td class="num">232</td><td>Entry point; chunked and resumable; curriculum, DR, success-termination and warm-start flags</td></tr>
-          <tr><td>export_onnx.py</td><td class="num">106</td><td>Normaliser folded into the actor's mean as one ONNX graph, verified to 1e-5 on 1,000 observations, timed on one thread</td></tr>
-          <tr><td>so_arm100_rl/curriculum.py</td><td class="num">86</td><td>Stage promotion on rolling success; steps-to-threshold bookkeeping</td></tr>
-          <tr><td>so_arm100_rl/normalizer.py</td><td class="num">72</td><td>Welford running mean and variance, frozen at evaluation and export</td></tr>
-          <tr><td>eval_gap.py · compare_gap.py</td><td class="num">102</td><td>Bench protocol on every held-out cell, cells in parallel processes; nominal-trained vs DR-trained table</td></tr>
-          <tr><td>so_arm100_rl/boxcheck.py</td><td class="num">33</td><td>Refuse to start on a loaded machine</td></tr>
-          <tr><td>tools/probe_hover.py</td><td class="num">31</td><td>The probe that found the hover exploit: mean-action rollouts, cube height and grasp per step</td></tr>
-          <tr><td>tests/ (10 files)</td><td class="num">370</td><td>21 tests: a hand-worked GAE case, normaliser, curriculum state machine, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</td></tr>
+          <tr><td>so_arm100_rl/ppo.py</td><td class="num">323</td><td><span lang="en">PPO: Gaussian actor, separate critic (2 × 256, tanh), GAE with termination and truncation distinguished, per-epoch KL stop, running normaliser, checkpointing, throughput monitor</span><span lang="ja">PPO：ガウス分布のactor、独立したcritic（2 × 256、tanh）、terminationとtruncationを区別したGAE、epochごとのKL stop、running normaliser、checkpoint保存、throughputモニター</span></td></tr>
+          <tr><td>train.py</td><td class="num">232</td><td><span lang="en">Entry point; chunked and resumable; curriculum, DR, success-termination and warm-start flags</span><span lang="ja">エントリーポイント。分割実行・再開に対応。curriculum、DR、成功時termination、warm startのフラグ</span></td></tr>
+          <tr><td>export_onnx.py</td><td class="num">106</td><td><span lang="en">Normaliser folded into the actor's mean as one ONNX graph, verified to 1e-5 on 1,000 observations, timed on one thread</span><span lang="ja">Normaliserをactorの平均出力に畳み込んで1つのONNXグラフに。1,000件のobservationで1e-5まで一致を検証し、1スレッドで計時</span></td></tr>
+          <tr><td>so_arm100_rl/curriculum.py</td><td class="num">86</td><td><span lang="en">Stage promotion on rolling success; steps-to-threshold bookkeeping</span><span lang="ja">直近の成功率によるステージ昇格、しきい値到達までのstep数の記録</span></td></tr>
+          <tr><td>so_arm100_rl/normalizer.py</td><td class="num">72</td><td><span lang="en">Welford running mean and variance, frozen at evaluation and export</span><span lang="ja">Welford法による逐次平均・分散。評価時とexport時は固定</span></td></tr>
+          <tr><td>eval_gap.py · compare_gap.py</td><td class="num">102</td><td><span lang="en">Bench protocol on every held-out cell, cells in parallel processes; nominal-trained vs DR-trained table</span><span lang="ja">全held-outセルでベンチのプロトコルを実行（セルごとに並列プロセス）。nominal学習とDR学習の比較表</span></td></tr>
+          <tr><td>so_arm100_rl/boxcheck.py</td><td class="num">33</td><td><span lang="en">Refuse to start on a loaded machine</span><span lang="ja">負荷のかかったマシンでは起動しない</span></td></tr>
+          <tr><td>tools/probe_hover.py</td><td class="num">31</td><td><span lang="en">The probe that found the hover exploit: mean-action rollouts, cube height and grasp per step</span><span lang="ja">ホバリングの抜け穴を見つけた調査スクリプト：平均actionでのrollout、stepごとのキューブ高さと把持状態</span></td></tr>
+          <tr><td>tests/ (10 files)</td><td class="num">370</td><td><span lang="en">21 tests: a hand-worked GAE case, normaliser, curriculum state machine, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</span><span lang="ja">21テスト：手計算したGAEのケース、normaliser、curriculumのstate machine、ビット単位で一致する再開、2,048 stepの学習スモークテスト、ONNXの往復変換、KL stop、成功時terminationフラグ、warm start、並列評価と逐次評価の一致</span></td></tr>
         </tbody>
       </table>
     </div>
-    <h3>so-arm100-il, 1,828 lines</h3>
+    <h3>so-arm100-il<span lang="en">, 1,828 lines</span><span lang="ja">（1,828行）</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <thead><tr><th><span lang="en">file</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">lines</span><span lang="ja">行数</span></th><th><span lang="en">job</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr><td>so_arm100_il/models.py</td><td class="num">185</td><td><code>StateMLP</code>, <code>ImagePolicy</code> (CNN → spatial soft-argmax keypoints → MLP), <code>ACTLite</code> (keypoint tokens, 2-layer encoder, 2-layer decoder, 20 queries), masked L1 loss, temporal ensembler</td></tr>
-          <tr><td>so_arm100_il/data.py</td><td class="num">153</td><td>Reads the LeRobotDataset, builds k-step action windows, split by episode, normalisation from training episodes only</td></tr>
-          <tr><td>so_arm100_il/human_video.py</td><td class="num">142</td><td>Experimental: MediaPipe hand landmarks from an overhead video to IK targets, replayed in the simulator</td></tr>
-          <tr><td>scaling.py</td><td class="num">143</td><td>Dataset-size curve: 10, 25, 50, 100, 200 episodes × 3 seeds (6 for ACT), 20 epochs, 50 evaluation episodes each</td></tr>
-          <tr><td>dagger.py</td><td class="num">111</td><td>DAgger loop: mixed control, shadow-expert labels, aggregate, retrain</td></tr>
-          <tr><td>so_arm100_il/training.py · policy.py · shadow.py</td><td class="num">189</td><td>Training loop; run-time policy wrapper; the expert running in the learner's shadow</td></tr>
-          <tr><td>train_bc.py · eval_policy.py · scripts/</td><td class="num">381</td><td>BC entry point; held-out physics evaluation in resumable (physics, seed) units with a time budget; demo recorder, hand-video wrapper and the combined scaling figure</td></tr>
-          <tr><td>tests/ (6 files)</td><td class="num">361</td><td>21 tests: windows, models, ensembling, shadow expert with beta = 1, hand mapping, an end-to-end record → train → evaluate smoke, resumed evaluation equals serial</td></tr>
+          <tr><td>so_arm100_il/models.py</td><td class="num">185</td><td><span lang="en"><code>StateMLP</code>, <code>ImagePolicy</code> (CNN → spatial soft-argmax keypoints → MLP), <code>ACTLite</code> (keypoint tokens, 2-layer encoder, 2-layer decoder, 20 queries), masked L1 loss, temporal ensembler</span><span lang="ja"><code>StateMLP</code>、<code>ImagePolicy</code>（CNN → 空間soft-argmaxによるkeypoint → MLP）、<code>ACTLite</code>（keypointトークン、2層encoder、2層decoder、20クエリ）、マスク付きL1 loss、時間方向のアンサンブル</span></td></tr>
+          <tr><td>so_arm100_il/data.py</td><td class="num">153</td><td><span lang="en">Reads the LeRobotDataset, builds k-step action windows, split by episode, normalisation from training episodes only</span><span lang="ja">LeRobotDatasetを読み込み、k step分のactionウィンドウを構築。episode単位で分割し、正規化統計は学習用episodeのみから算出</span></td></tr>
+          <tr><td>so_arm100_il/human_video.py</td><td class="num">142</td><td><span lang="en">Experimental: MediaPipe hand landmarks from an overhead video to IK targets, replayed in the simulator</span><span lang="ja">実験的機能：俯瞰動画からMediaPipeで手のランドマークを取り、IK目標に変換してシミュレーターで再生</span></td></tr>
+          <tr><td>scaling.py</td><td class="num">143</td><td><span lang="en">Dataset-size curve: 10, 25, 50, 100, 200 episodes × 3 seeds (6 for ACT), 20 epochs, 50 evaluation episodes each</span><span lang="ja">データセットサイズ曲線：10、25、50、100、200 episode × 3 seed（ACTは6）、20 epoch、各50評価episode</span></td></tr>
+          <tr><td>dagger.py</td><td class="num">111</td><td><span lang="en">DAgger loop: mixed control, shadow-expert labels, aggregate, retrain</span><span lang="ja">DAggerループ：混合制御、シャドーエキスパートによるラベル付け、集約、再学習</span></td></tr>
+          <tr><td>so_arm100_il/training.py · policy.py · shadow.py</td><td class="num">189</td><td><span lang="en">Training loop; run-time policy wrapper; the expert running in the learner's shadow</span><span lang="ja">学習ループ、実行時のpolicyラッパー、学習側の裏で並走するエキスパート</span></td></tr>
+          <tr><td>train_bc.py · eval_policy.py · scripts/</td><td class="num">381</td><td><span lang="en">BC entry point; held-out physics evaluation in resumable (physics, seed) units with a time budget; demo recorder, hand-video wrapper and the combined scaling figure</span><span lang="ja">BCのエントリーポイント。時間予算付きで（物理条件, seed）単位に再開可能なheld-out物理評価。デモレコーダー、手の動画用ラッパー、スケーリングの統合図</span></td></tr>
+          <tr><td>tests/ (6 files)</td><td class="num">361</td><td><span lang="en">21 tests: windows, models, ensembling, shadow expert with beta = 1, hand mapping, an end-to-end record → train → evaluate smoke, resumed evaluation equals serial</span><span lang="ja">21テスト：ウィンドウ、モデル、アンサンブル、beta = 1でのシャドーエキスパート、手のマッピング、記録 → 学習 → 評価のend-to-endスモークテスト、再開した評価と逐次評価の一致</span></td></tr>
         </tbody>
       </table>
     </div>
-    <h3>so-arm100-vla, 2,076 lines</h3>
+    <h3>so-arm100-vla<span lang="en">, 2,076 lines</span><span lang="ja">（2,076行）</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>file</th><th class="num">lines</th><th>job</th></tr></thead>
+        <thead><tr><th><span lang="en">file</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">lines</span><span lang="ja">行数</span></th><th><span lang="en">job</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr><td>so_arm100_vla/data.py</td><td class="num">223</td><td>Records every training (task, colour) combination through the bench expert with distractors on; caches frames; k-step action windows</td></tr>
-          <tr><td>smolvla_reference.py</td><td class="num">175</td><td>Zero-shot SmolVLA-base through the same protocol, inference only; <code>--dry-run</code> validates the observation mapping against a stub</td></tr>
-          <tr><td>so_arm100_vla/model.py</td><td class="num">149</td><td><code>LangPolicy</code>: CNN → FiLM → 32 keypoints, three tokens, d = 128 transformer, 10 action queries; <code>ChunkEnsembler</code></td></tr>
-          <tr><td>so_arm100_vla/text.py</td><td class="num">124</td><td><code>MiniLMEncoder</code> (frozen, cached to disk) and <code>HashEncoder</code>, both 384-d</td></tr>
-          <tr><td>train.py · eval_language.py · record_data.py</td><td class="num">255</td><td>Training with final-epoch reporting; the three splits through the bench protocol; the recorder entry point</td></tr>
-          <tr><td>lora_gate.py · so_arm100_vla/lora.py</td><td class="num">198</td><td>Times one LoRA training step on a SmolVLM-256M-shaped decoder; <code>LoRALinear</code> with exact merge and unmerge</td></tr>
-          <tr><td>so_arm100_vla/policy.py · splits.py</td><td class="num">125</td><td>Runner that carries the sentence the bench env does not know about; seen / paraphrase / combo split definitions</td></tr>
-          <tr><td>tests/ (8 files)</td><td class="num">362</td><td>24 tests: encoders, splits, windowing, shapes, ensembling, LoRA maths, SmolVLA mapping, end-to-end smoke</td></tr>
+          <tr><td>so_arm100_vla/data.py</td><td class="num">223</td><td><span lang="en">Records every training (task, colour) combination through the bench expert with distractors on; caches frames; k-step action windows</span><span lang="ja">学習用の全（タスク, 色）の組み合わせを、ディストラクターありでベンチのエキスパートにより記録。フレームのキャッシュ、k step分のactionウィンドウ</span></td></tr>
+          <tr><td>smolvla_reference.py</td><td class="num">175</td><td><span lang="en">Zero-shot SmolVLA-base through the same protocol, inference only; <code>--dry-run</code> validates the observation mapping against a stub</span><span lang="ja">同じプロトコルでSmolVLA-baseをzero-shot評価（推論のみ）。<code>--dry-run</code>でスタブを相手にobservationの対応付けを検証</span></td></tr>
+          <tr><td>so_arm100_vla/model.py</td><td class="num">149</td><td><span lang="en"><code>LangPolicy</code>: CNN → FiLM → 32 keypoints, three tokens, d = 128 transformer, 10 action queries; <code>ChunkEnsembler</code></span><span lang="ja"><code>LangPolicy</code>：CNN → FiLM → 32 keypoint、3トークン、d = 128のtransformer、10個のactionクエリ。<code>ChunkEnsembler</code></span></td></tr>
+          <tr><td>so_arm100_vla/text.py</td><td class="num">124</td><td><span lang="en"><code>MiniLMEncoder</code> (frozen, cached to disk) and <code>HashEncoder</code>, both 384-d</span><span lang="ja"><code>MiniLMEncoder</code>（重み固定、ディスクにキャッシュ）と<code>HashEncoder</code>。いずれも384次元</span></td></tr>
+          <tr><td>train.py · eval_language.py · record_data.py</td><td class="num">255</td><td><span lang="en">Training with final-epoch reporting; the three splits through the bench protocol; the recorder entry point</span><span lang="ja">最終epochの値を報告する学習、ベンチのプロトコルによる3分割の評価、レコーダーのエントリーポイント</span></td></tr>
+          <tr><td>lora_gate.py · so_arm100_vla/lora.py</td><td class="num">198</td><td><span lang="en">Times one LoRA training step on a SmolVLM-256M-shaped decoder; <code>LoRALinear</code> with exact merge and unmerge</span><span lang="ja">SmolVLM-256Mと同形状のdecoderでLoRA学習1 stepを計時。厳密なmerge／unmergeを持つ<code>LoRALinear</code></span></td></tr>
+          <tr><td>so_arm100_vla/policy.py · splits.py</td><td class="num">125</td><td><span lang="en">Runner that carries the sentence the bench env does not know about; seen / paraphrase / combo split definitions</span><span lang="ja">ベンチのenvが関知しない指示文を保持する実行ラッパー、seen / paraphrase / combo分割の定義</span></td></tr>
+          <tr><td>tests/ (8 files)</td><td class="num">362</td><td><span lang="en">24 tests: encoders, splits, windowing, shapes, ensembling, LoRA maths, SmolVLA mapping, end-to-end smoke</span><span lang="ja">24テスト：エンコーダー、分割、ウィンドウ化、テンソル形状、アンサンブル、LoRAの数式、SmolVLAの対応付け、end-to-endスモークテスト</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose" style="font-size:.9rem;color:var(--muted)">Each repository also carries a Dockerfile, a GitHub Actions workflow, a <code>verify.sh</code> that reproduces the README from a clean checkout, and a <code>docs/ISSUES.md</code> listing its open ends. Line counts exclude the vendored arm description and images.</p>
+    <p class="prose" style="font-size:.9rem;color:var(--muted)" lang="en">Each repository also carries a Dockerfile, a GitHub Actions workflow, a <code>verify.sh</code> that reproduces the README from a clean checkout, and a <code>docs/ISSUES.md</code> listing its open ends. Line counts exclude the vendored arm description and images.</p>
+    <p class="prose" style="font-size:.9rem;color:var(--muted)" lang="ja">各リポジトリには、Dockerfile、GitHub Actionsのワークフロー、クリーンなcheckoutからREADMEの内容を再現する<code>verify.sh</code>、未解決事項をまとめた<code>docs/ISSUES.md</code>も含まれています。行数には、vendoringしたアーム記述と画像は含みません。</p>
   </div>
 </section>
 
 <section id="bench">
-  <div class="sec-head"><span class="sec-num">04</span><h2>The bench</h2><p class="sec-sub">The tasks, the observations, the physics shifts, and the two things the scripted expert had to get right.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">The bench</span><span lang="ja">ベンチ</span></h2><p class="sec-sub" lang="en">The tasks, the observations, the physics shifts, and the two things the scripted expert had to get right.</p><p class="sec-sub" lang="ja">タスク、observation、物理パラメータの変化、そしてスクリプト化したエキスパートで解決が必要だった2つの問題。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Four tasks, one rule each</h3>
-      <p>Control runs at 20 Hz; each control step is 25 physics steps of 2 ms. Episodes end on success or on
+      <h3><span lang="en">Four tasks, one rule each</span><span lang="ja">4つのタスクと、それぞれ1つの成功条件</span></h3>
+      <p lang="en">Control runs at 20 Hz; each control step is 25 physics steps of 2 ms. Episodes end on success or on
         the step limit, and the two are reported separately because a value estimate has to bootstrap on one
         and not the other.</p>
+      <p lang="ja">制御周期は20 Hzで、1制御ステップは2 msの物理ステップ25回分です。
+        Episodeは成功またはstep上限で終了します。価値推定は一方ではbootstrapが必要で、もう一方では不要なため、2つは区別して報告します。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>task</th><th>success</th><th class="num">step limit</th></tr></thead>
+        <thead><tr><th><span lang="en">task</span><span lang="ja">タスク</span></th><th><span lang="en">success</span><span lang="ja">成功条件</span></th><th class="num"><span lang="en">step limit</span><span lang="ja">step上限</span></th></tr></thead>
         <tbody>
-          <tr><td><code>reach</code></td><td>end effector within 2 cm of a point 3 cm above the cube</td><td class="num">100</td></tr>
-          <tr><td><code>push</code></td><td>cube centre within 2.5 cm (xy) of the marker</td><td class="num">150</td></tr>
-          <tr><td><code>lift</code></td><td>cube 5 cm above its resting height <strong>and</strong> both jaws touching it</td><td class="num">150</td></tr>
-          <tr><td><code>pick_place</code></td><td>cube within 2.5 cm of the marker, on the table, released</td><td class="num">250</td></tr>
+          <tr><td><code>reach</code></td><td><span lang="en">end effector within 2 cm of a point 3 cm above the cube</span><span lang="ja">キューブの3 cm上の点から2 cm以内にエンドエフェクタがある</span></td><td class="num">100</td></tr>
+          <tr><td><code>push</code></td><td><span lang="en">cube centre within 2.5 cm (xy) of the marker</span><span lang="ja">キューブ中心がマーカーから2.5 cm以内（xy平面）</span></td><td class="num">150</td></tr>
+          <tr><td><code>lift</code></td><td><span lang="en">cube 5 cm above its resting height <strong>and</strong> both jaws touching it</span><span lang="ja">キューブが静止時の高さより5 cm上にあり、<strong>かつ</strong>両方のジョーが接触している</span></td><td class="num">150</td></tr>
+          <tr><td><code>pick_place</code></td><td><span lang="en">cube within 2.5 cm of the marker, on the table, released</span><span lang="ja">キューブがマーカーから2.5 cm以内のテーブル上にあり、グリッパーから離れている</span></td><td class="num">250</td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>The "both jaws touching" clause exists because a cube flung upward otherwise counts as lifted.</p>
-      <h3>Two observation layouts</h3>
+      <p lang="en">The "both jaws touching" clause exists because a cube flung upward otherwise counts as lifted.</p>
+      <p lang="ja">「両方のジョーが接触」という条件がないと、上に弾き飛ばされたキューブも持ち上げ成功と判定されてしまいます。</p>
+      <h3><span lang="en">Two observation layouts</span><span lang="ja">2種類のobservation構成</span></h3>
       <div class="pair">
-        <dt>state, 25-d</dt><dd>Joint angles and velocities, end-effector position, active cube position, cube minus end effector, target position, jaw gap. Privileged: the policy knows where the cube is. Used by the RL project.</dd>
-        <dt>proprio, 15-d</dt><dd>Joint angles and velocities, end-effector position. What the real arm knows about itself. Anything about objects has to come from the camera image. Used by the imitation and language projects.</dd>
+        <dt><span lang="en">state, 25-d</span><span lang="ja">state（25次元）</span></dt><dd lang="en">Joint angles and velocities, end-effector position, active cube position, cube minus end effector, target position, jaw gap. Privileged: the policy knows where the cube is. Used by the RL project.</dd><dd lang="ja">関節角と角速度、エンドエフェクタ位置、対象キューブの位置、キューブとエンドエフェクタの差、目標位置、ジョーの開き幅。特権情報を含み、policyはキューブの位置を知っています。RLプロジェクトで使用します。</dd>
+        <dt><span lang="en">proprio, 15-d</span><span lang="ja">proprio（15次元）</span></dt><dd lang="en">Joint angles and velocities, end-effector position. What the real arm knows about itself. Anything about objects has to come from the camera image. Used by the imitation and language projects.</dd><dd lang="ja">関節角と角速度、エンドエフェクタ位置。実機アームが自分自身について知っている情報です。物体に関する情報はすべてカメラ画像から得る必要があります。Imitationとlanguageのプロジェクトで使用します。</dd>
       </div>
-      <p>Actions are 6-d either way: <code>delta</code> in [−1, 1] added to the previous joint target, or
+      <p lang="en">Actions are 6-d either way: <code>delta</code> in [−1, 1] added to the previous joint target, or
         <code>absolute</code> joint targets in radians, which is what a recorded dataset stores and what the
         physical arm takes.</p>
-      <h3>Where the cubes may appear, and why the box is small</h3>
-      <p>The fingertip can reach almost anywhere within 0.4 m. Pointing the gripper straight down cannot,
+      <p lang="ja">Actionはどちらの場合も6次元です。前回の関節目標値に加算する[−1, 1]の<code>delta</code>か、
+        ラジアン単位の<code>absolute</code>関節目標値のいずれかです。後者は記録したデータセットが保存する形式であり、実機アームが受け取る形式でもあります。</p>
+      <h3><span lang="en">Where the cubes may appear, and why the box is small</span><span lang="ja">キューブの出現範囲と、それが狭い理由</span></h3>
+      <p lang="en">The fingertip can reach almost anywhere within 0.4 m. Pointing the gripper straight down cannot,
         because that spends the wrist pitch. <code>tools/reach_map.py</code> maps where a top-down grasp is
         solvable to 3 mm at the height the lift task has to hold the cube (about 9 cm), and the spawn box,
         x in ±0.10 m and y in −0.26 to −0.16 m, sits inside that region. The lift height of 5 cm was set
         from the same map.</p>
+      <p lang="ja">指先だけなら0.4 m以内のほぼどこにでも届きます。しかしグリッパーを真下に向けると手首のピッチを使い切るため、届く範囲は狭まります。
+        <code>tools/reach_map.py</code>は、liftタスクでキューブを保持する高さ（約9 cm）で、真上からの把持が3 mm精度で解ける領域をマップ化します。
+        出現範囲（xが±0.10 m、yが−0.26〜−0.16 m）はその領域の内側にあります。持ち上げ高さの5 cmも同じマップから決めました。</p>
     </div>
     <div class="stack prose">
-      <h3>Domain randomisation and the held-out cells</h3>
-      <p>Two things are defined here and kept apart. <code>DRConfig</code> is what a training run samples at
+      <h3><span lang="en">Domain randomisation and the held-out cells</span><span lang="ja">Domain randomisationとheld-outセル</span></h3>
+      <p lang="en">Two things are defined here and kept apart. <code>DRConfig</code> is what a training run samples at
         every reset. <code>EVAL_PHYSICS</code> is a fixed set of shifts a trained policy is tested on, and a
         test asserts that every cell is outside the DR range in at least one factor.</p>
+      <p lang="ja">ここでは2つのものを定義し、明確に分けています。<code>DRConfig</code>は、学習時にリセットのたびにサンプリングする範囲です。
+        <code>EVAL_PHYSICS</code>は、学習済みpolicyをテストする固定の変化セットです。どのセルも少なくとも1つの要素でDR範囲外にあることを、テストで確認しています。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>factor</th><th>DR range (× nominal)</th><th>held-out cell</th></tr></thead>
+        <thead><tr><th><span lang="en">factor</span><span lang="ja">要素</span></th><th><span lang="en">DR range (× nominal)</span><span lang="ja">DR範囲（nominal比）</span></th><th><span lang="en">held-out cell</span><span lang="ja">held-outセル</span></th></tr></thead>
         <tbody>
-          <tr><td>cube mass</td><td>0.5 – 2.0</td><td><code>heavy</code> 3.0</td></tr>
-          <tr><td>cube sliding friction</td><td>0.5 – 1.5 (only above 1.0 acts)</td><td><code>slippery</code> 0.3 (inert)</td></tr>
-          <tr><td>servo gain kp</td><td>0.6 – 1.4</td><td><code>weak</code> 0.45</td></tr>
-          <tr><td>joint damping, frictionloss</td><td>0.5 – 2.0</td><td>–</td></tr>
-          <tr><td>cube half-extent</td><td>10 – 15 mm</td><td><code>small</code> 9 mm</td></tr>
-          <tr><td>action latency</td><td>0 – 2 control steps</td><td><code>laggy</code> 3</td></tr>
-          <tr><td>observation noise (rad, m)</td><td>0.005, 0.003</td><td><code>noisy</code> 3×</td></tr>
+          <tr><td><span lang="en">cube mass</span><span lang="ja">キューブの質量</span></td><td>0.5 – 2.0</td><td><code>heavy</code> 3.0</td></tr>
+          <tr><td><span lang="en">cube sliding friction</span><span lang="ja">キューブの滑り摩擦</span></td><td><span lang="en">0.5 – 1.5 (only above 1.0 acts)</span><span lang="ja">0.5 – 1.5（効くのは1.0超のみ）</span></td><td><code>slippery</code> 0.3<span lang="en"> (inert)</span><span lang="ja">（効果なし）</span></td></tr>
+          <tr><td><span lang="en">servo gain kp</span><span lang="ja">サーボゲインkp</span></td><td>0.6 – 1.4</td><td><code>weak</code> 0.45</td></tr>
+          <tr><td><span lang="en">joint damping, frictionloss</span><span lang="ja">関節のdamping、frictionloss</span></td><td>0.5 – 2.0</td><td>–</td></tr>
+          <tr><td><span lang="en">cube half-extent</span><span lang="ja">キューブの半辺長</span></td><td>10 – 15 mm</td><td><code>small</code> 9 mm</td></tr>
+          <tr><td><span lang="en">action latency</span><span lang="ja">Actionのlatency</span></td><td><span lang="en">0 – 2 control steps</span><span lang="ja">0 – 2制御ステップ</span></td><td><code>laggy</code> 3</td></tr>
+          <tr><td><span lang="en">observation noise (rad, m)</span><span lang="ja">Observationノイズ（rad, m）</span></td><td>0.005, 0.003</td><td><code>noisy</code> 3×</td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>Scaling <code>kp</code> scales the position actuator's gain and position bias together and leaves the
+      <p lang="en">Scaling <code>kp</code> scales the position actuator's gain and position bias together and leaves the
         velocity feedback alone, so a weaker motor is also a more damped one. That is what a weaker motor
         does, and it is a documented choice rather than a side effect.</p>
+      <p lang="ja"><code>kp</code>のスケーリングでは、位置アクチュエータのゲインと位置バイアスを同時にスケールし、速度フィードバックはそのままにします。
+        そのため弱いモーターは、より減衰の強いモーターにもなります。これは実際の弱いモーターの挙動であり、副作用ではなく意図して文書化した選択です。</p>
     </div>
     <div class="stack prose">
-      <h3>The scripted expert, and two things a first draft got wrong</h3>
-      <p>The expert reads the cube's true pose from the simulator and moves through IK waypoints, rate limited
+      <h3><span lang="en">The scripted expert, and two things a first draft got wrong</span><span lang="ja">スクリプト化したエキスパートと、初版で誤っていた2点</span></h3>
+      <p lang="en">The expert reads the cube's true pose from the simulator and moves through IK waypoints, rate limited
         to 0.05 rad per step so the actions are smooth enough to learn from. It is a demonstrator and a
         reference, not a controller the real arm could run. Two problems had to be solved before it worked.</p>
+      <p lang="ja">エキスパートはシミュレーターからキューブの真の姿勢を読み取り、IKのウェイポイントを順にたどります。
+        学習に使えるほど滑らかなactionにするため、変化量は1 stepあたり0.05 radに制限しています。
+        これはデモンストレーターかつ基準であり、実機アームで動かせるコントローラーではありません。動作させるまでに2つの問題を解決する必要がありました。</p>
     </div>
     <div class="findings">
-      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4>The grasp is ambiguous by 180 degrees</h4>
-        <p>A parallel jaw closing along yaw θ is the same grasp as θ + π, but only one of the two may be inside
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4><span lang="en">The grasp is ambiguous by 180 degrees</span><span lang="ja">把持には180度の曖昧さがある</span></h4>
+        <p lang="en">A parallel jaw closing along yaw θ is the same grasp as θ + π, but only one of the two may be inside
           the wrist-roll limit from where the arm currently is. Both branches are solved, the better one wins,
           and the choice is held for the whole episode so the wrist does not flip halfway through the
-          approach.</p></div></div>
-      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4>Position servos sag, so the loop had to be closed</h4>
-        <p>The actuators are plain PD with no gravity compensation. The arm settles 1 to 2 cm from the pose IK
+          approach.</p>
+        <p lang="ja">ヨー角θ方向に閉じる平行ジョーの把持は、θ + πと同じ把持です。しかし現在のアームの姿勢からは、どちらか一方しか手首ロールの可動範囲に入らない場合があります。
+          両方のブランチを解いて良い方を採用し、接近の途中で手首が反転しないよう、その選択をepisode全体で保持します。</p></div></div>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4><span lang="en">Position servos sag, so the loop had to be closed</span><span lang="ja">位置サーボが垂れるため、ループを閉じる必要があった</span></h4>
+        <p lang="en">The actuators are plain PD with no gravity compensation. The arm settles 1 to 2 cm from the pose IK
           asked for, more under a weakened <code>kp</code>. The expert integrates the Cartesian error near each
           waypoint and shifts its IK target by it, with anti-windup, and only once the arm has stopped slewing.
           A hover phase 1 cm above the cube exists so that this correction has converged before the descent.
-          Without it the open jaw landed on the cube and pushed it away instead of straddling it.</p></div></div>
+          Without it the open jaw landed on the cube and pushed it away instead of straddling it.</p>
+        <p lang="ja">アクチュエータは重力補償のない単純なPDです。アームはIKが指示した姿勢から1〜2 cmずれた位置で静止し、<code>kp</code>を弱めるとずれはさらに大きくなります。
+          エキスパートは各ウェイポイント付近でデカルト空間の誤差を積分し、その分だけIK目標をずらします。アンチワインドアップ付きで、アームの移動が止まってからのみ適用します。
+          キューブの1 cm上でホバリングするフェーズを設けているのは、下降前にこの補正を収束させるためです。
+          これがないと、開いたジョーがキューブを挟まずにその上に着地し、キューブを押しのけていました。</p></div></div>
     </div>
     <div class="stack prose">
-      <h3>The expert's own numbers</h3>
-      <p>100 episodes × 5 seeds per cell, mean ± standard deviation of the per-seed success rate. This is the
+      <h3><span lang="en">The expert's own numbers</span><span lang="ja">エキスパート自身の成功率</span></h3>
+      <p lang="en">100 episodes × 5 seeds per cell, mean ± standard deviation of the per-seed success rate. This is the
         ceiling every learned policy is read against.</p>
+      <p lang="ja">1セルあたり100 episode × 5 seedで、seedごとの成功率の平均 ± 標準偏差です。学習したすべてのpolicyは、この上限と比較して評価します。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>task</th><th class="num">nominal</th><th class="num">heavy</th><th class="num">slippery</th><th class="num">weak</th><th class="num">laggy</th><th class="num">noisy</th><th class="num">small</th></tr></thead>
+        <thead><tr><th><span lang="en">task</span><span lang="ja">タスク</span></th><th class="num">nominal</th><th class="num">heavy</th><th class="num">slippery</th><th class="num">weak</th><th class="num">laggy</th><th class="num">noisy</th><th class="num">small</th></tr></thead>
         <tbody>
           <tr><td>reach</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td><td class="num">1.00 ± 0.00</td></tr>
           <tr><td>push</td><td class="num">0.76 ± 0.07</td><td class="num">0.79 ± 0.07</td><td class="num">0.76 ± 0.07</td><td class="num">0.74 ± 0.05</td><td class="num">0.74 ± 0.05</td><td class="num">0.76 ± 0.07</td><td class="num">0.73 ± 0.06</td></tr>
@@ -540,18 +399,23 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       </table>
     </div>
     <div class="stack prose">
-      <p>The small cube is the expert's real weakness: lift and pick_place fall from 0.93 to 0.73 and 0.72.
+      <p lang="en">The small cube is the expert's real weakness: lift and pick_place fall from 0.93 to 0.73 and 0.72.
         No other physics change moves them by more than 0.08. Push stays at 0.73 to 0.79 in every column,
         and its seed spread is as large as any column's gap from nominal, so the limit is the scripted push
         itself. The one-seed, 30-episode development readings put the small cube at 0.87 and 0.80. The
         measured spread shows why they were never the reference.</p>
-      <h3>Throughput</h3>
-      <p>Lift task on the laptop CPU under WSL2, capped at 8 threads. Mean ± sd over three sweeps that
+      <p lang="ja">エキスパートの本当の弱点は小さいキューブです。liftとpick_placeは0.93から0.73と0.72に下がります。
+        他の物理条件の変化では、どちらも0.08を超えて動きません。pushはどの列でも0.73〜0.79にとどまり、seed間のばらつきがnominalとの差と同程度あるため、
+        限界はスクリプト化したpush動作そのものにあります。開発時に1 seed・30 episodeで取った値では、小さいキューブは0.87と0.80でした。
+        計測したばらつきを見れば、それらを基準値にしなかった理由がわかります。</p>
+      <h3><span lang="en">Throughput</span><span lang="ja">Throughputの計測</span></h3>
+      <p lang="en">Lift task on the laptop CPU under WSL2, capped at 8 threads. Mean ± sd over three sweeps that
         passed the drift guard:</p>
+      <p lang="ja">ノートPCのCPU（WSL2、8スレッドに制限）でliftタスクを実行。ドリフト検査を通過した3回のスイープの平均 ± 標準偏差です。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>processes</th><th class="num">env-steps/s</th><th class="num">efficiency</th></tr></thead>
+        <thead><tr><th><span lang="en">processes</span><span lang="ja">プロセス数</span></th><th class="num">env-steps/s</th><th class="num"><span lang="en">efficiency</span><span lang="ja">効率</span></th></tr></thead>
         <tbody>
           <tr><td>1</td><td class="num">1,954 ± 49</td><td class="num">100%</td></tr>
           <tr><td>2</td><td class="num">3,691 ± 34</td><td class="num">94%</td></tr>
@@ -561,83 +425,120 @@ html.dark-mode .sb-theme .moon-icon{display:block}
       </table>
     </div>
     <div class="stack prose">
-      <p>The first three sweeps drifted 25 to 58% and were thrown out. On the Windows "Balanced" power plan
+      <p lang="en">The first three sweeps drifted 25 to 58% and were thrown out. On the Windows "Balanced" power plan
         the CPU starts at a low clock, so the first reference read low and every later row looked faster.
         A 10 s, 8-process warm-up before the sweep fixed it. The sweep rows are 15 s bursts. Held for three
         minutes, 8 processes settle at 5,361 env-steps/s, 28% below the first window. That plateau, not the
         burst, is the number to budget training from.</p>
+      <p lang="ja">最初の3回のスイープは25〜58%ドリフトしたため破棄しました。Windowsの電源プラン「バランス」ではCPUが低クロックから立ち上がるため、
+        最初の基準値が低く出て、後続の行がすべて速く見えていました。スイープ前に8プロセスで10秒間のウォームアップを入れることで解決しました。
+        スイープの各行は15秒間のバースト値です。3分間継続すると、8プロセスは5,361 env-steps/sに落ち着き、最初の区間より28%低くなります。
+        学習時間の見積もりに使うべきなのは、バースト値ではなくこの定常値です。</p>
     </div>
     <div class="note warnbox">
-      <span class="note-label">Found by a test, not by a policy</span>
-      <p>The action-latency buffer held one entry too many, so every command reached the servos one step late
+      <span class="note-label"><span lang="en">Found by a test, not by a policy</span><span lang="ja">Policyではなくテストで発見</span></span>
+      <p lang="en">The action-latency buffer held one entry too many, so every command reached the servos one step late
         even with latency set to zero. <code>test_kp_affects_tracking</code> failed because a step command
         produced no motion inside the step that issued it. The expert had been succeeding through the bug.
         It is fixed, and the test stays.</p>
+      <p lang="ja">Action latencyのバッファが1要素多く保持していたため、latencyをゼロに設定していても、すべての指令が1 step遅れてサーボに届いていました。
+        <code>test_kp_affects_tracking</code>が、ステップ指令を出したそのstep内で動きが生じないことから失敗して発覚しました。
+        エキスパートはこのバグがあっても成功していました。バグは修正済みで、テストはそのまま残しています。</p>
     </div>
   </div>
 </section>
 
 <section id="rl">
-  <div class="sec-head"><span class="sec-num">05</span><h2>Route 1: reinforcement learning</h2><p class="sec-sub">PPO on privileged state, a three-stage curriculum, and the nominal-versus-randomised transfer table.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Route 1: reinforcement learning</span><span lang="ja">アプローチ1：強化学習</span></h2><p class="sec-sub" lang="en">PPO on privileged state, a three-stage curriculum, and the nominal-versus-randomised transfer table.</p><p class="sec-sub" lang="ja">特権状態を入力とするPPO、3段階のcurriculum、そしてnominal学習とrandomised学習の転移比較表。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>The RL project asks two measured questions, not one. Does training under randomised physics buy
+      <p lang="en">The RL project asks two measured questions, not one. Does training under randomised physics buy
         success on physics outside the randomised range? And does a curriculum that starts with reaching buy
         anything on the lifting task it is meant to help?</p>
-      <h3>The algorithm, and two places it departs from a textbook PPO</h3>
-      <p>The loop is the clipped-surrogate PPO from the author's earlier from-scratch implementation: GAE,
+      <p lang="ja">RLプロジェクトでは、1つではなく2つの問いを計測で確かめます。物理パラメータをランダム化して学習すると、ランダム化範囲外の物理条件でも成功できるのか。
+        そして、リーチから始めるcurriculumは、本来助けるはずの持ち上げタスクに何らかの効果をもたらすのか、です。</p>
+      <h3><span lang="en">The algorithm, and two places it departs from a textbook PPO</span><span lang="ja">アルゴリズムと、教科書的なPPOとの2つの違い</span></h3>
+      <p lang="en">The loop is the clipped-surrogate PPO from the author's earlier from-scratch implementation: GAE,
         orthogonal initialisation, separate actor and critic of two 256-unit tanh layers, learning-rate
         annealing, 8 forked environments with 128 steps each per update. Two things the cart-pole never forced
         appear here.</p>
+      <p lang="ja">学習ループは、筆者が以前ゼロから実装したclipped-surrogate型のPPOです。GAE、直交初期化、256ユニット・tanh 2層の独立したactorとcritic、
+        学習率のアニーリング、更新ごとに8つのfork環境で各128 stepを収集します。ここでは、cart-poleでは必要にならなかった点が2つ出てきます。</p>
     </div>
     <div class="findings">
-      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4>Two kinds of episode end</h4>
-        <p>These tasks <em>terminate</em> on success, where there is no future to bootstrap, and
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4><span lang="en">Two kinds of episode end</span><span lang="ja">2種類のepisode終了</span></h4>
+        <p lang="en">These tasks <em>terminate</em> on success, where there is no future to bootstrap, and
           <em>truncate</em> on the step limit, where there is: the value of the state the episode stopped in,
           which the vector env carries as <code>terminal_obs</code>. Treating a truncation as a termination
           zeroes that bootstrap and corrupts the value target for roughly 1/(1−γ) ≈ 100 steps before every
-          step limit. A four-step test case with one of each is worked by hand.</p></div></div>
-      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4>A running observation normaliser, frozen for evaluation</h4>
-        <p>The 25-d state mixes radians, metres and a scaled velocity, and the per-group RMS spans more than an
+          step limit. A four-step test case with one of each is worked by hand.</p>
+        <p lang="ja">これらのタスクは成功時に<em>termination</em>となり、その先にbootstrapすべき将来はありません。
+          一方step上限では<em>truncation</em>となり、bootstrapすべき値があります。episodeが止まった状態の価値で、vector envが<code>terminal_obs</code>として引き渡します。
+          Truncationをterminationとして扱うとこのbootstrapがゼロになり、各step上限の手前およそ1/(1−γ) ≈ 100 stepにわたって価値の目標値が壊れます。
+          両方を1回ずつ含む4 stepのテストケースを手計算で検証しています。</p></div></div>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4><span lang="en">A running observation normaliser, frozen for evaluation</span><span lang="ja">評価時に固定するobservationのrunning normaliser</span></h4>
+        <p lang="en">The 25-d state mixes radians, metres and a scaled velocity, and the per-group RMS spans more than an
           order of magnitude. A Welford running mean and variance is updated from rollouts and then frozen at
           evaluation and export, so the policy that is measured is the policy that was trained. Actions are
           clipped to [−1, 1] at the environment boundary while the log-probability uses the unclipped sample;
-          that is biased and common, and the saturation fraction is logged so its size stays visible.</p></div></div>
+          that is biased and common, and the saturation fraction is logged so its size stays visible.</p>
+        <p lang="ja">25次元のstateにはラジアン、メートル、スケーリングした速度が混在し、グループごとのRMSは1桁以上の幅があります。
+          Welford法の逐次平均・分散をrolloutから更新し、評価時とexport時には固定します。これにより、計測するpolicyは学習したpolicyと同一になります。
+          Actionは環境の境界で[−1, 1]にclipしますが、対数確率はclip前のサンプルで計算します。これはバイアスを持つものの一般的な方法で、影響の大きさが見えるよう飽和の割合をログに残しています。</p></div></div>
     </div>
     <div class="stack prose">
-      <h3>Curriculum</h3>
-      <p>Stages run reach → push → lift. Promotion happens when the rolling success over the last 100 finished
+      <h3><span lang="en">Curriculum</span><span lang="ja">Curriculumの設計</span></h3>
+      <p lang="en">Stages run reach → push → lift. Promotion happens when the rolling success over the last 100 finished
         episodes reaches 0.8 for reach and push, or 0.6 for lift. Weights and normaliser are kept across the
         promotion, the learning-rate anneal restarts, and the vector env swaps its task.
         <code>--no-curriculum</code> trains lift from scratch on the same budget. What should transfer between
         stages is the joint-space skill of putting the end effector at a point; what should not is anything
         about contact. Whether the transferred part is worth the steps spent on reach and push is the
         measurement.</p>
+      <p lang="ja">ステージはreach → push → liftの順に進みます。直近に終了した100 episodeの成功率が、reachとpushでは0.8、liftでは0.6に達すると昇格します。
+        昇格時に重みとnormaliserは引き継ぎ、学習率のアニーリングは最初からやり直し、vector envはタスクを切り替えます。
+        <code>--no-curriculum</code>では、同じ予算でliftをゼロから学習します。ステージ間で転移すべきなのは、エンドエフェクタを目標点に置く関節空間のスキルであり、
+        接触に関することは転移しないはずです。転移した部分が、reachとpushに費やしたstepに見合うかどうかが、今回計測する点です。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>run</th><th>steps to lift ≥ 0.6 (rolling 100)</th><th>final eval success</th><th class="num">seeds</th></tr></thead>
+        <thead><tr><th><span lang="en">run</span><span lang="ja">学習条件</span></th><th><span lang="en">steps to lift ≥ 0.6 (rolling 100)</span><span lang="ja">lift ≥ 0.6到達までのstep数（直近100件）</span></th><th><span lang="en">final eval success</span><span lang="ja">最終評価の成功率</span></th><th class="num">seeds</th></tr></thead>
         <tbody>
-          <tr><td>curriculum</td><td>not reached in 20 M (stuck on push)</td><td>0.45 on push; lift never started</td><td class="num">1</td></tr>
-          <tr><td>from scratch</td><td>0.996 M</td><td>1.00 (20 episodes)</td><td class="num">1</td></tr>
+          <tr><td>curriculum</td><td><span lang="en">not reached in 20 M (stuck on push)</span><span lang="ja">20 Mで未到達（pushで停滞）</span></td><td><span lang="en">0.45 on push; lift never started</span><span lang="ja">pushで0.45、liftには未到達</span></td><td class="num">1</td></tr>
+          <tr><td><span lang="en">from scratch</span><span lang="ja">ゼロから学習</span></td><td>0.996 M</td><td>1.00<span lang="en"> (20 episodes)</span><span lang="ja">（20 episodeで評価）</span></td><td class="num">1</td></tr>
         </tbody>
       </table>
     </div>
     <div class="note warnbox">
-      <span class="note-label">Measured, and negative</span>
-      <p>The curriculum cleared reach at 54 k steps, then stalled on push: rolling success peaked at 0.60
+      <span class="note-label"><span lang="en">Measured, and negative</span><span lang="ja">計測結果：ネガティブ</span></span>
+      <p lang="en">The curriculum cleared reach at 54 k steps, then stalled on push: rolling success peaked at 0.60
         against the 0.8 gate, so 99.7% of the budget went to push and lift was never trained. From scratch,
         lift crossed 0.6 inside the first million steps. What failed is the gate, not the transfer: push at 0.8
         is a harder bar than lift at 0.6 from scratch, so the curriculum blocked the task it was meant to help.
         One seed; a lower push gate or a per-stage step cap is the next test.</p>
+      <p lang="ja">Curriculumはreachを54 k stepで突破しましたが、pushで停滞しました。直近の成功率は昇格基準0.8に対して最大0.60にとどまり、
+        予算の99.7%がpushに費やされ、liftは一度も学習されませんでした。ゼロから学習した場合、liftは最初の100万step以内に0.6を超えました。
+        失敗したのは転移ではなく昇格基準です。pushの0.8は、ゼロから学習するliftの0.6より高いハードルであり、curriculumが本来助けるはずのタスクを妨げてしまいました。
+        1 seedのみの結果です。次に試すのは、pushの昇格基準を下げるか、ステージごとにstep上限を設けることです。</p>
     </div>
     <div class="stack prose">
-      <h3>The transfer table</h3>
-      <p><code>--dr full</code> samples the bench's ranges at every reset; <code>--dr none</code> trains on the
+      <h3><span lang="en">The transfer table</span><span lang="ja">転移の比較表</span></h3>
+      <p lang="en"><code>--dr full</code> samples the bench's ranges at every reset; <code>--dr none</code> trains on the
         vendored model as is. Both policies are then run on every held-out cell, plus a <code>dr</code> cell
         with in-range sampling, which is the DR policy's home ground. Each cell is 100 episodes × 5 seeds.</p>
-      <h3>Three failed runs, kept</h3>
-      <p><strong>Step size.</strong> Plain clipped PPO at 8 epochs per update drove clip fraction to 0.77,
+      <p lang="ja"><code>--dr full</code>はリセットのたびにベンチの範囲からサンプリングし、<code>--dr none</code>はvendoringしたモデルのまま学習します。
+        両方のpolicyを全held-outセルで実行し、さらにDR policyの得意領域である範囲内サンプリングの<code>dr</code>セルでも実行します。各セルは100 episode × 5 seedです。</p>
+      <h3><span lang="en">Three failed runs, kept</span><span lang="ja">失敗した3つの学習（記録として残す）</span></h3>
+      <p lang="ja"><strong>Step size。</strong>8 epoch/更新の素のclipped PPOでは、4.46 M stepの時点でclip fractionが0.77、近似KLが1.44、σが0.50から0.054まで下がり、成功率は0.02でした。
+        対策：KLが0.02を超えた時点でepochループを打ち切る。<strong>ホバリング。</strong>KL stopを入れると、liftは把持を覚えたものの、returnが上がる一方で成功率が下がりました。
+        調査スクリプトで確認すると、150 stepのうち138 stepでキューブが4.7〜4.9 cmに保持されていました。成功ラインの5.0 cmのすぐ下です。
+        成功するとepisodeが終了するため、保持し続けるshaping rewardの方がボーナスより大きかったのです。
+        対策：学習中は成功してもterminationしない。評価では引き続き最初の成功をカウントします。
+        <strong>DRでゼロから学習。</strong>同じ手順を完全なランダム化のもとで実行すると停滞しました。直近の成功率は最大0.09に達した後、4.9 M stepまでの700回の更新でちょうど0のままで、KLとclip fractionは正常でした。
+        この学習は打ち切り、代わりにnominal policyをランダム化のもとで10 M step fine-tuneしました。1 seedのみなので、これはseed 0でこの手順が失敗したことを示すだけで、DRでのゼロからの学習が不可能だという意味ではありません。</p>
+      <p lang="ja">ゼロから学習したnominalは1.0 M stepで0.6を超え、20 Mを2時間10分で完了しました。速度は、静かなホストで3,043 env-steps/s、Windows側が忙しいときは2,425でした。
+        ExportしたONNX policy（DR fine-tune版、73,990パラメータ）はPyTorchと2.1e-6の精度で一致し、1スレッドでp50 0.008 ms、p99 0.015 msで動作します。</p>
+      <p lang="en"><strong>Step size.</strong> Plain clipped PPO at 8 epochs per update drove clip fraction to 0.77,
         approximate KL to 1.44 and σ from 0.50 to 0.054 by 4.46 M steps, with success at 0.02. Fix: stop the
         epoch loop once KL passes 0.02. <strong>Hovering.</strong> With the KL stop, lift learned to grasp and
         then its success fell while return rose: a probe showed the cube held at 4.7–4.9 cm for 138 of 150
@@ -648,46 +549,61 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         updates up to 4.9 M steps, with normal KL and clip fraction. It was stopped and replaced by fine-tuning the
         nominal policy under randomisation for 10 M steps. One seed, so that says the recipe failed on seed 0,
         not that DR from scratch cannot work.</p>
-      <p>Nominal from scratch crossed 0.6 at 1.0 M steps and finished 20 M in 2 h 10 min, at 3,043
+      <p lang="en">Nominal from scratch crossed 0.6 at 1.0 M steps and finished 20 M in 2 h 10 min, at 3,043
         env-steps/s on a quiet host and 2,425 while the Windows side was busy. The exported ONNX policy (the DR
         fine-tune, 73,990 parameters) matches PyTorch to 2.1e-6 and runs in 0.008 ms p50, 0.015 ms p99 on one
         thread.</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>physics</th><th>nominal-trained</th><th>DR fine-tuned</th><th>delta</th></tr></thead>
+        <thead><tr><th><span lang="en">physics</span><span lang="ja">物理条件</span></th><th><span lang="en">nominal-trained</span><span lang="ja">nominal学習</span></th><th><span lang="en">DR fine-tuned</span><span lang="ja">DRでfine-tune</span></th><th><span lang="en">delta</span><span lang="ja">差</span></th></tr></thead>
         <tbody>
           <tr><td>nominal</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
-          <tr><td>heavy (mass 3×)</td><td>0.998 ± 0.004</td><td>0.988 ± 0.008</td><td>−0.010</td></tr>
-          <tr><td>slippery (friction 0.3×, inert)</td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
+          <tr><td>heavy <span lang="en">(mass 3×)</span><span lang="ja">（質量3×）</span></td><td>0.998 ± 0.004</td><td>0.988 ± 0.008</td><td>−0.010</td></tr>
+          <tr><td>slippery <span lang="en">(friction 0.3×, inert)</span><span lang="ja">（摩擦0.3×、効果なし）</span></td><td>0.998 ± 0.004</td><td>0.998 ± 0.004</td><td>+0.000</td></tr>
           <tr><td>weak (kp 0.45×)</td><td>0.982 ± 0.013</td><td>1.000 ± 0.000</td><td>+0.018</td></tr>
-          <tr><td>laggy (3 steps)</td><td>0.458 ± 0.052</td><td>0.760 ± 0.030</td><td><strong>+0.302</strong></td></tr>
-          <tr><td>noisy (3× obs noise)</td><td>0.956 ± 0.017</td><td>0.948 ± 0.024</td><td>−0.008</td></tr>
+          <tr><td>laggy <span lang="en">(3 steps)</span><span lang="ja">（3 stepの遅延）</span></td><td>0.458 ± 0.052</td><td>0.760 ± 0.030</td><td><strong>+0.302</strong></td></tr>
+          <tr><td>noisy <span lang="en">(3× obs noise)</span><span lang="ja">（observationノイズ3×）</span></td><td>0.956 ± 0.017</td><td>0.948 ± 0.024</td><td>−0.008</td></tr>
           <tr><td>small (9 mm)</td><td>0.878 ± 0.051</td><td>0.960 ± 0.020</td><td>+0.082</td></tr>
-          <tr><td>dr (in-range)</td><td>0.888 ± 0.038</td><td>0.958 ± 0.013</td><td>+0.070</td></tr>
-          <tr class="hl"><td><strong>mean drop vs own nominal</strong> (6 held-out cells)</td><td>0.120</td><td>0.056</td><td>−0.064</td></tr>
+          <tr><td>dr <span lang="en">(in-range)</span><span lang="ja">（範囲内）</span></td><td>0.888 ± 0.038</td><td>0.958 ± 0.013</td><td>+0.070</td></tr>
+          <tr class="hl"><td><span lang="en"><strong>mean drop vs own nominal</strong> (6 held-out cells)</span><span lang="ja"><strong>自身のnominal値からの平均低下</strong>（held-out 6セル）</span></td><td>0.120</td><td>0.056</td><td>−0.064</td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>The DR fine-tune halves the mean drop, and almost all of it is one cell: three steps of action
+      <p lang="en">The DR fine-tune halves the mean drop, and almost all of it is one cell: three steps of action
         latency, one step past the randomised range, costs the nominal policy more than half its success and the
         DR policy a quarter. The mass shift costs neither anything. The friction row says nothing: the slippery cell turned out inert (see the note under the imitation tables). Two things weaken the claim: one
         training seed per column (the ± is over evaluation seeds only), and the DR column has 10 M more training
         steps, so part of the gain may be training length. A 30 M-step nominal run is the control that would
         separate the two, and it has not been run.</p>
-      <p>A smaller mean drop for the DR policy is evidence that randomising <em>these</em> factors
+      <p lang="ja">DRでのfine-tuneにより平均低下は半分になりますが、その大部分は1つのセルによるものです。
+        ランダム化範囲を1 step超える3 stepのaction latencyで、nominal policyは成功率の半分以上を失い、DR policyは4分の1を失います。
+        質量の変化はどちらにも影響しません。摩擦の行からは何も言えません。slipperyセルは効果がないことが判明したためです（imitationの表の下の注記を参照）。
+        この主張を弱める点が2つあります。各列の学習seedが1つだけであること（±は評価seed間のばらつきのみ）、
+        そしてDRの列は学習stepが10 M多いため、改善の一部は学習期間の長さによる可能性があることです。
+        この2つを切り分ける対照実験は30 M stepのnominal学習ですが、まだ実行していません。</p>
+      <p lang="en">A smaller mean drop for the DR policy is evidence that randomising <em>these</em> factors
         transfers to shifts in <em>these</em> factors. It would say nothing about the physical SO-ARM100, whose
         unmodelled effects (backlash, cable friction, camera latency) are in neither column. The scripted
         expert's own numbers on the same cells, from the bench, are the ceiling to read the table against.</p>
-      <h3>Checkpoints and export</h3>
-      <p>Runs are chunked and resumable. The checkpoint carries model, optimiser, normaliser, RNG and
+      <p lang="ja">DR policyの平均低下が小さいことは、<em>これらの</em>要素をランダム化すると<em>これらの</em>要素の変化に転移する、という根拠になります。
+        実機のSO-ARM100については何も言えません。モデル化していない影響（backlash、ケーブルの摩擦、カメラのlatency）はどちらの列にも含まれていないからです。
+        この表は、ベンチで計測した同じセルでのスクリプト化エキスパートの数値を上限として読んでください。</p>
+      <h3><span lang="en">Checkpoints and export</span><span lang="ja">Checkpointとexport</span></h3>
+      <p lang="en">Runs are chunked and resumable. The checkpoint carries model, optimiser, normaliser, RNG and
         curriculum state, and a test asserts that two updates after a reload equal two updates without one,
         bit for bit. The throughput monitor warns when the rolling env-steps/s drops more than 20% below the
         first five updates; the machine cannot read its own temperature and CPU contention looks identical,
         so the warning says to check both. Export folds the normaliser into the actor's mean as one ONNX graph
         that takes raw observations, verified against PyTorch to 1e-5 on 1,000 random observations before any
         latency is quoted.</p>
+      <p lang="ja">学習は分割実行と再開に対応しています。Checkpointにはモデル、optimiser、normaliser、乱数状態、curriculumの状態が含まれ、
+        再読み込み後の2回の更新が、再読み込みなしの2回の更新とビット単位で一致することをテストで確認しています。
+        Throughputモニターは、直近のenv-steps/sが最初の5回の更新より20%以上下がると警告を出します。
+        このマシンは自身の温度を読み取れず、CPUの競合も同じように見えるため、警告では両方を確認するよう促します。
+        Exportではnormaliserをactorの平均出力に畳み込み、生のobservationを受け取る1つのONNXグラフにします。
+        Latencyの数値を示す前に、1,000件のランダムなobservationでPyTorchとの一致を1e-5の精度で検証しています。</p>
     </div>
     <pre><code>F="--seed 0 --target-kl 0.02 --no-terminate-on-success"
 nice -n 10 python train.py --task lift --no-curriculum --dr none $F --out runs/lift_scr_nominal
@@ -702,44 +618,55 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
 </section>
 
 <section id="il">
-  <div class="sec-head"><span class="sec-num">06</span><h2>Route 2: imitation</h2><p class="sec-sub">Behaviour cloning, DAgger and a chunked transformer from scripted demonstrations, and the question of how many demonstrations each needs.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Route 2: imitation</span><span lang="ja">アプローチ2：imitation learning</span></h2><p class="sec-sub" lang="en">Behaviour cloning, DAgger and a chunked transformer from scripted demonstrations, and the question of how many demonstrations each needs.</p><p class="sec-sub" lang="ja">スクリプトのデモからのbehaviour cloning、DAgger、chunk出力のtransformer。そして、それぞれに必要なデモの数。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>Imitation is the route physical arms mostly take: no reward shaping, no privileged state, a few hundred
+      <p lang="en">Imitation is the route physical arms mostly take: no reward shaping, no privileged state, a few hundred
         demonstrations and a camera. Here the policy sees what the real arm would see, the 15-d proprioception
         vector and a 96 × 128 front-camera image, and nothing else.</p>
-      <h3>The expert plays two roles</h3>
+      <p lang="ja">実機アームで主に使われるのはimitationです。reward shapingも特権状態も使わず、数百件のデモンストレーションとカメラだけで学習します。
+        ここでのpolicyが見るのは、実機アームが見るものと同じ、15次元のproprioceptionベクトルと96 × 128の前方カメラ画像だけです。</p>
+      <h3><span lang="en">The expert plays two roles</span><span lang="ja">エキスパートの2つの役割</span></h3>
       <div class="pair">
-        <dt>demonstrator</dt><dd>Successful expert episodes are written as a LeRobotDataset v3: proprio, front image, the expert's absolute joint targets as the action, and an instruction drawn from the training templates only.</dd>
-        <dt>oracle</dt><dd>DAgger needs a label at states the learner visits, which a human demonstrator cannot give after the fact. A scripted expert can: asked at any state, it returns what it would do from there, its phase machine advancing on the true state. A test checks that with the mixing coefficient at 1 the labels equal what the expert alone would have done.</dd>
+        <dt><span lang="en">demonstrator</span><span lang="ja">デモンストレーター</span></dt><dd lang="en">Successful expert episodes are written as a LeRobotDataset v3: proprio, front image, the expert's absolute joint targets as the action, and an instruction drawn from the training templates only.</dd><dd lang="ja">成功したエキスパートのepisodeをLeRobotDataset v3として書き出します。内容はproprio、前方画像、actionとしてのエキスパートの絶対関節目標値、そして学習用テンプレートからのみ選んだ指示文です。</dd>
+        <dt><span lang="en">oracle</span><span lang="ja">オラクル</span></dt><dd lang="en">DAgger needs a label at states the learner visits, which a human demonstrator cannot give after the fact. A scripted expert can: asked at any state, it returns what it would do from there, its phase machine advancing on the true state. A test checks that with the mixing coefficient at 1 the labels equal what the expert alone would have done.</dd><dd lang="ja">DAggerには学習側が訪れた状態でのラベルが必要ですが、人間のデモンストレーターは事後にそれを与えられません。
+          スクリプト化したエキスパートなら可能です。任意の状態で問い合わせると、真の状態に基づいてフェーズ遷移を進め、そこから取る行動を返します。混合係数が1のとき、ラベルがエキスパート単独の行動と一致することをテストで確認しています。</dd>
       </div>
     </div>
     <div class="stack prose">
-      <h3>Three models, one loss</h3>
+      <h3><span lang="en">Three models, one loss</span><span lang="ja">3つのモデル、1つのloss</span></h3>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>model</th><th>input</th><th>output</th><th>why it is there</th></tr></thead>
+        <thead><tr><th><span lang="en">model</span><span lang="ja">モデル</span></th><th><span lang="en">input</span><span lang="ja">入力</span></th><th><span lang="en">output</span><span lang="ja">出力</span></th><th><span lang="en">why it is there</span><span lang="ja">位置づけ</span></th></tr></thead>
         <tbody>
-          <tr><td><code>StateMLP</code></td><td>15-d proprio</td><td>1 action</td><td>The floor. Proprioception alone cannot locate the cube; this is the number the image models must beat.</td></tr>
-          <tr><td><code>ImagePolicy</code></td><td>image + proprio</td><td>1 action</td><td>A small CNN ending in a spatial soft-argmax over 16 keypoint channels. The last layer <em>is</em> a coordinate, so position is handed to the network rather than learned. Keypoints and proprio feed an MLP.</td></tr>
-          <tr><td><code>ACTLite</code></td><td>image + proprio</td><td>chunk of 20 actions</td><td>ACT without the variational latent: keypoint tokens and a proprio token through a 2-layer encoder, 20 learned queries through a 2-layer decoder. Overlapping chunks are blended at run time.</td></tr>
+          <tr><td><code>StateMLP</code></td><td><span lang="en">15-d proprio</span><span lang="ja">15次元のproprio</span></td><td><span lang="en">1 action</span><span lang="ja">action 1つ</span></td><td><span lang="en">The floor. Proprioception alone cannot locate the cube; this is the number the image models must beat.</span><span lang="ja">下限。Proprioceptionだけではキューブの位置がわからないため、画像モデルが上回るべき基準値です。</span></td></tr>
+          <tr><td><code>ImagePolicy</code></td><td><span lang="en">image + proprio</span><span lang="ja">画像 + proprio</span></td><td><span lang="en">1 action</span><span lang="ja">action 1つ</span></td><td><span lang="en">A small CNN ending in a spatial soft-argmax over 16 keypoint channels. The last layer <em>is</em> a coordinate, so position is handed to the network rather than learned. Keypoints and proprio feed an MLP.</span><span lang="ja">16チャンネルのkeypointに対する空間soft-argmaxで終わる小さなCNN。最終層が<em>そのまま</em>座標になるため、位置は学習させるのではなくネットワークに与えられます。KeypointとproprioをMLPに入力します。</span></td></tr>
+          <tr><td><code>ACTLite</code></td><td><span lang="en">image + proprio</span><span lang="ja">画像 + proprio</span></td><td><span lang="en">chunk of 20 actions</span><span lang="ja">20 action分のchunk</span></td><td><span lang="en">ACT without the variational latent: keypoint tokens and a proprio token through a 2-layer encoder, 20 learned queries through a 2-layer decoder. Overlapping chunks are blended at run time.</span><span lang="ja">変分潜在変数を省いたACT。keypointトークンとproprioトークンを2層encoderに通し、学習済みの20クエリを2層decoderに通します。実行時には重なり合うchunkをブレンドします。</span></td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>All three train with L1 on normalised actions. Mean-squared error fits the conditional mean, and when
+      <p lang="en">All three train with L1 on normalised actions. Mean-squared error fits the conditional mean, and when
         demonstrations are multimodal (two valid grasp yaws, two ways round a cube) the mean is a third,
         invalid action. L1 fits the conditional median, which is one of the modes, and it is what ACT trains
         with. Padded chunk entries are masked. Normalisation statistics come from the training episodes only
         and travel with the checkpoint. The split is by episode, never by frame, and the final epoch is
         reported rather than the best one on validation.</p>
-      <h3>The experiments</h3>
-      <p><strong>Scaling curve.</strong> For 10, 25, 50, 100 and 200 episodes and three training seeds each (six for ACT), train on
+      <p lang="ja">3つとも、正規化したactionに対するL1 lossで学習します。二乗誤差は条件付き平均にフィットするため、デモが多峰性を持つ場合（有効な把持ヨー角が2つ、キューブを回り込む経路が2つ）、
+        平均は第3の無効なactionになってしまいます。L1は条件付き中央値にフィットし、これはいずれかのモードと一致します。ACTもL1で学習します。
+        Chunkのパディング部分はマスクします。正規化統計は学習用episodeのみから算出し、checkpointと一緒に保存します。
+        分割は常にepisode単位でフレーム単位ではなく、報告するのはvalidationで最良のepochではなく最終epochの値です。</p>
+      <h3><span lang="en">The experiments</span><span lang="ja">実験</span></h3>
+      <p lang="en"><strong>Scaling curve.</strong> For 10, 25, 50, 100 and 200 episodes and three training seeds each (six for ACT), train on
         the first <em>n</em> episodes for 20 epochs and evaluate 50 episodes on one evaluation seed. That is
         lighter than the bench protocol, to keep 15 runs per model affordable on a CPU. Every seed sees the
         same first episodes, so seeds differ only in initialisation and shuffling, and a cell's spread is
         over the training seeds. At 50 episodes one success is 0.02.</p>
+      <p lang="ja"><strong>スケーリング曲線。</strong>10、25、50、100、200 episodeのそれぞれについて学習seedを3つ（ACTは6つ）使い、
+        先頭の<em>n</em> episodeで20 epoch学習し、1つの評価seedで50 episodeを評価します。
+        モデルあたり15回の学習をCPUで回せるよう、ベンチのプロトコルより軽くしています。どのseedも同じ先頭episodeを使うため、
+        seed間の違いは初期化とシャッフルだけで、各セルのばらつきは学習seed間のものです。50 episodeでは、1回の成功が0.02に相当します。</p>
     </div>
     <div class="tablewrap">
       <table>
@@ -754,12 +681,23 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
       </table>
     </div>
     <div class="stack prose">
-      <p>Three training seeds (six for ACT) × 50 episodes per cell, mean ± sd over seeds, measured 2026-09-25 and 2026-09-30.
+      <p lang="en">Three training seeds (six for ACT) × 50 episodes per cell, mean ± sd over seeds, measured 2026-09-25 and 2026-09-30.
         More demonstrations do not rescue single-step cloning: the image policy's validation L1 falls fivefold
         from 10 to 200 episodes (0.181 to 0.036) while its success stays between 0.01 and 0.05, so the
         compounding error below is not a data-quantity problem at this scale. ACT's mean climbs, 0.08 to 0.51, and has
         not levelled off at 200.</p>
-      <p>The spread is the other result. At 200 episodes ACT's six seeds split into two groups, 0.92, 0.82 and
+      <p lang="ja">1セルあたり学習seed 3つ（ACTは6つ）× 50 episode、seed間の平均 ± 標準偏差で、2026-09-25と2026-09-30に計測しました。
+        デモを増やしても、single-stepのcloningは改善しません。画像policyのvalidation L1は10から200 episodeで5分の1（0.181 → 0.036）に下がる一方、
+        成功率は0.01〜0.05にとどまります。つまり後述する誤差の累積は、この規模ではデータ量の問題ではありません。
+        ACTの平均は0.08から0.51まで上昇し、200の時点でもまだ頭打ちになっていません。</p>
+      <p lang="ja">もう1つの結果はばらつきです。200 episodeでは、ACTの6つのseedが0.92、0.82、0.76と、0.24、0.18、0.12の2群にはっきり分かれ、その中間はありません。
+        平均の0.51はどちらの群も表していません。50 episodeでは成功率0.5の二項標準誤差は0.07なので、これは評価ノイズではなく学習のばらつきです。
+        Seedがすべてのサイズで初期化とシャッフルを固定するため、50、100、200 episodeのいずれでも同じ3つのseedが低い群に入ります。
+        順位はこのばらつきの中で部分的にしか保たれません。100 episodeではACTの最悪のseedが画像policyの最良を上回りますが（0.12対0.06）、200では同点です（0.12と0.12）。
+        Validation lossは良いseedを見分ける信頼できる指標ではありません。50 episodeではL1が中間の値のseedが最も低い成功率で、200 episodeではL1の順序が2群の順序と一致しています。
+        このページの他の表はすべて学習seedが1つで、この曲線は、評価seed間の±が実際の不確かさを過小評価していることを示しています。
+        Chunk出力とsingle-stepの差はそれでも残るほど大きいですが、held-out表の0.06程度の差は残らないかもしれません。</p>
+      <p lang="en">The spread is the other result. At 200 episodes ACT's six seeds split into two groups, 0.92, 0.82 and
         0.76 against 0.24, 0.18 and 0.12, with nothing in between, so the mean of 0.51 describes neither. At 50
         episodes the binomial standard error of a 0.5 rate is 0.07, so that is training variance, not
         evaluation noise. The same three seeds are in the low group at 50, 100 and 200 episodes, because a seed
@@ -772,37 +710,47 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
         may not.</p>
     </div>
     <div class="stack prose">
-      <p><strong>DAgger.</strong> Mixing coefficient β<sub>i</sub> = 0.5 · 0.5<sup>i</sup>, 20 rollouts per
+      <p lang="en"><strong>DAgger.</strong> Mixing coefficient β<sub>i</sub> = 0.5 · 0.5<sup>i</sup>, 20 rollouts per
         iteration, labels from the shadow expert, retrain from scratch on the aggregate, five iterations. The
         comparison is BC on the same 200 demonstrations.</p>
+      <p lang="ja"><strong>DAgger。</strong>混合係数β<sub>i</sub> = 0.5 · 0.5<sup>i</sup>、1イテレーションあたり20 rollout、ラベルはシャドーエキスパートから取得し、
+        集約したデータでゼロから再学習、これを5イテレーション行います。比較対象は同じ200件のデモで学習したBCです。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th></th><th>BC, 200 demos</th><th>DAgger, 200 demos + 100 relabelled rollouts</th></tr></thead>
+        <thead><tr><th></th><th><span lang="en">BC, 200 demos</span><span lang="ja">BC（デモ200件）</span></th><th><span lang="en">DAgger, 200 demos + 100 relabelled rollouts</span><span lang="ja">DAgger（デモ200件 + 再ラベル付けしたrollout 100件）</span></th></tr></thead>
         <tbody><tr><td>lift, nominal</td><td>0.05 ± 0.02</td><td>0.14 ± 0.07</td></tr></tbody>
       </table>
     </div>
     <div class="stack prose">
-      <p>100 episodes × 5 seeds, mean ± sd over seeds. Per seed, DAgger scores 0.18, 0.06, 0.09, 0.22 and 0.13;
+      <p lang="en">100 episodes × 5 seeds, mean ± sd over seeds. Per seed, DAgger scores 0.18, 0.06, 0.09, 0.22 and 0.13;
         BC scores 0.03, 0.07, 0.05, 0.06 and 0.04. Four of the five DAgger seeds beat BC's best, a gap of about
         three standard errors. The gain is real and small. The learner's own success per iteration (20
         episodes each, so ±0.1 is noise) went 0.05, 0.20, 0.10, 0.05, 0.05 and never climbed. Relabelling the
         states the learner visits does not give a single-step policy the temporal context it lacks.</p>
+      <p lang="ja">100 episode × 5 seed、seed間の平均 ± 標準偏差です。Seedごとの値は、DAggerが0.18、0.06、0.09、0.22、0.13、
+        BCが0.03、0.07、0.05、0.06、0.04です。DAggerの5 seedのうち4つがBCの最良値を上回り、差は標準誤差のおよそ3倍です。
+        改善は本物ですが、小さいものです。各イテレーションでの学習側自身の成功率（各20 episodeなので±0.1はノイズ）は0.05、0.20、0.10、0.05、0.05と推移し、上昇しませんでした。
+        学習側が訪れた状態にラベルを付け直しても、single-step policyに欠けている時間方向の文脈は補えません。</p>
     </div>
     <div class="stack prose">
-      <p><strong>Held-out physics.</strong> Both image policies on every <code>EVAL_PHYSICS</code> cell,
+      <p lang="en"><strong>Held-out physics.</strong> Both image policies on every <code>EVAL_PHYSICS</code> cell,
         100 episodes × 5 seeds. The demonstrations were recorded on nominal physics, so this is a transfer
         table, and the expert's own table from the bench is the reference column. Training data: the recorder
         kept 200 of 218 expert attempts, 14,487 frames. Final-epoch validation L1 was 0.034 for the single-step
         policy and 0.123 for ACT, and the table shows how little that predicts.</p>
+      <p lang="ja"><strong>Held-out物理条件。</strong>2つの画像policyを、すべての<code>EVAL_PHYSICS</code>セルで100 episode × 5 seed評価しました。
+        デモはnominalの物理条件で記録したので、これは転移の表です。基準列はベンチで計測したエキスパート自身の値です。
+        学習データ：レコーダーはエキスパートの試行218回のうち200回を保存し、14,487フレームです。最終epochのvalidation L1はsingle-step policyが0.034、ACTが0.123で、
+        表を見ればこの値がほとんど何も予測しないことがわかります。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>physics</th><th class="num">expert</th><th class="num">BC image</th><th class="num">ACT</th></tr></thead>
+        <thead><tr><th><span lang="en">physics</span><span lang="ja">物理条件</span></th><th class="num"><span lang="en">expert</span><span lang="ja">エキスパート</span></th><th class="num">BC image</th><th class="num">ACT</th></tr></thead>
         <tbody>
           <tr><td>nominal</td><td class="num">0.93 ± 0.02</td><td class="num">0.05 ± 0.02</td><td class="num">0.77 ± 0.05</td></tr>
           <tr><td>heavy</td><td class="num">0.90 ± 0.02</td><td class="num">0.02 ± 0.01</td><td class="num">0.78 ± 0.06</td></tr>
-          <tr><td>slippery (inert)</td><td class="num">0.93 ± 0.02</td><td class="num">0.05 ± 0.02</td><td class="num">0.77 ± 0.05</td></tr>
+          <tr><td>slippery<span lang="en"> (inert)</span><span lang="ja">（効果なし）</span></td><td class="num">0.93 ± 0.02</td><td class="num">0.05 ± 0.02</td><td class="num">0.77 ± 0.05</td></tr>
           <tr><td>weak</td><td class="num">0.97 ± 0.02</td><td class="num">0.00 ± 0.00</td><td class="num">0.70 ± 0.04</td></tr>
           <tr><td>laggy</td><td class="num">0.92 ± 0.03</td><td class="num">0.00 ± 0.00</td><td class="num">0.65 ± 0.02</td></tr>
           <tr><td>noisy</td><td class="num">0.93 ± 0.02</td><td class="num">0.06 ± 0.01</td><td class="num">0.72 ± 0.08</td></tr>
@@ -811,33 +759,48 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
       </table>
     </div>
     <div class="stack prose">
-      <p><strong>Chunking is the whole difference.</strong> Same demonstrations, same keypoint encoder, same
+      <p lang="en"><strong>Chunking is the whole difference.</strong> Same demonstrations, same keypoint encoder, same
         loss: the single-step policy lifts the cube 5% of the time, ACT 77%. The pipeline was checked before
         that was believed. Replaying a recorded episode through the evaluation env reproduces the state to
         7e-7, and on the expert's own trajectory the policy's worst-joint error against the demonstration is
         0.033 rad median and 0.18 at the 95th percentile. Closed loop, its error against the expert grows from
         0.4 to 0.5 rad in the first 10 steps to 1.1 to 4.6 rad by step 60 to 150, on 3 evaluation seeds. That is compounding error, the textbook failure of behaviour cloning, here measured.</p>
-      <p><strong>ACT transfers, with two real losses.</strong> Heavy and noisy stay within noise of nominal.
+      <p lang="ja"><strong>差を生んでいるのはchunk出力だけです。</strong>デモも、keypoint encoderも、lossも同じです。それでもsingle-step policyがキューブを持ち上げるのは5%、ACTは77%です。
+        この結果を信じる前にパイプラインを検証しました。記録したepisodeを評価用envで再生すると状態は7e-7の精度で再現され、
+        エキスパート自身の軌道上では、デモに対するpolicyの最悪関節誤差は中央値0.033 rad、95パーセンタイルで0.18です。
+        閉ループでは、エキスパートとの誤差が最初の10 stepの0.4〜0.5 radから、60〜150 step目には1.1〜4.6 radまで拡大します（評価seed 3つ）。
+        これがbehaviour cloningの教科書的な失敗である誤差の累積であり、ここではそれを計測しています。</p>
+      <p lang="en"><strong>ACT transfers, with two real losses.</strong> Heavy and noisy stay within noise of nominal.
         Three steps of latency cost it 0.12 and the weak servo 0.06, where the expert loses at most 0.01. The
         small cube costs ACT 0.39 against the expert's 0.20. An 18 mm cube (9 mm half-extent, against 25 mm nominal) in a 96 × 128 image is a perception
         problem, and the expert, which reads the true pose, does not have it.</p>
+      <p lang="ja"><strong>ACTは転移するが、実質的な低下が2つある。</strong>heavyとnoisyはnominalとの差がノイズの範囲内です。
+        3 stepのlatencyでは0.12、weakサーボでは0.06低下し、エキスパートの低下は最大でも0.01です。小さいキューブではACTが0.39低下し、エキスパートは0.20です。
+        96 × 128の画像に写る18 mmのキューブ（半辺長9 mm、nominalは25 mm）は認識の問題であり、真の姿勢を読み取るエキスパートにはこの問題がありません。</p>
     </div>
     <div class="note warnbox">
-      <span class="note-label">Found while measuring: the slippery cell is inert</span>
-      <p>Nominal and slippery are bit-identical in every table on this page: the expert, both RL policies, BC
+      <span class="note-label"><span lang="en">Found while measuring: the slippery cell is inert</span><span lang="ja">計測中に判明：slipperyセルは効果がない</span></span>
+      <p lang="en">Nominal and slippery are bit-identical in every table on this page: the expert, both RL policies, BC
         and ACT. The bench scales the cube's sliding friction by 0.3, but MuJoCo gives a contact the larger
         friction of its two geoms, and the fingers and floor stay at 1.0, so the contact never changes. The
         same rule means the DR friction range of 0.5 to 1.5 only acts above 1.0. The rows are kept as
         measured. Fixing it (scale the finger friction too, or set contact <code>priority</code>) would be a
         new experiment and would be labelled as one.</p>
+      <p lang="ja">このページのすべての表（エキスパート、2つのRL policy、BC、ACT）で、nominalとslipperyはビット単位で同一です。
+        ベンチはキューブの滑り摩擦を0.3倍にしますが、MuJoCoは接触する2つのgeomのうち大きい方の摩擦を接触に使います。
+        指と床は1.0のままなので、接触の摩擦はまったく変わりません。同じ規則により、DRの摩擦範囲0.5〜1.5も1.0を超える部分しか効きません。
+        各行は計測したまま残しています。修正（指の摩擦もスケールする、または接触の<code>priority</code>を設定する）は新しい実験となり、そのように明記します。</p>
     </div>
     <div class="stack prose">
-      <h3>Experimental: demonstrations from a hand video</h3>
-      <p>MediaPipe Hand Landmarker on an overhead phone video; wrist position maps to a point in the spawn
+      <h3><span lang="en">Experimental: demonstrations from a hand video</span><span lang="ja">実験的機能：手の動画からのデモンストレーション</span></h3>
+      <p lang="en">MediaPipe Hand Landmarker on an overhead phone video; wrist position maps to a point in the spawn
         box, thumb-to-index pinch distance to jaw angle and a two-level height; the bench's IK turns that into
         joint targets, and the targets are replayed in the simulator. The video supplies the motion, the
         simulator supplies everything the policy sees. It has run on synthetic landmarks only and has not been
         validated on a real recording. The page says so because the repository does.</p>
+      <p lang="ja">スマートフォンで俯瞰撮影した動画にMediaPipe Hand Landmarkerを適用します。手首の位置を出現範囲内の点に、親指と人差し指の間隔をジョー角度と2段階の高さに対応付けます。
+        それをベンチのIKで関節目標値に変換し、シミュレーター上で再生します。動作は動画から、policyが見るものはすべてシミュレーターから得ます。
+        合成したランドマークでしか動かしておらず、実際の録画では検証していません。リポジトリにそう書いてあるので、このページにも明記しています。</p>
     </div>
     <pre><code>python scripts/record_demos.py --root data/lift_red --repo-id local/so_arm100_lift_red --tasks lift:red --episodes 200
 nice -n 10 python scaling.py --root data/lift_red --repo-id local/so_arm100_lift_red --task lift:red --model image --sizes 10 25 50 100 200 --seeds 3
@@ -848,45 +811,58 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
 </section>
 
 <section id="vla">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Route 3: language</h2><p class="sec-sub">A small policy that reads a sentence, and three held-out splits that test whether it read it or memorised it.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Route 3: language</span><span lang="ja">アプローチ3：言語条件付きpolicy</span></h2><p class="sec-sub" lang="en">A small policy that reads a sentence, and three held-out splits that test whether it read it or memorised it.</p><p class="sec-sub" lang="ja">文を読む小さなpolicyと、それが文を読んでいるのか暗記しているだけなのかを確かめる3つのheld-out分割。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>The interesting property of a vision-language-action model is that one policy follows language across
+      <p lang="en">The interesting property of a vision-language-action model is that one policy follows language across
         tasks and objects and generalises to phrasings and combinations it was not trained on. That property
         can be tested at about one million parameters on a laptop CPU with a real held-out protocol. What
         cannot be tested here is scale, and the repository does not pretend otherwise.</p>
-      <h3>What the policy is</h3>
-      <p>Three tokens go into a 128-wide, 2-layer transformer encoder: a frozen 384-d sentence embedding, 32
+      <p lang="ja">Vision-language-actionモデルの興味深い性質は、1つのpolicyがタスクや物体をまたいで言語に従い、学習していない言い回しや組み合わせにも汎化することです。
+        この性質は、約100万パラメータ規模でも、ノートPCのCPU上で本来のheld-outプロトコルを使ってテストできます。
+        ここでテストできないのは規模であり、リポジトリもそれを偽ってはいません。</p>
+      <h3><span lang="en">What the policy is</span><span lang="ja">Policyの構成</span></h3>
+      <p lang="en">Three tokens go into a 128-wide, 2-layer transformer encoder: a frozen 384-d sentence embedding, 32
         image keypoints from a small CNN, and the arm's proprioception. Ten learned queries go through a
         2-layer decoder and come out as a chunk of ten joint-target vectors, blended at run time as chunks
         overlap. Before the keypoints are pooled, the sentence embedding produces a per-channel scale and
         shift on the image features (FiLM), so "the blue cube" can sharpen blue before position is read
         out. Training is L1 on normalised actions over a few thousand expert frames covering four tasks and
         three colours, all three cubes always on the table.</p>
-      <h3>What it is not</h3>
-      <p>It is not a foundation model and it does not fine-tune one. SmolVLA-base appears as a zero-shot
+      <p lang="ja">幅128・2層のtransformer encoderに3つのトークンを入力します。重みを固定した384次元のsentence embedding、小さなCNNから得る32個の画像keypoint、そしてアームのproprioceptionです。
+        学習済みの10個のクエリが2層decoderを通り、10個の関節目標ベクトルからなるchunkとして出力されます。実行時には重なり合うchunkをブレンドします。
+        Keypointをプーリングする前に、sentence embeddingが画像特徴にチャンネルごとのスケールとシフトを与えます（FiLM）。
+        これにより「the blue cube」という指示で、位置を読み出す前に青色を強調できます。
+        学習は、4タスク・3色をカバーする数千フレームのエキスパートデータに対する、正規化actionのL1 lossです。テーブル上には常に3つのキューブすべてが置かれています。</p>
+      <h3><span lang="en">What it is not</span><span lang="ja">このpolicyではないもの</span></h3>
+      <p lang="en">It is not a foundation model and it does not fine-tune one. SmolVLA-base appears as a zero-shot
         calibration line, inference only. A LoRA fine-tune of a SmolVLM-sized network is gated on a measured
         compute check and is future work even where the gate passes.</p>
-      <h3>The three splits</h3>
-      <p>Sentences and (task, colour) pairs come from the bench's instruction module, so "unseen" means the
+      <p lang="ja">基盤モデルではなく、基盤モデルをfine-tuneしたものでもありません。SmolVLA-baseはzero-shotの参照ラインとして、推論のみで登場します。
+        SmolVLM規模のネットワークのLoRA fine-tuneは、計測による計算量チェックで可否を判定するもので、判定を通過した場合でも今後の課題です。</p>
+      <h3><span lang="en">The three splits</span><span lang="ja">3つの分割</span></h3>
+      <p lang="en">Sentences and (task, colour) pairs come from the bench's instruction module, so "unseen" means the
         same sentences the imitation recorder never writes. There are five training and three held-out
         templates per task, for example training "pick up the {c} cube" and held-out "hoist the {c} block".
         Nine of the twelve (task, colour) pairs are used in training; <code>lift:blue</code>,
         <code>push:red</code> and <code>pick_place:green</code> are held out.</p>
+      <p lang="ja">文と（タスク, 色）ペアはベンチの指示文モジュールから取るため、「未見」はimitation用レコーダーが決して書き出さない文とまったく同じものを指します。
+        タスクごとに学習用5個・held-out用3個のテンプレートがあります。例えば学習用は「pick up the {c} cube」、held-outは「hoist the {c} block」です。
+        12個の（タスク, 色）ペアのうち9個を学習に使い、<code>lift:blue</code>、<code>push:red</code>、<code>pick_place:green</code>はheld-outにしています。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>split</th><th>templates</th><th>(task, colour) pairs</th><th>what success shows</th></tr></thead>
+        <thead><tr><th><span lang="en">split</span><span lang="ja">分割</span></th><th><span lang="en">templates</span><span lang="ja">テンプレート</span></th><th><span lang="en">(task, colour) pairs</span><span lang="ja">（タスク, 色）ペア</span></th><th><span lang="en">what success shows</span><span lang="ja">成功が示すこと</span></th></tr></thead>
         <tbody>
-          <tr><td><code>seen</code></td><td>training</td><td>training (9 of 12)</td><td>the policy executes what it was shown</td></tr>
-          <tr><td><code>paraphrase</code></td><td><strong>held out</strong></td><td>training</td><td>the instruction is read through the encoder, not matched as a string</td></tr>
-          <tr><td><code>combo</code></td><td>training</td><td><strong>held out</strong> (3 of 12)</td><td>colour and task compose; every task and colour was seen, never together</td></tr>
+          <tr><td><code>seen</code></td><td><span lang="en">training</span><span lang="ja">学習用</span></td><td><span lang="en">training (9 of 12)</span><span lang="ja">学習用（12中9）</span></td><td><span lang="en">the policy executes what it was shown</span><span lang="ja">見せられたことをpolicyが実行できる</span></td></tr>
+          <tr><td><code>paraphrase</code></td><td><strong>held out</strong></td><td><span lang="en">training</span><span lang="ja">学習用</span></td><td><span lang="en">the instruction is read through the encoder, not matched as a string</span><span lang="ja">指示文が文字列照合ではなく、エンコーダーを通して読まれている</span></td></tr>
+          <tr><td><code>combo</code></td><td><span lang="en">training</span><span lang="ja">学習用</span></td><td><strong>held out</strong><span lang="en"> (3 of 12)</span><span lang="ja">（12中3）</span></td><td><span lang="en">colour and task compose; every task and colour was seen, never together</span><span lang="ja">色とタスクを組み合わせられる。各タスクと各色は見ているが、その組み合わせは見ていない</span></td></tr>
         </tbody>
       </table>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>split</th><th>success</th><th>± over seeds</th><th>reach</th><th>push</th><th>lift</th><th>pick_place</th></tr></thead>
+        <thead><tr><th><span lang="en">split</span><span lang="ja">分割</span></th><th><span lang="en">success</span><span lang="ja">成功率</span></th><th><span lang="en">± over seeds</span><span lang="ja">seed間の±</span></th><th>reach</th><th>push</th><th>lift</th><th>pick_place</th></tr></thead>
         <tbody>
           <tr><td>seen</td><td class="num">0.110</td><td class="num">0.081</td><td class="num">0.25</td><td class="num">0.04</td><td class="num">0.07</td><td class="num">0.01</td></tr>
           <tr><td>paraphrase</td><td class="num">0.097</td><td class="num">0.060</td><td class="num">0.24</td><td class="num">0.03</td><td class="num">0.03</td><td class="num">0.03</td></tr>
@@ -895,28 +871,34 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
       </table>
     </div>
     <div class="stack prose">
-      <h3>Does the language model matter? An ablation with a control</h3>
-      <p>Two encoders produce the same 384-d shape. MiniLM (<code>all-MiniLM-L6-v2</code>, 22M parameters,
+      <h3><span lang="en">Does the language model matter? An ablation with a control</span><span lang="ja">言語モデルは効いているのか：対照付きのablation</span></h3>
+      <p lang="en">Two encoders produce the same 384-d shape. MiniLM (<code>all-MiniLM-L6-v2</code>, 22M parameters,
         frozen) is a sentence model that should place "hoist the blue block" near "lift the blue cube". A
         hashed bag of words and bigrams has no parameters and no semantics; "hoist" and "lift" land in
         unrelated buckets. If the hashed policy scores as well as MiniLM on <code>paraphrase</code>, the split
         was not testing language understanding. If MiniLM wins there and ties on <code>seen</code>, the
         difference is the encoder's contribution and nothing else, because policy, data and seeds are
         identical. A third row removes FiLM, leaving language as a token only.</p>
+      <p lang="ja">2つのエンコーダーは同じ384次元の出力を持ちます。MiniLM（<code>all-MiniLM-L6-v2</code>、22Mパラメータ、重み固定）は、
+        「hoist the blue block」を「lift the blue cube」の近くに配置するはずの文モデルです。
+        単語とbigramのハッシュによるbag of wordsはパラメータも意味も持たず、「hoist」と「lift」は無関係なバケットに入ります。
+        ハッシュ版のpolicyが<code>paraphrase</code>でMiniLMと同等のスコアを出すなら、その分割は言語理解をテストしていなかったことになります。
+        MiniLMがそこで勝ち、<code>seen</code>で同点なら、policy・データ・seedが同一なので、その差はエンコーダーの寄与そのものです。
+        3行目はFiLMを外し、言語をトークンとしてのみ入力します。</p>
     </div>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>encoder</th><th>seen</th><th>paraphrase</th><th>combo</th></tr></thead>
+        <thead><tr><th><span lang="en">encoder</span><span lang="ja">エンコーダー</span></th><th>seen</th><th>paraphrase</th><th>combo</th></tr></thead>
         <tbody>
           <tr><td>MiniLM</td><td class="num">0.110 ± 0.081</td><td class="num">0.097 ± 0.060</td><td class="num">0.027 ± 0.046</td></tr>
-          <tr><td>hashed</td><td class="num">0.092 ± 0.046</td><td class="num">0.073 ± 0.057</td><td class="num">0.027 ± 0.021</td></tr>
-          <tr><td>MiniLM, no FiLM</td><td class="num">0.137 ± 0.075</td><td class="num">0.110 ± 0.056</td><td class="num">0.033 ± 0.038</td></tr>
+          <tr><td><span lang="en">hashed</span><span lang="ja">ハッシュ</span></td><td class="num">0.092 ± 0.046</td><td class="num">0.073 ± 0.057</td><td class="num">0.027 ± 0.021</td></tr>
+          <tr><td>MiniLM<span lang="en">, no FiLM</span><span lang="ja">（FiLMなし）</span></td><td class="num">0.137 ± 0.075</td><td class="num">0.110 ± 0.056</td><td class="num">0.033 ± 0.038</td></tr>
         </tbody>
       </table>
     </div>
     <div class="note warnbox">
-      <span class="note-label">Measured, and weak</span>
-      <p>The policy barely works: reach about a quarter of the time, push, lift and pick-place between 0 and 7%.
+      <span class="note-label"><span lang="en">Measured, and weak</span><span lang="ja">計測結果：性能は低い</span></span>
+      <p lang="en">The policy barely works: reach about a quarter of the time, push, lift and pick-place between 0 and 7%.
         Every encoder row sits inside the others' spread, so the ablation cannot separate them; with the base
         policy this close to the floor there is no headroom for the encoder to show. The training record says
         why: final L1 on held-out demonstration episodes is 0.128 against 0.057 on training ones, from about 20
@@ -924,10 +906,15 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
         language enters, so the next experiment is more data per pair, not a different encoder. Protocol
         deviations: 20 episodes per seed instead of 100 and one training seed per encoder instead of three,
         both for evaluation time (1.7 hours per policy on this CPU).</p>
+      <p lang="ja">このpolicyはほとんど機能していません。reachの成功は約4分の1、push・lift・pick-placeは0〜7%です。
+        どのエンコーダーの行も他の行のばらつきの範囲内にあり、ablationでは区別できません。ベースのpolicyがこれほど下限に近いと、エンコーダーの効果が現れる余地がありません。
+        理由は学習記録に表れています。（タスク, 色）ペアあたり約20件のデモから学習し、最終L1はheld-outのデモepisodeで0.128、学習用では0.057です。
+        言語が関わる以前に、policyがデモから汎化できていません。したがって次の実験は、別のエンコーダーではなく、ペアあたりのデータを増やすことです。
+        プロトコルからの逸脱：seedあたり100ではなく20 episode、エンコーダーあたり3つではなく1つの学習seed。どちらも評価時間のためです（このCPUでpolicyあたり1.7時間）。</p>
     </div>
     <div class="note key">
-      <span class="note-label">One thing already measured about the encoder</span>
-      <p>Cosine similarities of MiniLM embeddings on these templates, recorded by a test rather than asserted
+      <span class="note-label"><span lang="en">One thing already measured about the encoder</span><span lang="ja">エンコーダーについて計測済みのこと</span></span>
+      <p lang="en">Cosine similarities of MiniLM embeddings on these templates, recorded by a test rather than asserted
         away: "lift the green cube" is 0.59 from its paraphrase "raise the green block into the air" and 0.38
         from "hoist the green block", but 0.63 from "push the red cube to the target" and 0.82 from "lift the
         blue cube". The encoder is driven by shared surface words, and the colour word moves the embedding
@@ -935,30 +922,52 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
         the <code>combo</code> split asks the policy to read colour out of a small difference between two
         nearly parallel vectors. Whether FiLM on the image features is enough to do that is what the ablation
         measures.</p>
+      <p lang="ja">これらのテンプレートに対するMiniLM embeddingのコサイン類似度を、assertで片付けずにテストで記録しています。
+        「lift the green cube」は、言い換えの「raise the green block into the air」とは0.59、「hoist the green block」とは0.38です。
+        一方で「push the red cube to the target」とは0.63、「lift the blue cube」とは0.82です。
+        エンコーダーは表層的に共通する単語に引っ張られ、色の単語はembeddingをほとんど動かしません。
+        つまり<code>paraphrase</code>分割が難しい理由はエンコーダー側にあり、<code>combo</code>分割はほぼ平行な2つのベクトルのわずかな差から色を読み取ることをpolicyに求めています。
+        画像特徴へのFiLMでそれが十分にできるかどうかが、ablationで計測する内容です。</p>
     </div>
     <div class="stack prose">
-      <h3>SmolVLA-base, zero-shot, same simulator</h3>
-      <p><code>lerobot/smolvla_base</code> was pretrained on community SO-100/101 data: real arms, real
+      <h3><span lang="en">SmolVLA-base, zero-shot, same simulator</span><span lang="ja">SmolVLA-base：同じシミュレーターでzero-shot評価</span></h3>
+      <p lang="en"><code>lerobot/smolvla_base</code> was pretrained on community SO-100/101 data: real arms, real
         cameras, motor units. Here it receives a rendered 96 × 128 frame letterboxed to its 512 × 512 input,
         six joint angles in radians zero-padded to its state width, and the instruction. Nothing is adapted
         and the expected result is low. It is a calibration line, not a comparison of capability: different
         embodiment statistics, camera placement, units and control rate make it evidence about this protocol,
         not about SmolVLA. A dry-run mode validates the observation mapping against a stub with the same
         feature keys, so the test suite covers it without the download.</p>
-      <p>Measured over 10 episodes per task: <strong>reach 0.00, push 0.00, lift 0.00, pick_place 0.00</strong>, 0 of 40 as expected. One 50-step action
+      <p lang="ja"><code>lerobot/smolvla_base</code>は、コミュニティのSO-100/101データ（実機アーム、実カメラ、モーター単位の値）で事前学習されています。
+        ここでは、レンダリングした96 × 128のフレームを512 × 512の入力にレターボックスで合わせ、ラジアン単位の6つの関節角をstate幅までゼロ埋めし、指示文と一緒に与えます。
+        何も適応させていないので、低い結果が予想されます。これは能力の比較ではなく参照ラインです。
+        身体性の統計、カメラ配置、単位、制御周期が異なるため、この結果はSmolVLAについてではなく、このプロトコルについての根拠になります。
+        Dry-runモードでは、同じ特徴キーを持つスタブを相手にobservationの対応付けを検証するため、ダウンロードなしでテストスイートがこれをカバーできます。</p>
+      <p lang="en">Measured over 10 episodes per task: <strong>reach 0.00, push 0.00, lift 0.00, pick_place 0.00</strong>, 0 of 40 as expected. One 50-step action
         chunk takes 3.16 s at the median (p90 3.30 s, n = 130) on 8 CPU threads, 64 times the
         50 ms control period: on CPU a 500M-parameter VLA is not a real-time controller, whatever it scores after fine-tuning.</p>
-      <h3>The LoRA gate</h3>
-      <p>Before proposing a fine-tune, measure whether one step of it is affordable. The gate builds a decoder
+      <p lang="ja">タスクあたり10 episodeで計測した結果は<strong>reach 0.00、push 0.00、lift 0.00、pick_place 0.00</strong>で、予想どおり40回中0回でした。
+        50 stepのaction chunk 1つの生成に、CPU 8スレッドで中央値3.16秒（p90 3.30秒、n = 130）かかり、50 msの制御周期の64倍です。
+        CPU上では、500Mパラメータ規模のVLAは、fine-tune後のスコアがどうであれリアルタイムのコントローラーにはなりません。</p>
+      <h3><span lang="en">The LoRA gate</span><span lang="ja">LoRAの可否判定</span></h3>
+      <p lang="en">Before proposing a fine-tune, measure whether one step of it is affordable. The gate builds a decoder
         with SmolVLM-256M's language-model shape (hidden 576, 30 layers, 9 heads, MLP 1536), attaches rank-8
         LoRA to the query and value projections, and times one forward-backward-optimiser step at batch 1,
         sequence 256, on 8 threads. The rule was fixed before measuring: go under 5 s per step, otherwise
         no-go. At 5 s per step, 2,000 steps is 2.8 hours, the most a chunked, attended CPU run can carry.</p>
-      <p>Measured: a stand-in of 176.7M parameters with 0.55M trainable (0.31%), <strong>0.51 s per step on
+      <p lang="ja">Fine-tuneを提案する前に、その1 stepが現実的なコストかどうかを計測します。
+        判定では、SmolVLM-256Mの言語モデルと同じ形状（hidden 576、30層、9ヘッド、MLP 1536）のdecoderを構築し、queryとvalueの射影にrank 8のLoRAを付けます。
+        そしてバッチ1、系列長256、8スレッドで、順伝播・逆伝播・optimizer更新の1 stepを計時します。
+        判定基準は計測前に決めました。1 stepあたり5秒未満なら実施、それ以外は見送りです。
+        1 step 5秒なら2,000 stepで2.8時間となり、見守りながら分割実行するCPU学習で扱える上限です。</p>
+      <p lang="en">Measured: a stand-in of 176.7M parameters with 0.55M trainable (0.31%), <strong>0.51 s per step on
         8 threads</strong>, best of two, so the gate passes and 2,000 steps would be about 0.3 h. The gate
         times the language-model half only; the real SmolVLA action expert adds a vision tower and a
         flow-matching head that were not timed. A pass says a fine-tune is affordable to try, not that it
         would help.</p>
+      <p lang="ja">計測結果：176.7Mパラメータの代替モデル（学習対象は0.55M、0.31%）で、<strong>8スレッドで1 stepあたり0.51秒</strong>（2回中の最良値）でした。
+        判定は通過で、2,000 stepなら約0.3時間です。この判定で計時したのは言語モデル部分のみで、実際のSmolVLAのaction expertには、計時していないvision towerとflow-matchingヘッドが加わります。
+        通過が意味するのはfine-tuneを試すコストが許容範囲だということであり、それが性能向上につながるということではありません。</p>
     </div>
     <pre><code>python record_data.py --root data/multitask --episodes 20            # ~10 min of software rendering
 nice -n 10 python train.py --root data/multitask --encoder minilm --epochs 30
@@ -970,22 +979,22 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
 </section>
 
 <section id="measured">
-  <div class="sec-head"><span class="sec-num">08</span><h2>What is measured so far, and what is not</h2><p class="sec-sub">The facts that exist today, the development readings that are explicitly not results, and the tables still waiting for an idle machine.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">What is measured so far, and what is not</span><span lang="ja">計測済みの項目と未計測の項目</span></h2><p class="sec-sub" lang="en">The facts that exist today, the development readings that are explicitly not results, and the tables still waiting for an idle machine.</p><p class="sec-sub" lang="ja">現時点で確定している事実、結果ではないと明示した開発時の読み値、そして負荷のないマシンでの計測を待っている表。</p></div>
   <div class="stack-lg">
     <div class="tablewrap">
       <table>
-        <thead><tr><th>repository</th><th class="num">tests</th><th>what they pin down</th><th>CI</th></tr></thead>
+        <thead><tr><th><span lang="en">repository</span><span lang="ja">リポジトリ</span></th><th class="num"><span lang="en">tests</span><span lang="ja">テスト数</span></th><th><span lang="en">what they pin down</span><span lang="ja">テストで固定している内容</span></th><th>CI</th></tr></thead>
         <tbody>
-          <tr><td>so-arm100-sim</td><td class="num">63</td><td>vendored model hash, observation and action contract, IK, expert success gates, every held-out cell outside the DR range, vector env, recorder</td><td>green, Python 3.10 and 3.12</td></tr>
-          <tr><td>so-arm100-rl</td><td class="num">21</td><td>GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</td><td>green</td></tr>
-          <tr><td>so-arm100-il</td><td class="num">21</td><td>action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke, resumed evaluation equals serial, time-budget stop and rerun</td><td>green</td></tr>
-          <tr><td>so-arm100-vla</td><td class="num">24</td><td>both encoders, splits, windowing, shapes, chunk ensembling, LoRA identity-at-init and exact merge, SmolVLA mapping, end-to-end smoke</td><td>green</td></tr>
+          <tr><td>so-arm100-sim</td><td class="num">63</td><td><span lang="en">vendored model hash, observation and action contract, IK, expert success gates, every held-out cell outside the DR range, vector env, recorder</span><span lang="ja">vendoringしたモデルのハッシュ、observationとactionのインターフェース契約、IK、エキスパートの成功率の合格基準、全held-outセルがDR範囲外であること、vector env、レコーダー</span></td><td>green<span lang="en">, Python 3.10 and 3.12</span><span lang="ja">（Python 3.10と3.12）</span></td></tr>
+          <tr><td>so-arm100-rl</td><td class="num">21</td><td><span lang="en">GAE by hand, normaliser, curriculum promotion, bit-exact resume, 2,048-step training smoke, ONNX round trip, KL stop, success-termination flag, warm start, parallel evaluation equals serial</span><span lang="ja">手計算のGAE、normaliser、curriculumの昇格、ビット単位で一致する再開、2,048 stepの学習スモークテスト、ONNXの往復変換、KL stop、成功時terminationフラグ、warm start、並列評価と逐次評価の一致</span></td><td>green</td></tr>
+          <tr><td>so-arm100-il</td><td class="num">21</td><td><span lang="en">action windows, model shapes, ensembling, shadow expert at β = 1, hand-landmark mapping, record → train → evaluate smoke, resumed evaluation equals serial, time-budget stop and rerun</span><span lang="ja">actionウィンドウ、モデルの形状、アンサンブル、β = 1でのシャドーエキスパート、手のランドマークの対応付け、記録 → 学習 → 評価のスモークテスト、再開した評価と逐次評価の一致、時間予算での停止と再実行</span></td><td>green</td></tr>
+          <tr><td>so-arm100-vla</td><td class="num">24</td><td><span lang="en">both encoders, splits, windowing, shapes, chunk ensembling, LoRA identity-at-init and exact merge, SmolVLA mapping, end-to-end smoke</span><span lang="ja">2つのエンコーダー、分割、ウィンドウ化、形状、chunkのアンサンブル、初期化時に恒等写像となるLoRAと厳密なmerge、SmolVLAの対応付け、end-to-endスモークテスト</span></td><td>green</td></tr>
         </tbody>
       </table>
     </div>
     <div class="stack prose">
-      <h3>Measured facts</h3>
-      <ul class="tight">
+      <h3><span lang="en">Measured facts</span><span lang="ja">計測済みの事実</span></h3>
+      <ul class="tight" lang="en">
         <li>The latency-buffer off-by-one in the bench, found by a tracking test and fixed.</li>
         <li>MiniLM cosine similarities on the instruction templates, above: paraphrases are further apart than
           sentences that share surface words.</li>
@@ -999,19 +1008,42 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
           roughly 2,200 env-steps/s per process before any Python overhead. A development reading, not the
           throughput table.</li>
       </ul>
-      <h3>Development readings that are not the reference</h3>
-      <p>The expert's success gates in the bench tests were set from 30 episodes and one seed: reach 1.00
+      <ul class="tight" lang="ja">
+        <li>ベンチのlatencyバッファのoff-by-oneバグ。追従性のテストで発見し、修正済み。</li>
+        <li>前述した指示文テンプレートでのMiniLMのコサイン類似度。言い換え同士の方が、表層の単語を共有する文同士より離れている。</li>
+        <li>LoRAの可否判定：176.7Mパラメータの代替モデルで、8スレッドで1 stepあたり0.51秒。判定基準は計測前に固定。</li>
+        <li>画像policyの評価コスト：描画とpolicyを合わせて1コアで制御ステップあたり約52 ms。7セルのheld-out表はモデルあたり約6コア時間になる。
+          時間予算のもとで（物理条件, seed）単位に再開可能な形で実行しており、これがimitationとlanguageの表の制約になっている（モデルの制約ではない）。</li>
+        <li>開発中に計測した、このアームモデルでの素の<code>mj_step</code>は単一プロセスで約18 µs。Pythonのオーバーヘッドを除けばプロセスあたり約2,200 env-steps/s。
+          開発時の読み値であり、throughput表の値ではない。</li>
+      </ul>
+      <h3><span lang="en">Development readings that are not the reference</span><span lang="ja">基準値ではない開発時の読み値</span></h3>
+      <p lang="en">The expert's success gates in the bench tests were set from 30 episodes and one seed: reach 1.00
         everywhere; lift 0.93 nominal, 0.87 small, 0.97 weak, 0.93 heavy; push 0.83, 0.80, 0.77, 0.80;
         pick_place 0.93, 0.80, 0.93, 0.90. The gates sit below those, at 0.95, 0.75, 0.65 and 0.75. The
         100 × 5 table above is the published result; these are only what the tests hold the expert to.</p>
+      <p lang="ja">ベンチのテストにあるエキスパートの成功率の合格基準は、30 episode・1 seedの値から設定しました。
+        reachはすべて1.00、liftはnominal 0.93・small 0.87・weak 0.97・heavy 0.93、pushは0.83、0.80、0.77、0.80、pick_placeは0.93、0.80、0.93、0.90です。
+        合格基準はそれより低い0.95、0.75、0.65、0.75に置いています。公開する結果は前述の100 × 5の表であり、これらはテストがエキスパートに課す基準にすぎません。</p>
     </div>
   </div>
 </section>
 
 <section id="limits">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Limits, stated</h2><p class="sec-sub">What these four repositories cannot show, regardless of what the tables end up saying.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Limits, stated</span><span lang="ja">明記しておく限界</span></h2><p class="sec-sub" lang="en">What these four repositories cannot show, regardless of what the tables end up saying.</p><p class="sec-sub" lang="ja">表の結果がどうであれ、この4つのリポジトリでは示せないこと。</p></div>
   <div class="stack prose">
-    <ul class="tight">
+    <ul class="tight" lang="ja">
+      <li><strong>シミュレーションのみ。</strong>どの数値も実機のSO-ARM100についての主張ではありません。backlash、ケーブルの摩擦、カメラのlatencyはどの列にも含まれていません。</li>
+      <li><strong>固定カメラ。</strong>前方・側方・上方の3台で、手首カメラはまだありません。4つのリポジトリのうち3つで未解決のissueになっています。</li>
+      <li><strong>3色のキューブ3個で、対象は一度に1つ。</strong>散らかった環境、遮蔽、複数物体の推論については何も言えません。</li>
+      <li><strong>エキスパートはスクリプト。</strong>IKスクリプトを模倣するpolicyは、スクリプトの癖と失敗パターンを引き継ぎます。pushの狙いを付け直すことはできますが、ライン上からヨー方向に回転してしまったキューブは立て直せません。</li>
+      <li><strong>指示文はテンプレート。</strong>否定、空間関係、数の数え上げは対象外です。</li>
+      <li><strong>RL policyは状態ベース。</strong>キューブの真の位置を見ています。画像ベースの制御は他の2つのプロジェクトの課題です。</li>
+      <li><strong>DR範囲とheld-outセルは1つの選択にすぎない。</strong>別の選択をすれば別の表になります。</li>
+      <li><strong>CPUの予算。</strong>8スレッド、見守りながらの分割実行、1フレーム約20 msのソフトウェアレンダリング。モデルとデータセットのサイズはこれに収まるよう選んでおり、
+        throughputモニターは電力制限とマシン上の別プロセスを区別できません。</li>
+    </ul>
+    <ul class="tight" lang="en">
       <li><strong>Simulation only.</strong> No number is a claim about the physical SO-ARM100. Backlash, cable
         friction and camera latency are in none of the columns.</li>
       <li><strong>Fixed cameras.</strong> Front, side and top; no wrist camera yet. That is an open issue in
@@ -1033,9 +1065,9 @@ OMP_NUM_THREADS=8 nice -n 10 python lora_gate.py</code></pre>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">Setup for the bench and for the three policy repositories, and the order the commands go in.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup for the bench and for the three policy repositories, and the order the commands go in.</p><p class="sec-sub" lang="ja">ベンチと3つのpolicyリポジトリのセットアップ、そしてコマンドを実行する順序。</p></div>
   <div class="stack">
-    <h3>The bench</h3>
+    <h3><span lang="en">The bench</span><span lang="ja">ベンチ</span></h3>
     <pre><code>git clone https://github.com/AungKaung1928/so-arm100-sim.git
 cd so-arm100-sim
 python3 -m venv .venv && . .venv/bin/activate
@@ -1044,7 +1076,7 @@ pip install -e ".[dev]"              # mujoco + numpy + pytest
 
 python scripts/expert_success.py --episodes 100 --seeds 5      # -> runs/expert_success.json, one core
 nice -n 10 python scripts/bench_throughput.py                  # -> runs/throughput.json, loads the machine</code></pre>
-    <h3>The three policy repositories (Python ≥ 3.12, because of lerobot)</h3>
+    <h3><span lang="en">The three policy repositories (Python ≥ 3.12, because of lerobot)</span><span lang="ja">3つのpolicyリポジトリ（lerobotの都合でPython ≥ 3.12）</span></h3>
     <pre><code>git clone https://github.com/AungKaung1928/so-arm100-rl.git     # or -il, -vla
 cd so-arm100-rl
 python3 -m venv .venv && . .venv/bin/activate
@@ -1053,31 +1085,61 @@ pip install -r requirements.txt      # installs the bench from its v0.1.0 tag
 pip install -e .
 ./verify.sh                          # tier 1 tests in under a minute; tiers 2-4 print the long commands</code></pre>
     <div class="prose stack">
-      <p>Optional extras on the bench: <code>.[lerobot]</code> for the dataset writer, <code>.[gym]</code> for
+      <p lang="en">Optional extras on the bench: <code>.[lerobot]</code> for the dataset writer, <code>.[gym]</code> for
         the gymnasium adapter, <code>.[image]</code> for PNG output. Rendering needs a GL context:
         <code>MUJOCO_GL=glfw</code> with a display, or <code>egl</code> / <code>osmesa</code> headless. Tests
         that render skip cleanly without one. Each repository also builds as a Docker image that runs the
         offline tests: <code>docker build -t so-arm100-sim . && docker run --rm so-arm100-sim</code>.</p>
-      <p>Every training script refuses to start on a loaded machine, runs chunked with <code>--resume</code>,
+      <p lang="ja">ベンチのオプション：データセット書き出し用の<code>.[lerobot]</code>、gymnasiumアダプター用の<code>.[gym]</code>、PNG出力用の<code>.[image]</code>。
+        レンダリングにはGLコンテキストが必要です。ディスプレイがあれば<code>MUJOCO_GL=glfw</code>、ヘッドレスなら<code>egl</code> / <code>osmesa</code>を使います。
+        GLコンテキストがない場合、描画を伴うテストは正しくスキップされます。各リポジトリはオフラインのテストを実行するDockerイメージとしてもビルドできます：
+        <code>docker build -t so-arm100-sim . && docker run --rm so-arm100-sim</code>。</p>
+      <p lang="en">Every training script refuses to start on a loaded machine, runs chunked with <code>--resume</code>,
         and logs its throughput so a drop is visible. The CPU-only pins on torch and torchvision matter: an
         unpinned install pulls the CUDA build, which is several gigabytes and fails to import inside lerobot
         on a machine without a GPU.</p>
-      <h3>Licences</h3>
-      <p>MIT for the code in all four repositories. The arm description under
+      <p lang="ja">どの学習スクリプトも、負荷のかかったマシンでは起動せず、<code>--resume</code>で分割実行し、低下が見えるようthroughputをログに残します。
+        torchとtorchvisionをCPU版に固定していることが重要です。固定せずにインストールするとCUDA版が入り、数GBになるうえ、GPUのないマシンではlerobot内でのimportに失敗します。</p>
+      <h3><span lang="en">Licences</span><span lang="ja">ライセンス</span></h3>
+      <p lang="en">MIT for the code in all four repositories. The arm description under
         <code>so_arm100_sim/assets/trs_so_arm100/</code> is from MuJoCo Menagerie, Apache-2.0, vendored
         unchanged from commit <code>822c2d8</code>.</p>
-      <h3>Measured environment</h3>
-      <p>Intel Core Ultra 5 225H, 14 cores, no hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2,
+      <p lang="ja">4つのリポジトリのコードはすべてMITです。<code>so_arm100_sim/assets/trs_so_arm100/</code>以下のアーム記述はMuJoCo Menagerie由来（Apache-2.0）で、
+        コミット<code>822c2d8</code>から無改変でvendoringしています。</p>
+      <h3><span lang="en">Measured environment</span><span lang="ja">計測環境</span></h3>
+      <p lang="en">Intel Core Ultra 5 225H, 14 cores, no hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2,
         Ubuntu 22.04, Python 3.12.14, MuJoCo 3.13.0, torch 2.11.0 CPU, lerobot 0.6.1, software rendering
         through WSLg. No CUDA anywhere.</p>
+      <p lang="ja">Intel Core Ultra 5 225H（14コア、ハイパースレッディングなし）、WSL2で使用可能なメモリ21 GB。Windows 11 + WSL2、
+        Ubuntu 22.04、Python 3.12.14、MuJoCo 3.13.0、torch 2.11.0 CPU版、lerobot 0.6.1、WSLg経由のソフトウェアレンダリング。CUDAは一切使っていません。</p>
     </div>
   </div>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The four repositories in one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The four repositories in one paragraph.</p><p class="sec-sub" lang="ja">4つのリポジトリを1段落で。</p></div>
   <div class="stack prose">
-    <p>Four repositories teach a simulated SO-ARM100 to reach, push, lift and place a cube. The first is a bench:
+    <p lang="ja">4つのリポジトリで、シミュレーション上のSO-ARM100にキューブへのリーチ・押し出し・持ち上げ・配置を学習させます。
+      1つ目はベンチです。Menagerieのアームは無改変のまま、MjSpecで卓上シーンを追加し、成功条件が1つずつの4タスク、
+      180度の把持の曖昧さを解決し1〜2 cm垂れるサーボに対してループを閉じたIKエキスパート、domain randomisationの範囲、
+      それぞれがその範囲外であることを証明済みの6つのheld-out物理セル、そして100 episode × 5 seedの評価プロトコル1つを備えます。
+      残りの3つは、その上で3通りの方法で学習します。1つ目は、特権状態を入力とし、reach → push → liftのcurriculumを使うPPOで、
+      ランダム化ありとなしで学習してheld-outセルでテストし、価値の目標値ではtruncationとterminationを区別しています。
+      2つ目は、カメラ画像とproprioceptionからのbehaviour cloning、スクリプトのエキスパートをオラクルとするDAgger、chunk出力のtransformerで、
+      10〜200件のデモによるデータセットサイズ曲線を取っています。
+      3つ目は、重みを固定したMiniLMエンコーダーが画像特徴を変調する100万パラメータのlanguage-conditioned policyで、
+      held-outの言い換えとheld-outのタスク・色ペアで、単語ハッシュの対照と比較してテストします。SmolVLA-baseをzero-shotの参照ラインとし、
+      LoRA fine-tuneは1 stepの計時で可否を判定し、結果は0.51秒でした。
+      129のテストはgreenで、すべての表はスクリプトが出力したJSONから埋めています。エキスパートのliftは0.93です。
+      ランダム化したRLのfine-tuneはheld-outでの成功率の低下を半分にし（0.120 → 0.056）、その大部分はaction latencyによるものです。
+      200件のデモから学習すると、chunk出力のtransformerはカメラ画像から0.77の成功率で持ち上げ、single-stepのcloningは0.05にとどまります。
+      ここでは誤差の累積がすべてを説明しており、DAggerでも0.14までしか回復しません。
+      データセットサイズ曲線では、デモを増やしてもsingle-stepのcloningは改善せず、chunk出力policyの平均は200件で0.51まで上がりますが、
+      6つの学習seedは0.12〜0.24と0.76〜0.92に分かれ、これがこのページで最大の不確かさです。
+      Language policyの性能は低く（seenで0.11、未見のタスク・色ペアで0.03）、SmolVLA-baseはzero-shotで40回中0回でした。
+      1つのセルは何もテストしていなかったことがわかりました。MuJoCoは接触する2面のうち大きい方の摩擦を使うため、キューブの摩擦だけを下げても効果がありません。
+      これも判明したとおりに報告しています。</p>
+    <p lang="en">Four repositories teach a simulated SO-ARM100 to reach, push, lift and place a cube. The first is a bench:
       the Menagerie arm untouched, a tabletop attached through MjSpec, four tasks with one success rule each,
       a scripted IK expert that had to resolve a 180-degree grasp ambiguity and close the loop on servos that
       sag 1 to 2 cm, domain-randomisation ranges, six held-out physics cells each proven outside those ranges,
@@ -1105,46 +1167,15 @@ pip install -e .
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>so-arm100-sim</code>, <code>so-arm100-rl</code>, <code>so-arm100-il</code>
+  <p lang="en">Built from the source in <code>so-arm100-sim</code>, <code>so-arm100-rl</code>, <code>so-arm100-il</code>
   and <code>so-arm100-vla</code>: their <code>README.md</code> files, <code>docs/ISSUES.md</code>,
   <code>verify.sh</code>, and the packages <code>so_arm100_sim</code>, <code>so_arm100_rl</code>,
-  <code>so_arm100_il</code> and <code>so_arm100_vla</code>.
+  <code>so_arm100_il</code> and <code>so_arm100_vla</code>.</p>
+  <p lang="ja"><code>so-arm100-sim</code>、<code>so-arm100-rl</code>、<code>so-arm100-il</code>、<code>so-arm100-vla</code>のソース、
+  すなわち各<code>README.md</code>、<code>docs/ISSUES.md</code>、<code>verify.sh</code>、パッケージ<code>so_arm100_sim</code>、<code>so_arm100_rl</code>、
+  <code>so_arm100_il</code>、<code>so_arm100_vla</code>をもとに作成しています。</p>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

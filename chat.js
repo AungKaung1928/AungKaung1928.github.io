@@ -1132,23 +1132,13 @@ const NOT_COVERED = {
 const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project in detail', 'What roles is he a fit for?'];
 
 const FALLBACK =
-    "I did not catch that one. I cover Aung's robotics work only — background, experience, the technical stack, the projects, how he works, and contact details.\n\n" +
-    "Questions I answer well:\n" +
-    "- \"what is his experience\"\n" +
-    "- \"explain each project in detail\"\n" +
-    "- \"does he do machine learning\"\n" +
-    "- \"what about sim-to-real transfer\"\n" +
-    "- \"what numbers can he back up\"\n" +
-    "- \"how deep is his ROS2 knowledge\"\n" +
-    "- \"what are the gaps in his experience\"\n" +
-    "- \"how do I contact him\"\n\n" +
-    "Tap the list icon in the header for every topic I hold.";
+    "I did not catch that. I cover his robotics work only: background, stack, projects, how he works, contact.\n\n" +
+    "Try \"explain each project\", \"how does he work\" or \"what are the gaps\" — or open the topics list in the header.";
 
 const OFF_TOPIC_RE = /\b(recipe|weather|joke|poem|bitcoin|crypto|football|movie|song|translate|homework|write me|code for me|stock|news)\b/;
 
 const OFF_TOPIC =
-    "I only answer questions about Aung Kaung Myat's robotics work — background, stack, projects, contact.\n\n" +
-    "Ask \"what can I ask you?\" to see the full list.";
+    "I only answer questions about Aung Kaung Myat's robotics work — background, stack, projects, contact.";
 
 /* ── Matching ────────────────────────────────────────────────────── */
 
@@ -1433,7 +1423,7 @@ function streamAnswer(container, text) {
 
 const fab = document.createElement('button');
 fab.id = 'chat-fab';
-fab.setAttribute('aria-label', 'Ask about Aung');
+fab.setAttribute('aria-label', 'Ask about this portfolio');
 fab.setAttribute('aria-expanded', 'false');
 fab.innerHTML = `
     <svg class="open-icon" width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1450,43 +1440,31 @@ panel.setAttribute('aria-label', 'Portfolio assistant');
 panel.innerHTML = `
     <div class="chat-header">
         <div class="chat-id">
-            <span class="chat-dot" aria-hidden="true"></span>
-            <div>
-                <h4>Portfolio Assistant</h4>
-                <span class="chat-sub">robotics &middot; physical AI</span>
-            </div>
+            <h4 data-ui="title">Ask about this portfolio</h4>
+            <span class="chat-sub" data-ui="sub">Answers come from this page only</span>
         </div>
         <div class="chat-actions">
-            <button id="chat-topics-btn" class="chat-icon-btn" aria-label="Show topics" aria-expanded="false" title="Topics">
+            <button id="chat-topics-btn" class="chat-icon-btn" aria-label="All topics" aria-expanded="false" title="All topics">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line>
-                    <circle cx="3.5" cy="6" r="1.2" fill="currentColor" stroke="none"></circle>
-                    <circle cx="3.5" cy="12" r="1.2" fill="currentColor" stroke="none"></circle>
-                    <circle cx="3.5" cy="18" r="1.2" fill="currentColor" stroke="none"></circle>
+                    <line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="14" y2="17"></line>
                 </svg>
             </button>
-            <button id="chat-close" class="chat-icon-btn" aria-label="Close chat" title="Close">
+            <button id="chat-new" class="chat-icon-btn" aria-label="New conversation" title="New conversation">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+            <button id="chat-close" class="chat-icon-btn" aria-label="Close" title="Close">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
                     <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
         </div>
     </div>
-    <div class="chat-bar">
-        <select id="chat-convo" aria-label="Conversation history" title="Past conversations"></select>
-        <button id="chat-new" class="chat-icon-btn" aria-label="New conversation" title="New conversation">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
-                <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
-        <button id="chat-del" class="chat-icon-btn" aria-label="Delete this conversation" title="Delete this conversation">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <path d="M10 11v6M14 11v6"></path>
-                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-            </svg>
-        </button>
+    <!-- History is kept in localStorage; the picker and delete stay out of view. -->
+    <div class="chat-bar" hidden>
+        <select id="chat-convo" aria-label="Conversation history"></select>
+        <button id="chat-del" class="chat-icon-btn" aria-label="Delete this conversation" tabindex="-1"></button>
     </div>
     <div id="chat-topics" hidden>
         <div class="chat-topics-body"></div>
@@ -1495,7 +1473,7 @@ panel.innerHTML = `
     <p id="chat-live" class="chat-sr" aria-live="polite"></p>
     <div class="chat-suggestions"></div>
     <div class="chat-input-row">
-        <textarea id="chat-input" rows="1" maxlength="500" placeholder="Ask about his stack, a project, experience…" aria-label="Your question"></textarea>
+        <textarea id="chat-input" rows="1" maxlength="500" placeholder="Ask a question…" aria-label="Your question"></textarea>
         <button id="chat-send" aria-label="Send" title="Send">
             <svg class="send-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -1504,8 +1482,51 @@ panel.innerHTML = `
                 <rect x="6" y="6" width="12" height="12" rx="2"></rect>
             </svg>
         </button>
-    </div>
-    <p class="chat-foot">Answers cover only what is published on this page.</p>`;
+    </div>`;
+
+/* ── Interface language ──────────────────────────────────────────── */
+/* The chrome follows the site's EN / 日本語 switch. The knowledge base is
+ * English, so the Japanese opening line says so. */
+
+const UI = {
+    en: {
+        title: 'Ask about this portfolio',
+        sub: 'Answers come from this page only',
+        placeholder: 'Ask a question…',
+        fab: 'Ask about this portfolio',
+        opening: 'Ask about the projects, the stack, or how he works.',
+        starters: [
+            ['The projects', 'Explain each project in detail'],
+            ['How he works', 'How does he work?'],
+            ['Robots & sensors', 'Which robots and sensors has he worked with?'],
+        ],
+    },
+    ja: {
+        title: 'ポートフォリオについて質問',
+        sub: '回答はこのページの内容のみ・英語で回答',
+        placeholder: '質問を入力…',
+        fab: 'ポートフォリオについて質問',
+        opening: 'プロジェクト、技術スタック、進め方について質問できます。回答は英語です。',
+        starters: [
+            ['プロジェクト', 'Explain each project in detail'],
+            ['進め方', 'How does he work?'],
+            ['ロボットとセンサー', 'Which robots and sensors has he worked with?'],
+        ],
+    },
+};
+
+function uiLang() {
+    return document.documentElement.getAttribute('data-lang') === 'ja' ? 'ja' : 'en';
+}
+
+function applyChatLang() {
+    const t = UI[uiLang()];
+    panel.querySelector('[data-ui="title"]').textContent = t.title;
+    panel.querySelector('[data-ui="sub"]').textContent = t.sub;
+    panel.querySelector('#chat-input').placeholder = t.placeholder;
+    fab.setAttribute('aria-label', t.fab);
+    fab.title = t.fab;
+}
 
 document.body.append(fab, panel);
 
@@ -1668,17 +1689,19 @@ function renderSuggestions(items) {
     suggestionBar.innerHTML = '';
     if (!items || !items.length) return;
     for (const s of items) {
+        const label = typeof s === 'string' ? s : s.label;
+        const q = typeof s === 'string' ? s : s.ask;
         const b = document.createElement('button');
         b.type = 'button';
-        b.textContent = s;
-        b.addEventListener('click', () => { ask(s); });
+        b.textContent = label;
+        b.addEventListener('click', () => { ask(q); });
         suggestionBar.appendChild(b);
     }
 }
 
 function setSuggestions(items) {
     const c = active();
-    if (c) { c.next = items || []; saveStore(); }
+    if (c) { c.next = (items || []).map((s) => (typeof s === 'string' ? s : s.ask)); saveStore(); }
     renderSuggestions(items);
 }
 
@@ -1732,14 +1755,11 @@ function closeTopics() {
 }
 
 /* ── Starter chips ───────────────────────────────────────────────── */
+/* Three, fixed, in the interface language. Each sends its English question
+ * so the match against the knowledge base is exact. */
 
 function starterSet() {
-    const pool = STARTERS.slice();
-    const picked = ['What can I ask you?'];
-    while (picked.length < 4 && pool.length) {
-        picked.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-    }
-    return picked;
+    return UI[uiLang()].starters.map(([label, ask]) => ({ label, ask }));
 }
 
 /* ── Endpoint mode ───────────────────────────────────────────────── */
@@ -1770,10 +1790,6 @@ async function askEndpoint(text) {
 }
 
 /* ── Ask / answer flow ───────────────────────────────────────────── */
-
-const OPENING =
-    "Ask me about Aung Kaung Myat's robotics work — skills, projects, how he works.\n\n" +
-    "Answers are detailed by default; add \"short\" for a summary. List icon for all topics."
 
 let phase = 'idle';      // idle | thinking | streaming
 let streamCtl = null;
@@ -1878,7 +1894,7 @@ async function greet() {
         const dots = addTyping();
         await wait(360);
         dots.remove();
-        await showBot(OPENING);
+        await showBot(UI[uiLang()].opening);
         setSuggestions(starterSet());
     } finally {
         setPhase('idle');
@@ -1987,6 +2003,8 @@ function toggle(open) {
 
 loadStore();
 buildTopicsMenu();
+applyChatLang();
+document.addEventListener('langchange', applyChatLang);
 if (conversations.length) {
     renderConvoOptions();
     renderLog();

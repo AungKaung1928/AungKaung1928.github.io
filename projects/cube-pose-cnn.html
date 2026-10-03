@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#527a6c" data-title-ja="サブミリ精度の立方体姿勢推定 — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,332 +12,181 @@
 <meta property="og:title" content="Sub-Millimetre Cube Pose">
 <meta property="og:description" content="A CPU-trained CNN recovering a cube's position and yaw from a single MuJoCo render, measured against two classical-vision baselines. Walkthrough of every file and result.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23527a6c'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#f7faf8;
-  --paper2:#ecf1ee;
-  --ink:#161d1a;
-  --ink2:#3d4a44;
-  --muted:#6d7873;
-  --line:#e2e9e5;
-  --line2:#cbd8d1;
-  --accent:#527a6c;
-  --accent-deep:#3a5b4f;
-  --accent-soft:#eff5f2;
-  --accent-line:#bdd3c9;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--warn)}
-.note p{font-size:.95rem}
-.pipe{display:flex;flex-wrap:wrap;margin-block:4px}
-.pnode{flex:1 1 160px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:11px 13px;display:flex;flex-direction:column;gap:4px}
-.pnode + .pnode{border-left:0}
-.pn-name{font-family:var(--mono);font-size:.79rem;font-weight:600;word-break:break-word}
-.pn-role{font-size:.82rem;color:var(--muted);line-height:1.4}
-.pn-tag{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
-@media (max-width:640px){.pnode+.pnode{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fbfdfc}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,200px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;gap:0;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#94ada4;
-  --accent-soft:#1a2425;
-  --accent-deep:#a8bcb6;
-  --accent-line:#304742;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-cube-pose-cnn" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">CPU-only robot-learning track · block 1 · repo <code style="background:none;padding:0;color:inherit">mujoco-cube-pose-cnn</code></div>
+    <div class="eyebrow"><span lang="en">CPU-only robot-learning track · block 1 · repo</span><span lang="ja">CPUのみのrobot learningトラック · ブロック1 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-cube-pose-cnn</code></div>
     <h1>Sub-Millimetre Cube Pose</h1>
-    <p class="deck">Given one 128×128 photograph of a cube on a table, where is it and which way is it turned?
+    <p class="deck" lang="en">Given one 128×128 photograph of a cube on a table, where is it and which way is it turned?
       A small convolutional network answers to <strong>0.59 mm</strong> and <strong>0.21°</strong>. The point of
       the project is not that number — it is the four measurements around it that say how much of that win was
       really the network, and how much was arithmetic anyone could have done by hand.</p>
+    <p class="deck" lang="ja">テーブル上の立方体を写した128×128の画像1枚から、その位置と向きを求めます。
+      小さな畳み込みネットワークの誤差は<strong>0.59 mm</strong>と<strong>0.21°</strong>です。
+      ただし、このプロジェクトの要点はこの数値そのものではありません。その周囲にある4つの計測によって、
+      成果のうちどこまでが本当にネットワークの力で、どこまでが手計算でも出せたものかを切り分けている点にあります。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
       <span class="chip">ONNX Runtime</span><span class="chip">NumPy</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Best model</dt><dd><em>27 k</em> parameters</dd></div>
-      <div class="fact"><dt>Position error</dt><dd>0.59 mm median</dd></div>
-      <div class="fact"><dt>Latency</dt><dd>0.23 ms · 1 thread</dd></div>
-      <div class="fact"><dt>Training time</dt><dd>≈4 min per run</dd></div>
-      <div class="fact"><dt>Dataset</dt><dd>12 000 rendered images</dd></div>
-      <div class="fact"><dt>Hardware</dt><dd>laptop CPU, no GPU</dd></div>
+      <div class="fact"><dt><span lang="en">Best model</span><span lang="ja">最良モデル</span></dt><dd><em>27 k</em> <span lang="en">parameters</span><span lang="ja">パラメータ</span></dd></div>
+      <div class="fact"><dt><span lang="en">Position error</span><span lang="ja">位置誤差</span></dt><dd>0.59 mm <span lang="en">median</span><span lang="ja">（中央値）</span></dd></div>
+      <div class="fact"><dt>Latency</dt><dd>0.23 ms · <span lang="en">1 thread</span><span lang="ja">1スレッド</span></dd></div>
+      <div class="fact"><dt><span lang="en">Training time</span><span lang="ja">学習時間</span></dt><dd><span lang="en">≈4 min per run</span><span lang="ja">1回あたり約4分</span></dd></div>
+      <div class="fact"><dt><span lang="en">Dataset</span><span lang="ja">データセット</span></dt><dd><span lang="en">12 000 rendered images</span><span lang="ja">レンダリング画像12 000枚</span></dd></div>
+      <div class="fact"><dt><span lang="en">Hardware</span><span lang="ja">ハードウェア</span></dt><dd><span lang="en">laptop CPU, no GPU</span><span lang="ja">ノートPCのCPU、GPUなし</span></dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#task">The task</a>
-    <a href="#pipeline">Pipeline</a>
-    <a href="#files">Every file</a>
-    <a href="#data">Making data</a>
-    <a href="#baseline">The baselines</a>
-    <a href="#model">The network</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#task"><span lang="en">The task</span><span lang="ja">タスク定義</span></a>
+    <a href="#pipeline"><span lang="en">Pipeline</span><span lang="ja">パイプライン</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">ファイル構成</span></a>
+    <a href="#data"><span lang="en">Making data</span><span lang="ja">データ生成</span></a>
+    <a href="#baseline"><span lang="en">The baselines</span><span lang="ja">Baseline手法</span></a>
+    <a href="#model"><span lang="en">The network</span><span lang="ja">ネットワーク</span></a>
     <a href="#onnx">Export</a>
-    <a href="#results">Results</a>
-    <a href="#findings">What the numbers say</a>
-    <a href="#run">Running it</a>
+    <a href="#results"><span lang="en">Results</span><span lang="ja">結果</span></a>
+    <a href="#findings"><span lang="en">What the numbers say</span><span lang="ja">数値からわかること</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">The problem in one picture: a rendered cube, and a network that has to say where it sits and how it is turned.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">The problem in one picture: a rendered cube, and a network that has to say where it sits and how it is turned.</p><p class="sec-sub" lang="ja">問題を一言でいえば、レンダリングされた立方体が1つあり、ネットワークがその位置と向きを答える、というものです。</p></div>
   <div class="stack prose">
-    <p>A robot that is going to pick something up needs to know exactly where that thing is and how it is
+    <p lang="en">A robot that is going to pick something up needs to know exactly where that thing is and how it is
       rotated. This project builds the smallest honest version of that problem: a single red-ish cube on a
       flat table, one camera looking straight down, and the question "give me x, y and the rotation angle".</p>
-    <p>There are two obvious ways to answer it.</p>
-    <ol class="tight">
+    <p lang="ja">物を掴むロボットは、対象がどこにあり、どれだけ回転しているかを正確に知る必要があります。
+      このプロジェクトでは、その問題をごまかしのない最小の形にしました。平らなテーブルに赤っぽい立方体が1つ、
+      真上から見下ろすカメラが1台、そして「x、yと回転角を答えよ」という問いです。</p>
+    <p lang="en">There are two obvious ways to answer it.</p>
+    <p lang="ja">答え方は大きく2通りあります。</p>
+    <ol class="tight" lang="en">
       <li><strong>Write the rule yourself.</strong> The cube is a coloured blob on a plain table. Threshold the
         image on colour, find the blob, take its centre, fit the smallest rectangle around it and read off the
         angle. Thirty lines of OpenCV, no training, runs in 0.05 ms.</li>
       <li><strong>Train a network.</strong> Render thousands of labelled images, feed them to a small
         convolutional network, and let it learn the mapping.</li>
     </ol>
-    <p>Almost every tutorial does option 2 and declares victory. This project does option 1 <em>first</em>, and
+    <ol class="tight" lang="ja">
+      <li><strong>ルールを自分で書く。</strong>立方体は無地のテーブル上の色の塊です。色で画像を二値化し、塊を見つけて中心を取り、
+        外接する最小の矩形を当てはめて角度を読み取ります。OpenCVで30行、学習は不要で、0.05 msで動きます。</li>
+      <li><strong>ネットワークを学習させる。</strong>ラベル付き画像を数千枚レンダリングして小さな畳み込みネットワークに与え、
+        対応関係を学習させます。</li>
+    </ol>
+    <p lang="en">Almost every tutorial does option 2 and declares victory. This project does option 1 <em>first</em>, and
       then does it a second time, better, before the network is allowed to compete. That ordering is the whole
       experiment, and it changes the answer: the first hand-written baseline loses to the network by 4.5×, and
       after one calibration constant is fitted to it, more than half of that gap disappears.</p>
+    <p lang="ja">ほとんどのチュートリアルは2つ目の方法だけで勝利を宣言します。このプロジェクトでは、ネットワークと比較する前に、
+      まず1つ目の方法を<em>先に</em>実装し、さらにもう一度、より良い形で作り直しました。この順序こそが実験の本体であり、
+      結論を変えます。最初の手書きbaselineはネットワークに4.5×の差で負けますが、calibration定数を1つ当てはめると、
+      その差の半分以上が消えます。</p>
     <div class="note key">
-      <span class="note-label">The result the project exists to produce</span>
-      <p>Building the strong baseline <em>after</em> the model would have inflated the network's apparent
+      <span class="note-label"><span lang="en">The result the project exists to produce</span><span lang="ja">このプロジェクトが示す結果</span></span>
+      <p lang="en">Building the strong baseline <em>after</em> the model would have inflated the network's apparent
         advantage by roughly 2×. What the network actually wins is not the typical case — it is the tail:
         the classical method fails rarely and badly, the network fails never and mildly.</p>
+      <p lang="ja">強いbaselineをモデルの<em>後に</em>作っていたら、ネットワークの見かけの優位は約2×に膨らんでいたはずです。
+        ネットワークが実際に勝っているのは典型的なケースではなく、分布の裾（tail）です。古典的手法はまれに大きく外し、
+        ネットワークは大きく外すことがなく、外れても小さく収まります。</p>
     </div>
-    <h3>Why simulation</h3>
-    <p>Labelling real photographs by hand is slow, and a human-placed label of "the cube centre is at
+    <h3><span lang="en">Why simulation</span><span lang="ja">なぜシミュレーションか</span></h3>
+    <p lang="en">Labelling real photographs by hand is slow, and a human-placed label of "the cube centre is at
       x = 4.2 cm" is not accurate to a millimetre. In MuJoCo the numbers go the other way: the position and
       angle are <em>typed in</em>, and then the image is rendered from them. The label is not an annotation,
       it is the input. Twelve thousand perfectly labelled images take about twelve seconds to generate.</p>
+    <p lang="ja">実写真に手でラベルを付けるのは時間がかかり、人が付けた「立方体の中心はx = 4.2 cm」というラベルは
+      ミリ単位では正確ではありません。MuJoCoでは逆の順序になります。位置と角度を<em>先に入力</em>し、そこから画像を
+      レンダリングします。ラベルは後付けの注釈ではなく、入力そのものです。完全に正確なラベル付き画像12 000枚が約12秒で生成できます。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>MuJoCo</b><span>The physics and rendering engine. Here it is used only to draw labelled images, not to simulate motion.</span></div>
-    <div class="gterm"><b>pose</b><span>Position plus orientation. For this cube that is x, y, z and a yaw angle.</span></div>
-    <div class="gterm"><b>yaw fold</b><span>A cube looks identical every 90 degrees, so yaw can only be defined modulo 90 — the metric has to fold before comparing.</span></div>
-    <div class="gterm"><b>spatial soft-argmax</b><span>A layer that converts a heatmap into an (x, y) coordinate while staying differentiable, so gradients still flow.</span></div>
-    <div class="gterm"><b>baseline</b><span>A simpler method the network has to beat. Without one, an error number means nothing.</span></div>
-    <div class="gterm"><b>MAE</b><span>Mean absolute error — the average size of the mistake, in millimetres or degrees.</span></div>
-    <div class="gterm"><b>val split</b><span>Data held back from training and looked at once, at the very end, so the number is not tuned against.</span></div>
-    <div class="gterm"><b>ONNX</b><span>A portable model format. The exported file runs without PyTorch, which is what deployment needs.</span></div>
+    <div class="gterm"><b>MuJoCo</b><span lang="en">The physics and rendering engine. Here it is used only to draw labelled images, not to simulate motion.</span><span lang="ja">物理・レンダリングエンジン。ここでは動きのシミュレーションには使わず、ラベル付き画像の描画だけに使います。</span></div>
+    <div class="gterm"><b>pose</b><span lang="en">Position plus orientation. For this cube that is x, y, z and a yaw angle.</span><span lang="ja">位置と姿勢（向き）の組。この立方体ではx、y、zとyaw角です。</span></div>
+    <div class="gterm"><b>yaw fold</b><span lang="en">A cube looks identical every 90 degrees, so yaw can only be defined modulo 90 — the metric has to fold before comparing.</span><span lang="ja">立方体は90度ごとに同じ見た目になるため、yawは90を法としてしか定義できません。評価指標も比較の前に折り返す必要があります。</span></div>
+    <div class="gterm"><b>spatial soft-argmax</b><span lang="en">A layer that converts a heatmap into an (x, y) coordinate while staying differentiable, so gradients still flow.</span><span lang="ja">heatmapを(x, y)座標に変換する層。微分可能なままなので、勾配が流れます。</span></div>
+    <div class="gterm"><b>baseline</b><span lang="en">A simpler method the network has to beat. Without one, an error number means nothing.</span><span lang="ja">ネットワークが超えるべき、より単純な手法。これがなければ誤差の数値に意味はありません。</span></div>
+    <div class="gterm"><b>MAE</b><span lang="en">Mean absolute error — the average size of the mistake, in millimetres or degrees.</span><span lang="ja">平均絶対誤差。誤差の大きさの平均で、単位はmmまたは度です。</span></div>
+    <div class="gterm"><b>val split</b><span lang="en">Data held back from training and looked at once, at the very end, so the number is not tuned against.</span><span lang="ja">学習から除外し、最後に一度だけ確認するデータ。その数値に合わせて調整しないためです。</span></div>
+    <div class="gterm"><b>ONNX</b><span lang="en">A portable model format. The exported file runs without PyTorch, which is what deployment needs.</span><span lang="ja">移植性のあるモデル形式。exportしたファイルはPyTorchなしで動き、デプロイに必要なのはまさにこの点です。</span></div>
   </div>
 </div>
 </section>
 
 <section id="task">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The task, defined precisely</h2><p class="sec-sub">What pose means here, what the network outputs, and the symmetry that makes yaw awkward.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">The task, defined precisely</span><span lang="ja">タスクの厳密な定義</span></h2><p class="sec-sub" lang="en">What pose means here, what the network outputs, and the symmetry that makes yaw awkward.</p><p class="sec-sub" lang="ja">ここでのposeの意味、ネットワークの出力、そしてyawを扱いにくくしている対称性について。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Position</h3>
-      <p>The cube centre, in metres, in the table frame, sampled uniformly in ±0.075 m. The camera is directly
+      <h3><span lang="en">Position</span><span lang="ja">位置</span></h3>
+      <p lang="en">The cube centre, in metres, in the table frame, sampled uniformly in ±0.075 m. The camera is directly
         overhead and its image plane is parallel to the table, which means the mapping from pixels to metres is
         exactly affine — no perspective correction, no distortion model. At 128 px the scale is
         <strong>367.9 px/m</strong>, i.e. one pixel is 2.72 mm.</p>
+      <p lang="ja">テーブル座標系における立方体中心の位置（単位はm）で、±0.075 mの範囲から一様にサンプリングします。
+        カメラは真上にあり、像面はテーブルと平行です。そのためピクセルからメートルへの変換は厳密にaffineで、
+        透視補正も歪みモデルも不要です。128 pxでのスケールは<strong>367.9 px/m</strong>、つまり1ピクセルが2.72 mmです。</p>
     </div>
 
     <div class="stack">
-      <h3>Rotation, and the trap in it</h3>
+      <h3><span lang="en">Rotation, and the trap in it</span><span lang="ja">回転と、そこに潜む落とし穴</span></h3>
       <div class="prose stack">
-        <p>A cube seen from directly above shows a square. A square looks identical at 5° and at 95°. So the
+        <p lang="en">A cube seen from directly above shows a square. A square looks identical at 5° and at 95°. So the
           rotation is only observable <em>modulo 90°</em>, and asking a network for "the angle in degrees" is
           asking it for something that does not exist.</p>
-        <p>Worse, regressing a raw angle puts a discontinuity in the middle of the label range: 89° and 1° are
+        <p lang="ja">真上から見た立方体は正方形に見えます。正方形は5°でも95°でも同じ見た目です。したがって回転は
+          <em>90°を法として</em>しか観測できず、ネットワークに「角度を度で答えよ」と求めるのは、存在しないものを求めることになります。</p>
+        <p lang="en">Worse, regressing a raw angle puts a discontinuity in the middle of the label range: 89° and 1° are
           nearly the same pose but numerically far apart, so the network hedges toward the middle and is
           systematically wrong near the boundary. The fix used here — and it is standard practice in pose
           estimation — is to predict a point on a circle instead of an angle:</p>
+        <p lang="ja">さらに悪いことに、角度をそのまま回帰するとラベルの範囲に不連続点が生じます。89°と1°はほぼ同じ姿勢なのに
+          数値上は大きく離れているため、ネットワークは中間の値に逃げ、境界付近で系統的に誤ります。ここでの対策は、
+          姿勢推定では標準的な手法ですが、角度の代わりに円周上の点を予測させることです。</p>
         <pre><code>target = (sin 4θ, cos 4θ)          # YAW_FOLD = 4</code></pre>
-        <p>Multiplying by four folds a full turn onto four identical quarters, so θ and θ+90° map to exactly the
+        <p lang="en">Multiplying by four folds a full turn onto four identical quarters, so θ and θ+90° map to exactly the
           same target and there is no seam anywhere. Decoding runs it backwards:
           <code>θ = atan2(s, c) / 4</code>, wrapped into [0°, 90°).</p>
-        <p>Crucially, OpenCV's <code>minAreaRect</code> has exactly the same ambiguity. Both methods are scored
+        <p lang="ja">4倍することで1回転が同一の4つの区間に折り畳まれ、θとθ+90°はまったく同じtargetに対応し、継ぎ目はどこにもありません。
+          復元はその逆で、<code>θ = atan2(s, c) / 4</code>を[0°, 90°)に折り返します。</p>
+        <p lang="en">Crucially, OpenCV's <code>minAreaRect</code> has exactly the same ambiguity. Both methods are scored
           under the same 90° fold, by the same function, so the comparison is fair by construction rather than
           by assertion.</p>
+        <p lang="ja">重要なのは、OpenCVの<code>minAreaRect</code>にもまったく同じ曖昧さがあることです。両手法とも同じ関数で、
+          同じ90°の折り返しのもとで評価されます。そのため比較の公平性は、主張ではなく構造によって保証されています。</p>
       </div>
       <figure>
         <svg viewBox="0 0 720 200" role="img" aria-label="Two diagrams: a raw angle label with a discontinuity at ninety degrees, and the sin four theta cos four theta encoding which is continuous.">
@@ -364,117 +213,141 @@ html.dark-mode .sb-theme .moon-icon{display:block}
           <text x="600" y="114" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">land on the</text>
           <text x="600" y="128" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6d7873">same point</text>
         </svg>
-        <figcaption>Left: what a raw-degree target does to the loss surface. Right: the encoding actually used.</figcaption>
+        <figcaption lang="en">Left: what a raw-degree target does to the loss surface. Right: the encoding actually used.</figcaption>
+        <figcaption lang="ja">左：角度（度）をそのままtargetにした場合にloss曲面で起きること。右：実際に使っているエンコーディング。</figcaption>
       </figure>
     </div>
 
     <div class="stack prose">
-      <h3>Two appearance regimes</h3>
+      <h3><span lang="en">Two appearance regimes</span><span lang="ja">2種類の見た目の条件</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Regime</th><th>What varies</th><th>What it tests</th></tr></thead>
+          <thead><tr><th><span lang="en">Regime</span><span lang="ja">条件</span></th><th><span lang="en">What varies</span><span lang="ja">変化させるもの</span></th><th><span lang="en">What it tests</span><span lang="ja">検証すること</span></th></tr></thead>
           <tbody>
-            <tr><td><code>easy</code></td><td>Nothing. Fixed cube colour, fixed light position and intensity, fixed table shade.</td><td>Whether a hand-written rule is simply the better engineering choice when the world is controlled.</td></tr>
-            <tr><td><code>hard</code></td><td>Cube hue uniform over the whole colour wheel, saturation and value randomised; table shade randomised; light position and intensity randomised.</td><td>Whether a fixed prior survives appearance change — the miniature version of the sim-to-real question.</td></tr>
+            <tr><td><code>easy</code></td><td><span lang="en">Nothing. Fixed cube colour, fixed light position and intensity, fixed table shade.</span><span lang="ja">なし。立方体の色、照明の位置と強度、テーブルの濃淡はすべて固定。</span></td><td><span lang="en">Whether a hand-written rule is simply the better engineering choice when the world is controlled.</span><span lang="ja">環境が管理されている場合、手書きのルールの方が単純にエンジニアリング上の正解なのかどうか。</span></td></tr>
+            <tr><td><code>hard</code></td><td><span lang="en">Cube hue uniform over the whole colour wheel, saturation and value randomised; table shade randomised; light position and intensity randomised.</span><span lang="ja">立方体の色相を色相環全体から一様に選び、彩度と明度もランダム化。テーブルの濃淡、照明の位置と強度もランダム化。</span></td><td><span lang="en">Whether a fixed prior survives appearance change — the miniature version of the sim-to-real question.</span><span lang="ja">固定された事前知識（prior）が見た目の変化に耐えられるか。sim-to-realの問いの縮小版です。</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p>Note what is <em>not</em> randomised: geometry, camera pose, object size. Only appearance moves. That
+      <p lang="en">Note what is <em>not</em> randomised: geometry, camera pose, object size. Only appearance moves. That
         keeps the comparison to a single axis, so a result can be attributed.</p>
+      <p lang="ja">ランダム化<em>していない</em>ものにも注意してください。形状、カメラ姿勢、物体のサイズは固定で、変わるのは見た目だけです。
+        比較の軸を1つに絞ることで、結果の原因を特定できるようにしています。</p>
     </div>
   </div>
 </section>
 
 <section id="pipeline">
-  <div class="sec-head"><span class="sec-num">03</span><h2>The pipeline</h2><p class="sec-sub">The order the programs run in, from scene file to exported model.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">The pipeline</span><span lang="ja">パイプライン</span></h2><p class="sec-sub" lang="en">The order the programs run in, from scene file to exported model.</p><p class="sec-sub" lang="ja">シーンファイルからexport済みモデルまで、プログラムを実行する順序です。</p></div>
   <div class="stack">
     <div class="pipe">
-      <div class="pnode"><span class="pn-tag">step 1</span><span class="pn-name">gen_dataset.py</span>
-        <span class="pn-role">Render scenes in MuJoCo, write labels straight out of simulator state.</span></div>
-      <div class="pnode"><span class="pn-tag">verify</span><span class="pn-name">view_dataset.py</span>
-        <span class="pn-role">Draw the labels back onto the images. If markers miss the cubes, everything downstream is meaningless.</span></div>
-      <div class="pnode"><span class="pn-tag">step 2</span><span class="pn-name">baseline_cv.py</span>
-        <span class="pn-role">Two hand-written OpenCV rules. No learning, no training data.</span></div>
-      <div class="pnode"><span class="pn-tag">step 3</span><span class="pn-name">model.py + train.py</span>
-        <span class="pn-role">One conv trunk, two competing heads. 40 epochs on 8 CPU threads.</span></div>
-      <div class="pnode"><span class="pn-tag">step 4</span><span class="pn-name">baseline_v2.py</span>
-        <span class="pn-role">Refit the classical method with one scalar learned on train — the fair fight.</span></div>
-      <div class="pnode"><span class="pn-tag">step 5</span><span class="pn-name">export_onnx.py</span>
-        <span class="pn-role">Export, then prove the export reproduces both the tensors and the task metrics.</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">step 1</span><span lang="ja">ステップ1</span></span><span class="pn-name">gen_dataset.py</span>
+        <span class="pn-role" lang="en">Render scenes in MuJoCo, write labels straight out of simulator state.</span><span class="pn-role" lang="ja">MuJoCoでシーンをレンダリングし、シミュレータの状態からそのままラベルを書き出します。</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">verify</span><span lang="ja">検証</span></span><span class="pn-name">view_dataset.py</span>
+        <span class="pn-role" lang="en">Draw the labels back onto the images. If markers miss the cubes, everything downstream is meaningless.</span><span class="pn-role" lang="ja">ラベルを画像上に描き戻します。マーカーが立方体からずれていれば、以降の処理はすべて無意味です。</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">step 2</span><span lang="ja">ステップ2</span></span><span class="pn-name">baseline_cv.py</span>
+        <span class="pn-role" lang="en">Two hand-written OpenCV rules. No learning, no training data.</span><span class="pn-role" lang="ja">手書きのOpenCVルール2種。学習も学習データもありません。</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">step 3</span><span lang="ja">ステップ3</span></span><span class="pn-name">model.py + train.py</span>
+        <span class="pn-role" lang="en">One conv trunk, two competing heads. 40 epochs on 8 CPU threads.</span><span class="pn-role" lang="ja">共通の畳み込みtrunkに、比較する2種類のhead。CPU 8スレッドで40 epoch。</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">step 4</span><span lang="ja">ステップ4</span></span><span class="pn-name">baseline_v2.py</span>
+        <span class="pn-role" lang="en">Refit the classical method with one scalar learned on train — the fair fight.</span><span class="pn-role" lang="ja">trainで求めたスカラー1つで古典的手法を補正し直します。これが公平な比較です。</span></div>
+      <div class="pnode"><span class="pn-tag"><span lang="en">step 5</span><span lang="ja">ステップ5</span></span><span class="pn-name">export_onnx.py</span>
+        <span class="pn-role" lang="en">Export, then prove the export reproduces both the tensors and the task metrics.</span><span class="pn-role" lang="ja">exportしたうえで、テンソルとタスク指標の両方が再現されることを確認します。</span></div>
     </div>
     <div class="note">
-      <span class="note-label">Sequence matters here</span>
-      <p>Steps 2 and 4 are the same classical method. It appears twice on purpose — once before the network so
+      <span class="note-label"><span lang="en">Sequence matters here</span><span lang="ja">順序が重要</span></span>
+      <p lang="en">Steps 2 and 4 are the same classical method. It appears twice on purpose — once before the network so
         the network has a target, and once after so the network's win can be attributed. Step 4 is the one that
         changed the conclusion.</p>
+      <p lang="ja">ステップ2と4は同じ古典的手法です。意図的に2回登場させています。1回目はネットワークの前で、目標となる基準を与えるため。
+        2回目はネットワークの後で、その勝ちが何によるものかを切り分けるためです。結論を変えたのはステップ4でした。</p>
     </div>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">04</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">各ソースファイルの規模と、それぞれが担う1つの役割です。</p></div>
   <div class="stack">
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>common.py</td><td class="num">116</td>
-            <td><strong>The single source of truth.</strong> Scene constants that must match the MJCF; the yaw
+            <td><span lang="en"><strong>The single source of truth.</strong> Scene constants that must match the MJCF; the yaw
               fold and its inverse; the pixel↔world projection; the dataset loader; and — most importantly —
               <code>pose_metrics()</code>, the one scoring function used by <em>every</em> method. If the
               classical baseline and the network were scored by two implementations they would drift apart, and
-              the comparison the whole project exists to make would be worthless.</td></tr>
+              the comparison the whole project exists to make would be worthless.</span><span lang="ja"><strong>唯一の信頼できる情報源。</strong>MJCFと一致させる必要のあるシーン定数、yawの折り返しとその逆変換、
+              ピクセル↔ワールド座標の射影、データセットのローダー、そして最も重要な<code>pose_metrics()</code>を持ちます。
+              これは<em>すべての</em>手法が使う唯一の評価関数です。古典的baselineとネットワークを別々の実装で評価すると両者は食い違っていき、
+              このプロジェクトの目的である比較そのものが無意味になります。</span></td></tr>
           <tr><td>scene.xml</td><td class="num">24</td>
-            <td>The MuJoCo scene. A plane at z = 0, one light, one overhead camera at 0.45 m with a 45° vertical
+            <td><span lang="en">The MuJoCo scene. A plane at z = 0, one light, one overhead camera at 0.45 m with a 45° vertical
               field of view and axes aligned to the world, and a box of half-size 0.03 m on a free joint.
               Shadows are switched off (<code>shadowsize="0"</code>) because shadow mapping is the expensive
-              part of software rendering.</td></tr>
+              part of software rendering.</span><span lang="ja">MuJoCoのシーン。z = 0の平面、照明1つ、高さ0.45 mの真上カメラ1台（垂直画角45°、軸はワールド座標に一致）、
+              free jointに付いた半辺0.03 mの箱で構成されます。ソフトウェアレンダリングで最も重いのはshadow mappingなので、
+              影は無効にしています（<code>shadowsize="0"</code>）。</span></td></tr>
           <tr><td>gen_dataset.py</td><td class="num">132</td>
-            <td>Renders the dataset. Samples x, y and yaw, writes them into <code>qpos</code>, mutates the
+            <td><span lang="en">Renders the dataset. Samples x, y and yaw, writes them into <code>qpos</code>, mutates the
               cube/table colours and the light according to the regime, calls <code>mj_forward</code>, renders,
               and stores the image into a memory-mapped <code>.npy</code> array. Writes a
               <code>meta.json</code> recording image size, px/m, and the label column order. Train and
-              validation splits use different seed streams and are never mixed.</td></tr>
+              validation splits use different seed streams and are never mixed.</span><span lang="ja">データセットをレンダリングします。x、y、yawをサンプリングして<code>qpos</code>に書き込み、条件に応じて立方体・テーブルの色と照明を変更し、
+              <code>mj_forward</code>を呼んでからレンダリングし、画像をmemory-mapの<code>.npy</code>配列に保存します。
+              画像サイズ、px/m、ラベルの列順を記録した<code>meta.json</code>も書き出します。trainとvalidationは別々のseed系列を使い、混ざることはありません。</span></td></tr>
           <tr><td>view_dataset.py</td><td class="num">52</td>
-            <td>Label verification. Projects each ground-truth label back into pixel space through the analytic
+            <td><span lang="en">Label verification. Projects each ground-truth label back into pixel space through the analytic
               overhead projection and draws a marker. If the markers do not land on the cubes, the label
-              convention is wrong — and every number produced afterwards would be consistently, silently wrong.</td></tr>
+              convention is wrong — and every number produced afterwards would be consistently, silently wrong.</span><span lang="ja">ラベルの検証。各正解ラベルを真上カメラの解析的な射影でピクセル空間に戻し、マーカーを描きます。
+              マーカーが立方体の上に乗らなければラベルの規約が間違っており、その後に出る数値はすべて、一貫して、気づかれないまま間違うことになります。</span></td></tr>
           <tr><td>baseline_cv.py</td><td class="num">101</td>
-            <td>Classical baseline, two variants. <code>--method red</code> is a fixed hue window — the naive
+            <td><span lang="en">Classical baseline, two variants. <code>--method red</code> is a fixed hue window — the naive
               prior "the cube is red". <code>--method sat</code> keeps anything sufficiently saturated — the
               weaker, more honest prior "the cube is the most colourful thing on a near-grey table". Both then
               run: morphological open → largest contour → area floor → moments centroid +
-              <code>minAreaRect</code> angle → convert to world units.</td></tr>
+              <code>minAreaRect</code> angle → convert to world units.</span><span lang="ja">古典的baselineの2つの版。<code>--method red</code>は固定の色相範囲で、「立方体は赤い」という素朴なpriorです。
+              <code>--method sat</code>は十分に彩度の高いものをすべて残します。「グレーに近いテーブル上で最も色鮮やかなものが立方体」という、
+              より弱く、より正直なpriorです。その後はどちらも、モルフォロジーのopening → 最大輪郭 → 面積の下限 → モーメントによる重心＋
+              <code>minAreaRect</code>の角度 → ワールド単位への変換、と処理します。</span></td></tr>
           <tr><td>baseline_v2.py</td><td class="num">60</td>
-            <td>The fair baseline. Runs the same detector over the <em>train</em> split, fits one scalar radial
+            <td><span lang="en">The fair baseline. Runs the same detector over the <em>train</em> split, fits one scalar radial
               correction by least squares, applies it unchanged to validation. One learned parameter against the
-              network's 27 000.</td></tr>
+              network's 27 000.</span><span lang="ja">公平なbaseline。同じ検出器を<em>train</em>に対して実行し、半径方向の補正スカラー1つを最小二乗で求め、
+              そのままvalidationに適用します。学習パラメータはネットワークの27 000個に対して1個です。</span></td></tr>
           <tr><td>model.py</td><td class="num">86</td>
-            <td>Two heads on one convolutional trunk: a generic flatten head and a spatial soft-argmax keypoint
-              head. Described in detail below.</td></tr>
+            <td><span lang="en">Two heads on one convolutional trunk: a generic flatten head and a spatial soft-argmax keypoint
+              head. Described in detail below.</span><span lang="ja">1つの畳み込みtrunkに2種類のhead。汎用的なflatten headと、spatial soft-argmaxのkeypoint headです。詳細は後述します。</span></td></tr>
           <tr><td>train.py</td><td class="num">145</td>
-            <td>The training loop. Normalises the four targets onto a common scale, uses SmoothL1 loss, AdamW at
+            <td><span lang="en">The training loop. Normalises the four targets onto a common scale, uses SmoothL1 loss, AdamW at
               2e-3 with a cosine schedule, batch 64, 40 epochs, no augmentation. Prints per-epoch throughput and
               flags a sustained &gt;20 % drop, because this machine exposes no CPU temperature sensor. Reports the
-              <em>final</em> epoch and selects on nothing.</td></tr>
+              <em>final</em> epoch and selects on nothing.</span><span lang="ja">学習ループ。4つのtargetを共通のスケールに正規化し、SmoothL1 loss、AdamW（2e-3、cosine schedule）、batch 64、40 epoch、
+              augmentationなしで学習します。このマシンではCPU温度センサーが読めないため、epochごとのthroughputを出力し、
+              20 %を超える低下が続くと警告します。報告するのは<em>最終</em>epochで、epochの選択は一切行いません。</span></td></tr>
           <tr><td>export_onnx.py</td><td class="num">100</td>
-            <td>Exports to ONNX and then proves the export three ways: max absolute tensor difference on a real
+            <td><span lang="en">Exports to ONNX and then proves the export three ways: max absolute tensor difference on a real
               batch, the full task metrics recomputed through ONNX Runtime, and batch-1 latency at both 1 and 8
-              threads.</td></tr>
+              threads.</span><span lang="ja">ONNXにexportし、3つの方法で正しさを確認します。実データのbatchでのテンソルの最大絶対差、
+              ONNX Runtimeで再計算したタスク指標一式、そして1スレッドと8スレッドでのbatch 1のlatencyです。</span></td></tr>
           <tr><td>test_common.py</td><td class="num">67</td>
-            <td>Tier-1 tests. The yaw fold, the projection and the metric checked against values derived on
-              paper. Needs no dataset and no weights — it runs from a fresh clone in seconds.</td></tr>
+            <td><span lang="en">Tier-1 tests. The yaw fold, the projection and the metric checked against values derived on
+              paper. Needs no dataset and no weights — it runs from a fresh clone in seconds.</span><span lang="ja">Tier 1のテスト。yawの折り返し、射影、評価指標を、紙の上で導いた値と照合します。データセットも重みも不要で、
+              cloneした直後から数秒で実行できます。</span></td></tr>
           <tr><td>verify.sh</td><td class="num">55</td>
-            <td>Reproduces the README's claims from a clean checkout, cheapest tier first. Pins
+            <td><span lang="en">Reproduces the README's claims from a clean checkout, cheapest tier first. Pins
               <code>MUJOCO_GL</code> and the thread count because both change the numbers, and skips the data
-              tiers with instructions rather than failing when <code>data/</code> is absent.</td></tr>
+              tiers with instructions rather than failing when <code>data/</code> is absent.</span><span lang="ja">クリーンなcheckoutからREADMEの主張を再現します。軽いtierから順に実行します。
+              <code>MUJOCO_GL</code>とスレッド数はどちらも数値を変えるため固定し、<code>data/</code>がない場合は失敗させずに、
+              手順を表示してデータが必要なtierをスキップします。</span></td></tr>
           <tr><td>requirements.txt</td><td class="num">9</td>
-            <td>Explicit CPU wheels: <code>torch==2.14.0+cpu</code>. Pinned because every number in the README
-              was measured against them.</td></tr>
+            <td><span lang="en">Explicit CPU wheels: <code>torch==2.14.0+cpu</code>. Pinned because every number in the README
+              was measured against them.</span><span lang="ja">CPU版wheelを明示しています（<code>torch==2.14.0+cpu</code>）。READMEの数値はすべてこのバージョンで計測したため、固定しています。</span></td></tr>
           <tr><td>runs/ · out/ · data/</td><td class="num">—</td>
-            <td>Three run directories with tracked <code>final.pt</code> checkpoints and
+            <td><span lang="en">Three run directories with tracked <code>final.pt</code> checkpoints and
               <code>metrics.json</code>; qualitative PNG sheets; and the generated dataset, which is gitignored
-              at ~1.3 GB and regenerates in about 30 seconds.</td></tr>
+              at ~1.3 GB and regenerates in about 30 seconds.</span><span lang="ja"><code>final.pt</code> checkpointと<code>metrics.json</code>をgit管理している3つの実行ディレクトリ、
+              定性確認用のPNG画像、そして生成済みデータセットです。データセットは約1.3 GBあるためgitignoreしており、約30秒で再生成できます。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -482,66 +355,83 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 </section>
 
 <section id="data">
-  <div class="sec-head"><span class="sec-num">05</span><h2>Making the data</h2><p class="sec-sub">How the training images are generated in MuJoCo, and what is varied between them.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Making the data</span><span lang="ja">データの生成</span></h2><p class="sec-sub" lang="en">How the training images are generated in MuJoCo, and what is varied between them.</p><p class="sec-sub" lang="ja">学習画像をMuJoCoでどう生成するか、画像ごとに何を変えるか。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Where the label comes from</h3>
-      <p>The generator does not run physics. It writes the pose directly into the simulator's state vector and
+      <h3><span lang="en">Where the label comes from</span><span lang="ja">ラベルの出どころ</span></h3>
+      <p lang="en">The generator does not run physics. It writes the pose directly into the simulator's state vector and
         calls <code>mj_forward</code>, which recomputes all the derived quantities without advancing time:</p>
+      <p lang="ja">生成スクリプトは物理演算を実行しません。姿勢をシミュレータの状態ベクトルに直接書き込み、
+        <code>mj_forward</code>を呼びます。これは時間を進めずに、派生する量をすべて再計算します。</p>
       <pre><code>data.qpos[:3]  = [x, y, CUBE_HALF]
 data.qpos[3:7] = [cos(yaw/2), 0, 0, sin(yaw/2)]     # quaternion about z
 mujoco.mj_forward(model, data)
 renderer.update_scene(data, camera="top")
 imgs[i] = renderer.render()
 labels[i] = [x, y, sin(4·yaw), cos(4·yaw), yaw]</code></pre>
-      <p>A quaternion about the z axis is <code>(cos(θ/2), 0, 0, sin(θ/2))</code> — the halved angle is the
+      <p lang="en">A quaternion about the z axis is <code>(cos(θ/2), 0, 0, sin(θ/2))</code> — the halved angle is the
         standard quaternion convention and is the second most common place to introduce a silent factor-of-two
         error in this kind of code. The label array keeps the raw yaw in a fifth column for debugging only;
         nothing trains on it.</p>
+      <p lang="ja">z軸まわりのクォータニオンは<code>(cos(θ/2), 0, 0, sin(θ/2))</code>です。角度を半分にするのはクォータニオンの標準的な規約で、
+        この種のコードで気づかれない2倍の誤差が入り込む場所として2番目に多いところです。ラベル配列の5列目には生のyawを
+        デバッグ用にだけ残しており、学習には一切使いません。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Randomising appearance</h3>
-      <p>On <code>hard</code>, four things move per image:</p>
+      <h3><span lang="en">Randomising appearance</span><span lang="ja">見た目のランダム化</span></h3>
+      <p lang="en">On <code>hard</code>, four things move per image:</p>
+      <p lang="ja"><code>hard</code>では、画像ごとに次の4つを変化させます。</p>
       <div class="pair">
-        <dt>cube hue</dt><dd>Uniform over the full wheel, converted through a hand-written HSV→RGB (six-case
-          piecewise function, six lines). Saturation 0.6–1.0, value 0.5–1.0 — vivid, but arbitrary in colour.</dd>
-        <dt>table shade</dt><dd>Grey level 0.25–0.85, with a slight independent tint per channel so it is
-          near-grey rather than exactly grey.</dd>
-        <dt>light position</dt><dd>x and y in ±0.5 m, height 0.9–1.4 m. This moves the shading direction on the
-          cube's side faces, which is what a global brightness change cannot imitate.</dd>
-        <dt>light intensity</dt><dd>Diffuse 0.4–1.0.</dd>
+        <dt><span lang="en">cube hue</span><span lang="ja">立方体の色相</span></dt><dd lang="en">Uniform over the full wheel, converted through a hand-written HSV→RGB (six-case
+          piecewise function, six lines). Saturation 0.6–1.0, value 0.5–1.0 — vivid, but arbitrary in colour.</dd><dd lang="ja">色相環全体から一様に選び、手書きのHSV→RGB変換（6つの場合分けからなる区分関数、6行）で変換します。
+          彩度0.6–1.0、明度0.5–1.0。鮮やかですが、色は任意です。</dd>
+        <dt><span lang="en">table shade</span><span lang="ja">テーブルの濃淡</span></dt><dd lang="en">Grey level 0.25–0.85, with a slight independent tint per channel so it is
+          near-grey rather than exactly grey.</dd><dd lang="ja">グレーレベル0.25–0.85。チャンネルごとに独立したわずかな色味を加え、完全なグレーではなくグレーに近い色にしています。</dd>
+        <dt><span lang="en">light position</span><span lang="ja">照明の位置</span></dt><dd lang="en">x and y in ±0.5 m, height 0.9–1.4 m. This moves the shading direction on the
+          cube's side faces, which is what a global brightness change cannot imitate.</dd><dd lang="ja">x、yは±0.5 m、高さは0.9–1.4 m。立方体の側面の陰影の向きが変わります。これは画像全体の明るさの変化では再現できない効果です。</dd>
+        <dt><span lang="en">light intensity</span><span lang="ja">照明の強度</span></dt><dd lang="en">Diffuse 0.4–1.0.</dd><dd lang="ja">拡散光（diffuse）0.4–1.0。</dd>
       </div>
-      <p>These are written directly into <code>model.geom_rgba</code>, <code>model.light_pos</code> and
+      <p lang="en">These are written directly into <code>model.geom_rgba</code>, <code>model.light_pos</code> and
         <code>model.light_diffuse</code> — fields of the compiled model, mutable at run time, so one XML covers
         every appearance.</p>
+      <p lang="ja">これらは<code>model.geom_rgba</code>、<code>model.light_pos</code>、<code>model.light_diffuse</code>に直接書き込みます。
+        いずれもコンパイル済みモデルのフィールドで、実行時に変更できるため、1つのXMLですべての見た目を表現できます。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Memory-mapped storage</h3>
-      <p>Twelve thousand 128×128 RGB images is about 590 MB. The generator opens the array with
+      <h3><span lang="en">Memory-mapped storage</span><span lang="ja">memory-mapによる保存</span></h3>
+      <p lang="en">Twelve thousand 128×128 RGB images is about 590 MB. The generator opens the array with
         <code>np.lib.format.open_memmap</code> and writes into it row by row, so the whole set never has to fit
         in RAM at once. Training loads it the same way and sorts each batch's indices before slicing, which
         turns random access into sequential reads from the file — a small change that matters when the data is
         on disk rather than in memory.</p>
+      <p lang="ja">128×128のRGB画像12 000枚は約590 MBです。生成スクリプトは<code>np.lib.format.open_memmap</code>で配列を開き、
+        1行ずつ書き込むため、データ全体を一度にRAMに載せる必要はありません。学習時も同じ方法で読み込み、スライスする前に
+        各batchのインデックスをソートします。これでランダムアクセスがファイルの順次読み込みに変わります。
+        データがメモリではなくディスク上にある場合に効く、小さな工夫です。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Cost, measured</h3>
-      <p>900–1080 images per second at 128 px, so 12 000 images takes about twelve seconds. Rendering is
+      <h3><span lang="en">Cost, measured</span><span lang="ja">生成コストの計測</span></h3>
+      <p lang="en">900–1080 images per second at 128 px, so 12 000 images takes about twelve seconds. Rendering is
         <em>not</em> the bottleneck in this project, which is worth stating because it usually is: on this
         machine OpenGL is software-rendered (llvmpipe under WSL) and shadows are disabled precisely to keep it
         that way.</p>
+      <p lang="ja">128 pxで毎秒900–1080枚なので、12 000枚で約12秒です。このプロジェクトではレンダリングはボトルネック<em>ではありません</em>。
+        普通はボトルネックになるので、あえて明記しておきます。このマシンのOpenGLはソフトウェアレンダリング（WSL上のllvmpipe）であり、
+        影を無効にしているのはまさにこの速度を保つためです。</p>
     </div>
   </div>
 </section>
 
 <section id="baseline">
-  <div class="sec-head"><span class="sec-num">06</span><h2>The baselines — and why there are two of them</h2><p class="sec-sub">The classical-vision baseline, the bias found in it, and the one-line correction that removed it.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The baselines — and why there are two of them</span><span lang="ja">Baseline、そしてそれが2つある理由</span></h2><p class="sec-sub" lang="en">The classical-vision baseline, the bias found in it, and the one-line correction that removed it.</p><p class="sec-sub" lang="ja">古典的な画像処理によるbaseline、そこで見つかったbias、そしてそれを取り除いた1行の補正。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Version 1: two hand-written priors</h3>
-      <p>Both variants share the same pipeline and differ only in the mask:</p>
+      <h3><span lang="en">Version 1: two hand-written priors</span><span lang="ja">バージョン1：手書きの2つのprior</span></h3>
+      <p lang="en">Both variants share the same pipeline and differ only in the mask:</p>
+      <p lang="ja">2つの版は同じ処理の流れを共有し、マスクだけが異なります。</p>
       <pre><code>hsv = cvtColor(img, RGB2HSV)
 m   = MASKS[method](hsv)                       # 'red' or 'sat'
 m   = morphologyEx(m, MORPH_OPEN, ones(3,3))   # kill speckle
@@ -550,33 +440,39 @@ if contourArea(c) &lt; 30: return None            # detection failed
 (u,v),(w,h),ang = minAreaRect(c)
 x, y = pixel_to_world(u, v, size)
 yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign flip</code></pre>
-      <p>The two priors behave very differently once appearance moves:</p>
+      <p lang="en">The two priors behave very differently once appearance moves:</p>
+      <p lang="ja">見た目が変わると、2つのpriorの挙動は大きく分かれます。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Prior</th><th class="num">Detection rate on <code>hard</code></th><th>What happened</th></tr></thead>
+          <thead><tr><th>Prior</th><th class="num"><span lang="en">Detection rate on <code>hard</code></span><span lang="ja"><code>hard</code>での検出率</span></th><th><span lang="en">What happened</span><span lang="ja">結果</span></th></tr></thead>
           <tbody>
-            <tr><td><code>red</code> — fixed hue window</td><td class="num">10.9 %</td>
-              <td>Missed 89 % of the set, because the cube is no longer red. Its accuracy <em>on the 11 % it did find</em> is unchanged, so its own error metric looks perfectly healthy.</td></tr>
-            <tr><td><code>sat</code> — most saturated object</td><td class="num">100 %</td>
-              <td>Fully robust to the appearance shift, with the same error as on <code>easy</code>. No network involved.</td></tr>
+            <tr><td><code>red</code> — <span lang="en">fixed hue window</span><span lang="ja">固定の色相範囲</span></td><td class="num">10.9 %</td>
+              <td><span lang="en">Missed 89 % of the set, because the cube is no longer red. Its accuracy <em>on the 11 % it did find</em> is unchanged, so its own error metric looks perfectly healthy.</span><span lang="ja">立方体がもう赤くないため、89 %を見逃しました。一方で<em>検出できた11 %での</em>精度は変わらないため、この手法自身の誤差指標はまったく正常に見えます。</span></td></tr>
+            <tr><td><code>sat</code> — <span lang="en">most saturated object</span><span lang="ja">最も彩度の高い物体</span></td><td class="num">100 %</td>
+              <td><span lang="en">Fully robust to the appearance shift, with the same error as on <code>easy</code>. No network involved.</span><span lang="ja">見た目の変化に完全に頑健で、誤差も<code>easy</code>と同じです。ネットワークは一切使っていません。</span></td></tr>
           </tbody>
         </table>
       </div>
       <div class="note warnbox">
-        <span class="note-label">The failure mode this exposes</span>
-        <p>A wrong prior does not raise an error. It returns fewer answers, and the answers it does return are
+        <span class="note-label"><span lang="en">The failure mode this exposes</span><span lang="ja">ここで露呈する失敗パターン</span></span>
+        <p lang="en">A wrong prior does not raise an error. It returns fewer answers, and the answers it does return are
           fine. Detection rate and accuracy have to be reported together or the failure is invisible — which is
           exactly what happens when a paper reports only mean error.</p>
+        <p lang="ja">誤ったpriorはエラーを出しません。返す答えの数が減るだけで、返した答え自体は正しいのです。
+          検出率と精度を必ずセットで報告しなければ、この失敗は見えません。論文が平均誤差だけを報告するときに起きているのが、まさにこれです。</p>
       </div>
     </div>
 
     <div class="stack">
-      <h3>Version 2: one scalar, fitted honestly</h3>
+      <h3><span lang="en">Version 2: one scalar, fitted honestly</span><span lang="ja">バージョン2：公正に当てはめたスカラー1つ</span></h3>
       <div class="prose stack">
-        <p>Version 1 has a <strong>systematic +2.98 mm radial bias</strong> — every prediction sits slightly
+        <p lang="en">Version 1 has a <strong>systematic +2.98 mm radial bias</strong> — every prediction sits slightly
           too far from the table centre. The cause is geometric, not statistical: an overhead camera does not
           only see the cube's top face, it also sees the outward-facing side walls. The silhouette is therefore
           wider on the outward side, and its centroid sits outside the true projected centre.</p>
+        <p lang="ja">バージョン1には<strong>半径方向に+2.98 mmの系統的なbias</strong>があり、どの予測もテーブル中心からわずかに遠すぎる位置になります。
+          原因は統計ではなく幾何です。真上のカメラには立方体の上面だけでなく、外側を向いた側面も写ります。
+          そのためシルエットは外側に広がり、その重心は真の投影中心より外側にずれます。</p>
       </div>
       <figure>
         <svg viewBox="0 0 700 220" role="img" aria-label="Side view showing the camera above and off-axis from a cube, so the outward side wall is visible and the silhouette centroid sits radially outward of the true centre.">
@@ -602,117 +498,161 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
           <circle cx="446" cy="96" r="4" fill="#9c4a45"/>
           <text x="460" y="96" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#9c4a45">silhouette centroid, +2.98 mm outward</text>
         </svg>
-        <figcaption>Not noise — a repeatable geometric offset that grows with distance from the optical axis.
+        <figcaption lang="en">Not noise — a repeatable geometric offset that grows with distance from the optical axis.
           A hand-written centroid cannot know about it. A network trained on labels absorbs it for free.</figcaption>
+        <figcaption lang="ja">ノイズではなく、光軸からの距離に応じて大きくなる再現性のある幾何的なずれです。
+          手書きの重心計算はこれを知りようがありませんが、ラベルで学習したネットワークは何もしなくても吸収します。</figcaption>
       </figure>
       <div class="prose stack">
-        <p>That is not a fair fight. The network saw 12 000 labelled images; the baseline saw none. So the
+        <p lang="en">That is not a fair fight. The network saw 12 000 labelled images; the baseline saw none. So the
           baseline is given the <em>same privilege and no more</em>: fit exactly one number, a radial scale
           correction, on the <strong>train</strong> split, and apply it unchanged to validation.</p>
+        <p lang="ja">これでは公平な比較になりません。ネットワークはラベル付き画像を12 000枚見ていますが、baselineは1枚も見ていません。
+          そこでbaselineにも<em>同じ特権を、それ以上は与えずに</em>与えます。<strong>train</strong>で半径方向のスケール補正を
+          ちょうど1つだけ求め、そのままvalidationに適用します。</p>
         <pre><code>k = argmin ‖ k·r_measured − r_true ‖     # closed form, one line
   = (r_meas · r_true).sum() / (r_meas²).sum()
   = 0.951                                  # a −4.9 % radial correction</code></pre>
-        <p>The bias goes from +2.98 mm to +0.01 mm, and the median error falls from 3.41 mm to
+        <p lang="en">The bias goes from +2.98 mm to +0.01 mm, and the median error falls from 3.41 mm to
           <strong>1.91 mm</strong> — 53 % of the whole gap to the network, closed by a single scalar and no
           training loop.</p>
+        <p lang="ja">biasは+2.98 mmから+0.01 mmになり、誤差の中央値は3.41 mmから<strong>1.91 mm</strong>に下がります。
+          ネットワークとの差全体の53 %が、学習ループなしのスカラー1つで埋まったことになります。</p>
       </div>
     </div>
   </div>
 </section>
 
 <section id="model">
-  <div class="sec-head"><span class="sec-num">07</span><h2>The network — two heads, one question</h2><p class="sec-sub">Two output heads compared on identical data — flatten against spatial soft-argmax.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">The network — two heads, one question</span><span lang="ja">ネットワーク：1つの問いに2つのhead</span></h2><p class="sec-sub" lang="en">Two output heads compared on identical data — flatten against spatial soft-argmax.</p><p class="sec-sub" lang="ja">同一データで2つの出力headを比較します。flattenとspatial soft-argmaxです。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Why the usual head cannot be used</h3>
-      <p>Nearly every image classifier ends with global average pooling: average the feature map over space,
+      <h3><span lang="en">Why the usual head cannot be used</span><span lang="ja">一般的なheadが使えない理由</span></h3>
+      <p lang="en">Nearly every image classifier ends with global average pooling: average the feature map over space,
         then classify. That works because "is this a cat" does not depend on where the cat is —
         translation invariance is a <em>feature</em>.</p>
-      <p>A pose regressor needs the opposite. The answer <em>is</em> the location. Average over space and you
+      <p lang="ja">ほぼすべての画像分類器は、最後にglobal average poolingを置きます。特徴マップを空間方向に平均してから分類するのです。
+        「これは猫か」は猫がどこにいるかに依存しないため、これでうまくいきます。平行移動不変性は<em>利点</em>なのです。</p>
+      <p lang="en">A pose regressor needs the opposite. The answer <em>is</em> the location. Average over space and you
         have thrown away the thing you were asked for. So the head has to preserve spatial information, and
         there are two ways to do that.</p>
+      <p lang="ja">姿勢の回帰では逆が必要です。答え<em>そのもの</em>が位置だからです。空間方向に平均すれば、求められているものを捨てることになります。
+        したがってheadは空間情報を保持しなければならず、その方法は2つあります。</p>
     </div>
 
     <div class="stack">
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Head</th><th>Trunk</th><th>Mechanism</th><th class="num">Params</th></tr></thead>
+          <thead><tr><th>Head</th><th>Trunk</th><th><span lang="en">Mechanism</span><span lang="ja">仕組み</span></th><th class="num"><span lang="en">Params</span><span lang="ja">パラメータ数</span></th></tr></thead>
           <tbody>
-            <tr><td><code>flat</code></td><td>4 stride-2 blocks, 128×128 → 8×8×128</td>
-              <td>Flatten the whole feature map to 8192 values and put a single linear layer on it. No prior at
-                all — the network has to discover the geometry of a raster from scratch.</td><td class="num">130 k</td></tr>
-            <tr class="hl"><td><code>softargmax</code></td><td>3 stride-2 blocks, 128×128 → 16×16×64</td>
-              <td>A 1×1 convolution produces 16 keypoint channels; each is turned into a probability map by a
+            <tr><td><code>flat</code></td><td><span lang="en">4 stride-2 blocks, 128×128 → 8×8×128</span><span lang="ja">stride 2のブロック×4、128×128 → 8×8×128</span></td>
+              <td><span lang="en">Flatten the whole feature map to 8192 values and put a single linear layer on it. No prior at
+                all — the network has to discover the geometry of a raster from scratch.</span><span lang="ja">特徴マップ全体を8192個の値にflattenし、線形層を1つ載せます。priorはまったくなく、
+                ネットワークは画素格子の幾何をゼロから見つけ出す必要があります。</span></td><td class="num">130 k</td></tr>
+            <tr class="hl"><td><code>softargmax</code></td><td><span lang="en">3 stride-2 blocks, 128×128 → 16×16×64</span><span lang="ja">stride 2のブロック×3、128×128 → 16×16×64</span></td>
+              <td><span lang="en">A 1×1 convolution produces 16 keypoint channels; each is turned into a probability map by a
                 spatial softmax; the expected (u, v) of that map is computed. The layer's <em>output is a
-                coordinate</em>.</td><td class="num"><strong>27 k</strong></td></tr>
+                coordinate</em>.</span><span lang="ja">1×1畳み込みで16個のkeypointチャンネルを作り、それぞれをspatial softmaxで確率マップに変換し、
+                そのマップの(u, v)の期待値を計算します。この層の<em>出力は座標そのもの</em>です。</span></td><td class="num"><strong>27 k</strong></td></tr>
           </tbody>
         </table>
       </div>
       <div class="prose stack">
-        <p>Both then produce four numbers: normalised x, normalised y, sin 4θ, cos 4θ.</p>
+        <p lang="en">Both then produce four numbers: normalised x, normalised y, sin 4θ, cos 4θ.</p>
+        <p lang="ja">どちらも最終的に、正規化したx、正規化したy、sin 4θ、cos 4θの4つの数値を出力します。</p>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>How spatial soft-argmax works</h3>
-      <p>Given one feature channel of shape (H, W):</p>
-      <ol class="tight">
+      <h3><span lang="en">How spatial soft-argmax works</span><span lang="ja">spatial soft-argmaxの仕組み</span></h3>
+      <p lang="en">Given one feature channel of shape (H, W):</p>
+      <p lang="ja">形状(H, W)の特徴チャンネル1つに対して、次の処理を行います。</p>
+      <ol class="tight" lang="en">
         <li>Divide by a learned temperature and take a softmax over all H×W positions. The channel is now a
           probability distribution over pixels — "where in this image is my feature".</li>
         <li>Build two coordinate grids, u from −1 to 1 left-to-right and v from −1 to 1 top-to-bottom.</li>
         <li>Take the expectation: <code>E[u] = Σ p·u</code>, <code>E[v] = Σ p·v</code>.</li>
       </ol>
-      <p>The result is a differentiable, sub-pixel coordinate. The temperature is a learnable parameter stored
+      <ol class="tight" lang="ja">
+        <li>学習可能な温度で割り、H×Wの全位置にわたってsoftmaxを取ります。これでチャンネルはピクセル上の確率分布、
+          つまり「この特徴は画像のどこにあるか」になります。</li>
+        <li>座標グリッドを2つ作ります。uは左から右へ−1から1、vは上から下へ−1から1です。</li>
+        <li>期待値を取ります：<code>E[u] = Σ p·u</code>、<code>E[v] = Σ p·v</code>。</li>
+      </ol>
+      <p lang="en">The result is a differentiable, sub-pixel coordinate. The temperature is a learnable parameter stored
         as its logarithm, so the exponential keeps it strictly positive without a constraint — a low temperature
         gives a sharp, argmax-like peak; a high one averages broadly.</p>
-      <p>This is the keypoint front end used by visuomotor policies — the deep-spatial-autoencoder line of work
+      <p lang="ja">結果は微分可能で、サブピクセル精度の座標です。温度は対数の形で保持する学習可能パラメータなので、
+        制約を設けなくても指数関数によって常に正に保たれます。温度が低いとargmaxに近い鋭いピークになり、高いと広く平均されます。</p>
+      <p lang="en">This is the keypoint front end used by visuomotor policies — the deep-spatial-autoencoder line of work
         — and the reason to implement it here rather than read about it is that the project measures what the
         prior is worth: <strong>5× fewer parameters, 2.6× faster, and more accurate, with a better tail.</strong></p>
+      <p lang="ja">これはvisuomotor policyで使われるkeypointのフロントエンド（deep spatial autoencoderの系譜）です。
+        読むだけでなくここで実装したのは、このpriorにどれだけの価値があるかを計測するためです。結果は
+        <strong>パラメータ数が5分の1、2.6×高速、しかもより高精度で、tailも良好</strong>でした。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Training details that are load-bearing</h3>
+      <h3><span lang="en">Training details that are load-bearing</span><span lang="ja">結果を左右する学習の詳細</span></h3>
       <div class="pair">
-        <dt>target scaling</dt>
-        <dd>Position is divided by <code>XY_RANGE</code> so it lands in [−1, 1], matching the sine and cosine
+        <dt><span lang="en">target scaling</span><span lang="ja">targetのスケーリング</span></dt>
+        <dd lang="en">Position is divided by <code>XY_RANGE</code> so it lands in [−1, 1], matching the sine and cosine
           which already do. Without this, 0.075 m of position error and 1.0 of sine error would be weighted a
           thousand to one and the model would learn nothing but yaw.</dd>
+        <dd lang="ja">位置を<code>XY_RANGE</code>で割って[−1, 1]に収め、もともとその範囲にあるsinとcosに揃えます。
+          これをしないと、位置の誤差0.075 mとsinの誤差1.0の重みが1000対1になり、モデルはyawしか学習しません。</dd>
         <dt>SmoothL1(β=0.1)</dt>
-        <dd>Quadratic near zero, linear far from it. Less sensitive to outliers than mean squared error while
+        <dd lang="en">Quadratic near zero, linear far from it. Less sensitive to outliers than mean squared error while
           still having a well-behaved gradient at the minimum.</dd>
-        <dt>no augmentation</dt>
-        <dd>Deliberately absent. This run measures what the plain architecture does on the plain data, so that
+        <dd lang="ja">ゼロ付近では二次、離れると線形になります。平均二乗誤差より外れ値に鈍感でありながら、最小点付近の勾配も素直です。</dd>
+        <dt><span lang="en">no augmentation</span><span lang="ja">augmentationなし</span></dt>
+        <dd lang="en">Deliberately absent. This run measures what the plain architecture does on the plain data, so that
           a later augmentation result has something honest to be compared against.</dd>
-        <dt>final epoch reported</dt>
-        <dd>Not the best epoch. Selecting the lowest-validation epoch and then reporting that epoch's validation
+        <dd lang="ja">意図的に入れていません。この学習は素のアーキテクチャが素のデータでどこまでできるかを計測するもので、
+          後でaugmentationの結果を出すときに、公正な比較対象とするためです。</dd>
+        <dt><span lang="en">final epoch reported</span><span lang="ja">最終epochを報告</span></dt>
+        <dd lang="en">Not the best epoch. Selecting the lowest-validation epoch and then reporting that epoch's validation
           number is a small but real leak — the split you choose on cannot also be the split you report on. With
           a cosine schedule the last epoch is where the weights settle anyway.</dd>
-        <dt>throughput logging</dt>
-        <dd>WSL exposes no CPU temperature sensor, so the only available throttling signal is throughput decay.
+        <dd lang="ja">最良のepochではありません。validationが最小のepochを選び、そのepochのvalidationの数値を報告するのは、
+          小さいながら実在するリークです。選択に使ったデータを、報告にも使うことはできません。cosine scheduleでは、
+          いずれにせよ重みは最後のepochで落ち着きます。</dd>
+        <dt><span lang="en">throughput logging</span><span lang="ja">throughputの記録</span></dt>
+        <dd lang="en">WSL exposes no CPU temperature sensor, so the only available throttling signal is throughput decay.
           The loop prints images per second every epoch and prints a warning when the rate falls more than 20 %
           below epoch 1. Measured: ~1750 img/s early, decaying to ~1300 in the second half of a 40-epoch run.</dd>
+        <dd lang="ja">WSLではCPU温度センサーが読めないため、thermal throttlingを知る手がかりはthroughputの低下しかありません。
+          学習ループはepochごとに毎秒の処理枚数を出力し、epoch 1より20 %以上下がると警告を出します。計測値は、序盤が約1750 img/sで、
+          40 epochの後半には約1300まで低下しました。</dd>
       </div>
     </div>
 
     <div class="note key">
-      <span class="note-label">A correction the author left in the README rather than deleting</span>
-      <p>The first version of <code>train.py</code> kept the lowest-validation epoch and reported it. Two of the
+      <span class="note-label"><span lang="en">A correction the author left in the README rather than deleting</span><span lang="ja">削除せずREADMEに残した訂正</span></span>
+      <p lang="en">The first version of <code>train.py</code> kept the lowest-validation epoch and reported it. Two of the
         three runs had already settled on the final epoch, so their numbers were unchanged; the third was
         retrained and moved from 0.47 mm to 0.48 mm. The leak cost nothing measurable — which is the point of
         checking rather than assuming.</p>
+      <p lang="ja"><code>train.py</code>の最初の版は、validationが最小のepochを保存して報告していました。3回の学習のうち2回は
+        もともと最終epochが最良だったため、数値は変わりませんでした。残る1回は学習し直し、0.47 mmから0.48 mmになりました。
+        リークによる影響は計測できるほどではありませんでしたが、思い込まずに確認することにこそ意味があります。</p>
     </div>
   </div>
 </section>
 
 <section id="onnx">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Export, and what counts as proving it</h2><p class="sec-sub">ONNX export, the numerical tolerance it is checked against, and what a passing check does not prove.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Export, and what counts as proving it</span><span lang="ja">Exportと、その正しさの証明</span></h2><p class="sec-sub" lang="en">ONNX export, the numerical tolerance it is checked against, and what a passing check does not prove.</p><p class="sec-sub" lang="ja">ONNX export、照合に使う数値の許容誤差、そしてチェックに通っても証明されないこと。</p></div>
   <div class="stack prose">
-    <p>ONNX is a portable graph format: train in PyTorch, run anywhere — including a C++ node on an embedded
+    <p lang="en">ONNX is a portable graph format: train in PyTorch, run anywhere — including a C++ node on an embedded
       board, with no Python and no PyTorch installed. The file appearing on disk is not the finish line, though,
       because a graph can be numerically close and still have a permuted output order, a wrong normalisation, or
       a silently dropped layer.</p>
-    <p>So <code>export_onnx.py</code> checks three things:</p>
-    <ol class="tight">
+    <p lang="ja">ONNXは移植性のあるグラフ形式です。PyTorchで学習し、どこでも実行できます。PythonもPyTorchも入っていない
+      組み込みボード上のC++ nodeでも動きます。ただし、ファイルがディスクに出力された時点がゴールではありません。
+      数値的には近くても、出力の順序が入れ替わっていたり、正規化が間違っていたり、層が黙って抜け落ちていたりすることがあるからです。</p>
+    <p lang="en">So <code>export_onnx.py</code> checks three things:</p>
+    <p lang="ja">そこで<code>export_onnx.py</code>は次の3点を確認します。</p>
+    <ol class="tight" lang="en">
       <li><strong>Tensor agreement.</strong> A real 256-image batch through both engines. Max absolute
         difference: <code>6.6e-7</code>.</li>
       <li><strong>Task-level agreement.</strong> The full validation split decoded exactly as training decodes
@@ -720,105 +660,141 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
       <li><strong>Latency at batch 1</strong>, at both 1 and 8 threads. Batch 1 is the only batch size a real
         perception node ever sees, and a ROS 2 node does not get the whole CPU.</li>
     </ol>
+    <ol class="tight" lang="ja">
+      <li><strong>テンソルの一致。</strong>実データ256枚のbatchを両方のエンジンに通します。最大絶対差は<code>6.6e-7</code>です。</li>
+      <li><strong>タスクレベルの一致。</strong>validation全体を学習時とまったく同じ方法で復元し、同じ<code>pose_metrics</code>で評価します。
+        すべての数値が小数点以下2桁まで一致しました。</li>
+      <li><strong>batch 1でのlatency</strong>を、1スレッドと8スレッドの両方で計測します。実際の認識nodeが受け取るのはbatch 1だけであり、
+        ROS 2 nodeがCPU全体を使えるわけではないからです。</li>
+    </ol>
     <div class="note warnbox">
-      <span class="note-label">Environment note worth knowing</span>
-      <p>On torch 2.14 <code>torch.onnx.export</code> defaults to the dynamo exporter, which imports
+      <span class="note-label"><span lang="en">Environment note worth knowing</span><span lang="ja">知っておくべき環境上の注意</span></span>
+      <p lang="en">On torch 2.14 <code>torch.onnx.export</code> defaults to the dynamo exporter, which imports
         <code>onnxscript</code> and fails if it is absent. Passing <code>dynamo=False</code> selects the
         TorchScript exporter and needs no extra dependency — worth knowing before adding a package to a
         locked-down machine for no reason.</p>
+      <p lang="ja">torch 2.14では<code>torch.onnx.export</code>のデフォルトがdynamo exporterで、これは<code>onnxscript</code>をimportするため、
+        未インストールだと失敗します。<code>dynamo=False</code>を渡すとTorchScript exporterが選ばれ、追加の依存は不要です。
+        制限のかかったマシンに、不要なパッケージを入れてしまう前に知っておく価値があります。</p>
     </div>
   </div>
 </section>
 
 <section id="results">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Results</h2><p class="sec-sub">The measured numbers: position error, yaw error, and runtime.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Results</span><span lang="ja">結果</span></h2><p class="sec-sub" lang="en">The measured numbers: position error, yaw error, and runtime.</p><p class="sec-sub" lang="ja">計測した数値：位置誤差、yaw誤差、実行時間。</p></div>
   <div class="stack">
-    <p class="prose">Validation split, n = 2000, independent seed stream, every row scored by the same
+    <p class="prose" lang="en">Validation split, n = 2000, independent seed stream, every row scored by the same
       function. "p95" is the 95th percentile — the tail, not the typical case.</p>
+    <p class="prose" lang="ja">validation（n = 2000、独立したseed系列）で、すべての行を同じ関数で評価しています。
+      「p95」は95パーセンタイルで、典型的なケースではなく分布の裾（tail）を表します。</p>
     <div class="tablewrap">
       <table>
         <thead><tr>
-          <th>Method</th><th class="num">Params</th><th>Regime</th><th class="num">Detect</th>
-          <th class="num">Median xy</th><th class="num">p95 xy</th><th class="num">Median yaw</th>
-          <th class="num">p95 yaw</th><th class="num">Radial bias</th><th class="num">Latency</th>
+          <th><span lang="en">Method</span><span lang="ja">手法</span></th><th class="num"><span lang="en">Params</span><span lang="ja">パラメータ数</span></th><th><span lang="en">Regime</span><span lang="ja">条件</span></th><th class="num"><span lang="en">Detect</span><span lang="ja">検出率</span></th>
+          <th class="num"><span lang="en">Median xy</span><span lang="ja">xy 中央値</span></th><th class="num">p95 xy</th><th class="num"><span lang="en">Median yaw</span><span lang="ja">yaw 中央値</span></th>
+          <th class="num">p95 yaw</th><th class="num"><span lang="en">Radial bias</span><span lang="ja">半径方向bias</span></th><th class="num">Latency</th>
         </tr></thead>
         <tbody>
-          <tr><td>OpenCV, fixed red hue</td><td class="num">0</td><td><code>hard</code></td><td class="num" style="color:#9c4a45;font-weight:600">10.9 %</td><td class="num">3.48 mm</td><td class="num">6.07</td><td class="num">0.19°</td><td class="num">1.24</td><td class="num">+2.96 mm</td><td class="num">0.06 ms</td></tr>
-          <tr><td>OpenCV, saturation</td><td class="num">0</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">3.54 mm</td><td class="num">5.54</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+3.01 mm</td><td class="num">0.05 ms</td></tr>
-          <tr><td>OpenCV, saturation</td><td class="num">0</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">3.41 mm</td><td class="num">5.57</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+2.98 mm</td><td class="num">0.05 ms</td></tr>
-          <tr class="hl"><td>v2 · OpenCV + 1 calibrated scalar</td><td class="num">1</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">1.94 mm</td><td class="num">2.84</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+0.16 mm</td><td class="num">0.04 ms</td></tr>
-          <tr class="hl"><td>v2 · OpenCV + 1 calibrated scalar</td><td class="num">1</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">1.91 mm</td><td class="num">2.89</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+0.01 mm</td><td class="num">0.06 ms</td></tr>
+          <tr><td><span lang="en">OpenCV, fixed red hue</span><span lang="ja">OpenCV、赤の固定色相</span></td><td class="num">0</td><td><code>hard</code></td><td class="num" style="color:var(--bad);font-weight:600">10.9 %</td><td class="num">3.48 mm</td><td class="num">6.07</td><td class="num">0.19°</td><td class="num">1.24</td><td class="num">+2.96 mm</td><td class="num">0.06 ms</td></tr>
+          <tr><td><span lang="en">OpenCV, saturation</span><span lang="ja">OpenCV、彩度</span></td><td class="num">0</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">3.54 mm</td><td class="num">5.54</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+3.01 mm</td><td class="num">0.05 ms</td></tr>
+          <tr><td><span lang="en">OpenCV, saturation</span><span lang="ja">OpenCV、彩度</span></td><td class="num">0</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">3.41 mm</td><td class="num">5.57</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+2.98 mm</td><td class="num">0.05 ms</td></tr>
+          <tr class="hl"><td><span lang="en">v2 · OpenCV + 1 calibrated scalar</span><span lang="ja">v2 · OpenCV＋calibrationしたスカラー1つ</span></td><td class="num">1</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">1.94 mm</td><td class="num">2.84</td><td class="num">0.18°</td><td class="num">1.50</td><td class="num">+0.16 mm</td><td class="num">0.04 ms</td></tr>
+          <tr class="hl"><td><span lang="en">v2 · OpenCV + 1 calibrated scalar</span><span lang="ja">v2 · OpenCV＋calibrationしたスカラー1つ</span></td><td class="num">1</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">1.91 mm</td><td class="num">2.89</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">+0.01 mm</td><td class="num">0.06 ms</td></tr>
           <tr><td>CNN, flatten head</td><td class="num">130 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.75 mm</td><td class="num">2.00</td><td class="num">0.28°</td><td class="num">0.94</td><td class="num">+0.05 mm</td><td class="num">1.70 ms</td></tr>
           <tr><td>CNN, soft-argmax head</td><td class="num">27 k</td><td><code>easy</code></td><td class="num">100 %</td><td class="num">0.48 mm</td><td class="num">1.04</td><td class="num">0.16°</td><td class="num">0.51</td><td class="num">−0.01 mm</td><td class="num">0.65 ms</td></tr>
           <tr class="hl"><td>CNN, soft-argmax head</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num"><strong>0.59 mm</strong></td><td class="num"><strong>1.32</strong></td><td class="num">0.21°</td><td class="num"><strong>0.66</strong></td><td class="num">−0.02 mm</td><td class="num">0.65 ms</td></tr>
-          <tr><td>same weights, ONNX Runtime, 1 thread</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.23 ms</strong></td></tr>
-          <tr><td>same weights, ONNX Runtime, 8 threads</td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.12 ms</strong></td></tr>
+          <tr><td><span lang="en">same weights, ONNX Runtime, 1 thread</span><span lang="ja">同じ重み、ONNX Runtime、1スレッド</span></td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.23 ms</strong></td></tr>
+          <tr><td><span lang="en">same weights, ONNX Runtime, 8 threads</span><span lang="ja">同じ重み、ONNX Runtime、8スレッド</span></td><td class="num">27 k</td><td><code>hard</code></td><td class="num">100 %</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">−0.02 mm</td><td class="num"><strong>0.12 ms</strong></td></tr>
         </tbody>
       </table>
     </div>
     <div class="note">
-      <span class="note-label">Reading the pixel floor correctly</span>
-      <p>One pixel is 2.72 mm, and an early draft of the README wrote that down as a hard accuracy floor. It is
+      <span class="note-label"><span lang="en">Reading the pixel floor correctly</span><span lang="ja">ピクセルによる精度下限の正しい読み方</span></span>
+      <p lang="en">One pixel is 2.72 mm, and an early draft of the README wrote that down as a hard accuracy floor. It is
         not. It bounds a <em>single-pixel</em> measurement — but the cube covers roughly 480 silhouette pixels,
         and averaging over them shrinks the quantisation term by about √N, giving an aggregate floor near
         0.12 mm. Both the calibrated baseline at 1.91 mm and the network at 0.59 mm legitimately sit below one
         pixel. Sub-pixel accuracy from a many-pixel object is expected, not a bug; reasoning about a floor from
         the wrong unit of measurement is how a correct result gets discarded as an error.</p>
+      <p lang="ja">1ピクセルは2.72 mmで、READMEの初期の草稿ではこれを越えられない精度の下限として書いていました。これは誤りです。
+        この値が制限するのは<em>1ピクセル単位の</em>計測です。立方体のシルエットは約480ピクセルを占め、それらを平均すると
+        量子化誤差の項は約√N分の1に縮み、全体としての下限は0.12 mm程度になります。calibration済みbaselineの1.91 mmも、
+        ネットワークの0.59 mmも、正当に1ピクセルを下回っています。多数のピクセルからなる物体でサブピクセル精度が出るのは
+        バグではなく当然のことです。誤った測定単位で下限を考えると、正しい結果をエラーとして捨ててしまうことになります。</p>
     </div>
   </div>
 </section>
 
 <section id="findings">
-  <div class="sec-head"><span class="sec-num">10</span><h2>What the numbers actually say</h2><p class="sec-sub">Reading those results honestly — where the gain came from, and where it did not.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">What the numbers actually say</span><span lang="ja">数値が実際に示していること</span></h2><p class="sec-sub" lang="en">Reading those results honestly — where the gain came from, and where it did not.</p><p class="sec-sub" lang="ja">結果を正直に読み解きます。改善がどこから来て、どこから来ていないのか。</p></div>
   <div class="findings">
     <div class="finding"><span class="fnum">01</span><div class="fbody">
-      <h4>A wrong prior fails silently, and its own metric hides it</h4>
-      <p>"The cube is red" misses 89 % of <code>hard</code> while its accuracy on the surviving 11 % looks
+      <h4><span lang="en">A wrong prior fails silently, and its own metric hides it</span><span lang="ja">誤ったpriorは黙って失敗し、自身の指標がそれを隠す</span></h4>
+      <p lang="en">"The cube is red" misses 89 % of <code>hard</code> while its accuracy on the surviving 11 % looks
         unchanged. Detection rate and accuracy must always be reported together, or the failure is invisible.</p>
+      <p lang="ja">「立方体は赤い」というpriorは<code>hard</code>の89 %を見逃しますが、検出できた11 %での精度は変わらないように見えます。
+        検出率と精度は常にセットで報告しなければ、失敗が見えません。</p>
     </div></div>
     <div class="finding"><span class="fnum">02</span><div class="fbody">
-      <h4>Robustness to appearance randomisation was free — and classical</h4>
-      <p>Swapping "red" for "most saturated thing on a near-grey table" gives 100 % detection on <code>hard</code>
+      <h4><span lang="en">Robustness to appearance randomisation was free — and classical</span><span lang="ja">見た目のランダム化への頑健性はタダで、しかも古典的手法で得られた</span></h4>
+      <p lang="en">Swapping "red" for "most saturated thing on a near-grey table" gives 100 % detection on <code>hard</code>
         with the same error as <code>easy</code>. Domain-randomisation robustness is therefore <em>not</em> what
         justified the network here. Picking a better hand-written feature was cheaper, and it worked.</p>
+      <p lang="ja">「赤い」を「グレーに近いテーブル上で最も彩度の高いもの」に置き換えるだけで、<code>hard</code>で検出率100 %、
+        誤差も<code>easy</code>と同じになります。したがって、ここでネットワークを使う根拠はdomain randomisationへの頑健性<em>ではありません</em>。
+        より良い手書きの特徴を選ぶ方が安上がりで、しかもうまくいきました。</p>
     </div></div>
     <div class="finding"><span class="fnum">03</span><div class="fbody">
-      <h4>Half the network's apparent win was calibration, not perception</h4>
-      <p>Fitting one scalar on the train split takes the baseline from 3.41 mm to 1.91 mm — 53 % of the gap,
+      <h4><span lang="en">Half the network's apparent win was calibration, not perception</span><span lang="ja">ネットワークの見かけの勝ちの半分は、認識ではなくcalibrationだった</span></h4>
+      <p lang="en">Fitting one scalar on the train split takes the baseline from 3.41 mm to 1.91 mm — 53 % of the gap,
         closed by a single number. Building the strong baseline second would have inflated the network's result
         by roughly 2×.</p>
+      <p lang="ja">trainでスカラーを1つ当てはめるだけで、baselineは3.41 mmから1.91 mmになります。差の53 %が、たった1つの数値で埋まりました。
+        強いbaselineを後回しにしていたら、ネットワークの成果は約2×に水増しされていたはずです。</p>
     </div></div>
     <div class="finding"><span class="fnum">04</span><div class="fbody">
-      <h4>What the network genuinely wins is the tail</h4>
-      <p>After calibration the baseline's <em>median</em> yaw error (0.19°) is slightly better than the network's
+      <h4><span lang="en">What the network genuinely wins is the tail</span><span lang="ja">ネットワークが本当に勝っているのはtail</span></h4>
+      <p lang="en">After calibration the baseline's <em>median</em> yaw error (0.19°) is slightly better than the network's
         (0.21°) — <code>minAreaRect</code> is near-exact on a clean mask. But its p95 is 1.66° against 0.66°, and
         p95 position is 2.89 mm against 1.32 mm. The classical method fails rarely and badly; the network fails
         never and mildly. For anything feeding a controller, the tail is the number that matters.</p>
+      <p lang="ja">calibration後のbaselineは、yaw誤差の<em>中央値</em>（0.19°）ではネットワーク（0.21°）よりわずかに優れています。
+        きれいなマスクに対する<code>minAreaRect</code>はほぼ正確だからです。しかしp95は1.66°対0.66°、位置のp95は2.89 mm対1.32 mmです。
+        古典的手法はまれに大きく外し、ネットワークは大きく外すことがなく、外れても小さく収まります。制御器に値を渡す用途では、
+        重要なのはtailの数値です。</p>
     </div></div>
     <div class="finding"><span class="fnum">05</span><div class="fbody">
-      <h4>The architectural prior beat the parameter count</h4>
-      <p>Flatten head: 130 k parameters, 1.70 ms, 0.75 mm. Soft-argmax head: 27 k parameters, 0.65 ms, 0.59 mm
+      <h4><span lang="en">The architectural prior beat the parameter count</span><span lang="ja">パラメータ数より、アーキテクチャのpriorが効いた</span></h4>
+      <p lang="en">Flatten head: 130 k parameters, 1.70 ms, 0.75 mm. Soft-argmax head: 27 k parameters, 0.65 ms, 0.59 mm
         with a better tail. <strong>5× smaller, 2.6× faster, and more accurate.</strong> Handing the network a
         coordinate beats making it learn what a coordinate is from a flattened grid.</p>
+      <p lang="ja">flatten head：130 kパラメータ、1.70 ms、0.75 mm。soft-argmax head：27 kパラメータ、0.65 ms、0.59 mmで、tailも良好です。
+        <strong>5分の1のサイズで、2.6×高速、しかもより高精度。</strong>flattenしたグリッドから座標とは何かを学ばせるより、
+        ネットワークに座標そのものを渡す方が勝ります。</p>
     </div></div>
     <div class="finding"><span class="fnum">06</span><div class="fbody">
-      <h4>The classical method is still 11× faster</h4>
-      <p>0.06 ms against 0.65 ms per image. If 1.9 mm is inside tolerance, the network is the wrong engineering
+      <h4><span lang="en">The classical method is still 11× faster</span><span lang="ja">それでも古典的手法は11×速い</span></h4>
+      <p lang="en">0.06 ms against 0.65 ms per image. If 1.9 mm is inside tolerance, the network is the wrong engineering
         choice regardless of being three times more accurate.</p>
+      <p lang="ja">1枚あたり0.06 ms対0.65 msです。1.9 mmが許容範囲内であれば、精度が3倍高くても、ネットワークはエンジニアリング上の誤った選択です。</p>
     </div></div>
     <div class="finding"><span class="fnum">07</span><div class="fbody">
-      <h4>The runtime mattered more than the model</h4>
-      <p>Identical weights, identical outputs: PyTorch eager needs 0.65 ms on eight threads; ONNX Runtime needs
+      <h4><span lang="en">The runtime mattered more than the model</span><span lang="ja">モデルより実行ランタイムの方が効いた</span></h4>
+      <p lang="en">Identical weights, identical outputs: PyTorch eager needs 0.65 ms on eight threads; ONNX Runtime needs
         0.23 ms on <em>one</em> and 0.12 ms on eight. That is ~2.8× faster on one eighth of the cores, with
         nothing about the network changed. Before optimising an architecture for edge latency, check whether the
         framework is the cost. Here it was most of it — and the classical speed advantage shrinks from 11× to
         3.8× as a result. A 116 KB ONNX file at 0.23 ms is a real deployment target for a C++ node.</p>
+      <p lang="ja">重みも出力もまったく同じで、PyTorch eagerは8スレッドで0.65 ms、ONNX Runtimeは<em>1スレッド</em>で0.23 ms、8スレッドで0.12 msです。
+        ネットワークには一切手を加えず、8分の1のコア数で約2.8×速くなりました。edgeでのlatencyのためにアーキテクチャを最適化する前に、
+        フレームワークがコストになっていないかを確認すべきです。今回はそれがコストの大半で、その結果、古典的手法の速度面の優位は11×から3.8×に縮みました。
+        0.23 msで動く116 KBのONNXファイルは、C++ nodeへの現実的なデプロイ対象です。</p>
     </div></div>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">11</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定実行時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/mujoco-cube-pose-cnn.git
 cd mujoco-cube-pose-cnn
@@ -835,28 +811,34 @@ python baseline_v2.py --regime hard --method sat  # the calibrated one
 
 python train.py --regime hard --head softargmax --epochs 40
 python export_onnx.py --regime hard --head softargmax</code></pre>
-    <h3>Or check every claim without retraining</h3>
+    <h3><span lang="en">Or check every claim without retraining</span><span lang="ja">再学習せずにすべての主張を検証する</span></h3>
     <pre><code>./verify.sh</code></pre>
     <div class="prose stack">
-      <p>Three tiers, cheapest first. Tier 1 is <code>test_common.py</code> — the yaw fold, the projection and
+      <p lang="en">Three tiers, cheapest first. Tier 1 is <code>test_common.py</code> — the yaw fold, the projection and
         the metric against paper-derived values, no data needed. Tiers 2 and 3 need <code>data/</code>
         (gitignored, ~30 s to regenerate) and re-score the tracked checkpoints through both PyTorch and ONNX
         Runtime. The script defaults <code>MUJOCO_GL</code> to <code>glfw</code> and pins the thread count,
         because both change the numbers.</p>
+      <p lang="ja">3つのtierを、軽いものから順に実行します。Tier 1は<code>test_common.py</code>で、yawの折り返し、射影、評価指標を
+        紙の上で導いた値と照合します。データは不要です。Tier 2と3は<code>data/</code>（gitignore対象、再生成に約30秒）が必要で、
+        git管理されたcheckpointをPyTorchとONNX Runtimeの両方で評価し直します。<code>MUJOCO_GL</code>のデフォルトを<code>glfw</code>にし、
+        スレッド数も固定しています。どちらも数値を変えるためです。</p>
     </div>
-    <h3>Measured environment</h3>
+    <h3><span lang="en">Measured environment</span><span lang="ja">計測環境</span></h3>
     <div class="prose stack">
-      <p>Intel Core Ultra 5 225H, 14 cores, no GPU, WSL2, software OpenGL (llvmpipe). Rendering 900–1080 img/s
+      <p lang="en">Intel Core Ultra 5 225H, 14 cores, no GPU, WSL2, software OpenGL (llvmpipe). Rendering 900–1080 img/s
         at 128 px; training ~1750 img/s on 8 threads, decaying 25–35 % in the second half of a run as the CPU
         hits its sustained power limit.</p>
+      <p lang="ja">Intel Core Ultra 5 225H（14コア）、GPUなし、WSL2、ソフトウェアOpenGL（llvmpipe）。レンダリングは128 pxで900–1080 img/s。
+        学習は8スレッドで約1750 img/sですが、CPUが持続電力の上限に達するため、学習の後半では25–35 %低下します。</p>
     </div>
   </div>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">12</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">12</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The whole project compressed into one paragraph.</p><p class="sec-sub" lang="ja">プロジェクト全体を1段落に凝縮します。</p></div>
   <div class="stack prose">
-    <p>Estimate the planar pose of a cube from one 128×128 overhead render, and measure when a learned model
+    <p lang="en">Estimate the planar pose of a cube from one 128×128 overhead render, and measure when a learned model
       beats hand-written geometry and when it does not. Twelve thousand images per regime with labels read
       straight out of MuJoCo. Two hand-written OpenCV baselines, then a third with one scalar calibrated on
       train — which closes 53 % of the gap and shows the first baseline had been unfairly weak. A 27 k-parameter
@@ -865,6 +847,13 @@ python export_onnx.py --regime hard --head softargmax</code></pre>
       metrics — where the same weights run 2.8× faster on one thread than PyTorch eager on eight. Every claim
       re-runnable from a clean clone through a tiered <code>verify.sh</code>, and the two corrections made along
       the way are left in the record rather than edited out.</p>
+    <p lang="ja">真上から撮った128×128のレンダリング画像1枚から立方体の平面上の姿勢を推定し、学習したモデルが手書きの幾何計算に
+      勝つのはどんなときで、勝てないのはどんなときかを計測しました。条件ごとに12 000枚の画像を用意し、ラベルはMuJoCoから直接読み出しています。
+      手書きのOpenCV baselineを2つ作り、さらにtrainでcalibrationしたスカラー1つを加えた3つ目を作りました。これで差の53 %が埋まり、
+      最初のbaselineが不当に弱かったことがわかりました。27 kパラメータのsoft-argmax keypoint headは、見た目をランダム化した条件で
+      中央値0.59 mm、p95 1.32 mmに達し、130 kパラメータのflatten headにすべての軸で勝ちました。ONNXにexportし、テンソルとタスク指標の
+      2段階で検証したところ、同じ重みが1スレッドで、8スレッドのPyTorch eagerより2.8×速く動きました。すべての主張は、クリーンなcloneから
+      段階的な<code>verify.sh</code>で再実行できます。途中で行った2つの訂正も、消さずに記録として残しています。</p>
   </div>
 </section>
 
@@ -872,45 +861,14 @@ python export_onnx.py --regime hard --head softargmax</code></pre>
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>mujoco-cube-pose-cnn</code> — <code>README.md</code>, <code>common.py</code>,
+  <span lang="en">Built from the source in <code>mujoco-cube-pose-cnn</code> — <code>README.md</code>, <code>common.py</code>,
   <code>model.py</code>, <code>gen_dataset.py</code>, <code>train.py</code>, <code>baseline_cv.py</code>,
-  <code>baseline_v2.py</code>, <code>export_onnx.py</code>, <code>scene.xml</code> and <code>verify.sh</code>.
+  <code>baseline_v2.py</code>, <code>export_onnx.py</code>, <code>scene.xml</code> and <code>verify.sh</code>.</span>
+  <span lang="ja"><code>mujoco-cube-pose-cnn</code>のソース（<code>README.md</code>、<code>common.py</code>、
+  <code>model.py</code>、<code>gen_dataset.py</code>、<code>train.py</code>、<code>baseline_cv.py</code>、
+  <code>baseline_v2.py</code>、<code>export_onnx.py</code>、<code>scene.xml</code>、<code>verify.sh</code>）をもとに作成しました。</span>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#4e7c7a" data-title-ja="Pythonとビット単位で一致するC++環境 — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,257 +12,56 @@
 <meta property="og:title" content="A C++ Environment That Matches Python to the Bit">
 <meta property="og:description" content="A threaded C++17 MuJoCo environment for the Microduck biped that reproduces the Python reference environment bit for bit, tested on every commit, measured against it on the same laptop, and trains a PPO policy that scores the same.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234e7c7a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#f7f9f9;
-  --paper2:#eef3f2;
-  --ink:#171d1d;
-  --ink2:#3d4a49;
-  --muted:#6c7a79;
-  --line:#e3eae9;
-  --line2:#cbd7d6;
-  --accent:#4e7c7a;
-  --accent-deep:#3a5f5d;
-  --accent-soft:#eef4f3;
-  --accent-line:#b9d1cf;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--bad)}
-.note p{font-size:.95rem}
-.steps{display:flex;flex-wrap:wrap;margin-block:4px}
-.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
-.stepbox + .stepbox{border-left:0}
-.stepbox.todo{background:var(--paper)}
-.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.stepbox.todo .sn{color:var(--muted)}
-.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
-.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
-.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
-  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
-.stepbox.todo .sr{color:var(--muted);font-weight:400}
-@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fafcfb}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-/* page-specific: the pipeline strip and the ratio bars */
-.flow{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
-.flow .box{flex:1 1 150px;background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.flow .box b{font-family:var(--disp);font-size:.86rem;font-weight:600}
-.flow .box span{font-size:.8rem;color:var(--muted);line-height:1.4}
-.flow .box.py{border-top:3px solid var(--warn)}
-.flow .box.cpp{border-top:3px solid var(--accent)}
-.bars{display:flex;flex-direction:column;gap:8px;font-family:var(--mono);font-size:.78rem}
-.bar{display:grid;grid-template-columns:90px 1fr 60px;gap:10px;align-items:center}
-.bar i{display:block;height:14px;background:var(--accent);border-radius:2px}
-.bar i.py{background:var(--line2)}
-.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums}
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#91aead;
-  --accent-soft:#192527;
-  --accent-deep:#a6bebc;
-  --accent-line:#2e4848;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">CPU-only robot-learning track · infrastructure · repo <code style="background:none;padding:0;color:inherit">mujoco-vecenv-cpp</code></div>
-    <h1>A C++ Environment That Matches Python to the Bit</h1>
-    <p class="deck">The Microduck project trains a balance policy in a Python MuJoCo environment that runs eight
+    <div class="eyebrow"><span lang="en">CPU-only robot-learning track · infrastructure · repo</span><span lang="ja">CPUのみのrobot learning · 基盤 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-vecenv-cpp</code></div>
+    <h1><span lang="en">A C++ Environment That Matches Python to the Bit</span><span lang="ja">Pythonとビット単位で一致するC++環境</span></h1>
+    <p class="deck" lang="en">The Microduck project trains a balance policy in a Python MuJoCo environment that runs eight
       forked processes on a laptop. This repo is that environment again in C++17, on threads instead of
       processes, with a Python binding so the same training script runs on it unchanged. The claim it makes is
       not "faster". It is that the two environments produce the same 48 numbers, the same reward and the same
       flags at every step, to the last bit, and that a test proves it on every commit. The speed was measured
       afterwards.</p>
+    <p class="deck" lang="ja">Microduckプロジェクトでは、ノートPC上で8つのforkプロセスを動かすPython版MuJoCo環境でバランスpolicyを学習しています。
+      このリポジトリは同じ環境をC++17で書き直したもので、プロセスの代わりにスレッドで動き、Python bindingにより同じ学習スクリプトを無修正で実行できます。
+      主張は「速い」ことではありません。2つの環境が毎step、同じ48個の数値・同じreward・同じフラグを最後のビットまで出力すること、
+      そしてそれをコミットごとにテストで証明していることです。速度はその後で計測しました。</p>
     <div class="chips">
       <span class="chip">C++17</span><span class="chip">MuJoCo 3.12</span><span class="chip">pybind11</span>
       <span class="chip">std::thread</span><span class="chip">doctest</span><span class="chip">ASan · UBSan · TSan</span>
       <span class="chip">CMake</span><span class="chip">GitHub Actions</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Equality</dt><dd><em>6,275 / 6,275</em> identical · 0 reward diffs</dd></div>
-      <div class="fact"><dt>PPO, 50M steps</dt><dd><em>339.4</em> vs 348.1 of 500 · 3 seeds each · 3.1 h vs 3.8–4.4 h</dd></div>
+      <div class="fact"><dt><span lang="en">Equality</span><span lang="ja">一致</span></dt><dd><em>6,275 / 6,275</em> <span lang="en">identical · 0 reward diffs</span><span lang="ja">一致 · reward差 0</span></dd></div>
+      <div class="fact"><dt>PPO, 50M steps</dt><dd><em>339.4</em> vs 348.1 <span lang="en">of 500 · 3 seeds each</span><span lang="ja">（500点満点）· 各3 seeds</span> · 3.1 h vs 3.8–4.4 h</dd></div>
       <div class="fact"><dt>C++ vs Python, 8 workers</dt><dd><em>1.9–2.0×</em> env-steps/s</dd></div>
-      <div class="fact"><dt>Full env, 8 threads</dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
-      <div class="fact"><dt>Tests</dt><dd>34 C++ cases · 41 Python tests</dd></div>
+      <div class="fact"><dt><span lang="en">Full env, 8 threads</span><span lang="ja">環境全体・8スレッド</span></dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
+      <div class="fact"><dt><span lang="en">Tests</span><span lang="ja">テスト</span></dt><dd><span lang="en">34 C++ cases · 41 Python tests</span><span lang="ja">C++ 34ケース · Python 41テスト</span></dd></div>
       <div class="fact"><dt>CI</dt><dd>Release + ASan/UBSan + TSan</dd></div>
     </dl>
   </div>
@@ -270,162 +69,191 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#why">Why it exists</a>
-    <a href="#files">Every file</a>
-    <a href="#equality">The equality test</a>
-    <a href="#arith">Three arithmetic details</a>
-    <a href="#threads">Threading design</a>
-    <a href="#san">Sanitizers and CI</a>
-    <a href="#speed">Throughput and training</a>
-    <a href="#limits">What it does not prove</a>
-    <a href="#run">Running it</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#why"><span lang="en">Why it exists</span><span lang="ja">作った理由</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#equality"><span lang="en">The equality test</span><span lang="ja">一致テスト</span></a>
+    <a href="#arith"><span lang="en">Three arithmetic details</span><span lang="ja">3つの演算の細部</span></a>
+    <a href="#threads"><span lang="en">Threading design</span><span lang="ja">スレッド設計</span></a>
+    <a href="#san"><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></a>
+    <a href="#speed"><span lang="en">Throughput and training</span><span lang="ja">Throughputと学習</span></a>
+    <a href="#limits"><span lang="en">What it does not prove</span><span lang="ja">言えないこと</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What a vector environment is, why this one is written in C++, and what "bit-identical" buys.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What a vector environment is, why this one is written in C++, and what "bit-identical" buys.</p><p class="sec-sub" lang="ja">vector environmentとは何か、なぜC++で書いたのか、「ビット単位で一致」で何が得られるのか。</p></div>
   <div class="stack prose">
-    <p>Reinforcement learning trains a policy by letting it act in a simulator millions of times. To do that
+    <p lang="en">Reinforcement learning trains a policy by letting it act in a simulator millions of times. To do that
       quickly you run many copies of the simulated robot at once and feed the policy a batch of observations
       per step. The object that holds those copies and steps them together is called a <em>vector
       environment</em>.</p>
-    <p>The Microduck project has one written in Python. Python can only execute one thread of its own code at a
+    <p lang="ja">強化学習では、シミュレータ内でpolicyに何百万回も行動させて学習します。これを速く回すには、シミュレーション上のロボットを多数同時に動かし、
+      1 stepごとにobservationをバッチでpolicyに渡します。この複数のコピーを保持してまとめてstepさせるものを<em>vector environment</em>と呼びます。</p>
+    <p lang="en">The Microduck project has one written in Python. Python can only execute one thread of its own code at a
       time, so its vector environment starts eight separate processes and talks to them through pipes. That
       works, and every number in that project was measured on it. It also means a fixed cost per step that has
       nothing to do with physics: serialising actions, waking eight processes, waiting for the slowest one,
       copying observations back.</p>
-    <p>This repository is the same environment in C++. The step loop has no interpreter in it, so eight
+    <p lang="ja">MicroduckプロジェクトにはPythonで書いたものがあります。Pythonは自身のコードを同時に1スレッドしか実行できないため、
+      そのvector environmentは8つの独立したプロセスを起動し、pipeで通信します。これは正しく動き、同プロジェクトの数値はすべてこの上で計測しました。
+      一方で、物理計算とは無関係な固定コストが毎stepかかります。actionのシリアライズ、8プロセスの起床、最も遅いプロセスの待ち、observationの書き戻しです。</p>
+    <p lang="en">This repository is the same environment in C++. The step loop has no interpreter in it, so eight
       environments run on eight threads of one process and share memory. A small binding lets Python call
       it, and the Microduck training script runs on it with no edits.</p>
+    <p lang="ja">このリポジトリは同じ環境をC++で実装したものです。stepループにインタプリタが介在しないため、8つの環境が1プロセス内の8スレッドで動き、メモリを共有します。
+      小さなbindingでPythonから呼び出せるようにしてあり、Microduckの学習スクリプトは無修正で動きます。</p>
     <div class="note key">
-      <span class="note-label">The one claim</span>
-      <p>A faster environment that behaves even slightly differently trains a different policy, and then
+      <span class="note-label"><span lang="en">The one claim</span><span lang="ja">唯一の主張</span></span>
+      <p lang="en">A faster environment that behaves even slightly differently trains a different policy, and then
         nothing measured on the Python environment carries over. So the first thing tested, before any timing,
         is equality: given the same starting state and the same actions, the C++ environment returns the
         same 48 floating-point observations, the same reward and the same flags as the Python one, with no
         tolerance. Over 25 episodes and 6,275 observations there is not one differing bit. That test runs in
         CI against a pinned commit of the Python repository.</p>
+      <p lang="ja">速くてもわずかに挙動が違う環境では別のpolicyが学習され、Python環境で計測したことが何も引き継げなくなります。
+        そこで時間計測より先に、まず一致をテストしました。同じ初期状態と同じactionを与えると、C++環境はPython環境と同じ48個の浮動小数点observation、
+        同じreward、同じフラグを、許容誤差なしで返します。25 episodes・6,275個のobservationで、異なるビットは1つもありません。
+        このテストは、Pythonリポジトリの固定コミットに対してCIで実行しています。</p>
     </div>
-    <p>Getting there meant matching how numpy adds fourteen numbers, how Python squares a float, and how a
+    <p lang="en">Getting there meant matching how numpy adds fourteen numbers, how Python squares a float, and how a
       float32 constant is promoted to float64. Those three details are the middle of this page. The
       throughput numbers are at the end, with their caveats, because they turned out to say something about
       the Python environment too.</p>
+    <p lang="ja">そのためには、numpyが14個の数をどう足すか、Pythonがfloatをどう2乗するか、float32の定数がどうfloat64に昇格されるかを合わせる必要がありました。
+      この3点がページの中盤です。throughputの数値は注意点とあわせて最後に置いています。結果的にPython環境についても分かったことがあったためです。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>vector environment</b><span>N simulated robots stepped together so the policy sees a batch of N observations per step. The Python one uses N processes; this one uses T threads.</span></div>
-    <div class="gterm"><b>thread vs process</b><span>Threads share one address space and cost nothing to exchange data. Processes have separate memory and exchange data through pipes, which costs a copy and a context switch each way.</span></div>
-    <div class="gterm"><b>bit-identical</b><span>Two floating-point numbers with exactly the same 32 or 64 bits. Stricter than "close": no tolerance, no rounding allowed.</span></div>
-    <div class="gterm"><b>pybind11</b><span>A header-only library for exposing C++ classes to Python. Here it wraps <code>Env</code>, <code>VecEnv</code> and the config structs, and passes numpy arrays without copying.</span></div>
-    <div class="gterm"><b>PCG64</b><span>The random number generator numpy uses by default. Reimplemented here so the C++ side draws from the same family; the seeding differs on purpose (see section 04).</span></div>
-    <div class="gterm"><b>domain randomisation</b><span>Changing physical parameters (servo gains, masses, friction, latency) each episode so the policy does not overfit one exact model. Here it writes into the model, which is why each environment owns its own copy.</span></div>
-    <div class="gterm"><b>sanitizer</b><span>A compiler mode that instruments the binary to catch memory errors (AddressSanitizer), undefined behaviour (UBSan) or data races between threads (ThreadSanitizer) at run time.</span></div>
-    <div class="gterm"><b>burst vs sustained</b><span>A 20-second measurement on a cool laptop reads high because the chip is still at turbo. A six-minute run with no pause shows the rate the power limit allows. Budgets come from the second.</span></div>
-    <div class="gterm"><b>reference window</b><span>A single-thread measurement taken before the sweep and after every row. If it moves, the machine changed state mid-sweep and the rows are not comparable.</span></div>
-    <div class="gterm"><b>env-steps/s</b><span>Environment steps per second, summed over all environments. One env step here is 10 physics steps plus observation, reward and bookkeeping.</span></div>
+    <div class="gterm"><b>vector environment</b><span lang="en">N simulated robots stepped together so the policy sees a batch of N observations per step. The Python one uses N processes; this one uses T threads.</span><span lang="ja">N台のシミュレーション上のロボットをまとめてstepさせ、policyが1 stepごとにN個のobservationをバッチで受け取れるようにするもの。Python版はNプロセス、こちらはTスレッドを使います。</span></div>
+    <div class="gterm"><b>thread vs process</b><span lang="en">Threads share one address space and cost nothing to exchange data. Processes have separate memory and exchange data through pipes, which costs a copy and a context switch each way.</span><span lang="ja">スレッドは1つのアドレス空間を共有し、データ受け渡しのコストがかかりません。プロセスはメモリが別々でpipe経由でデータを交換するため、往復それぞれでコピーとコンテキストスイッチが発生します。</span></div>
+    <div class="gterm"><b>bit-identical</b><span lang="en">Two floating-point numbers with exactly the same 32 or 64 bits. Stricter than "close": no tolerance, no rounding allowed.</span><span lang="ja">2つの浮動小数点数の32ビットまたは64ビットが完全に同じであること。「近い」より厳しく、許容誤差も丸めも認めません。</span></div>
+    <div class="gterm"><b>pybind11</b><span lang="en">A header-only library for exposing C++ classes to Python. Here it wraps <code>Env</code>, <code>VecEnv</code> and the config structs, and passes numpy arrays without copying.</span><span lang="ja">C++のクラスをPythonに公開するheader-onlyライブラリ。ここでは<code>Env</code>、<code>VecEnv</code>、設定用の構造体をラップし、numpy配列をコピーなしで受け渡します。</span></div>
+    <div class="gterm"><b>PCG64</b><span lang="en">The random number generator numpy uses by default. Reimplemented here so the C++ side draws from the same family; the seeding differs on purpose (see section 04).</span><span lang="ja">numpyがデフォルトで使う乱数生成器。C++側も同じ系統から乱数を引けるよう再実装しました。seedの与え方は意図的に変えています（04章参照）。</span></div>
+    <div class="gterm"><b>domain randomisation</b><span lang="en">Changing physical parameters (servo gains, masses, friction, latency) each episode so the policy does not overfit one exact model. Here it writes into the model, which is why each environment owns its own copy.</span><span lang="ja">episodeごとに物理パラメータ（サーボのゲイン、質量、摩擦、latency）を変え、policyが1つのモデルに過学習しないようにする手法。ここではモデルに直接書き込むため、各環境が自分専用のコピーを持ちます。</span></div>
+    <div class="gterm"><b>sanitizer</b><span lang="en">A compiler mode that instruments the binary to catch memory errors (AddressSanitizer), undefined behaviour (UBSan) or data races between threads (ThreadSanitizer) at run time.</span><span lang="ja">バイナリに計測コードを埋め込み、実行時にメモリエラー（AddressSanitizer）、未定義動作（UBSan）、スレッド間のデータ競合（ThreadSanitizer）を検出するコンパイラのモード。</span></div>
+    <div class="gterm"><b>burst vs sustained</b><span lang="en">A 20-second measurement on a cool laptop reads high because the chip is still at turbo. A six-minute run with no pause shows the rate the power limit allows. Budgets come from the second.</span><span lang="ja">冷えたノートPCで20秒計測すると、チップがまだターボ状態なので高く出ます。休みなく6分間回すと、電力制限が許す速度が分かります。見積もりは後者から立てます。</span></div>
+    <div class="gterm"><b>reference window</b><span lang="en">A single-thread measurement taken before the sweep and after every row. If it moves, the machine changed state mid-sweep and the rows are not comparable.</span><span lang="ja">sweepの前と各行の後に取る1スレッドの計測。これが動いたらsweep途中でマシンの状態が変わったということで、行同士は比較できません。</span></div>
+    <div class="gterm"><b>env-steps/s</b><span lang="en">Environment steps per second, summed over all environments. One env step here is 10 physics steps plus observation, reward and bookkeeping.</span><span lang="ja">全環境を合計した1秒あたりの環境step数。ここでの1 env stepは、物理10 stepにobservation・reward・管理処理を加えたものです。</span></div>
   </div>
 </div>
 </section>
 
 <section id="why">
-  <div class="sec-head"><span class="sec-num">02</span><h2>Why it exists</h2><p class="sec-sub">Two open questions from the Python project, and the rule that equality comes before speed.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">Why it exists</span><span lang="ja">作った理由</span></h2><p class="sec-sub" lang="en">Two open questions from the Python project, and the rule that equality comes before speed.</p><p class="sec-sub" lang="ja">Pythonプロジェクトに残った2つの疑問と、「速度より先に一致」というルール。</p></div>
   <div class="stack prose">
-    <p>The Python project left two measurements it could not explain from inside Python. First, its
+    <p lang="en">The Python project left two measurements it could not explain from inside Python. First, its
       environment wrapper cost 25% over bare physics on one core. Second, scaling across eight processes
       settled at 55% efficiency on one robot model and 42% on the one actually used for training, and the
       loss was attributed to a shared resource outside the cores, without proof. Whether process isolation
       itself was part of the loss was unknowable without an implementation that did not use processes.</p>
-    <p>A C++ version answers both, but only if it is the same environment. The order of work therefore was:
+    <p lang="ja">Pythonプロジェクトには、Pythonの中からは説明できない計測結果が2つ残っていました。1つ目は、1コアで環境wrapperが物理計算単体より25%余計にかかっていたこと。
+      2つ目は、8プロセスへのスケーリング効率が、あるロボットモデルで55%、実際に学習に使ったモデルで42%にとどまったことです。
+      この損失はコア外の共有リソースによるものとしていましたが、証明はありませんでした。プロセス分離そのものが損失の一部かどうかは、プロセスを使わない実装がなければ分かりません。</p>
+    <p lang="en">A C++ version answers both, but only if it is the same environment. The order of work therefore was:
       port the environment, prove equality, and only then run the benchmarks. Timing code that has not been
       proven equal produces a number about a different environment.</p>
+    <p lang="ja">C++版なら両方に答えられますが、それは同じ環境である場合に限ります。そのため作業順は、環境を移植し、一致を証明し、その後で初めてベンチマークを取る、としました。
+      一致が証明されていないコードの時間を測っても、それは別の環境についての数値にすぎません。</p>
     <div class="flow" aria-label="what each side does per step">
-      <div class="box py"><b>Python, per step</b><span>Pickle 8 action rows, write to 8 pipes, each worker unpickles, steps, pickles obs, writes back, parent reads 8 pipes and stacks.</span></div>
-      <div class="box cpp"><b>C++, per step</b><span>Write the action batch into shared memory, bump an atomic counter, 8 threads step their environments, caller reads the observation buffer.</span></div>
-      <div class="box"><b>Same in both</b><span>10 × <code>mj_step</code>, one <code>mj_forward</code>, 48-dim observation, reward terms, three seeded pushes, fixed 250-step episodes, autoreset.</span></div>
+      <div class="box py"><b><span lang="en">Python, per step</span><span lang="ja">Python、1 stepあたり</span></b><span lang="en">Pickle 8 action rows, write to 8 pipes, each worker unpickles, steps, pickles obs, writes back, parent reads 8 pipes and stacks.</span><span lang="ja">8行のactionをpickleして8本のpipeに書き込み、各workerがunpickle・step・obsのpickle・書き戻しを行い、親プロセスが8本のpipeを読んでまとめます。</span></div>
+      <div class="box cpp"><b><span lang="en">C++, per step</span><span lang="ja">C++、1 stepあたり</span></b><span lang="en">Write the action batch into shared memory, bump an atomic counter, 8 threads step their environments, caller reads the observation buffer.</span><span lang="ja">actionのバッチを共有メモリに書き込み、atomicカウンタを1つ進めると、8スレッドがそれぞれの環境をstepさせ、呼び出し側がobservationバッファを読みます。</span></div>
+      <div class="box"><b><span lang="en">Same in both</span><span lang="ja">両者で共通</span></b><span lang="en">10 × <code>mj_step</code>, one <code>mj_forward</code>, 48-dim observation, reward terms, three seeded pushes, fixed 250-step episodes, autoreset.</span><span lang="ja">10 × <code>mj_step</code>、<code>mj_forward</code> 1回、48次元observation、reward項、seed付きの3回のpush、250 step固定のepisode、autoreset。</span></div>
     </div>
-    <p>Everything measured in the Python project was measured inside a budget of eight of the machine's
+    <p lang="en">Everything measured in the Python project was measured inside a budget of eight of the machine's
       fourteen cores. This repo inherits that rule in code: <code>VecEnv</code> refuses more than eight
       threads unless the caller passes <code>allow_overcommit</code>.</p>
+    <p lang="ja">Pythonプロジェクトの計測はすべて、マシンの14コアのうち8コアという枠内で行いました。このリポジトリはそのルールをコードとして引き継いでいます。
+      呼び出し側が<code>allow_overcommit</code>を渡さない限り、<code>VecEnv</code>は8を超えるスレッド数を拒否します。</p>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every tracked file outside the vendored test framework, grouped by directory, with line counts.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every tracked file outside the vendored test framework, grouped by directory, with line counts.</p><p class="sec-sub" lang="ja">同梱のテストフレームワークを除く全追跡ファイルを、ディレクトリごとに行数付きで示します。</p></div>
   <div class="stack">
-    <p class="prose">About 4,100 tracked lines outside <code>third_party/</code>, including the README, CI and the
+    <p class="prose" lang="en">About 4,100 tracked lines outside <code>third_party/</code>, including the README, CI and the
       saved equality report. doctest is vendored under MIT and is the only third-party code.</p>
+    <p class="prose" lang="ja"><code>third_party/</code>以外の追跡行数は約4,100行で、README、CI、保存済みの一致レポートを含みます。
+      サードパーティのコードは、MITライセンスで同梱しているdoctestのみです。</p>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>include/vecenv/env.hpp</td><td class="num">139</td>
-            <td>The environment interface. <code>EnvConfig</code> (variant, episode length, action scale, pushes,
+            <td><span lang="en">The environment interface. <code>EnvConfig</code> (variant, episode length, action scale, pushes,
               initial noise, reward version, latency, sensor noise, DR), <code>EpisodeParams</code> (an episode's
               drawn values supplied from outside) and <code>StepInfo</code> (reward terms, trunk height, upright
-              cosine, fallen, pushed, truncated, terminated, step index).</td></tr>
+              cosine, fallen, pushed, truncated, terminated, step index).</span><span lang="ja">環境のインターフェース。<code>EnvConfig</code>（variant、episode長、action scale、push、初期ノイズ、rewardのバージョン、latency、センサーノイズ、DR）、
+              <code>EpisodeParams</code>（外部から与えるepisodeの抽選値）、<code>StepInfo</code>（reward項、胴体高さ、upright cosine、fallen、pushed、truncated、terminated、step番号）。</span></td></tr>
           <tr class="hl"><td>src/env.cpp</td><td class="num">281</td>
-            <td>One Microduck. Keyframe reset, initial-noise clamp to the joint limits, push schedule, the
+            <td><span lang="en">One Microduck. Keyframe reset, initial-noise clamp to the joint limits, push schedule, the
               latency buffer, the 48-dim observation with float32 scaling, rewards v1 and v2, the
-              <code>mj_forward</code> that keeps every observation channel on one timestamp.</td></tr>
+              <code>mj_forward</code> that keeps every observation channel on one timestamp.</span><span lang="ja">Microduck 1体分。keyframeへのreset、初期ノイズの関節リミットへのクランプ、pushスケジュール、latencyバッファ、float32スケーリング付きの48次元observation、
+              reward v1とv2、全observationチャネルを同一時刻に揃える<code>mj_forward</code>。</span></td></tr>
           <tr class="hl"><td>include/vecenv/vecenv.hpp · src/vecenv.cpp</td><td class="num">88 · 129</td>
-            <td>N environments on T threads. Generation counter, spin-then-block workers, env <em>i</em> on thread
-              <em>i</em> mod T, autoreset with <code>terminal_obs</code>, the eight-thread budget.</td></tr>
+            <td><span lang="en">N environments on T threads. Generation counter, spin-then-block workers, env <em>i</em> on thread
+              <em>i</em> mod T, autoreset with <code>terminal_obs</code>, the eight-thread budget.</span><span lang="ja">N個の環境をTスレッドで実行。generationカウンタ、spinしてからblockするworker、env <em>i</em>をスレッド<em>i</em> mod Tに割り当て、
+              <code>terminal_obs</code>付きのautoreset、8スレッドの上限。</span></td></tr>
           <tr><td>include/vecenv/dr.hpp · src/dr.cpp</td><td class="num">55 · 113</td>
-            <td>Domain randomisation: the five servo parameters between the four measured actuator fits, body
+            <td><span lang="en">Domain randomisation: the five servo parameters between the four measured actuator fits, body
               mass and inertia, floor friction, action latency, initial noise, sensor noise. Apply and restore
-              are exact; a test checks nothing compounds across episodes.</td></tr>
+              are exact; a test checks nothing compounds across episodes.</span><span lang="ja">Domain randomisation。計測した4つのアクチュエータfitの間で振る5つのサーボパラメータ、リンクの質量と慣性、床の摩擦、action latency、初期ノイズ、センサーノイズ。
+              適用と復元は厳密で、episodeをまたいで変化が累積しないことをテストで確認しています。</span></td></tr>
           <tr><td>include/vecenv/model.hpp · src/model.cpp</td><td class="num">71 · 139</td>
-            <td>Loads a variant from the upstream assets, copies the prototype model per environment, resolves
+            <td><span lang="en">Loads a variant from the upstream assets, copies the prototype model per environment, resolves
               the strided joint indices the backlash variants need, and checks the header and library are the
-              same MuJoCo version.</td></tr>
+              same MuJoCo version.</span><span lang="ja">upstreamのアセットからvariantを読み込み、プロトタイプのモデルを環境ごとにコピーし、backlash variantに必要な飛び飛びの関節インデックスを解決し、
+              ヘッダとライブラリのMuJoCoバージョンが同じであることを確認します。</span></td></tr>
           <tr class="hl"><td>include/vecenv/numpy_compat.hpp</td><td class="num">66</td>
-            <td>The three arithmetic details that decide bit equality: numpy's pairwise sum, Python's
-              <code>pow</code>, and <code>clip</code>. Section 05.</td></tr>
+            <td><span lang="en">The three arithmetic details that decide bit equality: numpy's pairwise sum, Python's
+              <code>pow</code>, and <code>clip</code>. Section 05.</span><span lang="ja">ビット一致を左右する3つの演算の細部。numpyのpairwise sum、Pythonの<code>pow</code>、<code>clip</code>。05章参照。</span></td></tr>
           <tr><td>include/vecenv/rng.hpp · src/rng.cpp</td><td class="num">51 · 79</td>
-            <td>PCG64 with numpy's exact core stream, <code>random()</code> and <code>uniform()</code>. Seeding,
-              <code>normal()</code> and <code>integers()</code> are documented as not numpy's.</td></tr>
+            <td><span lang="en">PCG64 with numpy's exact core stream, <code>random()</code> and <code>uniform()</code>. Seeding,
+              <code>normal()</code> and <code>integers()</code> are documented as not numpy's.</span><span lang="ja">numpyと完全に同じコアストリームを持つPCG64と、<code>random()</code>・<code>uniform()</code>。seedの与え方、<code>normal()</code>、<code>integers()</code>はnumpyと異なることを明記しています。</span></td></tr>
           <tr><td>include/vecenv/mujoco.hpp</td><td class="num">19</td>
-            <td>The one place MuJoCo's header is included, with a workaround so it compiles under
-              AddressSanitizer. Section 07.</td></tr>
+            <td><span lang="en">The one place MuJoCo's header is included, with a workaround so it compiles under
+              AddressSanitizer. Section 07.</span><span lang="ja">MuJoCoのヘッダをincludeする唯一の場所。AddressSanitizer下でもコンパイルできるよう回避策を入れています。07章参照。</span></td></tr>
           <tr><td>include/vecenv/boxcheck.hpp · src/boxcheck.cpp</td><td class="num">21 · 94</td>
-            <td>Reads the load average and the number of cores before a benchmark and records warnings into the
-              output JSON, so a number taken on a busy machine cannot be read later as a clean one.</td></tr>
+            <td><span lang="en">Reads the load average and the number of cores before a benchmark and records warnings into the
+              output JSON, so a number taken on a busy machine cannot be read later as a clean one.</span><span lang="ja">ベンチマーク前にload averageとコア数を読み、警告を出力JSONに記録します。負荷のあるマシンで取った数値を、後からクリーンな数値と誤読しないためです。</span></td></tr>
           <tr class="hl"><td>python/bindings.cpp</td><td class="num">336</td>
-            <td>The pybind11 module <code>_vecenv_cpp</code>. Zero-copy numpy views over the observation, reward and
-              done buffers; the config structs; <code>EpisodeParams</code> construction from Python arrays.</td></tr>
+            <td><span lang="en">The pybind11 module <code>_vecenv_cpp</code>. Zero-copy numpy views over the observation, reward and
+              done buffers; the config structs; <code>EpisodeParams</code> construction from Python arrays.</span><span lang="ja">pybind11モジュール<code>_vecenv_cpp</code>。observation・reward・doneバッファに対するゼロコピーのnumpyビュー、設定用の構造体、Python配列からの<code>EpisodeParams</code>生成。</span></td></tr>
           <tr><td>python/vecenv_cpp/__init__.py</td><td class="num">161</td>
-            <td>The drop-in. A <code>VecEnv</code> class with the Python project's constructor and step signature,
+            <td><span lang="en">The drop-in. A <code>VecEnv</code> class with the Python project's constructor and step signature,
               and converters that accept its <code>DRConfig</code> dataclass and <code>DomainRandomizer</code>
-              directly.</td></tr>
+              directly.</span><span lang="ja">差し替え用の部分。Pythonプロジェクトと同じコンストラクタ・stepシグネチャを持つ<code>VecEnv</code>クラスと、
+              同プロジェクトの<code>DRConfig</code> dataclassや<code>DomainRandomizer</code>をそのまま受け取れる変換関数。</span></td></tr>
           <tr><td>python/vecenv_cpp/contract.py</td><td class="num">79</td>
-            <td>Runs one episode on both environments from the same drawn values and compares everything that
-              comes back. Used by the pytest suite and by the report script.</td></tr>
+            <td><span lang="en">Runs one episode on both environments from the same drawn values and compares everything that
+              comes back. Used by the pytest suite and by the report script.</span><span lang="ja">同じ抽選値から両環境で1 episodeを実行し、返ってきたものをすべて比較します。pytestスイートとレポートスクリプトの両方で使います。</span></td></tr>
           <tr><td>scripts/contract_report.py</td><td class="num">63</td>
-            <td>The 25-episode equality table, written to <code>runs/contract.json</code>. Counts exact matches
-              separately from within-tolerance matches so the two never blur.</td></tr>
+            <td><span lang="en">The 25-episode equality table, written to <code>runs/contract.json</code>. Counts exact matches
+              separately from within-tolerance matches so the two never blur.</span><span lang="ja">25 episodeの一致表を<code>runs/contract.json</code>に書き出します。完全一致と許容誤差内の一致を別々に数え、両者が混ざらないようにしています。</span></td></tr>
           <tr><td>scripts/ppo_cpp.py</td><td class="num">45</td>
-            <td>Runs the Python project's <code>ppo.py</code> as <code>__main__</code> with <code>vecenv_cpp</code>
-              installed under the module name <code>vec_env</code>. Nothing in the Python project changes.</td></tr>
+            <td><span lang="en">Runs the Python project's <code>ppo.py</code> as <code>__main__</code> with <code>vecenv_cpp</code>
+              installed under the module name <code>vec_env</code>. Nothing in the Python project changes.</span><span lang="ja"><code>vecenv_cpp</code>をモジュール名<code>vec_env</code>として差し込んだ状態で、Pythonプロジェクトの<code>ppo.py</code>を<code>__main__</code>として実行します。Pythonプロジェクト側は一切変更しません。</span></td></tr>
           <tr><td>bench/bench_vecenv.cpp</td><td class="num">358</td>
-            <td>The benchmark, mirroring the Python project's protocol: bracketed sweep with reference windows,
-              drift and trend guards, a sustained mode, and a <code>bare</code> mode that runs the physics alone.</td></tr>
+            <td><span lang="en">The benchmark, mirroring the Python project's protocol: bracketed sweep with reference windows,
+              drift and trend guards, a sustained mode, and a <code>bare</code> mode that runs the physics alone.</span><span lang="ja">Pythonプロジェクトと同じ手順のベンチマーク。reference windowで挟んだsweep、driftとtrendのガード、sustainedモード、物理計算だけを回す<code>bare</code>モード。</span></td></tr>
           <tr><td>bench/compare.py</td><td class="num">120</td>
-            <td>Python processes against C++ threads, alternating backend every window so a machine that
-              changes state biases both the same way.</td></tr>
+            <td><span lang="en">Python processes against C++ threads, alternating backend every window so a machine that
+              changes state biases both the same way.</span><span lang="ja">PythonプロセスとC++スレッドの比較。windowごとにbackendを交互に切り替え、マシンの状態変化が両者に同じように効くようにしています。</span></td></tr>
           <tr><td>tests/cpp/*.cpp</td><td class="num">665</td>
-            <td>34 doctest cases, 417,482 assertions: environment contract, DR apply/restore, RNG determinism and
+            <td><span lang="en">34 doctest cases, 417,482 assertions: environment contract, DR apply/restore, RNG determinism and
               moments, the numpy summation order on an input where the orders provably differ, thread-count
-              independence, N threaded envs equal N sequential ones.</td></tr>
+              independence, N threaded envs equal N sequential ones.</span><span lang="ja">doctest 34ケース、417,482アサーション。環境のcontract、DRの適用と復元、乱数の決定性とモーメント、加算順序で確実に結果が変わる入力でのnumpy加算順序、
+              スレッド数への非依存性、N個のスレッド実行環境とN個の逐次実行環境の一致。</span></td></tr>
           <tr><td>tests/py/*.py</td><td class="num">249</td>
-            <td>41 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
-              internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</td></tr>
+            <td><span lang="en">41 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
+              internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</span><span lang="ja">pytest 41テスト。一致ケース、pushをずらしたときの感度チェック、numpyの内部状態に対するPCG64の検証、バージョン一致、差し替えクラスのshape・dtype・infoキー。</span></td></tr>
           <tr><td>CMakeLists.txt · .github/workflows/ci.yml · verify.sh · Dockerfile</td><td class="num">91 · 68 · 84 · 28</td>
-            <td>Build (asks Python where the MuJoCo wheel is, links its <code>libmujoco.so</code>), three CI jobs,
-              the one-command local check, and a container that runs it.</td></tr>
+            <td><span lang="en">Build (asks Python where the MuJoCo wheel is, links its <code>libmujoco.so</code>), three CI jobs,
+              the one-command local check, and a container that runs it.</span><span lang="ja">ビルド（MuJoCo wheelの場所をPythonに問い合わせ、その<code>libmujoco.so</code>をリンク）、3つのCIジョブ、1コマンドで済むローカル検証、それを実行するコンテナ。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -433,35 +261,42 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 </section>
 
 <section id="equality">
-  <div class="sec-head"><span class="sec-num">04</span><h2>How the equality test works</h2><p class="sec-sub">Python draws the randomness, C++ replays it, and everything that comes back is compared with no tolerance.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">How the equality test works</span><span lang="ja">一致テストの仕組み</span></h2><p class="sec-sub" lang="en">Python draws the randomness, C++ replays it, and everything that comes back is compared with no tolerance.</p><p class="sec-sub" lang="ja">Pythonが乱数を引き、C++がそれを再生し、返ってきたものをすべて許容誤差なしで比較します。</p></div>
   <div class="stack prose">
-    <p>The Python environment gets its randomness from numpy: initial joint noise, then which control steps
+    <p lang="en">The Python environment gets its randomness from numpy: initial joint noise, then which control steps
       the pushes land on (a draw without replacement), their speeds and directions, and under domain
       randomisation the servo parameters, mass, friction, latency and noise. Reproducing that draw in C++
       would mean reimplementing numpy's seed-sequence expansion, its <code>choice</code> and its ziggurat
       normal sampler, and getting all three right. It is possible. It is also beside the point, because the
       draw is not what the environment does; it is what the environment is handed.</p>
-    <p>So the test runs the Python environment, reads what it drew, and passes those values to the C++
+    <p lang="ja">Python環境の乱数はnumpyから来ます。関節の初期ノイズ、pushが入る制御step（非復元抽出）、pushの速度と方向、
+      そしてdomain randomisation時のサーボパラメータ・質量・摩擦・latency・ノイズです。この抽選をC++で再現するには、numpyのseed-sequence展開、
+      <code>choice</code>、ziggurat法の正規分布サンプラーを再実装し、3つすべてを正確に合わせる必要があります。不可能ではありません。
+      しかし本題から外れます。抽選は環境が行う処理ではなく、環境に渡される入力だからです。</p>
+    <p lang="en">So the test runs the Python environment, reads what it drew, and passes those values to the C++
       environment through <code>EpisodeParams</code>: the post-noise joint state, the push schedule, and the
       DR factors if any. From that moment the two environments share every line of logic and receive the
       same 250 actions.</p>
+    <p lang="ja">そこでテストではPython環境を実行して抽選結果を読み取り、その値を<code>EpisodeParams</code>経由でC++環境に渡します。
+      渡すのはノイズ適用後の関節状態、pushスケジュール、そしてあればDRの係数です。この時点から2つの環境はすべてのロジックを共有し、同じ250個のactionを受け取ります。</p>
     <pre><code>pe = MicroduckEnv(seed=s, **kw); o_py = pe.reset(seed=s)
 params = vecenv_cpp.episode_params(pe.data.qpos[qi], pe.data.qvel[vi],
                                    pe._push_at, pe._push_vel, dr=pe.dr.current)
 ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
 # 250 identical actions into both; compare obs, reward, terms, flags, info</code></pre>
-    <p><code>Env::reset(const EpisodeParams&amp;)</code> is that entry point. <code>Env::reset()</code> with no
+    <p lang="en"><code>Env::reset(const EpisodeParams&amp;)</code> is that entry point. <code>Env::reset()</code> with no
       argument uses the environment's own PCG64 and is what training uses.</p>
-    <h3>Result</h3>
+    <p lang="ja">その入口が<code>Env::reset(const EpisodeParams&amp;)</code>です。引数なしの<code>Env::reset()</code>は環境自身のPCG64を使い、学習ではこちらを使います。</p>
+    <h3><span lang="en">Result</span><span lang="ja">結果</span></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>episodes</th><th class="num">observations compared</th><th class="num">bit-identical</th><th class="num">max abs diff (f32)</th><th class="num">max rel reward diff</th><th class="num">info mismatches</th></tr></thead>
+        <thead><tr><th>episodes</th><th class="num"><span lang="en">observations compared</span><span lang="ja">比較したobservation数</span></th><th class="num"><span lang="en">bit-identical</span><span lang="ja">ビット一致</span></th><th class="num"><span lang="en">max abs diff (f32)</span><span lang="ja">最大絶対差（f32）</span></th><th class="num"><span lang="en">max rel reward diff</span><span lang="ja">reward最大相対差</span></th><th class="num"><span lang="en">info mismatches</span><span lang="ja">info不一致</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>25</td><td class="num">6,275</td><td class="num">6,275 (100.00%)</td><td class="num">0.0e+00</td><td class="num">0.0e+00</td><td class="num">0</td></tr>
         </tbody>
       </table>
     </div>
-    <p>The 25 episodes cover both reward versions, action latency 0 and 2, initial noise 0 and 0.02, an action
+    <p lang="en">The 25 episodes cover both reward versions, action latency 0 and 2, initial noise 0 and 0.02, an action
       scale of 0.5 with five pushes, the two held-out physics variants (35 and 25 position coordinates, with
       strided joint indices), and two DR cases with injected factors. Every observation is the same float32
       array, every reward the same float64, and <code>pushed</code>, <code>fallen</code>, <code>t</code>,
@@ -470,143 +305,199 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       so a last-bit difference in a system library would pass while a real defect would not; the report script
       counts exact matches separately so the distinction stays visible. One further test shifts a single push
       by one step and checks that the comparison notices.</p>
+    <p lang="ja">25 episodesは、rewardの両バージョン、action latency 0と2、初期ノイズ0と0.02、push 5回でaction scale 0.5の条件、
+      held-outの物理variant 2種（位置座標35個と25個、関節インデックスは飛び飛び）、係数を注入したDRケース2つをカバーしています。
+      すべてのobservationが同じfloat32配列、すべてのrewardが同じfloat64で、<code>pushed</code>、<code>fallen</code>、<code>t</code>、
+      <code>truncated</code>、<code>terminated</code>、<code>trunk_height</code>、<code>upright_cos</code>も毎stepで一致します。
+      pytestスイートではobservationを1e-6、rewardを相対1e-9で判定しています。システムライブラリによる最終ビットの差は通し、本物の不具合は通さないためです。
+      レポートスクリプトは完全一致を別に数えるので、この区別は見えたまま残ります。さらに、pushを1つだけ1 stepずらし、比較がそれを検出することを確かめるテストもあります。</p>
     <div class="note">
-      <span class="note-label">Deliberately different</span>
-      <p><code>Env(cfg, seed=7)</code> and <code>MicroduckEnv(seed=7)</code> draw different pushes. The C++ seeds
+      <span class="note-label"><span lang="en">Deliberately different</span><span lang="ja">意図的に変えている点</span></span>
+      <p lang="en"><code>Env(cfg, seed=7)</code> and <code>MicroduckEnv(seed=7)</code> draw different pushes. The C++ seeds
         PCG64 from a 64-bit integer through splitmix; numpy runs SeedSequence. The PCG64 core stream and its
         <code>uniform()</code> are numpy's exactly (a test hands numpy's internal state to the C++ class and
         checks 1,000 outputs of each), but <code>normal()</code> is Marsaglia polar, not the ziggurat, and
         <code>integers()</code> uses a different rejection scheme. A Python run and a C++ run with the same seed
         are two samples of the same distribution, not a replay. Compare them across seeds.</p>
+      <p lang="ja"><code>Env(cfg, seed=7)</code>と<code>MicroduckEnv(seed=7)</code>は異なるpushを引きます。C++は64ビット整数からsplitmixでPCG64を初期化し、numpyはSeedSequenceを使うためです。
+        PCG64のコアストリームと<code>uniform()</code>はnumpyと完全に同じです（numpyの内部状態をC++クラスに渡し、それぞれ1,000個の出力を照合するテストがあります）。
+        ただし<code>normal()</code>はziggurat法ではなくMarsagliaの極座標法で、<code>integers()</code>も棄却方式が異なります。
+        同じseedのPython実行とC++実行は、同じ分布からの2つのサンプルであって、再生ではありません。比較は複数のseedにわたって行ってください。</p>
     </div>
   </div>
 </section>
 
 <section id="arith">
-  <div class="sec-head"><span class="sec-num">05</span><h2>Three arithmetic details, and one about the solver</h2><p class="sec-sub">What was actually different the first time the two environments disagreed in the last bit, and how each was found.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Three arithmetic details, and one about the solver</span><span lang="ja">3つの演算の細部と、ソルバーに関する1点</span></h2><p class="sec-sub" lang="en">What was actually different the first time the two environments disagreed in the last bit, and how each was found.</p><p class="sec-sub" lang="ja">2つの環境が最初に最終ビットで食い違ったとき、実際に何が違っていたのか。そしてそれぞれをどう見つけたか。</p></div>
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>numpy does not add fourteen numbers left to right</h4>
-        <p>The reward takes <code>np.mean</code> over the fourteen joints. For arrays of 8 to 128 elements numpy's
+        <h4><span lang="en">numpy does not add fourteen numbers left to right</span><span lang="ja">numpyは14個の数を左から順には足さない</span></h4>
+        <p lang="en">The reward takes <code>np.mean</code> over the fourteen joints. For arrays of 8 to 128 elements numpy's
           reduction keeps eight partial sums and combines them as a tree. Measured on 20,000 random 14-vectors: a
           sequential loop matched <code>np.mean</code> on 15,831; a tree starting from the identity 0 matched on
           20,000 of 20,000; a tree starting from the first element matched on 11,776. <code>np::pairwise_sum</code>
           is the first of those, copied from numpy's own loop structure. A C++ test feeds it an input where the
           two orders provably differ: <code>{1e16, 1×7, -1e16, 0×5}</code> sums to 0 sequentially and to 6 as a
           tree.</p>
+        <p lang="ja">rewardでは14関節について<code>np.mean</code>を取ります。要素数8〜128の配列では、numpyのreductionは8つの部分和を保持し、それをツリー状に合成します。
+          ランダムな14要素ベクトル20,000個で計測したところ、逐次ループが<code>np.mean</code>と一致したのは15,831個、単位元0から始めるツリーは20,000個中20,000個、
+          先頭要素から始めるツリーは11,776個でした。<code>np::pairwise_sum</code>は2つのツリーのうち前者（単位元0から始める方式）で、numpy自身のループ構造を写しています。
+          C++のテストでは、2つの順序で確実に結果が変わる入力を与えます。<code>{1e16, 1×7, -1e16, 0×5}</code>は逐次加算では0、ツリーでは6になります。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>Python's <code>x ** 2</code> is <code>pow(x, 2.0)</code>, not <code>x * x</code></h4>
-        <p>Python routes a float power through the C library's <code>pow</code>. Measured on 2,000,000 random
+        <h4><span lang="en">Python's <code>x ** 2</code> is <code>pow(x, 2.0)</code>, not <code>x * x</code></span><span lang="ja">Pythonの<code>x ** 2</code>は<code>x * x</code>ではなく<code>pow(x, 2.0)</code></span></h4>
+        <p lang="en">Python routes a float power through the C library's <code>pow</code>. Measured on 2,000,000 random
           doubles, <code>pow(x, 2.0)</code> and <code>x * x</code> differ in 1,621 of them. The v1 height term uses
           the power operator. GCC folds <code>pow(x, 2.0)</code> into a multiply unless stopped, so
           <code>np::py_pow</code> passes the exponent through a <code>volatile</code> to force the library call.</p>
+        <p lang="ja">Pythonはfloatのべき乗をCライブラリの<code>pow</code>で計算します。ランダムなdouble 2,000,000個で計測すると、<code>pow(x, 2.0)</code>と<code>x * x</code>は1,621個で異なりました。
+          v1の高さ項はこのべき乗演算子を使っています。GCCは止めない限り<code>pow(x, 2.0)</code>を乗算に畳み込むため、
+          <code>np::py_pow</code>では指数を<code>volatile</code>経由で渡し、ライブラリ呼び出しを強制しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>The observation scale is float32, the raw values are float64</h4>
-        <p>The Python side multiplies a float64 array by a float32 constant table. numpy promotes the constant, so
+        <h4><span lang="en">The observation scale is float32, the raw values are float64</span><span lang="ja">observationのスケールはfloat32、生の値はfloat64</span></h4>
+        <p lang="en">The Python side multiplies a float64 array by a float32 constant table. numpy promotes the constant, so
           the product is <code>raw * double(float32(0.05))</code>, and <code>double(0.05f)</code> is
           0.05000000074505806, not 0.05. The C++ scale table is built from the float32 literals and widened the
           same way.</p>
+        <p lang="ja">Python側はfloat64配列にfloat32の定数テーブルを掛けています。numpyは定数のほうを昇格させるので、積は<code>raw * double(float32(0.05))</code>となり、
+          <code>double(0.05f)</code>は0.05ではなく0.05000000074505806です。C++のスケールテーブルもfloat32リテラルから作り、同じように拡張しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>A second <code>mj_forward</code> is not a no-op</h4>
-        <p>The Python reset calls <code>mj_forward</code> once on the keyframe and a second time only after
+        <h4><span lang="en">A second <code>mj_forward</code> is not a no-op</span><span lang="ja">2回目の<code>mj_forward</code>は何もしない処理ではない</span></h4>
+        <p lang="en">The Python reset calls <code>mj_forward</code> once on the keyframe and a second time only after
           applying initial noise. Running the forward pass twice on an unchanged state lands a few units in the
           last place elsewhere, because the constraint solver warm-starts from the previous acceleration. The C++
           reset runs the second pass under exactly the same condition, <code>init_noise &gt; 0</code>.</p>
+        <p lang="ja">Pythonのresetはkeyframeに対して<code>mj_forward</code>を1回呼び、初期ノイズを適用した場合にだけ2回目を呼びます。
+          状態が変わらなくてもforward passを2回実行すると、拘束ソルバーが前回の加速度からwarm-startするため、結果が最終桁で数単位ずれます。
+          C++のresetも、まったく同じ条件<code>init_noise &gt; 0</code>のときだけ2回目を実行します。</p>
       </div></div>
     </div>
-    <p class="prose">The build also sets <code>-ffp-contract=off</code> and <code>-fno-fast-math</code>. A fused
+    <p class="prose" lang="en">The build also sets <code>-ffp-contract=off</code> and <code>-fno-fast-math</code>. A fused
       multiply-add rounds once where numpy rounds twice, and one fused instruction anywhere in the reward would
       have broken the table above.</p>
+    <p class="prose" lang="ja">ビルドでは<code>-ffp-contract=off</code>と<code>-fno-fast-math</code>も指定しています。fused multiply-addは丸めが1回ですが、numpyは2回丸めます。
+      reward計算のどこかに融合命令が1つでも入れば、上の表は崩れていたはずです。</p>
   </div>
 </section>
 
 <section id="threads">
-  <div class="sec-head"><span class="sec-num">06</span><h2>Threading design</h2><p class="sec-sub">One model per environment, a fixed thread assignment so results never depend on the thread count, and a wake-up scheme that costs nothing when idle.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Threading design</span><span lang="ja">スレッド設計</span></h2><p class="sec-sub" lang="en">One model per environment, a fixed thread assignment so results never depend on the thread count, and a wake-up scheme that costs nothing when idle.</p><p class="sec-sub" lang="ja">環境ごとに1つのモデル、結果がスレッド数に依存しない固定のスレッド割り当て、そしてアイドル時にコストのかからない起床方式。</p></div>
   <div class="stack prose">
     <dl class="pair">
-      <dt>one model per env</dt>
-      <dd>Domain randomisation writes into <code>mjModel</code> (damping, gains, masses, friction). A shared model
+      <dt><span lang="en">one model per env</span><span lang="ja">環境ごとに1モデル</span></dt>
+      <dd lang="en">Domain randomisation writes into <code>mjModel</code> (damping, gains, masses, friction). A shared model
         would make DR a data race and every environment identical. <code>Env</code> takes a prototype and
         <code>mj_copyModel</code>s it. A test mutates one environment's masses and checks the prototype and its
         neighbours are untouched. Sixteen bodies and 82 geoms: the copies are kilobytes.</dd>
-      <dt>env i on thread i mod T</dt>
-      <dd>Always. So the assignment of environments to threads is fixed, and <strong>the result does not depend
+      <dd lang="ja">Domain randomisationは<code>mjModel</code>（減衰、ゲイン、質量、摩擦）に書き込みます。モデルを共有すると、DRはデータ競合になり、全環境が同一になってしまいます。
+        <code>Env</code>はプロトタイプを受け取り、<code>mj_copyModel</code>でコピーします。1つの環境の質量を書き換え、プロトタイプと他の環境が変わっていないことを確かめるテストがあります。
+        body 16個・geom 82個なので、コピーは数KBです。</dd>
+      <dt><span lang="en">env i on thread i mod T</span><span lang="ja">env iをスレッドi mod Tに</span></dt>
+      <dd lang="en">Always. So the assignment of environments to threads is fixed, and <strong>the result does not depend
         on T</strong>. A test runs the same 300 steps on 1, 2 and 4 threads and compares observations, rewards,
         dones and terminal observations with <code>==</code>; another runs 260 steps as three sequential
         <code>Env</code>s, autoreset included, and gets the same bits.</dd>
-      <dt>generation counter</dt>
-      <dd>The caller writes the action batch, increments an atomic counter and works as thread 0. The other
+      <dd lang="ja">常にこの割り当てです。環境とスレッドの対応が固定されるため、<strong>結果はTに依存しません</strong>。
+        同じ300 stepを1・2・4スレッドで実行し、observation、reward、done、terminal observationを<code>==</code>で比較するテストがあります。
+        別のテストでは260 stepを3つの<code>Env</code>の逐次実行（autoreset含む）として回し、同じビットが得られることを確認しています。</dd>
+      <dt><span lang="en">generation counter</span><span lang="ja">generationカウンタ</span></dt>
+      <dd lang="en">The caller writes the action batch, increments an atomic counter and works as thread 0. The other
         T−1 threads spin on the counter for tens of microseconds and then block on a condition variable. While
         the policy is computing its next action the pool burns nothing; while it is stepping, there is no futex
         call per step. Acquire and release ordering on the counter and on the completion count is what makes
         the action and observation buffers visible without a lock.</dd>
+      <dd lang="ja">呼び出し側がactionのバッチを書き込み、atomicカウンタを1つ進め、自身もスレッド0として働きます。残りのT−1スレッドは数十マイクロ秒カウンタをspinで監視し、
+        その後condition variableでblockします。policyが次のactionを計算している間、スレッドプールはCPUを消費しません。stepを回している間は、stepごとのfutex呼び出しもありません。
+        カウンタと完了カウントに対するacquire/releaseのメモリ順序によって、ロックなしでactionとobservationのバッファが見えるようになっています。</dd>
       <dt>autoreset</dt>
-      <dd>Matches the Python version: when an episode ends, the observation returned is the new episode's
+      <dd lang="en">Matches the Python version: when an episode ends, the observation returned is the new episode's
         first, and the ended episode's final observation is kept in <code>terminal_obs</code>. Every episode here
         ends on the step limit, never on a terminal state, so the training loop bootstraps
         <code>V(terminal_obs)</code>; the flags are carried so a stock advantage estimator cannot get this wrong
         silently.</dd>
-      <dt>the budget</dt>
-      <dd>More than eight threads is refused unless the caller says <code>allow_overcommit</code>. Every number in
+      <dd lang="ja">Python版と同じ挙動です。episodeが終わると、返されるobservationは新しいepisodeの最初のもので、終わったepisodeの最後のobservationは<code>terminal_obs</code>に保持されます。
+        ここではすべてのepisodeが終端状態ではなくstep上限で終わるため、学習ループは<code>V(terminal_obs)</code>でbootstrapします。
+        フラグも一緒に渡しているので、標準的なadvantage推定器がここを黙って間違えることはありません。</dd>
+      <dt><span lang="en">the budget</span><span lang="ja">スレッド上限</span></dt>
+      <dd lang="en">More than eight threads is refused unless the caller says <code>allow_overcommit</code>. Every number in
         the Python project was taken inside eight of fourteen cores on a laptop with other work to do, and this
         repo inherits that as a constructor check rather than a comment.</dd>
+      <dd lang="ja">呼び出し側が<code>allow_overcommit</code>を指定しない限り、8を超えるスレッド数は拒否されます。Pythonプロジェクトの数値はすべて、
+        他の作業もするノートPCの14コア中8コアの枠内で取ったものです。このリポジトリはそれをコメントではなくコンストラクタのチェックとして引き継いでいます。</dd>
     </dl>
   </div>
 </section>
 
 <section id="san">
-  <div class="sec-head"><span class="sec-num">07</span><h2>Sanitizers and CI</h2><p class="sec-sub">Three CI jobs, and two things about MuJoCo's prebuilt library that had to be worked around to run them.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></h2><p class="sec-sub" lang="en">Three CI jobs, and two things about MuJoCo's prebuilt library that had to be worked around to run them.</p><p class="sec-sub" lang="ja">3つのCIジョブと、それを動かすために回避が必要だったMuJoCoビルド済みライブラリの2つの問題。</p></div>
   <div class="stack prose">
-    <p>CI runs three jobs on every push. The first builds Release, runs the 34 C++ cases, the 41 Python tests
+    <p lang="en">CI runs three jobs on every push. The first builds Release, runs the 34 C++ cases, the 41 Python tests
       and the equality report against the Python repository at a pinned commit, after fetching the robot
       assets from their upstream (they are Creative Commons BY-SA-NC and are never committed). The second and
       third rebuild the C++ suite under <code>-fsanitize=address,undefined</code> and under
       <code>-fsanitize=thread</code>. The thread-count independence test is the one ThreadSanitizer exists
       for: a race on the shared action or observation buffers would fail the build.</p>
+    <p lang="ja">CIはpushごとに3つのジョブを実行します。1つ目はロボットのアセットをupstreamから取得したうえで（Creative Commons BY-SA-NCのためコミットしません）、
+      Releaseビルドを行い、C++ 34ケース、Python 41テスト、そして固定コミットのPythonリポジトリに対する一致レポートを実行します。
+      2つ目と3つ目は、C++スイートを<code>-fsanitize=address,undefined</code>と<code>-fsanitize=thread</code>でそれぞれ再ビルドします。
+      ThreadSanitizerが本領を発揮するのはスレッド数非依存のテストで、共有されたactionやobservationのバッファで競合があればビルドが失敗します。</p>
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><code>mujoco.h</code> does not compile under AddressSanitizer in C++</h4>
-        <p>MuJoCo's header includes <code>mjsan.h</code>, written for building MuJoCo itself under ASan. When the
+        <h4><span lang="en"><code>mujoco.h</code> does not compile under AddressSanitizer in C++</span><span lang="ja"><code>mujoco.h</code>はC++ではAddressSanitizer下でコンパイルできない</span></h4>
+        <p lang="en">MuJoCo's header includes <code>mjsan.h</code>, written for building MuJoCo itself under ASan. When the
           compiler defines <code>__SANITIZE_ADDRESS__</code> it declares inline helpers with an attribute syntax
           g++ rejects in a C++ translation unit. This repo links the prebuilt, uninstrumented library and never
           touches those helpers, so <code>include/vecenv/mujoco.hpp</code> predefines the header's include guard
           and two stub macros, and every file includes MuJoCo through that one wrapper.</p>
+        <p lang="ja">MuJoCoのヘッダは、MuJoCo自体をASanでビルドするための<code>mjsan.h</code>をincludeしています。コンパイラが<code>__SANITIZE_ADDRESS__</code>を定義すると、
+          g++がC++の翻訳単位では受け付けない属性構文でinlineヘルパーが宣言されます。このリポジトリは計測コードの入っていないビルド済みライブラリをリンクし、
+          それらのヘルパーには一切触れません。そこで<code>include/vecenv/mujoco.hpp</code>でヘッダのinclude guardと2つのスタブマクロを先に定義し、
+          すべてのファイルがこの1つのラッパー経由でMuJoCoをincludeするようにしました。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>MuJoCo's XML compiler has its own thread pool</h4>
-        <p><code>mj_loadXML</code> spawns a pool inside the prebuilt library. ThreadSanitizer cannot see the
+        <h4><span lang="en">MuJoCo's XML compiler has its own thread pool</span><span lang="ja">MuJoCoのXMLコンパイラは独自のスレッドプールを持つ</span></h4>
+        <p lang="en"><code>mj_loadXML</code> spawns a pool inside the prebuilt library. ThreadSanitizer cannot see the
           synchronisation inside code it did not instrument, so it reports the pool's internal mutex as a race.
           <code>tests/cpp/tsan.supp</code> contains one line, <code>race:libmujoco</code>, and nothing this repo
           compiles is suppressed. On recent kernels TSan also aborts on an unexpected memory mapping;
           <code>setarch $(uname -m) -R</code> disables address-space randomisation for that one process without
           privileges, and CI lowers <code>vm.mmap_rnd_bits</code> on the runner instead.</p>
+        <p lang="ja"><code>mj_loadXML</code>はビルド済みライブラリの内部でスレッドプールを立ち上げます。ThreadSanitizerは自分が計測コードを入れていない部分の同期を見られないため、
+          プール内部のmutexを競合として報告します。<code>tests/cpp/tsan.supp</code>は<code>race:libmujoco</code>の1行だけで、このリポジトリがコンパイルするコードは何も抑制していません。
+          また最近のカーネルでは、TSanが想定外のメモリマッピングでabortします。<code>setarch $(uname -m) -R</code>で、そのプロセスだけアドレス空間のランダム化を権限なしで無効にでき、
+          CIでは代わりにrunner上で<code>vm.mmap_rnd_bits</code>を下げています。</p>
       </div></div>
     </div>
-    <p>The C++ side links <em>the same</em> <code>libmujoco.so</code> that the Python side imports: CMake asks
+    <p lang="en">The C++ side links <em>the same</em> <code>libmujoco.so</code> that the Python side imports: CMake asks
       the Python interpreter where the wheel lives and takes the headers and library from there, so nothing
       is installed system-wide. <code>check_library_version()</code> refuses to run if the header and the
       library disagree. The equality claim is only meaningful against the same physics binary.</p>
+    <p lang="ja">C++側は、Python側がimportするのと<em>同じ</em><code>libmujoco.so</code>をリンクします。CMakeがPythonインタプリタにwheelの場所を問い合わせ、
+      そこからヘッダとライブラリを取るので、システム全体には何もインストールしません。ヘッダとライブラリが食い違えば<code>check_library_version()</code>が実行を拒否します。
+      一致の主張は、同じ物理エンジンのバイナリに対してのみ意味を持つからです。</p>
   </div>
 </section>
 
 <section id="speed">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Measured throughput and training</h2><p class="sec-sub">Four measurements taken on 2026-09-22 on the same laptop, each with the guard verdict its own tool printed, and the full 50M-step PPO run on 2026-09-29/30.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Measured throughput and training</span><span lang="ja">計測したthroughputと学習</span></h2><p class="sec-sub" lang="en">Four measurements taken on 2026-09-22 on the same laptop, each with the guard verdict its own tool printed, and the full 50M-step PPO run on 2026-09-29/30.</p><p class="sec-sub" lang="ja">2026-09-22に同じノートPCで取った4つの計測（それぞれツール自身が出したガード判定付き）と、2026-09-29/30に実施した50M stepのPPO本学習。</p></div>
   <div class="stack">
-    <p class="prose">The protocol is the Python project's. A sweep runs 1, 2, 4 and 8 threads for 20 seconds each,
+    <p class="prose" lang="en">The protocol is the Python project's. A sweep runs 1, 2, 4 and 8 threads for 20 seconds each,
       with a single-thread reference window before the sweep and after every row. The JSON is marked
       <em>unstable</em> if a reference drifts more than 10% and <em>trending</em> if the reference moves in one
       direction across three windows by more than 4%. A sustained run holds 8 threads for 18 windows of 20
       seconds with no pause. All runs were under <code>nice -n 10</code>, eight of fourteen cores, no other work
       on the machine.</p>
+    <p class="prose" lang="ja">手順はPythonプロジェクトと同じです。sweepでは1・2・4・8スレッドをそれぞれ20秒ずつ実行し、sweepの前と各行の後に1スレッドのreference windowを挟みます。
+      referenceが10%を超えてずれるとJSONに<em>unstable</em>、3 windowにわたって一方向に4%を超えて動くと<em>trending</em>の印が付きます。
+      sustained runでは8スレッドを20秒×18 window、休みなく回し続けます。すべて<code>nice -n 10</code>、14コア中8コア、マシン上で他の作業なしの条件で実行しました。</p>
 
-    <h3>The full environment, sweep</h3>
+    <h3><span lang="en">The full environment, sweep</span><span lang="ja">環境全体のsweep</span></h3>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>threads</th><th class="num">env-steps/s</th><th class="num">per thread</th><th class="num">speedup</th><th class="num">efficiency</th><th class="num">ref drift</th></tr></thead>
+        <thead><tr><th><span lang="en">threads</span><span lang="ja">スレッド数</span></th><th class="num">env-steps/s</th><th class="num"><span lang="en">per thread</span><span lang="ja">スレッドあたり</span></th><th class="num"><span lang="en">speedup</span><span lang="ja">高速化率</span></th><th class="num"><span lang="en">efficiency</span><span lang="ja">効率</span></th><th class="num">ref drift</th></tr></thead>
         <tbody>
           <tr><td>1</td><td class="num">5,639</td><td class="num">5,639</td><td class="num">1.00×</td><td class="num">100%</td><td class="num">+1.3%</td></tr>
           <tr><td>2</td><td class="num">10,471</td><td class="num">5,236</td><td class="num">1.86×</td><td class="num">93%</td><td class="num">−0.1%</td></tr>
@@ -615,19 +506,25 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         </tbody>
       </table>
     </div>
-    <p class="prose">Taken at 14:51 on a freshly rebooted machine, reference drift within 1.3%, marked stable by
+    <p class="prose" lang="en">Taken at 14:51 on a freshly rebooted machine, reference drift within 1.3%, marked stable by
       its own guard. The efficiency at 8 threads, 45%, is the same as the 42% the Python project measured with
       8 processes on the same model. That settles the question section 02 asked: process isolation was not
       the loss. Whatever holds this chip back at eight workers holds threads in one address space back just as
       much, which points at the cores themselves (this CPU has three kinds) or at the package power limit,
       neither of which is readable from inside a WSL guest.</p>
+    <p class="prose" lang="ja">再起動直後のマシンで14:51に計測し、reference driftは1.3%以内、ツール自身のガードでstableと判定されました。8スレッドでの効率45%は、
+      Pythonプロジェクトが同じモデルを8プロセスで計測した42%と同水準です。これで02章の疑問に決着が付きます。損失の原因はプロセス分離ではありませんでした。
+      8 workerでこのチップの足を引っ張っている何かは、1つのアドレス空間内のスレッドにも同じだけ効いています。原因はコアそのもの（このCPUには3種類のコアがあります）か、
+      パッケージの電力制限を指しており、どちらもWSLゲストの中からは読めません。</p>
 
-    <h3>Physics only, sweep</h3>
-    <p class="prose">The same sweep in <code>bare</code> mode: 10 × <code>mj_step</code> per env step and nothing else. The
+    <h3><span lang="en">Physics only, sweep</span><span lang="ja">物理計算のみのsweep</span></h3>
+    <p class="prose" lang="en">The same sweep in <code>bare</code> mode: 10 × <code>mj_step</code> per env step and nothing else. The
       gap between this table and the one above is the cost of everything that is not physics.</p>
+    <p class="prose" lang="ja">同じsweepを<code>bare</code>モードで実行したものです。1 env stepあたり10 × <code>mj_step</code>だけで、ほかには何もしません。
+      この表と上の表の差が、物理計算以外のすべてのコストです。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>threads</th><th class="num">env-steps/s</th><th class="num">per thread</th><th class="num">speedup</th><th class="num">efficiency</th><th class="num">ref drift</th></tr></thead>
+        <thead><tr><th><span lang="en">threads</span><span lang="ja">スレッド数</span></th><th class="num">env-steps/s</th><th class="num"><span lang="en">per thread</span><span lang="ja">スレッドあたり</span></th><th class="num"><span lang="en">speedup</span><span lang="ja">高速化率</span></th><th class="num"><span lang="en">efficiency</span><span lang="ja">効率</span></th><th class="num">ref drift</th></tr></thead>
         <tbody>
           <tr><td>1</td><td class="num">5,404</td><td class="num">5,404</td><td class="num">1.00×</td><td class="num">100%</td><td class="num">−0.7%</td></tr>
           <tr><td>2</td><td class="num">10,788</td><td class="num">5,394</td><td class="num">2.00×</td><td class="num">100%</td><td class="num">+0.4%</td></tr>
@@ -637,8 +534,8 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       </table>
     </div>
     <div class="note">
-      <span class="note-label">Guard verdict, and what it means here</span>
-      <p>Taken at 21:03, machine rebooted minutes before. A first sweep just before it read 5,390 / 10,823 /
+      <span class="note-label"><span lang="en">Guard verdict, and what it means here</span><span lang="ja">ガード判定と、ここでの意味</span></span>
+      <p lang="en">Taken at 21:03, machine rebooted minutes before. A first sweep just before it read 5,390 / 10,823 /
         19,956 / 27,087, so every row reproduced within 1%. The guard nevertheless marked both sweeps
         <em>trending</em>: the single-thread reference rose 4.4% across three consecutive windows against a 4%
         bar. On this laptop the single-thread reference scatters about 5% from one window to the next, so the
@@ -646,14 +543,22 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         warm, read 5,340 / 10,496 / 18,909 / 24,384: 10% lower at 8 threads. That is the chained-benchmark
         effect the Python project already documented, and it is why the second sweep, not the third, is the
         table.</p>
+      <p lang="ja">21:03に、再起動の数分後に計測しました。直前に取った1回目のsweepは5,390 / 10,823 / 19,956 / 27,087で、全行が1%以内で再現しています。
+        それでもガードは両方のsweepを<em>trending</em>と判定しました。1スレッドのreferenceが連続3 windowで4.4%上昇し、閾値の4%を超えたためです。
+        このノートPCでは1スレッドのreferenceがwindowごとに約5%ばらつくので、trend検出がばらつきに反応してしまいます。
+        直後にパッケージが温まったまま始めた3回目のsweepは5,340 / 10,496 / 18,909 / 24,384で、8スレッドで10%低くなりました。
+        これはPythonプロジェクトですでに記録していたベンチマーク連続実行の影響で、表に3回目ではなく2回目のsweepを採用した理由です。</p>
     </div>
-    <p class="prose">One thing the two sweeps cannot tell you: the bare 1-thread row, 5,404, is below the full-environment
+    <p class="prose" lang="en">One thing the two sweeps cannot tell you: the bare 1-thread row, 5,404, is below the full-environment
       1-thread row, 5,639, taken six hours earlier. Physics alone cannot be slower than physics plus
       observation, so the two sweeps were taken in different host power states. The host's power mode is not
       visible from inside the guest, and the env-to-bare gap cannot be read from these two tables to better
       than about 4%. Both tables are individually consistent; the comparison between them is not.</p>
+    <p class="prose" lang="ja">2つのsweepからは分からないこともあります。bareの1スレッド行5,404は、6時間前に取った環境全体の1スレッド行5,639より低くなっています。
+      物理計算単体が物理計算+observationより遅いことはあり得ないので、2つのsweepはホストの電力状態が異なる中で取ったことになります。
+      ホストの電源モードはゲストの中からは見えず、環境とbareの差はこの2つの表から約4%より細かくは読み取れません。各表はそれぞれ単独では整合していますが、表同士の比較は成り立ちません。</p>
 
-    <h3>Sustained, 8 threads, six minutes</h3>
+    <h3><span lang="en">Sustained, 8 threads, six minutes</span><span lang="ja">Sustained、8スレッド、6分間</span></h3>
     <div class="tablewrap">
       <table>
         <thead><tr><th>window</th><th class="num">0</th><th class="num">1</th><th class="num">2</th><th class="num">4</th><th class="num">6</th><th class="num">8</th><th class="num">10</th><th class="num">11</th><th class="num">12</th><th class="num">13</th><th class="num">14</th><th class="num">15</th><th class="num">16</th><th class="num">17</th></tr></thead>
@@ -662,21 +567,28 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         </tbody>
       </table>
     </div>
-    <p class="prose">Peak 20,829 in window 1, then a monotonic fall to 13,327 at window 11, a climb to 16,238 at window 14,
+    <p class="prose" lang="en">Peak 20,829 in window 1, then a monotonic fall to 13,327 at window 11, a climb to 16,238 at window 14,
       and 14,908 in the last window. Over the last six windows the rate sits between 13,329 and 16,238, a 22%
       band; the last three average 14,792, 29% below peak. The shape is the same one the Python project saw
       with eight processes: a dip around window 11, then a partial recovery. Two implementations with nothing
       in common except the physics library and the machine producing the same curve is decent evidence that the
       curve belongs to the machine's power management, not to the code. Budgets should be taken from the low
       end of the band.</p>
+    <p class="prose" lang="ja">window 1で最大20,829、その後window 11の13,327まで単調に低下し、window 14で16,238まで上がり、最後のwindowは14,908でした。
+      最後の6 windowでは13,329〜16,238の22%の幅に収まり、最後の3 windowの平均は14,792で最大値より29%低くなっています。
+      この形はPythonプロジェクトが8プロセスで見たものと同じで、window 11付近で落ち込み、その後部分的に回復します。
+      物理ライブラリとマシン以外に共通点のない2つの実装が同じ曲線を描くことは、この曲線がコードではなくマシンの電力管理によるものだというそれなりの根拠になります。
+      見積もりはこの幅の下端から取るべきです。</p>
 
-    <h3>Python processes against C++ threads, same hour</h3>
-    <p class="prose"><code>bench/compare.py</code> drives both vector environments with uniform random actions in 20-second
+    <h3><span lang="en">Python processes against C++ threads, same hour</span><span lang="ja">PythonプロセスとC++スレッドの比較（同じ時間帯）</span></h3>
+    <p class="prose" lang="en"><code>bench/compare.py</code> drives both vector environments with uniform random actions in 20-second
       windows and alternates backends every window, so a machine that changes state during the run biases both
       the same way. Two rounds.</p>
+    <p class="prose" lang="ja"><code>bench/compare.py</code>は両方のvector environmentを一様乱数のactionで20秒windowずつ動かし、windowごとにbackendを交互に切り替えます。
+      実行中にマシンの状態が変わっても、両者に同じように影響させるためです。2ラウンド実行しました。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>workers</th><th class="num">Python processes</th><th class="num">C++ threads</th><th class="num">C++ / Python</th><th class="num">C++ efficiency</th></tr></thead>
+        <thead><tr><th>workers</th><th class="num"><span lang="en">Python processes</span><span lang="ja">Pythonプロセス</span></th><th class="num"><span lang="en">C++ threads</span><span lang="ja">C++スレッド</span></th><th class="num">C++ / Python</th><th class="num"><span lang="en">C++ efficiency</span><span lang="ja">C++の効率</span></th></tr></thead>
         <tbody>
           <tr><td>1</td><td class="num">2,336</td><td class="num">4,867</td><td class="num">2.08×</td><td class="num">100%</td></tr>
           <tr><td>2</td><td class="num">3,463</td><td class="num">7,429</td><td class="num">2.14×</td><td class="num">76%</td></tr>
@@ -689,65 +601,84 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       <div class="bar"><span>Python ×8</span><i class="py" style="width:52%"></i><span>6,385</span></div>
       <div class="bar"><span>C++ ×8</span><i style="width:100%"></i><span>12,327</span></div>
     </div>
-    <p class="prose">An earlier run of the same script, started while the load average was still 3 from the sustained run,
+    <p class="prose" lang="en">An earlier run of the same script, started while the load average was still 3 from the sustained run,
       gave 6,668 against 13,612 at 8 workers, a ratio of 2.04×. The script's single-process Python reference
       was marked <em>unstable</em> in both runs, with scatter up to 39%: one forked worker behind a pipe has a
       jittery round trip, and the guard was designed around bare physics, which does not. The multi-worker
       rows agree within 10% across the two runs, and the ratio at 8 is between 1.9× and 2.0× either way.</p>
+    <p class="prose" lang="ja">同じスクリプトをその前に、sustained runの影響でload averageがまだ3ある状態で実行したときは、8 workerで6,668対13,612、比率2.04×でした。
+      スクリプトの1プロセスのPython referenceは両方の実行で<em>unstable</em>と判定され、ばらつきは最大39%でした。pipeの先にある1つのforkされたworkerは往復時間が揺らぎますが、
+      ガードはそうした揺らぎのないbareの物理計算を前提に設計されていたためです。複数workerの行は2回の実行で10%以内に一致し、8での比率はどちらでも1.9×〜2.0×です。</p>
     <div class="note key">
-      <span class="note-label">Two conclusions</span>
-      <p>The README set a decision rule before the run: under 1.3× at 8 workers, the C++ environment is not worth
+      <span class="note-label"><span lang="en">Two conclusions</span><span lang="ja">2つの結論</span></span>
+      <p lang="en">The README set a decision rule before the run: under 1.3× at 8 workers, the C++ environment is not worth
         its build step for training. At 1.9× to 2.0× it clears the rule.</p>
-      <p>The second conclusion is about the Python project. Its vector environment at 8 processes delivers about
+      <p lang="ja">READMEでは実行前に判断基準を決めていました。8 workerで1.3×未満なら、C++環境は学習用としてビルドの手間に見合わない、というものです。
+        結果は1.9×〜2.0×で、この基準をクリアしています。</p>
+      <p lang="en">The second conclusion is about the Python project. Its vector environment at 8 processes delivers about
         6,400 env-steps/s in this driver, half of the 13,300 that project budgeted from bare physics times a
         measured wrapper factor. The inter-process round trip, pickling actions out and observations back
         through eight pipes each step, was never in that composition. The training script itself logs its
         rate every update, and that figure, not any composed one, is the number to budget from.</p>
+      <p lang="ja">2つ目の結論はPythonプロジェクトについてです。そのvector environmentは8プロセスでこのドライバ上約6,400 env-steps/sで、
+        同プロジェクトがbareの物理計算に計測したwrapper係数を掛けて見積もった13,300の半分でした。毎stepで8本のpipeを通してactionを送り出しobservationを戻す
+        プロセス間の往復は、その積算に含まれていなかったのです。学習スクリプト自体がupdateごとに速度をログに出しており、見積もりは積算値ではなくその数値から立てるべきです。</p>
     </div>
-    <h3>PPO on the C++ environment, 50M steps</h3>
-    <p class="prose">The Python project's step-3 run, repeated here with the same configuration and training seed, the
+    <h3><span lang="en">PPO on the C++ environment, 50M steps</span><span lang="ja">C++環境でのPPO、50M steps</span></h3>
+    <p class="prose" lang="en">The Python project's step-3 run, repeated here with the same configuration and training seed, the
       same schedule (25M steps without a KL stop, then 25M resumed with <code>--target-kl 0.02</code>), and its
       <code>ppo.py</code> unchanged. Both final policies were then scored on the <em>Python</em> environment,
       100 episodes on each of the same 5 evaluation seeds, ± over the seed means.</p>
+    <p class="prose" lang="ja">Pythonプロジェクトのstep 3の学習を、同じ設定・同じ学習seed・同じスケジュール（KL stopなしで25M steps、その後<code>--target-kl 0.02</code>付きで25M再開）、
+      そして無修正の<code>ppo.py</code>でここで再実行しました。最終的な2つのpolicyはどちらも<em>Python</em>環境で評価し、同じ5つの評価seedそれぞれで100 episodes、±はseed平均間のばらつきです。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>policy trained on</th><th class="num">return of 500</th><th class="num">survival</th><th class="num">upright</th><th class="num">median trunk height</th></tr></thead>
+        <thead><tr><th><span lang="en">policy trained on</span><span lang="ja">policyの学習環境</span></th><th class="num"><span lang="en">return of 500</span><span lang="ja">return（500点満点）</span></th><th class="num">survival</th><th class="num">upright</th><th class="num"><span lang="en">median trunk height</span><span lang="ja">胴体高さの中央値</span></th></tr></thead>
         <tbody>
-          <tr class="hl"><td>C++ environment</td><td class="num">341.9 ± 4.1</td><td class="num">0.95</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
-          <tr><td>Python environment</td><td class="num">344.8 ± 2.9</td><td class="num">0.73</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
+          <tr class="hl"><td><span lang="en">C++ environment</span><span lang="ja">C++環境</span></td><td class="num">341.9 ± 4.1</td><td class="num">0.95</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
+          <tr><td><span lang="en">Python environment</span><span lang="ja">Python環境</span></td><td class="num">344.8 ± 2.9</td><td class="num">0.73</td><td class="num">0.50</td><td class="num">5.9 cm</td></tr>
           <tr><td>PD hold-pose</td><td class="num">175.8 ± 0.2</td><td class="num">0.47</td><td class="num">—</td><td class="num">—</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose">Paired by evaluation seed, the C++-trained policy scores −2.8 lower on average (sd 3.9 over five
+    <p class="prose" lang="en">Paired by evaluation seed, the C++-trained policy scores −2.8 lower on average (sd 3.9 over five
       seeds, about 1.6 standard errors). That is inside the evaluation noise. The evaluation noise is not the large
       term, though; the run-to-run spread is, so each backend was trained on two more seeds with the same
       protocol (four 12.5M-step invocations, the last two with the KL stop, the same evaluation).</p>
+    <p class="prose" lang="ja">評価seedごとに対にして比べると、C++で学習したpolicyは平均で−2.8低いスコアでした（5 seedsでsd 3.9、標準誤差の約1.6倍）。これは評価ノイズの範囲内です。
+      ただし大きいのは評価ノイズではなく、学習の実行ごとのばらつきです。そこで各backendについて、同じ手順（12.5M stepの実行を4回、うち後半2回はKL stop付き、評価も同じ）で
+      さらに2 seedsずつ学習しました。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>training seed</th><th class="num">C++ return</th><th class="num">C++ survival</th><th class="num">Python return</th><th class="num">Python survival</th></tr></thead>
+        <thead><tr><th><span lang="en">training seed</span><span lang="ja">学習seed</span></th><th class="num">C++ return</th><th class="num">C++ survival</th><th class="num">Python return</th><th class="num">Python survival</th></tr></thead>
         <tbody>
           <tr><td>0</td><td class="num">341.9 ± 4.1</td><td class="num">0.948</td><td class="num">344.8 ± 2.9</td><td class="num">0.727</td></tr>
           <tr><td>1</td><td class="num">338.5 ± 8.1</td><td class="num">0.998</td><td class="num">357.3 ± 7.6</td><td class="num">0.999</td></tr>
           <tr><td>2</td><td class="num">337.7 ± 7.6</td><td class="num">0.873</td><td class="num">342.2 ± 5.1</td><td class="num">0.895</td></tr>
-          <tr class="hl"><td>mean ± sd over seeds</td><td class="num">339.4 ± 2.3</td><td class="num">0.94 ± 0.06</td><td class="num">348.1 ± 8.1</td><td class="num">0.87 ± 0.14</td></tr>
+          <tr class="hl"><td><span lang="en">mean ± sd over seeds</span><span lang="ja">seed間の平均 ± sd</span></td><td class="num">339.4 ± 2.3</td><td class="num">0.94 ± 0.06</td><td class="num">348.1 ± 8.1</td><td class="num">0.87 ± 0.14</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose">Across three seeds the backends do not differ: return −8.7 (Welch t −1.8), survival +0.07
+    <p class="prose" lang="en">Across three seeds the backends do not differ: return −8.7 (Welch t −1.8), survival +0.07
       (t 0.75). Upright is 0.49–0.50 for all six policies. A policy trained on this environment scores like
       one trained on the Python environment. That is what the equality test predicts, and it is what this
       run was for.</p>
-    <p class="prose">Survival is the column that looked different on seed 0, 0.95 against 0.73, and the extra seeds
+    <p class="prose" lang="ja">3 seedsで見ると、backend間に差はありません。returnは−8.7（Welch t −1.8）、survivalは+0.07（t 0.75）です。uprightは6つのpolicyすべてで0.49〜0.50でした。
+      この環境で学習したpolicyは、Python環境で学習したものと同等のスコアを出します。これは一致テストから予想されるとおりで、この学習の目的もそこにありました。</p>
+    <p class="prose" lang="en">Survival is the column that looked different on seed 0, 0.95 against 0.73, and the extra seeds
       took the difference away. It counts steps with the trunk above 4 cm against a 12 cm standing height, so it
       says how often a low crouch dips under 4 cm. The seed-0 gap was real for those two policies, about 16
       standard errors over 500 episodes each, but it was run-to-run spread, not the backend: Python's seeds span
       0.73 to 1.00 and C++'s 0.87 to 1.00, and each run settles on its level within the first 12.5M steps. Python
       seed 1 also found the only taller posture of the six, a median trunk height of 8.8 cm instead of 5.9–6.0.
       The training curves below are seed 0.</p>
+    <p class="prose" lang="ja">seed 0で差があるように見えたのはsurvivalの列（0.95対0.73）で、追加のseedでこの差は消えました。survivalは立位高さ12 cmに対して胴体が4 cmより上にあるstepを数えるもので、
+      低くしゃがんだ姿勢がどれだけ頻繁に4 cmを下回るかを表します。seed 0の差はこの2つのpolicyについては本物で（各500 episodesで標準誤差の約16倍）、
+      ただしbackendではなく実行ごとのばらつきによるものでした。Pythonのseedは0.73〜1.00、C++は0.87〜1.00にわたり、各実行は最初の12.5M step以内に自分の水準に落ち着きます。
+      またPythonのseed 1は、6つの中で唯一高い姿勢を見つけました。胴体高さの中央値が5.9〜6.0ではなく8.8 cmです。下の学習曲線はseed 0のものです。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>block of 12.5M steps</th><th class="num">return50 C++ / Python</th><th class="num">clip fraction C++ / Python</th><th class="num">KL max C++ / Python</th><th class="num">env-steps/s C++ / Python</th></tr></thead>
+        <thead><tr><th><span lang="en">block of 12.5M steps</span><span lang="ja">12.5M stepごとの区間</span></th><th class="num">return50 C++ / Python</th><th class="num">clip fraction C++ / Python</th><th class="num">KL max C++ / Python</th><th class="num">env-steps/s C++ / Python</th></tr></thead>
         <tbody>
           <tr><td>0–12.5M</td><td class="num">345.1 / 337.9</td><td class="num">0.56 / 0.58</td><td class="num">11.0 / 25.1</td><td class="num">4,725 / 3,396</td></tr>
           <tr><td>12.5–25M</td><td class="num">331.5 / 330.4</td><td class="num">0.69 / 0.73</td><td class="num">65.7 / 173.1</td><td class="num">4,755 / 3,123</td></tr>
@@ -756,11 +687,13 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         </tbody>
       </table>
     </div>
-    <p class="prose">The Python project's step-size failure reproduced on this backend: without a KL stop the clip
+    <p class="prose" lang="en">The Python project's step-size failure reproduced on this backend: without a KL stop the clip
       fraction climbed to 0.69, the KL spiked to 66 and return50 fell from 345 to 332. The KL stop brought both
       runs back to the same clip fraction and KL within a few hundredths. A failure that shows on two
       environments with different push draws belongs to the configuration, not to one unlucky run.</p>
-    <p class="prose">50M steps took 3.1 hours here and about 4.4 on the Python environment: 1.41× faster over the first
+    <p class="prose" lang="ja">Pythonプロジェクトで起きたstep sizeの失敗は、このbackendでも再現しました。KL stopなしではclip fractionが0.69まで上がり、KLは66に跳ね、return50は345から332に下がりました。
+      KL stopにより、両方の実行が数百分の一以内の同じclip fractionとKLに戻りました。pushの抽選が異なる2つの環境で同じ失敗が出るなら、それは1回の不運な実行ではなく設定に起因するものです。</p>
+    <p class="prose" lang="en">50M steps took 3.1 hours here and about 4.4 on the Python environment: 1.41× faster over the first
       25M and 1.45× over the second. That is less than the 1.9× to 2.0× under random actions above, because PPO
       puts the policy's forward pass and its gradient update, both single-threaded, on the same critical path.
       During the last chunk the one training process sat at 470% CPU with eight environment threads. The gain
@@ -769,13 +702,19 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       invocations of the same stage, which is why the ratio is quoted per stage. Seeds 1 and 2 took 3.2 and
       3.1 hours here against 4.0 and 3.8 on the Python environment, 1.25× for both, so the end-to-end speed-up
       is 1.25× to 1.43× depending on the run; why the Python seed-0 run was the slow one is not measured.</p>
+    <p class="prose" lang="ja">50M stepsにかかった時間はここで3.1時間、Python環境では約4.4時間で、前半25Mで1.41×、後半で1.45×速くなりました。
+      上のランダムactionでの1.9×〜2.0×より小さいのは、PPOではpolicyのforward passとgradient更新（どちらもシングルスレッド）が同じクリティカルパス上に乗るためです。
+      最後のchunkでは、1つの学習プロセスが8つの環境スレッドとともにCPU 470%で推移していました。更新処理が小さくなるほど効果は大きくなります。
+      毎回のupdateが全epochを回す間はupdateあたり1.39×〜1.52×、KL stopでほとんどのupdateが早期終了するようになると1.61×〜1.64×です。
+      また両backendとも、同じ段階を2回実行した間で速度が14〜16%変動したため、比率は段階ごとに示しています。seed 1と2はここで3.2時間と3.1時間、Python環境では4.0時間と3.8時間で、
+      どちらも1.25×でした。したがってend-to-endの高速化は実行によって1.25×〜1.43×です。Pythonのseed 0の実行だけが遅かった理由は計測していません。</p>
   </div>
 </section>
 
 <section id="limits">
-  <div class="sec-head"><span class="sec-num">09</span><h2>What it does not prove</h2><p class="sec-sub">The boundaries of the equality claim and of the speed numbers, stated so they are not read past.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">What it does not prove</span><span lang="ja">この結果から言えないこと</span></h2><p class="sec-sub" lang="en">The boundaries of the equality claim and of the speed numbers, stated so they are not read past.</p><p class="sec-sub" lang="ja">一致の主張と速度の数値の適用範囲。拡大解釈されないよう明記します。</p></div>
   <div class="stack prose">
-    <ul class="tight">
+    <ul class="tight" lang="en">
       <li><strong>Bit equality holds on one machine, one compiler, one C library.</strong> Python's <code>pow</code>
         and <code>exp</code> and the C++ ones are the same library calls on the same host, which is why they
         agree. A runner with a different glibc, or a numpy built with a different vectorised <code>exp</code>,
@@ -799,11 +738,27 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         hypervisor, with a power state the guest cannot read. The ratios are more portable than the absolute
         rates, and the sustained band is more portable than any 20-second row.</li>
     </ul>
+    <ul class="tight" lang="ja">
+      <li><strong>ビット一致は1台のマシン・1つのコンパイラ・1つのCライブラリでの話です。</strong>Pythonの<code>pow</code>や<code>exp</code>とC++のそれは、
+        同じホスト上の同じライブラリ呼び出しなので一致します。glibcが異なるrunnerや、ベクトル化された<code>exp</code>の実装が異なるnumpyでは、
+        高さ項の最終ビットが変わる可能性があります。テストの許容誤差は、それなら通し、本物の不具合なら通さないように設定しています。</li>
+      <li><strong>乱数の抽選は再現していません。</strong>同じseedでもpushは異なります。Pythonの学習実行をC++ backend上でstepごとに再生することはできず、
+        両者の比較は複数seedにわたる統計的なものです。</li>
+      <li><strong>センサーノイズはcontractテストの対象外です。</strong>理由は同じで、stepごとのガウスノイズをC++側が独自に引くためです。contractケースではノイズをオフにしています。</li>
+      <li><strong>学習seedはbackendごとに3つです。</strong>seed 0のsurvivalの差が実行ごとのばらつきだと示すには十分ですが、
+        そのばらつき（seed間でsurvivalのsd 0.06〜0.14、returnのsd 2〜8）より小さいbackend間の差を見分けるには足りません。</li>
+      <li><strong>ロボットは1種類です。</strong><code>Env</code>はMicroduck専用の形をしています。アクチュエータ14個、立位のkeyframe、名前付きの胴体body、
+        名前付きのジャイロと姿勢センサーです。スレッド層はそうではなく、同じインターフェースの裏に2つ目のモデルを載せるのが自然な次のステップです。</li>
+      <li><strong>レンダリングはありません。</strong>MuJoCoのCレンダリングAPIによる画像observationは、EGLコンテキストが動くマシンが用意できるまで保留しています。
+        これを書いたノートPCで使えるのはWSLg経由のGLFWだけです。</li>
+      <li><strong>速度の数値はこのノートPCでのものです。</strong>ハイパーバイザ配下の3種類・14コアで、電力状態はゲストから読めません。
+        絶対値より比率のほうが他環境に持ち出しやすく、20秒の各行よりsustainedの幅のほうが持ち出しやすい数値です。</li>
+    </ul>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">A C++17 compiler, CMake 3.18 or later, Python 3.8 or later, and the Python project next door.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">A C++17 compiler, CMake 3.18 or later, Python 3.8 or later, and the Python project next door.</p><p class="sec-sub" lang="ja">C++17コンパイラ、CMake 3.18以降、Python 3.8以降、そして隣のディレクトリにPythonプロジェクトが必要です。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/microduck-rl.git ../microduck-rl
 (cd ../microduck-rl && python3 -m venv .venv && . .venv/bin/activate \
@@ -815,22 +770,24 @@ cmake --build build -j4
 ./build/vecenv_tests
 python -m pytest tests/py -q
 python scripts/contract_report.py          # the equality table, one core, about a minute</code></pre>
-    <p class="prose"><code>./verify.sh</code> does all of that in order and prints the benchmark commands at the end.
+    <p class="prose" lang="en"><code>./verify.sh</code> does all of that in order and prints the benchmark commands at the end.
       <code>MICRODUCK_RL</code> or <code>MICRODUCK_ASSETS</code> point it at the Python project if it lives
       somewhere else.</p>
-    <h3>Benchmarks, on an idle machine</h3>
+    <p class="prose" lang="ja"><code>./verify.sh</code>が上記をすべて順に実行し、最後にベンチマーク用のコマンドを表示します。
+      Pythonプロジェクトが別の場所にある場合は、<code>MICRODUCK_RL</code>か<code>MICRODUCK_ASSETS</code>でその場所を指定します。</p>
+    <h3><span lang="en">Benchmarks, on an idle machine</span><span lang="ja">ベンチマーク（アイドル状態のマシンで）</span></h3>
     <pre><code>nice -n 10 ./build/bench_vecenv --threads 1 2 4 8 --seconds 20 --ref-seconds 10 --tag main
 nice -n 10 ./build/bench_vecenv --mode bare --threads 1 2 4 8 --seconds 20 --ref-seconds 10 --tag main
 nice -n 10 ./build/bench_vecenv --sustained 8 --windows 18 --seconds 20 --tag sustained
 nice -n 10 python bench/compare.py --workers 1 2 4 8 --seconds 20 --rounds 2 --tag main</code></pre>
-    <h3>Sanitizer builds</h3>
+    <h3><span lang="en">Sanitizer builds</span><span lang="ja">Sanitizerビルド</span></h3>
     <pre><code>cmake -S . -B build-san -DVECENV_SANITIZE=address,undefined -DVECENV_BUILD_PYTHON=OFF -DVECENV_BUILD_BENCH=OFF
 cmake --build build-san -j4 && ./build-san/vecenv_tests
 
 cmake -S . -B build-tsan -DVECENV_SANITIZE=thread -DVECENV_BUILD_PYTHON=OFF -DVECENV_BUILD_BENCH=OFF
 cmake --build build-tsan -j4
 TSAN_OPTIONS=suppressions=$PWD/tests/cpp/tsan.supp setarch $(uname -m) -R ./build-tsan/vecenv_tests</code></pre>
-    <h3>Training on it</h3>
+    <h3><span lang="en">Training on it</span><span lang="ja">この環境での学習</span></h3>
     <pre><code>OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --total-steps 50000000 \
     --chunk-steps 12500000 --tag v2cpp --reward v2       # VECENV_THREADS=8 is the default
 OMP_NUM_THREADS=1 nice -n 10 python scripts/ppo_cpp.py --resume runs/ppo_v2cpp.ckpt.pt --tag v2cpp   # to 25M
@@ -843,21 +800,25 @@ envs = vecenv_cpp.VecEnv(n=8, seed=0, reward="v2", dr=True)   # same kwargs as t
 obs = envs.reset()
 obs, rew, done, info = envs.step(actions)                     # actions: (8, 14) float64</code></pre>
     <div class="prose stack">
-      <h3>Licence</h3>
-      <p>MIT. doctest is vendored under MIT. MuJoCo comes from its pip wheel. The robot's meshes are Creative
+      <h3><span lang="en">Licence</span><span lang="ja">ライセンス</span></h3>
+      <p lang="en">MIT. doctest is vendored under MIT. MuJoCo comes from its pip wheel. The robot's meshes are Creative
         Commons BY-SA-NC and are fetched from their upstream by the Python project's script, never committed.</p>
-      <h3>Measured environment</h3>
-      <p>Intel Core Ultra 5 225H, 14 cores (4 performance, 8 efficiency, 2 low-power efficiency), no
+      <p lang="ja">MITです。doctestはMITライセンスで同梱しています。MuJoCoはpipのwheelから取得します。ロボットのメッシュはCreative Commons BY-SA-NCで、
+        Pythonプロジェクトのスクリプトがupstreamから取得し、コミットはしません。</p>
+      <h3><span lang="en">Measured environment</span><span lang="ja">計測環境</span></h3>
+      <p lang="en">Intel Core Ultra 5 225H, 14 cores (4 performance, 8 efficiency, 2 low-power efficiency), no
         hyperthreading, 21 GB available to WSL2. Windows 11 + WSL2, Ubuntu 22.04, g++ 11.4, CMake 3.22,
         Python 3.10, MuJoCo 3.12.0, numpy 2.2.6. No CUDA anywhere.</p>
+      <p lang="ja">Intel Core Ultra 5 225H、14コア（Pコア4、Eコア8、低消費電力Eコア2）、ハイパースレッディングなし、WSL2に割り当て可能なメモリ21 GB。
+        Windows 11 + WSL2、Ubuntu 22.04、g++ 11.4、CMake 3.22、Python 3.10、MuJoCo 3.12.0、numpy 2.2.6。CUDAは一切使っていません。</p>
     </div>
   </div>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">The whole project in one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The whole project in one paragraph.</p><p class="sec-sub" lang="ja">プロジェクト全体を1段落で。</p></div>
   <div class="stack prose">
-    <p>The Microduck balance task has a Python environment that runs eight forked processes. This is the same
+    <p lang="en">The Microduck balance task has a Python environment that runs eight forked processes. This is the same
       environment in C++17 on eight threads, with a pybind11 binding and a drop-in class so the Python
       training script runs on it unchanged. Before any timing, the two were made to agree to the bit: the
       test lets Python draw the episode's randomness and hands the drawn values to the C++ side, then feeds
@@ -880,6 +841,19 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
       3.8 to 4.4, trains policies that score 339.4 ± 2.3 of 500 on the Python environment against 348.1 ± 8.1
       for the ones trained there, with no backend difference in return or survival at three seeds,
       and it reproduces the same step-size failure and the same fix along the way.</p>
+    <p lang="ja">Microduckのバランスタスクには、8つのforkプロセスで動くPython環境があります。本プロジェクトは同じ環境をC++17で8スレッド上に実装し、
+      pybind11 bindingと差し替え用クラスによって、Pythonの学習スクリプトを無修正で動かせるようにしたものです。時間計測より先に、両者をビット単位で一致させました。
+      テストではPythonにepisodeの乱数を引かせ、その値をC++側に渡したうえで、両方に同じ250個のactionを与え、返ってきたものをすべて許容誤差なしで比較します。
+      6,275個中6,275個のobservationを一致させるには、numpyの8アキュムレータによる加算ツリーを合わせ、Pythonのべき乗演算子を<code>volatile</code>経由でCライブラリの<code>pow</code>に通し、
+      float32のスケールテーブルをnumpyと同じように拡張し、さらにソルバーがwarm-startするため、MuJoCoのforward passの2回目をPythonコードと同じ条件のときだけ実行する必要がありました。
+      CIはこの比較をPythonリポジトリの固定コミットに対して実行し、C++スイートをAddressSanitizerとThreadSanitizerで再ビルドします。どちらもMuJoCoのビルド済みライブラリに対する回避策が必要でした。
+      その後同じノートPCで計測したところ、環境全体は8スレッドの20秒burstで20,287 env-steps/s、6分間では13,300〜16,200に落ち着き、Python版と同じ電力管理の曲線を示しました。
+      同一のランダムactionでの直接比較では、8 workerでC++スレッドがPythonプロセスの1.9〜2.0倍で、READMEがビルドに見合う閾値として定めた1.3×を上回りました。
+      同じ比較から、Pythonのvector environmentの速度は、同プロジェクトが物理計算だけから見積もった値の約半分だと分かりました。プロセス間の往復がその積算に含まれていなかったためです。
+      8 workerでのスレッド効率45%はPythonプロセスの42%と同水準で、スケーリングの損失はプロセス分離ではなくチップによるものでした。
+      そして本当に重要な証明として、Pythonプロジェクトの50M stepのPPO学習をこのbackendで3つの学習seedについて再実行しました。所要時間は3.8〜4.4時間ではなく各約3.1時間で、
+      得られたpolicyはPython環境で500点満点中339.4 ± 2.3、Python環境で学習したものは348.1 ± 8.1でした。3 seedsではreturnにもsurvivalにもbackend間の差はなく、
+      途中で同じstep sizeの失敗と同じ対処も再現しています。</p>
   </div>
 </section>
 
@@ -887,46 +861,16 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>mujoco-vecenv-cpp</code>: <code>README.md</code>, <code>include/vecenv/*.hpp</code>,
+  <span lang="en">Built from the source in <code>mujoco-vecenv-cpp</code>: <code>README.md</code>, <code>include/vecenv/*.hpp</code>,
   <code>src/*.cpp</code>, <code>python/bindings.cpp</code>, <code>python/vecenv_cpp/</code>, <code>bench/</code>,
   <code>tests/</code>, <code>scripts/</code>, <code>CMakeLists.txt</code> and <code>.github/workflows/ci.yml</code>,
-  plus the measurement and training JSONs under <code>runs/</code>.
+  plus the measurement and training JSONs under <code>runs/</code>.</span>
+  <span lang="ja"><code>mujoco-vecenv-cpp</code>のソース（<code>README.md</code>、<code>include/vecenv/*.hpp</code>、
+  <code>src/*.cpp</code>、<code>python/bindings.cpp</code>、<code>python/vecenv_cpp/</code>、<code>bench/</code>、
+  <code>tests/</code>、<code>scripts/</code>、<code>CMakeLists.txt</code>、<code>.github/workflows/ci.yml</code>）と、
+  <code>runs/</code>以下の計測・学習JSONをもとに作成しました。</span>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

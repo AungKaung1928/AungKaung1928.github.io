@@ -1,31 +1,25 @@
 /* ── Portfolio assistant widget ─────────────────────────────────────
- * Its own accent — deliberately not the site teal, so the assistant
- * reads as a separate surface rather than another page element.
- * Everything else inherits the site's design tokens from style.css.
+ * Same accent as the site, so the widget reads as part of the page.
+ * Everything else inherits the design tokens from style.css.
  * ------------------------------------------------------------------ */
 
 :root {
-    --chat-accent:       #A6540C;
-    --chat-accent-hover: #8A4409;
-    --chat-soft:         rgba(166, 84, 12, 0.08);
-    --chat-on-accent:    #ffffff;
-}
-
-html.dark-mode {
-    --chat-accent:       #E9A13B;
-    --chat-accent-hover: #F2B45C;
-    --chat-soft:         rgba(233, 161, 59, 0.12);
-    --chat-on-accent:    #1d1206;
+    --chat-accent:       var(--accent);
+    --chat-accent-hover: var(--accent-hover);
+    --chat-soft:         var(--accent-soft);
+    --chat-on-accent:    var(--on-accent);
 }
 
 /* ── Launcher ────────────────────────────────────────────────────── */
+
+#chat-panel [hidden] { display: none !important; }
 
 #chat-fab {
     position: fixed;
     right: 22px;
     bottom: 22px;
-    width: 52px;
-    height: 52px;
+    width: 50px;
+    height: 50px;
     border: none;
     border-radius: 50%;
     background: var(--chat-accent);
@@ -56,7 +50,7 @@ html.dark-mode {
     height: min(600px, calc(100vh - 130px));
     background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
     box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.35);
     display: flex;
     flex-direction: column;
@@ -83,16 +77,7 @@ html.dark-mode {
     flex-shrink: 0;
 }
 
-.chat-id { display: flex; align-items: center; gap: 9px; min-width: 0; }
-
-.chat-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--chat-accent);
-    box-shadow: 0 0 0 3px var(--chat-soft);
-    flex-shrink: 0;
-}
+.chat-id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
 .chat-header h4 {
     font-size: 0.88rem;
@@ -104,10 +89,7 @@ html.dark-mode {
 
 .chat-sub {
     display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
+    font-size: 0.72rem;
     color: var(--ink-3);
 }
 
@@ -199,8 +181,8 @@ html.dark-mode {
     max-width: 92%;
     padding: 11px 13px;
     border-radius: 12px;
-    font-size: 0.855rem;
-    line-height: 1.6;
+    font-size: 0.86rem;
+    line-height: 1.62;
     word-wrap: break-word;
     overflow-wrap: anywhere;
     animation: chat-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
@@ -308,12 +290,13 @@ html.dark-mode {
 
 .chat-suggestions button {
     font-family: inherit;
-    font-size: 0.73rem;
-    padding: 5px 10px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
+    font-size: 0.76rem;
+    font-weight: 500;
+    padding: 6px 11px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
     background: var(--bg);
-    color: var(--ink-3);
+    color: var(--ink-2);
     cursor: pointer;
     transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
@@ -376,14 +359,6 @@ html.dark-mode {
 #chat-send .stop-icon { display: none; }
 #chat-send.stopping .send-icon { display: none; }
 #chat-send.stopping .stop-icon { display: block; }
-
-.chat-foot {
-    padding: 0 14px 10px;
-    font-size: 0.65rem;
-    color: var(--ink-3);
-    text-align: center;
-    flex-shrink: 0;
-}
 
 /* ── Typing indicator ────────────────────────────────────────────── */
 

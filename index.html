@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-title-ja="Aung Kaung Myat — ロボティクスソフトウェアエンジニア">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Aung Kaung Myat — Robotics Software Engineer</title>
-    <meta name="description" content="Robotics software engineer. ROS2, C++ and LiDAR perception on real mobile robots at work; personal projects in robot learning: legged balance, arm manipulation by RL, imitation and language, a bit-identical C++ simulation backend, edge-ready detection.">
+    <meta name="description" content="Robotics software engineer. ROS2, C++ and LiDAR perception on real mobile robots at work; personal projects in robot learning: legged balance, arm manipulation by RL, imitation and language, a bit-identical C++ simulation backend, edge-ready detection. English / 日本語.">
     <meta name="author" content="Aung Kaung Myat">
     <link rel="canonical" href="https://aungkaung1928.github.io/">
 
@@ -17,7 +17,7 @@
     <meta name="twitter:card" content="summary">
 
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0f1417" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23005F73'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,18 +27,22 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="chat.css">
 
-    <!-- Applied before first paint so dark-mode users never see a white flash. -->
+    <!-- Theme and language are applied before first paint: no white flash, no English flash. -->
     <script>
-        try {
-            var t = localStorage.getItem('theme');
-            if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark-mode');
-            }
-        } catch (e) {}
+        (function (d) {
+            var l, t;
+            try { l = new URLSearchParams(location.search).get('lang'); } catch (e) {}
+            try {
+                if (l) localStorage.setItem('lang', l); else l = localStorage.getItem('lang');
+                t = localStorage.getItem('theme');
+            } catch (e) {}
+            if (l === 'ja') { d.setAttribute('data-lang', 'ja'); d.lang = 'ja'; }
+            if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme: dark)').matches)) d.classList.add('dark-mode');
+        })(document.documentElement);
     </script>
 </head>
 <body>
-    <a href="#main" class="skip-link">Skip to content</a>
+    <a href="#main" class="skip-link"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
 
     <div id="scroll-percentage" aria-hidden="true">0%</div>
 
@@ -50,27 +54,33 @@
                     <span class="brand-name">Aung Kaung Myat</span>
                 </a>
                 <nav aria-label="Sections">
-                    <a href="#about">About</a>
-                    <a href="#skills">Skills</a>
-                    <a href="#projects">Projects</a>
-                    <a href="#contact">Contact</a>
+                    <a href="#about"><span lang="en">About</span><span lang="ja">概要</span></a>
+                    <a href="#skills"><span lang="en">Skills</span><span lang="ja">技術</span></a>
+                    <a href="#projects"><span lang="en">Projects</span><span lang="ja">プロジェクト</span></a>
+                    <a href="#contact"><span lang="en">Contact</span><span lang="ja">連絡先</span></a>
                 </nav>
-                <button id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-                    <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
+                <div class="header-tools">
+                    <div class="lang-switch" role="group" aria-label="Language / 言語">
+                        <button type="button" data-set-lang="en" aria-pressed="true">EN</button>
+                        <button type="button" data-set-lang="ja" aria-pressed="false">日本語</button>
+                    </div>
+                    <button id="theme-toggle" aria-label="Toggle dark mode" title="Light / dark">
+                        <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -89,8 +99,9 @@
 
                         <p class="eyebrow">Robot Learning · Sim-to-Real · Physical AI</p>
 
-                        <h1 class="hero-title">Robotics Software Engineer</h1>
-                        <p class="hero-desc">Real robots at work; learned perception and control in the projects here, measured against classical baselines</p>
+                        <h1 class="hero-title"><span lang="en">Robotics Software Engineer</span><span lang="ja">ロボティクスソフトウェアエンジニア</span></h1>
+                        <p class="hero-desc" lang="en">Real robots at work. In the projects here: learned perception and control, trained in simulation, measured against classical baselines, with the limits stated.</p>
+                        <p class="hero-desc" lang="ja">業務では実機ロボットを担当。ここに載せたプロジェクトでは、シミュレーションで学習した認識・制御を古典的なbaselineと比較して計測し、結果の限界まで明記しています。</p>
 
                         <ul class="tech-tags" aria-label="Primary technologies">
                             <li>ROS2</li>
@@ -100,7 +111,7 @@
                         </ul>
 
                         <div class="cta-buttons">
-                            <a href="#projects" class="btn btn-primary">View Projects</a>
+                            <a href="#projects" class="btn btn-primary"><span lang="en">View Projects</span><span lang="ja">プロジェクトを見る</span></a>
                             <a href="https://github.com/AungKaung1928" target="_blank" rel="noopener" class="btn btn-secondary">
                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -124,18 +135,40 @@
             <div class="container">
                 <div class="section-head">
                     <span class="section-num">01</span>
-                    <h2 class="section-title">About</h2>
+                    <h2 class="section-title"><span lang="en">About</span><span lang="ja">概要</span></h2>
                 </div>
                 <div class="about-content">
-                    <p class="lede">Robotics Software Engineer: ROS2, C++ and LiDAR perception on real mobile robots at work. The projects here are personal: learned perception and control trained in simulation, measured against a classical baseline, exported to run on device.</p>
+                    <p class="lede" lang="en">Robotics Software Engineer: ROS2, C++ and LiDAR perception on real mobile robots at work. The projects here are personal: learned perception and control trained in simulation, measured against a classical baseline, exported to run on device.</p>
+                    <p class="lede" lang="ja">ロボティクスソフトウェアエンジニア。業務では実機の移動ロボットでROS2・C++・LiDAR認識を担当しています。ここに載せたプロジェクトは個人開発で、シミュレーションで学習した認識・制御を古典的なbaselineと比較して計測し、デバイス上で動く形でexportしています。</p>
                     <dl class="spec-list">
                         <div class="spec-row">
-                            <dt>Current Focus</dt>
-                            <dd>Robot learning on CPU: biped balance, arm manipulation by RL, imitation and language, an INT8 detector · Sim-to-real: domain randomisation, held-out physics, ONNX export · A bit-identical C++ simulation backend</dd>
+                            <dt><span lang="en">How I work</span><span lang="ja">進め方</span></dt>
+                            <dd>
+                                <ul class="method-list" lang="en">
+                                    <li><b>01</b>Classical baseline first, so the learned result has something to beat</li>
+                                    <li><b>02</b>One evaluation protocol, fixed before training: 100 episodes × 5 seeds</li>
+                                    <li><b>03</b>Test on physics the policy never saw, not on the training randomisation</li>
+                                    <li><b>04</b>Negative results published as negative</li>
+                                    <li><b>05</b>Export (ONNX / INT8 / C++) and measure the latency</li>
+                                </ul>
+                                <ul class="method-list" lang="ja">
+                                    <li><b>01</b>まず古典的なbaselineを作り、学習結果が超えるべき基準を置く</li>
+                                    <li><b>02</b>評価プロトコルは学習前に固定（100 episodes × 5 seeds）</li>
+                                    <li><b>03</b>学習時のrandomisationではなく、policyが見ていない物理モデルで検証</li>
+                                    <li><b>04</b>悪い結果は悪い結果のまま公開</li>
+                                    <li><b>05</b>ONNX / INT8 / C++へexportし、latencyまで計測</li>
+                                </ul>
+                            </dd>
                         </div>
                         <div class="spec-row">
-                            <dt>Career Goal</dt>
-                            <dd>Physical AI Engineer — shipping learned behaviour onto real machines: sim-to-real, legged locomotion, robust perception.</dd>
+                            <dt><span lang="en">Current Focus</span><span lang="ja">現在の注力領域</span></dt>
+                            <dd lang="en">Robot learning on CPU: biped balance, arm manipulation by RL, imitation and language, an INT8 detector · Sim-to-real: domain randomisation, held-out physics, ONNX export · A bit-identical C++ simulation backend</dd>
+                            <dd lang="ja">CPUでのrobot learning：二足ロボットのバランス制御、RL・imitation learning・言語指示によるアーム操作、INT8検出器 · Sim-to-real：domain randomisation、held-out physics、ONNX export · Pythonとビット単位で一致するC++シミュレーションbackend</dd>
+                        </div>
+                        <div class="spec-row">
+                            <dt><span lang="en">Career Goal</span><span lang="ja">目指す役割</span></dt>
+                            <dd lang="en">Physical AI Engineer — shipping learned behaviour onto real machines: sim-to-real, legged locomotion, robust perception.</dd>
+                            <dd lang="ja">Physical AI Engineer — 学習した挙動を実機に載せて動かす。sim-to-real、脚式ロボットの歩行、頑健な認識。</dd>
                         </div>
                     </dl>
                 </div>
@@ -146,7 +179,7 @@
             <div class="container">
                 <div class="section-head">
                     <span class="section-num">02</span>
-                    <h2 class="section-title">Technical Stack</h2>
+                    <h2 class="section-title"><span lang="en">Technical Stack</span><span lang="ja">技術スタック</span></h2>
                 </div>
                 <div class="skills-grid">
                     <div class="skill-category">
@@ -181,23 +214,28 @@
             <div class="container">
                 <div class="section-head">
                     <span class="section-num">03</span>
-                    <h2 class="section-title">Projects</h2>
-                    <a href="projects/" class="section-link">Walkthroughs <span aria-hidden="true">→</span></a>
+                    <h2 class="section-title"><span lang="en">Projects</span><span lang="ja">プロジェクト</span></h2>
+                    <a href="projects/" class="section-link"><span lang="en">Walkthroughs</span><span lang="ja">全プロジェクト解説</span> <span aria-hidden="true">→</span></a>
                 </div>
                 <div class="projects-grid">
                     <article class="project-card">
                         <div class="project-index">01</div>
                         <h3>Microduck Balance and Push Recovery</h3>
                         <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>ONNX</li></ul>
-                        <ul class="project-points">
+                        <ul class="project-points" lang="en">
                             <li>Balance policy for a 25 cm, 14-servo open-source biped, PPO in CPU MuJoCo; the observation is only what the robot's sensors report</li>
-                            <li>Reward rebuilt after three of four penalties measured under 0.25% of the return</li>
-                            <li>After 50M steps: 344.8 ± 2.9 of 500 vs PD 175.8 ± 0.2, above the fall height 73% vs 47% of the time, 100 episodes &times; 5 seeds; a KL stop fixed a runaway step size, and getting up after a fall is still unshown</li>
-                            <li>Domain randomisation, tested on two held-out physics models, made it worse: it learned to brace in a crouch (upright 28% vs 47%)</li>
+                            <li>Reward rebuilt after three of four penalties measured under 0.25% of the return; a KL stop fixed a runaway step size</li>
                         </ul>
+                        <ul class="project-points" lang="ja">
+                            <li>全高25 cm・14サーボのオープンソース二足ロボットのバランスpolicy。CPU版MuJoCoでPPO学習。observationは実機センサーが出す値のみ</li>
+                            <li>4つのpenaltyのうち3つがreturnの0.25%未満と計測されたためrewardを再設計。暴走したstep sizeはKL stopで修正</li>
+                        </ul>
+                        <p class="project-result"><b>344.8 ± 2.9</b> vs PD 175.8 ± 0.2 <span lang="en">of 500 after 50M steps; upright 73% vs 47% of the time</span><span lang="ja">（500点満点、50M steps）。直立時間 73% vs 47%</span> · 100 episodes × 5 seeds</p>
+                        <p class="project-limit" lang="en">Domain randomisation, tested on two held-out physics models, made it worse: the policy learned to brace in a crouch (upright 28% vs 47%). Getting up after a fall is still unshown.</p>
+                        <p class="project-limit" lang="ja">Domain randomisationは2つのheld-out物理モデルで検証した結果、悪化（しゃがんで踏ん張る挙動を学習、直立 28% vs 47%）。転倒後の起き上がりは未達成。</p>
                         <div class="project-links">
-                            <a href="projects/microduck-rl.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/microduck-rl.html" class="project-link is-primary"><span lang="en">How it works</span><span lang="ja">解説を読む</span> <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/microduck-rl" target="_blank" rel="noopener" class="project-link"><span lang="en">View on GitHub</span><span lang="ja">GitHub</span> <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
@@ -205,15 +243,20 @@
                         <div class="project-index">02</div>
                         <h3>Threaded C++ MuJoCo Backend, Bit-Identical</h3>
                         <ul class="project-tech"><li>C++17</li><li>MuJoCo</li><li>pybind11</li><li>CMake</li></ul>
-                        <ul class="project-points">
+                        <ul class="project-points" lang="en">
                             <li>Project 01's environment in C++17, N envs on T threads of one process, drop-in for the same PPO loop</li>
                             <li>6,275 of 6,275 observations bit-identical to Python; CI under ASan, UBSan and TSan</li>
-                            <li>1.9&ndash;2.0&times; the Python vector env at 8 workers (12,327 vs 6,385 env-steps/s)</li>
-                            <li>Full 50M-step PPO run in 3.1 h instead of 3.8&ndash;4.4; over three training seeds each its policies score 339.4 &plusmn; 2.3 of 500 on the Python env vs 348.1 &plusmn; 8.1, no backend difference in return or survival</li>
                         </ul>
+                        <ul class="project-points" lang="ja">
+                            <li>プロジェクト01の環境をC++17で再実装。1プロセス内のTスレッドでN環境を並列実行し、同じPPOループにそのまま差し替え可能</li>
+                            <li>6,275個のobservationすべてがPythonとビット単位で一致。CIはASan・UBSan・TSan付きで実行</li>
+                        </ul>
+                        <p class="project-result"><b>1.9–2.0×</b> <span lang="en">the Python vector env at 8 workers</span><span lang="ja">Python vector env比（8 workers）</span> (12,327 vs 6,385 env-steps/s) · 50M-step PPO <b>3.1 h</b> vs 3.8–4.4 h</p>
+                        <p class="project-limit" lang="en">Three training seeds per backend: 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 on the Python env, no backend difference in return or survival. Faster to train, not better.</p>
+                        <p class="project-limit" lang="ja">backendごとに3 seeds学習し、Python環境での評価は339.4 ± 2.3 vs 348.1 ± 8.1（500点満点）。returnにも生存率にも差はなし。速くなるだけで、賢くはならない。</p>
                         <div class="project-links">
-                            <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary"><span lang="en">How it works</span><span lang="ja">解説を読む</span> <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener" class="project-link"><span lang="en">View on GitHub</span><span lang="ja">GitHub</span> <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
@@ -221,15 +264,20 @@
                         <div class="project-index">03</div>
                         <h3>SO-ARM100 Manipulation with RL, Imitation and Language</h3>
                         <ul class="project-tech"><li>Python</li><li>MuJoCo</li><li>PyTorch</li><li>LeRobot</li></ul>
-                        <ul class="project-points">
+                        <ul class="project-points" lang="en">
                             <li>One MuJoCo bench (four tasks, scripted IK expert, six held-out physics settings) feeds three policy repos: curriculum PPO, imitation (BC, DAgger, ACT) and a language-conditioned policy</li>
-                            <li>Language tested on held-out paraphrases and unseen task&ndash;colour pairs, SmolVLA-base as reference</li>
-                            <li>RL, measured on one training seed: a domain-randomised fine-tune halves the held-out success drop (0.120 &rarr; 0.056), almost all of it on 3-step action latency (0.46 &rarr; 0.76)</li>
-                            <li>Imitation, 100 episodes &times; 5 seeds: action chunking lifts 0.77 from the camera (expert 0.93), single-step cloning 0.05, DAgger 0.14; language measured and weak (0.11 seen, 0.03 unseen pairs, ablation inside noise)</li>
+                            <li>Language tested on held-out paraphrases and unseen task–colour pairs, SmolVLA-base as reference</li>
                         </ul>
+                        <ul class="project-points" lang="ja">
+                            <li>1つのMuJoCoベンチ（4タスク、scripted IK expert、6種のheld-out physics）の上に3つのpolicyリポジトリ：curriculum PPO、imitation learning（BC・DAgger・ACT）、language-conditioned policy</li>
+                            <li>言語指示はheld-outの言い換え文と未学習のタスク×色の組み合わせで検証。参照はSmolVLA-base</li>
+                        </ul>
+                        <p class="project-result">ACT <b>0.77</b> <span lang="en">lift from the camera (expert 0.93) vs BC 0.05, DAgger 0.14</span><span lang="ja">カメラ入力でのlift成功率（expert 0.93）vs BC 0.05、DAgger 0.14</span> · <span lang="en">DR fine-tune halves the held-out drop</span><span lang="ja">DR fine-tuneでheld-out低下が半減</span> 0.120 → 0.056</p>
+                        <p class="project-limit" lang="en">RL result is one training seed. The language policy is measured and weak: 0.11 on seen pairs, 0.03 on unseen, encoder ablation inside noise.</p>
+                        <p class="project-limit" lang="ja">RLの結果は学習1 seedのみ。language policyは計測済みだが弱い：既知ペア 0.11、未知ペア 0.03、encoder ablationはノイズ範囲内。</p>
                         <div class="project-links">
-                            <a href="projects/so-arm100.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/so-arm100-rl" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/so-arm100.html" class="project-link is-primary"><span lang="en">How it works</span><span lang="ja">解説を読む</span> <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/so-arm100-rl" target="_blank" rel="noopener" class="project-link"><span lang="en">View on GitHub</span><span lang="ja">GitHub</span> <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
 
@@ -237,14 +285,20 @@
                         <div class="project-index">04</div>
                         <h3>Tabletop Clutter Detector, INT8 on One Thread</h3>
                         <ul class="project-tech"><li>Python</li><li>PyTorch</li><li>MuJoCo</li><li>ONNX Runtime</li></ul>
-                        <ul class="project-points">
-                            <li>Anchor-free detector for 3&ndash;6 overlapping objects, labels from the renderer's segmentation buffer</li>
-                            <li>mAP@[.5:.95] 0.911 vs a classical pipeline's 0.532, COCO mAP from scratch; 1.20 ms per image on 8 threads</li>
-                            <li>Static INT8: 1.38 ms on one thread (2.6&times; fp32, under classical 2.13 ms) at mAP 0.910; pruning cost 0.065 mAP, so INT8 alone ships</li>
+                        <ul class="project-points" lang="en">
+                            <li>Anchor-free detector for 3–6 overlapping objects, labels from the renderer's segmentation buffer</li>
+                            <li>COCO mAP implemented from scratch; classical pipeline as the baseline</li>
                         </ul>
+                        <ul class="project-points" lang="ja">
+                            <li>重なり合う3〜6個の物体を検出するanchor-free検出器。ラベルはレンダラーのsegmentation bufferから生成</li>
+                            <li>COCO mAPはライブラリを使わず自前で実装。baselineは古典的な画像処理パイプライン</li>
+                        </ul>
+                        <p class="project-result">mAP@[.5:.95] <b>0.911</b> vs classical 0.532 · INT8 <b>1.38 ms</b> <span lang="en">on one thread</span><span lang="ja">（1スレッド）</span> at mAP 0.910, 2.6× fp32, <span lang="en">under classical 2.13 ms</span><span lang="ja">古典手法の2.13 msを下回る</span></p>
+                        <p class="project-limit" lang="en">Pruning cost 0.065 mAP for little latency, so INT8 alone ships. Rendered data only; no real-camera test.</p>
+                        <p class="project-limit" lang="ja">PruningはmAPを0.065落とす割にlatencyがほぼ変わらず不採用。INT8のみ採用。データはレンダリング画像のみで、実カメラでの検証は未実施。</p>
                         <div class="project-links">
-                            <a href="projects/clutter-detect.html" class="project-link is-primary">How it works <span aria-hidden="true">&rarr;</span></a>
-                            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener" class="project-link">View on GitHub <span aria-hidden="true">&rarr;</span></a>
+                            <a href="projects/clutter-detect.html" class="project-link is-primary"><span lang="en">How it works</span><span lang="ja">解説を読む</span> <span aria-hidden="true">&rarr;</span></a>
+                            <a href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener" class="project-link"><span lang="en">View on GitHub</span><span lang="ja">GitHub</span> <span aria-hidden="true">&rarr;</span></a>
                         </div>
                     </article>
                 </div>
@@ -255,7 +309,7 @@
             <div class="container">
                 <div class="section-head">
                     <span class="section-num">04</span>
-                    <h2 class="section-title">Contact</h2>
+                    <h2 class="section-title"><span lang="en">Contact</span><span lang="ja">連絡先</span></h2>
                 </div>
                 <div class="contact-grid">
                     <a href="https://github.com/AungKaung1928" target="_blank" rel="noopener" class="contact-card">
@@ -270,7 +324,7 @@
                     </a>
                     <a href="mailto:aungkaungmyattt1928@gmail.com" class="contact-card">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                        <div class="contact-info"><h4>Email</h4><p>aungkaungmyattt1928@gmail.com</p></div>
+                        <div class="contact-info"><h4><span lang="en">Email</span><span lang="ja">メール</span></h4><p>aungkaungmyattt1928@gmail.com</p></div>
                         <span class="contact-arrow" aria-hidden="true">→</span>
                     </a>
                 </div>
@@ -280,8 +334,8 @@
 
     <footer>
         <div class="container footer-inner">
-            <p>Aung Kaung Myat · Robotics Software Engineer</p>
-            <a href="#top" class="footer-top">Back to top ↑</a>
+            <p>Aung Kaung Myat · <span lang="en">Robotics Software Engineer</span><span lang="ja">ロボティクスソフトウェアエンジニア</span></p>
+            <a href="#top" class="footer-top"><span lang="en">Back to top</span><span lang="ja">ページ上部へ</span> ↑</a>
         </div>
     </footer>
 

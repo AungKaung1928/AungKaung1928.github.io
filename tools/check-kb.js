@@ -17,7 +17,11 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(ROOT, p), 'utf8');
 
-const html = read('index.html');
+// The page carries every translated element twice; the KB is English, so the
+// facts are pulled from the English copy only.
+const html = read('index.html')
+    .replace(/<(\w+) lang="ja"[^>]*>[\s\S]*?<\/\1>/g, '')
+    .replace(/<(\w+) lang="en"([^>]*)>/g, '<$1$2>');
 const targets = [
     { file: 'chat.js', text: read('chat.js'), required: true },
     { file: 'worker/worker.js', text: read('worker/worker.js'), required: true },

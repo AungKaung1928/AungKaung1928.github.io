@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#6a6fa8" data-title-ja="Tabletop Clutter Detector — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,280 +12,101 @@
 <meta property="og:title" content="Tabletop Clutter Detector">
 <meta property="og:description" content="An anchor-free object detector for a cluttered tabletop, scored with a hand-written COCO mAP implementation, compared against a classical baseline, then quantised to INT8 and pruned for a one-thread CPU. Full walkthrough.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236a6fa8'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#f8f8fc;
-  --paper2:#eeeef5;
-  --ink:#191a22;
-  --ink2:#414356;
-  --muted:#6f7186;
-  --line:#e5e5ee;
-  --line2:#d0d0de;
-  --accent:#6a6fa8;
-  --accent-deep:#4a4f83;
-  --accent-soft:#f1f1f9;
-  --accent-line:#c6c8e4;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--warn);background:#faf5ea}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--warn)}
-.note p{font-size:.95rem}
-.steps{display:flex;flex-wrap:wrap;margin-block:4px}
-.stepbox{flex:1 1 168px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
-.stepbox + .stepbox{border-left:0}
-.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
-.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
-.stepbox .sr{font-family:var(--mono);font-size:.75rem;color:var(--ink);font-weight:600;
-  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
-@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fbfbfe}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#a3a6c9;
-  --accent-soft:#1e232e;
-  --accent-deep:#b4b7d4;
-  --accent-line:#3c4260;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">CPU-only robot-learning track · block 2 · repo <code style="background:none;padding:0;color:inherit">mujoco-clutter-detect</code></div>
+    <div class="eyebrow"><span lang="en">CPU-only robot-learning track · block 2 · repo</span><span lang="ja">CPUのみのrobot learningトラック · block 2 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-clutter-detect</code></div>
     <h1>Tabletop Clutter Detector</h1>
-    <p class="deck">Three to six objects of three kinds, jumbled on a table, seen from a tilted camera. Find all
+    <p class="deck" lang="en">Three to six objects of three kinds, jumbled on a table, seen from a tilted camera. Find all
       of them and say what each one is. A hand-written scoring harness, a fully fitted classical pipeline, and
       a 381 k-parameter anchor-free network — built in that order so the network's win could be attributed
       rather than assumed.</p>
+    <p class="deck" lang="ja">3種類・3〜6個の物体がテーブル上に雑然と置かれ、それを斜め上のカメラから撮影します。すべての物体を見つけ、
+      それぞれが何かを答えるタスクです。自作の評価ハーネス、十分にfitさせた古典的パイプライン、パラメータ数381 kのanchor-freeネットワークを、
+      この順番で構築しました。ネットワークの優位を「想定」ではなく「要因まで特定できる形」で示すためです。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
       <span class="chip">ONNX Runtime</span><span class="chip">COCO mAP, hand-written</span>
       <span class="chip">domain randomisation</span><span class="chip">no CUDA anywhere</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Classical pipeline</dt><dd>mAP 0.532</dd></div>
-      <div class="fact"><dt>Learned detector</dt><dd><em>mAP 0.911</em></dd></div>
-      <div class="fact"><dt>Parameters</dt><dd>380 631</dd></div>
-      <div class="fact"><dt>End-to-end latency</dt><dd>1.20 ms · ONNX, 8 thr</dd></div>
-      <div class="fact"><dt>Dataset</dt><dd>28 000 images · 2.9 GB</dd></div>
-      <div class="fact"><dt>Metric tests</dt><dd>15, derived on paper</dd></div>
+      <div class="fact"><dt><span lang="en">Classical pipeline</span><span lang="ja">古典的パイプライン</span></dt><dd>mAP 0.532</dd></div>
+      <div class="fact"><dt><span lang="en">Learned detector</span><span lang="ja">学習ベースの検出器</span></dt><dd><em>mAP 0.911</em></dd></div>
+      <div class="fact"><dt><span lang="en">Parameters</span><span lang="ja">パラメータ数</span></dt><dd>380 631</dd></div>
+      <div class="fact"><dt><span lang="en">End-to-end latency</span><span lang="ja">End-to-end latency</span></dt><dd>1.20 ms · ONNX, 8 thr</dd></div>
+      <div class="fact"><dt><span lang="en">Dataset</span><span lang="ja">データセット</span></dt><dd><span lang="en">28 000 images · 2.9 GB</span><span lang="ja">28 000枚 · 2.9 GB</span></dd></div>
+      <div class="fact"><dt><span lang="en">Metric tests</span><span lang="ja">評価指標のテスト</span></dt><dd><span lang="en">15, derived on paper</span><span lang="ja">15件（手計算で導出）</span></dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#steps">The six steps</a>
-    <a href="#files">Every file</a>
-    <a href="#scene">Scene &amp; labels</a>
-    <a href="#metric">The AP metric</a>
-    <a href="#classical">Classical baseline</a>
-    <a href="#detector">The detector</a>
-    <a href="#ablation">Augmentation study</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#steps"><span lang="en">The six steps</span><span lang="ja">6つのステップ</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#scene"><span lang="en">Scene &amp; labels</span><span lang="ja">シーンとラベル</span></a>
+    <a href="#metric"><span lang="en">The AP metric</span><span lang="ja">AP指標</span></a>
+    <a href="#classical"><span lang="en">Classical baseline</span><span lang="ja">古典的baseline</span></a>
+    <a href="#detector"><span lang="en">The detector</span><span lang="ja">検出器</span></a>
+    <a href="#ablation"><span lang="en">Augmentation study</span><span lang="ja">Augmentationの検証</span></a>
     <a href="#latency">Latency</a>
-    <a href="#edge">INT8 &amp; pruning</a>
-    <a href="#limits">Limits</a>
-    <a href="#run">Running it</a>
+    <a href="#edge"><span lang="en">INT8 &amp; pruning</span><span lang="ja">INT8とpruning</span></a>
+    <a href="#limits"><span lang="en">Limits</span><span lang="ja">限界</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">The task: find every object on a cluttered table, in images where objects hide each other.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">The task: find every object on a cluttered table, in images where objects hide each other.</p><p class="sec-sub" lang="ja">タスク：物体同士が隠し合う画像の中で、雑然としたテーブル上のすべての物体を見つけること。</p></div>
   <div class="stack prose">
-    <p>Object detection is a harder question than it sounds. It is not "is there a box in this picture" — it is
+    <p lang="en">Object detection is a harder question than it sounds. It is not "is there a box in this picture" — it is
       "draw a rectangle around every object, say what each one is, and give me a confidence for each". The
       number of answers is not fixed, some objects hide behind others, and a detector can be wrong in four
       different ways at once: miss an object, invent one, put the rectangle in the wrong place, or put the
       right rectangle on the wrong label.</p>
-    <p>This project builds that from nothing, in a simulator, on a laptop with no graphics card. Three object
+    <p lang="ja">物体検出は、見た目以上に難しい問題です。「この画像に箱があるか」ではなく、「すべての物体を矩形で囲み、それぞれが何かを答え、
+      それぞれに信頼度を付ける」ことが求められます。答えの数は決まっておらず、他の物体の陰に隠れる物体もあります。
+      さらに検出器は、物体を見逃す、存在しない物体を作り出す、矩形の位置を誤る、正しい矩形に誤ったラベルを付ける、という4通りの誤りを同時に犯し得ます。</p>
+    <p lang="en">This project builds that from nothing, in a simulator, on a laptop with no graphics card. Three object
       kinds — <code>box</code>, <code>cylinder</code>, <code>sphere</code> — three to six per scene, in a
       192×192 image from a camera tilted 39° above the table.</p>
-    <h3>Why the order of the work is the design</h3>
-    <p>The tempting sequence is: train a detector, compute a score, write it down. That sequence cannot tell you
+    <p lang="ja">本プロジェクトでは、これをシミュレータ上で、GPUのないノートPCを使ってゼロから構築します。物体は
+      <code>box</code>、<code>cylinder</code>、<code>sphere</code>の3種類で、1シーンに3〜6個。
+      テーブルから39°傾けたカメラで撮影した192×192の画像を使います。</p>
+    <h3><span lang="en">Why the order of the work is the design</span><span lang="ja">作業の順番そのものが設計である理由</span></h3>
+    <p lang="en">The tempting sequence is: train a detector, compute a score, write it down. That sequence cannot tell you
       whether the score is good, because there is nothing to compare it to and no proof the scorer is correct.
       So this project runs the reverse:</p>
-    <ol class="tight">
+    <p lang="ja">ありがちな手順は「検出器を学習し、スコアを計算し、記録する」です。しかしこの手順では、そのスコアが良いのかどうか判断できません。
+      比較対象がなく、評価器が正しいという証明もないからです。そこで本プロジェクトでは逆の順番で進めます。</p>
+    <ol class="tight" lang="en">
       <li><strong>Build the dataset and check the labels are right</strong> before anything reads them.</li>
       <li><strong>Build the metric and prove it</strong> against fifteen cases derived on paper — before there
         is anything to score.</li>
@@ -293,187 +114,230 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         record its number.</li>
       <li><strong>Then</strong> train the network, and report the difference.</li>
     </ol>
+    <ol class="tight" lang="ja">
+      <li><strong>データセットを作り、ラベルが正しいことを確認する</strong>（ラベルを使う処理を書く前に）。</li>
+      <li><strong>評価指標を実装し、正しさを証明する</strong>。手計算で導いた15ケースで検証します（評価対象が存在する前に）。</li>
+      <li><strong>可能な限り強い古典的パイプラインを作る</strong>。fitさせた分類器も含め、その数値を記録します。</li>
+      <li><strong>そのうえで</strong>ネットワークを学習し、差分を報告する。</li>
+    </ol>
     <div class="note key">
-      <span class="note-label">Why that order, specifically</span>
-      <p>The previous project in this track found that half a network's apparent advantage was a single
+      <span class="note-label"><span lang="en">Why that order, specifically</span><span lang="ja">この順番にした具体的な理由</span></span>
+      <p lang="en">The previous project in this track found that half a network's apparent advantage was a single
         calibration constant its baseline had never been given. Building the strong baseline second inflates
         the model. So here the baseline gets everything a classical pipeline can fairly have — including a
         fitted classifier and its own tuning done on the training split — before the network is allowed to
         compete.</p>
+      <p lang="ja">このトラックの前のプロジェクトでは、ネットワークの見かけ上の優位の半分が、baselineに与えられていなかった
+        calibration定数1つによるものだと判明しました。強いbaselineを後から作ると、モデルを過大評価してしまいます。
+        そのため今回は、ネットワークと比較する前に、古典的パイプラインが公平に持ち得るものをすべてbaselineに与えています。
+        fitさせた分類器や、training splitで行ったbaseline自身のチューニングも含みます。</p>
     </div>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>occlusion</b><span>One object hiding part of another. The reason a clutter dataset is harder than a tidy one.</span></div>
-    <div class="gterm"><b>IoU</b><span>Intersection over union — overlap of two boxes divided by their combined area. The standard test for whether a prediction matches a label.</span></div>
-    <div class="gterm"><b>mAP@[.5:.95]</b><span>Average precision averaged over ten IoU thresholds from 0.50 to 0.95. Strict: a loose box scores at the low thresholds only.</span></div>
-    <div class="gterm"><b>anchor-free</b><span>Predicts object centres directly on a grid, instead of scoring thousands of pre-set candidate boxes.</span></div>
-    <div class="gterm"><b>stride 4</b><span>The output grid is one quarter of the input resolution — one cell per 4x4 pixel block.</span></div>
-    <div class="gterm"><b>focal loss</b><span>A loss that down-weights the easy, empty background cells so they cannot drown out the few cells holding objects.</span></div>
-    <div class="gterm"><b>NMS</b><span>Non-maximum suppression — discarding duplicate boxes that fire on the same object.</span></div>
-    <div class="gterm"><b>domain randomisation</b><span>Varying colours, lighting and textures while rendering, so the model cannot learn to depend on any of them.</span></div>
+    <div class="gterm"><b>occlusion</b><span lang="en">One object hiding part of another. The reason a clutter dataset is harder than a tidy one.</span><span lang="ja">ある物体が別の物体の一部を隠すこと。雑然としたデータセットが整然としたものより難しい理由です。</span></div>
+    <div class="gterm"><b>IoU</b><span lang="en">Intersection over union — overlap of two boxes divided by their combined area. The standard test for whether a prediction matches a label.</span><span lang="ja">Intersection over union。2つの矩形の重なり面積を、両者を合わせた面積で割った値です。予測がラベルと一致するかを判定する標準的な基準です。</span></div>
+    <div class="gterm"><b>mAP@[.5:.95]</b><span lang="en">Average precision averaged over ten IoU thresholds from 0.50 to 0.95. Strict: a loose box scores at the low thresholds only.</span><span lang="ja">0.50〜0.95の10個のIoU閾値でaverage precisionを求めて平均したもの。厳しい指標で、位置の甘い矩形は低い閾値でしか点になりません。</span></div>
+    <div class="gterm"><b>anchor-free</b><span lang="en">Predicts object centres directly on a grid, instead of scoring thousands of pre-set candidate boxes.</span><span lang="ja">事前に用意した数千個の候補矩形を評価するのではなく、グリッド上で物体中心を直接予測する方式。</span></div>
+    <div class="gterm"><b>stride 4</b><span lang="en">The output grid is one quarter of the input resolution — one cell per 4x4 pixel block.</span><span lang="ja">出力グリッドの解像度が入力の1/4であること。4x4ピクセルのブロックごとに1セルになります。</span></div>
+    <div class="gterm"><b>focal loss</b><span lang="en">A loss that down-weights the easy, empty background cells so they cannot drown out the few cells holding objects.</span><span lang="ja">簡単で空の背景セルの重みを下げ、物体を含む少数のセルがそれらに埋もれないようにするloss。</span></div>
+    <div class="gterm"><b>NMS</b><span lang="en">Non-maximum suppression — discarding duplicate boxes that fire on the same object.</span><span lang="ja">Non-maximum suppression。同じ物体に対して重複して出た矩形を取り除く処理。</span></div>
+    <div class="gterm"><b>domain randomisation</b><span lang="en">Varying colours, lighting and textures while rendering, so the model cannot learn to depend on any of them.</span><span lang="ja">レンダリング時に色・照明・テクスチャを変化させ、モデルがそのどれにも依存できないようにする手法。</span></div>
   </div>
 </div>
 </section>
 
 <section id="steps">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The six steps and what each one produced</h2><p class="sec-sub">The six build steps, and the concrete artefact each one produced.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">The six steps and what each one produced</span><span lang="ja">6つのステップと各成果物</span></h2><p class="sec-sub" lang="en">The six build steps, and the concrete artefact each one produced.</p><p class="sec-sub" lang="ja">構築の6ステップと、それぞれが生み出した具体的な成果物です。</p></div>
   <div class="stack">
     <div class="steps">
-      <div class="stepbox"><span class="sn">step 1</span><span class="st">Scene &amp; dataset</span>
-        <span class="sd">Two cameras, exact labels read out of the renderer's segmentation buffer, occlusion measured by a pruned second pass.</span>
-        <span class="sr">28 000 images · 2.9 GB · 108 s per 12 k</span></div>
-      <div class="stepbox"><span class="sn">step 2a</span><span class="st">The AP metric</span>
-        <span class="sd">COCO-style AP@[.5:.95] written by hand, not imported. Fifteen paper-derived unit cases plus end-to-end controls.</span>
-        <span class="sr">436 ms for 2000 images</span></div>
-      <div class="stepbox"><span class="sn">step 2b</span><span class="st">Classical baseline</span>
-        <span class="sd">Background estimate → threshold → seed-counted watershed → nine shape features → multinomial logistic regression.</span>
+      <div class="stepbox"><span class="sn">step 1</span><span class="st"><span lang="en">Scene &amp; dataset</span><span lang="ja">シーンとデータセット</span></span>
+        <span class="sd" lang="en">Two cameras, exact labels read out of the renderer's segmentation buffer, occlusion measured by a pruned second pass.</span>
+        <span class="sd" lang="ja">カメラ2台。ラベルはレンダラのsegmentation bufferから正確に読み出し、occlusionは枝刈りした2回目のパスで計測。</span>
+        <span class="sr"><span lang="en">28 000 images · 2.9 GB · 108 s per 12 k</span><span lang="ja">28 000枚 · 2.9 GB · 12 kあたり108 s</span></span></div>
+      <div class="stepbox"><span class="sn">step 2a</span><span class="st"><span lang="en">The AP metric</span><span lang="ja">AP指標</span></span>
+        <span class="sd" lang="en">COCO-style AP@[.5:.95] written by hand, not imported. Fifteen paper-derived unit cases plus end-to-end controls.</span>
+        <span class="sd" lang="ja">COCO形式のAP@[.5:.95]をライブラリを使わず自作。手計算で導いた15件のunit testとend-to-endの対照実験付き。</span>
+        <span class="sr"><span lang="en">436 ms for 2000 images</span><span lang="ja">2000枚で436 ms</span></span></div>
+      <div class="stepbox"><span class="sn">step 2b</span><span class="st"><span lang="en">Classical baseline</span><span lang="ja">古典的baseline</span></span>
+        <span class="sd" lang="en">Background estimate → threshold → seed-counted watershed → nine shape features → multinomial logistic regression.</span>
+        <span class="sd" lang="ja">背景推定 → 二値化 → seed数を数えるwatershed → 9個の形状特徴量 → 多クラスlogistic regression。</span>
         <span class="sr">mAP 0.532 · 2.02 ms</span></div>
-      <div class="stepbox"><span class="sn">step 3</span><span class="st">Anchor-free detector</span>
-        <span class="sd">Centre heatmap + size + offset at stride 4, read by peak-picking. No anchors, no IoU suppression.</span>
+      <div class="stepbox"><span class="sn">step 3</span><span class="st"><span lang="en">Anchor-free detector</span><span lang="ja">Anchor-free検出器</span></span>
+        <span class="sd" lang="en">Centre heatmap + size + offset at stride 4, read by peak-picking. No anchors, no IoU suppression.</span>
+        <span class="sd" lang="ja">stride 4での中心heatmap＋サイズ＋offsetを、ピーク抽出で読み取る。anchorもIoUによる抑制もなし。</span>
         <span class="sr">mAP 0.911 · 381 k params</span></div>
-      <div class="stepbox"><span class="sn">step 4</span><span class="st">Augmentation ablation</span>
-        <span class="sd">Two regimes × four augmentations, one identical budget, every cell scored on both validation sets.</span>
+      <div class="stepbox"><span class="sn">step 4</span><span class="st"><span lang="en">Augmentation ablation</span><span lang="ja">Augmentationのablation</span></span>
+        <span class="sd" lang="en">Two regimes × four augmentations, one identical budget, every cell scored on both validation sets.</span>
+        <span class="sd" lang="ja">2つのregime × 4種のaugmentation。学習量は全条件で同一で、すべてを両方のvalidation setで評価。</span>
         <span class="sr">+0.0007 mAP · 96 min</span></div>
-      <div class="stepbox"><span class="sn">step 5</span><span class="st">ONNX &amp; latency</span>
-        <span class="sd">Export, verify end to end through the same metric, then time on an idle box — and throw away the first measurement.</span>
-        <span class="sr">1.20 ms vs classical 2.13 ms</span></div>
-      <div class="stepbox"><span class="sn">step 6</span><span class="st">INT8 &amp; pruning</span>
-        <span class="sd">Static INT8 with three calibration methods, structured pruning with the channels physically removed, one mAP-versus-latency curve at one thread.</span>
+      <div class="stepbox"><span class="sn">step 5</span><span class="st"><span lang="en">ONNX &amp; latency</span><span lang="ja">ONNXとlatency</span></span>
+        <span class="sd" lang="en">Export, verify end to end through the same metric, then time on an idle box — and throw away the first measurement.</span>
+        <span class="sd" lang="ja">exportし、同じ指標でend-to-endに検証してから、アイドル状態のマシンで計測。最初の計測値は破棄。</span>
+        <span class="sr"><span lang="en">1.20 ms vs classical 2.13 ms</span><span lang="ja">1.20 ms（古典的手法は2.13 ms）</span></span></div>
+      <div class="stepbox"><span class="sn">step 6</span><span class="st"><span lang="en">INT8 &amp; pruning</span><span lang="ja">INT8とpruning</span></span>
+        <span class="sd" lang="en">Static INT8 with three calibration methods, structured pruning with the channels physically removed, one mAP-versus-latency curve at one thread.</span>
+        <span class="sd" lang="ja">3種類のcalibration手法によるstatic INT8、channelを物理的に削除するstructured pruning、1スレッドでのmAP対latency曲線。</span>
         <span class="sr">INT8 1.38 ms · mAP 0.910</span></div>
     </div>
   </div>
 </section>
 
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file, and what it is for</h2><p class="sec-sub">Every source file, how big it is, and the single job it owns.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">すべてのソースファイルについて、規模と担当する1つの役割を示します。</p></div>
   <div class="stack">
-    <h3>Core</h3>
+    <h3><span lang="en">Core</span><span lang="ja">コア</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>common.py</td><td class="num">139</td>
-            <td>Scene constants, the class list, the yaw fold carried over from the previous project, the
+            <td><span lang="en">Scene constants, the class list, the yaw fold carried over from the previous project, the
               overhead projection, IoU between box sets, mask→box conversion, the HSV→RGB helper, the split
               loader, and the label column order. Also two thresholds that decide what counts as a target at
-              all: <code>MIN_VISIBLE_PX = 12</code> and <code>MIN_VISIBLE_FRAC = 0.10</code>.</td></tr>
+              all: <code>MIN_VISIBLE_PX = 12</code> and <code>MIN_VISIBLE_FRAC = 0.10</code>.</span><span lang="ja">シーン定数、クラス一覧、前のプロジェクトから引き継いだyawの折り返し処理、真上からの投影、矩形集合間のIoU、
+              mask→矩形の変換、HSV→RGBのヘルパー、splitのローダー、ラベルの列順。さらに、そもそも何を検出対象とみなすかを決める2つの閾値
+              <code>MIN_VISIBLE_PX = 12</code>と<code>MIN_VISIBLE_FRAC = 0.10</code>も定義しています。</span></td></tr>
           <tr><td>scene.xml</td><td class="num">39</td>
-            <td>The MuJoCo scene. A 1.5 m table plane, one light, two cameras, and six static object slots with
+            <td><span lang="en">The MuJoCo scene. A 1.5 m table plane, one light, two cameras, and six static object slots with
               no joints. Shape, size, colour and pose are all <code>mjModel</code> fields, so one XML covers
-              every class and every appearance — unused slots are parked 10 m away, outside both fields of view.</td></tr>
+              every class and every appearance — unused slots are parked 10 m away, outside both fields of view.</span><span lang="ja">MuJoCoのシーン。1.5 mのテーブル平面、照明1つ、カメラ2台、jointを持たない静的な物体スロット6つで構成されます。
+              形状・サイズ・色・姿勢はすべて<code>mjModel</code>のフィールドなので、1つのXMLで全クラス・全外観を表現できます。
+              使わないスロットは10 m離れた、両カメラの視野外に退避させます。</span></td></tr>
           <tr><td>gen_dataset.py</td><td class="num">239</td>
-            <td>Renders the four splits. Rejection-samples object positions at least 0.075 m apart, writes shape
+            <td><span lang="en">Renders the four splits. Rejection-samples object positions at least 0.075 m apart, writes shape
               and colour into the model, renders RGB, renders again with segmentation enabled, converts each
-              instance mask to a tight box, and computes <code>visible_frac</code> with a pruned second pass.</td></tr>
+              instance mask to a tight box, and computes <code>visible_frac</code> with a pruned second pass.</span><span lang="ja">4つのsplitをレンダリングします。物体位置を0.075 m以上離れるようrejection samplingし、形状と色をモデルに書き込み、
+              RGBをレンダリングし、segmentationを有効にして再度レンダリングします。各instance maskを外接矩形に変換し、
+              枝刈りした2回目のパスで<code>visible_frac</code>を計算します。</span></td></tr>
           <tr><td>view_dataset.py</td><td class="num">69</td>
-            <td>Draws the labels back onto sample images (<code>out/labels.png</code>) so a human can confirm
-              the boxes land where they should before anything trains on them.</td></tr>
+            <td><span lang="en">Draws the labels back onto sample images (<code>out/labels.png</code>) so a human can confirm
+              the boxes land where they should before anything trains on them.</span><span lang="ja">サンプル画像にラベルを描き戻します（<code>out/labels.png</code>）。学習に使う前に、矩形が正しい位置にあることを人の目で確認するためです。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Metric</h3>
+    <h3><span lang="en">Metric</span><span lang="ja">評価指標</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>ap.py</td><td class="num">212</td>
-            <td>The AP implementation. Ten IoU thresholds from 0.50 to 0.95, 101 recall levels, greedy matching
+            <td><span lang="en">The AP implementation. Ten IoU thresholds from 0.50 to 0.95, 101 recall levels, greedy matching
               that cannot cross image boundaries, ignore semantics, per-class averaging with absent classes
-              excluded rather than scored zero. Also size-stratified AP and recall-by-visibility.</td></tr>
+              excluded rather than scored zero. Also size-stratified AP and recall-by-visibility.</span><span lang="ja">APの実装本体。0.50〜0.95の10個のIoU閾値、101点のrecallレベル、画像の境界をまたがないgreedyマッチング、
+              ignoreの扱い、クラスごとの平均（存在しないクラスは0点ではなく除外）。サイズ別APと可視率別recallも実装しています。</span></td></tr>
           <tr><td>test_ap.py</td><td class="num">125</td>
-            <td>Fifteen unit cases. Every expected value derived on paper — a test that records whatever the
-              code printed last time proves only that the code is deterministic.</td></tr>
+            <td><span lang="en">Fifteen unit cases. Every expected value derived on paper — a test that records whatever the
+              code printed last time proves only that the code is deterministic.</span><span lang="ja">15件のunit test。期待値はすべて手計算で導出しています。前回コードが出力した値をそのまま記録するテストでは、
+              コードが決定的であることしか証明できないからです。</span></td></tr>
           <tr><td>sanity_ap.py</td><td class="num">116</td>
-            <td>End-to-end controls on real data: feed ground truth back as detections (must be exactly 1.0),
+            <td><span lang="en">End-to-end controls on real data: feed ground truth back as detections (must be exactly 1.0),
               shuffle the classes, randomise the boxes, keep a known fraction of hits, shift every box by a
-              known pixel count.</td></tr>
+              known pixel count.</span><span lang="ja">実データでのend-to-endの対照実験。ground truthを検出結果として入力する（ちょうど1.0になる必要あり）、
+              クラスをシャッフルする、矩形をランダムにする、正解の一定割合だけを残す、全矩形を既知のピクセル数だけずらす、の各ケースです。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Classical baseline</h3>
+    <h3><span lang="en">Classical baseline</span><span lang="ja">古典的baseline</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr><td>baseline_cv.py</td><td class="num">383</td>
-            <td>Three segmenters (<code>otsu</code>, <code>bgsub</code>, <code>bgsub+ws</code>), a
+            <td><span lang="en">Three segmenters (<code>otsu</code>, <code>bgsub</code>, <code>bgsub+ws</code>), a
               seed-counting watershed splitter, a nine-feature region descriptor, and a class-balanced
               multinomial logistic regression with a fourth <em>background</em> class so the pipeline can
-              suppress its own false positives. Deliberately linear.</td></tr>
+              suppress its own false positives. Deliberately linear.</span><span lang="ja">3種類のセグメンテーション（<code>otsu</code>、<code>bgsub</code>、<code>bgsub+ws</code>）、seed数を数えるwatershedによる領域分割、
+              9個の特徴量による領域記述子、そしてクラス重みを均衡させた多クラスlogistic regression。4番目のクラスとして
+              <em>background</em>を持たせ、パイプライン自身が誤検出を抑制できるようにしています。あえて線形にしています。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Learned detector</h3>
+    <h3><span lang="en">Learned detector</span><span lang="ja">学習ベースの検出器</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr class="hl"><td>detector.py</td><td class="num">227</td>
-            <td>The architecture and the target encoding. Gaussian radius, Gaussian splatting, encode, focal
+            <td><span lang="en">The architecture and the target encoding. Gaussian radius, Gaussian splatting, encode, focal
               loss, masked L1 for the regression heads, the encoder–decoder network, and the decode function
-              whose 3×3 max-pool <em>is</em> the entire non-maximum suppression.</td></tr>
+              whose 3×3 max-pool <em>is</em> the entire non-maximum suppression.</span><span lang="ja">アーキテクチャとターゲットのencoding。Gaussian半径、Gaussian splatting、encode、focal loss、
+              regression head用のmasked L1、encoder–decoderネットワーク、そしてdecode関数です。decode内の3×3 max-poolが、
+              non-maximum suppressionの<em>すべて</em>を担います。</span></td></tr>
           <tr><td>train_det.py</td><td class="num">273</td>
-            <td>The training loop. Holds 1500 images out of <em>train</em> as a tune split so validation is
+            <td><span lang="en">The training loop. Holds 1500 images out of <em>train</em> as a tune split so validation is
               touched exactly once, at the end. Adam + OneCycle, 25 epochs, 34 minutes at 112–128 img/s on
-              8 threads. Contains the photometric and geometric augmentation implementations.</td></tr>
+              8 threads. Contains the photometric and geometric augmentation implementations.</span><span lang="ja">学習ループ。<em>train</em>から1500枚をtune用splitとして取り分け、validationには最後に一度だけ触れるようにしています。
+              Adam + OneCycle、25 epoch、8スレッドで112–128 img/s、所要34分。photometricおよびgeometric augmentationの実装も含みます。</span></td></tr>
           <tr><td>test_detector.py</td><td class="num">106</td>
-            <td>Proves <code>encode</code> and <code>decode</code> are exact inverses <em>before</em> any
+            <td><span lang="en">Proves <code>encode</code> and <code>decode</code> are exact inverses <em>before</em> any
               training. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
               place. Also measures worst-case centre error at 2.00 px, which at stride 4 is exactly the
-              quantisation the offset head exists to undo.</td></tr>
+              quantisation the offset head exists to undo.</span><span lang="ja">学習<em>前に</em>、<code>encode</code>と<code>decode</code>が厳密な逆変換であることを証明します。
+              この種のバグはクラッシュしません。lossは低く収束し、矩形だけが誤った位置に出ます。
+              中心誤差の最悪値も計測しており2.00 pxでした。これはstride 4での量子化誤差そのもので、offset headが打ち消すべき量です。</span></td></tr>
           <tr><td>run_ablation.py</td><td class="num">81</td>
-            <td>Drives the 2×4 grid: two training regimes × four augmentation settings, one identical budget per
-              cell, every model scored on both validation splits.</td></tr>
+            <td><span lang="en">Drives the 2×4 grid: two training regimes × four augmentation settings, one identical budget per
+              cell, every model scored on both validation splits.</span><span lang="ja">2×4のグリッドを実行します。2つの学習regime × 4種のaugmentation設定で、各条件の学習量は同一、
+              全モデルを両方のvalidation splitで評価します。</span></td></tr>
           <tr><td>export_onnx.py</td><td class="num">188</td>
-            <td>Exports at fixed batch 1, checks max absolute difference per head, re-runs the full detection
+            <td><span lang="en">Exports at fixed batch 1, checks max absolute difference per head, re-runs the full detection
               pipeline through ONNX Runtime and scores it with the same <code>ap.py</code>, and times model,
-              decode, and end-to-end at 1, 4 and 8 threads.</td></tr>
+              decode, and end-to-end at 1, 4 and 8 threads.</span><span lang="ja">batch 1固定でexportし、headごとの最大絶対誤差を確認します。さらに検出パイプライン全体をONNX Runtimeで再実行して
+              同じ<code>ap.py</code>で評価し、モデル・decode・end-to-endの時間を1、4、8スレッドで計測します。</span></td></tr>
           <tr><td>quantize.py</td><td class="num">213</td>
-            <td>Static INT8 through ONNX Runtime in QDQ form, U8S8, per-channel weights; MinMax, Percentile and
+            <td><span lang="en">Static INT8 through ONNX Runtime in QDQ form, U8S8, per-channel weights; MinMax, Percentile and
               Entropy calibration on 200 training images, plus a dynamic row for contrast. Scores every graph end
-              to end with <code>ap.py</code> and times it at 1 and 4 threads with the load average recorded.</td></tr>
+              to end with <code>ap.py</code> and times it at 1 and 4 threads with the load average recorded.</span><span lang="ja">ONNX Runtimeによるstatic INT8（QDQ形式、U8S8、per-channelの重み）。学習画像200枚でMinMax・Percentile・Entropyの
+              calibrationを行い、比較用にdynamicの行も加えています。全グラフを<code>ap.py</code>でend-to-endに評価し、
+              load averageを記録したうえで1スレッドと4スレッドで計測します。</span></td></tr>
           <tr><td>prune.py</td><td class="num">342</td>
-            <td>Ranks channels by BatchNorm γ, builds a physically narrower network, copies the surviving weights,
+            <td><span lang="en">Ranks channels by BatchNorm γ, builds a physically narrower network, copies the surviving weights,
               slices every consumer's input channels to match, fine-tunes with step 3's losses, exports, and
-              optionally quantises the result.</td></tr>
+              optionally quantises the result.</span><span lang="ja">BatchNormのγでchannelを順位付けし、物理的に幅の狭いネットワークを構築して、残ったweightをコピーします。
+              後段の入力channelもすべて対応するようスライスし、step 3と同じlossでfine-tuneしてexportします。結果をさらに量子化することもできます。</span></td></tr>
           <tr><td>edge_curve.py</td><td class="num">102</td>
-            <td>Draws mAP against one-thread latency for every graph the two scripts wrote, with the classical
-              pipeline as a dashed line.</td></tr>
+            <td><span lang="en">Draws mAP against one-thread latency for every graph the two scripts wrote, with the classical
+              pipeline as a dashed line.</span><span lang="ja">上記2つのスクリプトが出力した全グラフについて、1スレッドlatencyに対するmAPを描画します。古典的パイプラインは破線で示します。</span></td></tr>
           <tr><td>test_edge.py</td><td class="num">148</td>
-            <td>INT8 round trip, pruning at ratio 0 reproducing the original to 1e-5, and the MAC count against
-              a hand count. Needs no data and no weights.</td></tr>
+            <td><span lang="en">INT8 round trip, pruning at ratio 0 reproducing the original to 1e-5, and the MAC count against
+              a hand count. Needs no data and no weights.</span><span lang="ja">INT8の往復変換、ratio 0のpruningが元のモデルを1e-5の精度で再現すること、MAC数と手計算の一致を確認します。データもweightも不要です。</span></td></tr>
         </tbody>
       </table>
     </div>
 
-    <h3>Inspection and reproduction</h3>
+    <h3><span lang="en">Inspection and reproduction</span><span lang="ja">確認と再現</span></h3>
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
           <tr><td>view_detections.py · view_cnn.py</td>
-            <td>Qualitative figures. <code>view_cnn.py</code> pairs each image with the centre heatmap the boxes
-              were read from — an average cannot show a failure mode, it can only tell you one exists.</td></tr>
+            <td><span lang="en">Qualitative figures. <code>view_cnn.py</code> pairs each image with the centre heatmap the boxes
+              were read from — an average cannot show a failure mode, it can only tell you one exists.</span><span lang="ja">定性評価用の図。<code>view_cnn.py</code>は各画像と、矩形の読み取り元である中心heatmapを並べて表示します。
+              平均値では失敗の様子は見えず、失敗が存在することしか分からないからです。</span></td></tr>
           <tr><td>view_live.py · render_showcase.py</td>
-            <td>Open the scene in MuJoCo's interactive viewer with both cameras in the dropdown, and render
+            <td><span lang="en">Open the scene in MuJoCo's interactive viewer with both cameras in the dropdown, and render
               presentation stills with shadows and a textured floor. Shadows cost 6× throughput
-              (~130 img/s against 800+), which is why the dataset renders plain.</td></tr>
+              (~130 img/s against 800+), which is why the dataset renders plain.</span><span lang="ja">MuJoCoのインタラクティブviewerで、両カメラをドロップダウンから選べる状態でシーンを開きます。また、影とテクスチャ付きの床で
+              発表用の静止画をレンダリングします。影を付けるとthroughputが6分の1になる（約130 img/s対800以上）ため、データセットは影なしでレンダリングしています。</span></td></tr>
           <tr><td>verify.sh</td>
-            <td>Six tiers, cheapest first. Tiers 1–3 need no dataset and no weights and run in under a minute;
-              the later tiers explain how to regenerate what they need rather than failing.</td></tr>
+            <td><span lang="en">Six tiers, cheapest first. Tiers 1–3 need no dataset and no weights and run in under a minute;
+              the later tiers explain how to regenerate what they need rather than failing.</span><span lang="ja">軽い順に6段階。段階1–3はデータセットもweightも不要で、1分以内に終わります。後半の段階は、必要なものがない場合に
+              失敗するのではなく、その再生成方法を案内します。</span></td></tr>
           <tr><td>after_chain.sh · run_rest.sh</td>
-            <td>Job-chaining wrappers used to queue the long training runs on a shared machine.</td></tr>
+            <td><span lang="en">Job-chaining wrappers used to queue the long training runs on a shared machine.</span><span lang="ja">共有マシン上で長時間の学習を順番に実行するための、ジョブ連結用ラッパー。</span></td></tr>
           <tr><td>requirements.txt</td>
-            <td>Pinned CPU wheels — <code>torch==2.14.0+cpu</code>, <code>mujoco==3.12.0</code>,
-              <code>onnxruntime==1.23.2</code>. The versions every number was measured on.</td></tr>
+            <td><span lang="en">Pinned CPU wheels — <code>torch==2.14.0+cpu</code>, <code>mujoco==3.12.0</code>,
+              <code>onnxruntime==1.23.2</code>. The versions every number was measured on.</span><span lang="ja">バージョンを固定したCPU版wheel（<code>torch==2.14.0+cpu</code>、<code>mujoco==3.12.0</code>、
+              <code>onnxruntime==1.23.2</code>）。すべての数値はこのバージョンで計測しています。</span></td></tr>
           <tr><td>runs/ · out/ · data/</td>
-            <td>Everything the README quotes is tracked: metrics JSON, per-epoch transcripts, both checkpoints,
-              and <code>detector.onnx</code>. Only <code>data/</code> (2.9 GB) is gitignored.</td></tr>
+            <td><span lang="en">Everything the README quotes is tracked: metrics JSON, per-epoch transcripts, both checkpoints,
+              and <code>detector.onnx</code>. Only <code>data/</code> (2.9 GB) is gitignored.</span><span lang="ja">READMEが引用するものはすべてgitで管理しています（指標のJSON、epochごとのログ、両方のcheckpoint、
+              <code>detector.onnx</code>）。gitignoreしているのは<code>data/</code>（2.9 GB）だけです。</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -481,16 +345,20 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 </section>
 
 <section id="scene">
-  <div class="sec-head"><span class="sec-num">04</span><h2>The scene, and where the labels come from</h2><p class="sec-sub">How the MuJoCo scene is arranged, and why the labels are exact rather than drawn by hand.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">The scene, and where the labels come from</span><span lang="ja">シーンとラベルの出どころ</span></h2><p class="sec-sub" lang="en">How the MuJoCo scene is arranged, and why the labels are exact rather than drawn by hand.</p><p class="sec-sub" lang="ja">MuJoCoシーンの構成と、ラベルが手描きではなく厳密である理由。</p></div>
   <div class="stack-lg">
     <div class="stack">
-      <h3>Why the camera was tilted</h3>
+      <h3><span lang="en">Why the camera was tilted</span><span lang="ja">カメラを傾けた理由</span></h3>
       <div class="prose stack">
-        <p>The previous project used an overhead camera, which was the right choice there — a top-down image has
+        <p lang="en">The previous project used an overhead camera, which was the right choice there — a top-down image has
           an exact affine pixel-to-world map, ideal for regressing one pose precisely. But it makes
           <em>detection</em> degenerate. Objects resting on a flat table can never overlap in a top-down image,
           so there is no occlusion, no perspective, and no depth-dependent scale. A detector trained on that
           view would learn none of the three things that make detection hard.</p>
+        <p lang="ja">前のプロジェクトでは真上からのカメラを使っており、そこではそれが正しい選択でした。真上からの画像はピクセルとワールド座標の間に
+          厳密なアフィン写像があり、1つの姿勢を精密にregressionするには理想的です。しかし<em>検出</em>タスクとしては退化してしまいます。
+          平らなテーブルに置かれた物体は真上から見ると決して重ならないため、occlusionも遠近感も、奥行きによるスケール変化もありません。
+          その視点で学習した検出器は、検出を難しくしている3つの要素をどれも学べません。</p>
       </div>
       <figure>
         <svg viewBox="0 0 720 248" role="img" aria-label="Two views of the same three objects: from directly overhead they never overlap, from a tilted camera they occlude one another and change size with depth.">
@@ -512,62 +380,81 @@ html.dark-mode .sb-theme .moon-icon{display:block}
           <text x="400" y="220" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">far objects smaller · near ones hide far ones</text>
           <text x="400" y="235" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">silhouettes change with yaw</text>
         </svg>
-        <figcaption>The overhead camera is kept in the scene anyway — it is the only view with an exact
+        <figcaption lang="en">The overhead camera is kept in the scene anyway — it is the only view with an exact
           pixel↔world map, so it verifies the labels and supplies the world coordinates later blocks need.
           Keeping both costs nothing and sets up a later experiment: train under one camera pose, evaluate
           under another.</figcaption>
+        <figcaption lang="ja">それでも真上のカメラはシーンに残しています。ピクセル↔ワールドの厳密な写像を持つ唯一の視点なので、ラベルの検証や、
+          後のblockで必要になるワールド座標の取得に使えるからです。両方残すコストはゼロで、「あるカメラ姿勢で学習し、別の姿勢で評価する」
+          という将来の実験の準備にもなります。</figcaption>
       </figure>
     </div>
 
     <div class="stack prose">
-      <h3>Labels read out of the renderer, not annotated</h3>
-      <p>Each scene is rendered <em>twice</em>. The first pass produces the RGB image. The second runs with
+      <h3><span lang="en">Labels read out of the renderer, not annotated</span><span lang="ja">アノテーションではなくレンダラから読み出すラベル</span></h3>
+      <p lang="en">Each scene is rendered <em>twice</em>. The first pass produces the RGB image. The second runs with
         <code>enable_segmentation_rendering()</code>, which returns, per pixel, which geometry won it. A tight
         box around one instance mask is therefore already correct under perspective, already correct for the
         silhouette of a rotated box, and already correct about what is hidden behind what.</p>
-      <p>This is the concrete reason robot-learning work starts in simulation. The label is not produced by a
+      <p lang="ja">各シーンは<em>2回</em>レンダリングします。1回目でRGB画像を生成します。2回目は
+        <code>enable_segmentation_rendering()</code>を有効にして実行し、ピクセルごとにどのgeometryが手前にあるかを取得します。
+        そのため、1つのinstance maskの外接矩形は、遠近法の下でも、回転した箱のシルエットに対しても、どの物体の陰に何が隠れているかについても、
+        最初から正確です。</p>
+      <p lang="en">This is the concrete reason robot-learning work starts in simulation. The label is not produced by a
         human — it is read out.</p>
+      <p lang="ja">これが、robot learningの仕事がシミュレーションから始まる具体的な理由です。ラベルは人が作るのではなく、読み出すものです。</p>
     </div>
 
     <div class="stack prose">
-      <h3>The occlusion label needs a third pass, and a pruning trick</h3>
-      <p>The segmentation buffer says which object won each pixel. It cannot say how many pixels an object
+      <h3><span lang="en">The occlusion label needs a third pass, and a pruning trick</span><span lang="ja">occlusionラベルには3回目のパスと枝刈りの工夫が必要</span></h3>
+      <p lang="en">The segmentation buffer says which object won each pixel. It cannot say how many pixels an object
         <em>would</em> have had alone — which is exactly what "what fraction of this object is visible" needs.
         So each object is re-rendered with the others parked outside the frame, and the two counts are divided.</p>
-      <p>That is N extra renders per scene and it dominates the cost. The optimisation: skip any object whose
+      <p lang="ja">segmentation bufferから分かるのは、各ピクセルでどの物体が手前にあるかだけです。その物体が単独で置かれていたら何ピクセル
+        <em>占めたはずか</em>は分かりません。しかし「この物体の何割が見えているか」を求めるには、まさにその値が必要です。
+        そこで、他の物体をフレーム外に退避させた状態で各物体を再レンダリングし、2つのピクセル数の比を取ります。</p>
+      <p lang="en">That is N extra renders per scene and it dominates the cost. The optimisation: skip any object whose
         visible box intersects no other visible box — such an object is <em>provably</em> unoccluded, so the
         pruning is exact rather than approximate. It cut the second pass from 4.50 solo renders per image to
         2.19, removing 51 % of those renders and 35 % of the total generation cost.</p>
+      <p lang="ja">これは1シーンあたりN回の追加レンダリングとなり、コストの大半を占めます。最適化として、見えている矩形が他のどの見えている矩形とも
+        交差しない物体はスキップします。そのような物体は隠れていないことが<em>証明できる</em>ため、この枝刈りは近似ではなく厳密です。
+        これにより2回目のパスは画像1枚あたり4.50回の単独レンダリングから2.19回に減り、そのレンダリングの51 %、生成コスト全体の35 %を削減しました。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Decisions frozen into the scene contract</h3>
+      <h3><span lang="en">Decisions frozen into the scene contract</span><span lang="ja">シーン仕様として固定した決定事項</span></h3>
       <div class="pair">
-        <dt>only boxes get a yaw</dt>
-        <dd>A sphere has no observable orientation, and a cylinder's rotation about its own axis is unobservable
+        <dt><span lang="en">only boxes get a yaw</span><span lang="ja">yawを持つのはboxのみ</span></dt>
+        <dd><span lang="en">A sphere has no observable orientation, and a cylinder's rotation about its own axis is unobservable
           too. Labelling them would train the network to fit noise. <code>yaw</code> is <code>NaN</code> for both,
-          and the loss masks it.</dd>
-        <dt>192 px, not 128</dt>
-        <dd>Objects are a median 28 px on a side. At 128 px they would be ≈19 px — below COCO's "small object"
-          threshold, and the task would be measuring the renderer rather than the detector.</dd>
-        <dt>table half-size 1.5 m</dt>
-        <dd>Not 0.5 m. The tilted camera's top frame ray only meets the ground 1.15 m out; a smaller plane leaves
+          and the loss masks it.</span><span lang="ja">球には観測できる向きがなく、円柱の自軸まわりの回転も観測できません。これらにラベルを付けると、ネットワークにノイズを
+          fitさせることになります。両者の<code>yaw</code>は<code>NaN</code>とし、lossではmaskします。</span></dd>
+        <dt><span lang="en">192 px, not 128</span><span lang="ja">128 pxではなく192 px</span></dt>
+        <dd><span lang="en">Objects are a median 28 px on a side. At 128 px they would be ≈19 px — below COCO's "small object"
+          threshold, and the task would be measuring the renderer rather than the detector.</span><span lang="ja">物体の一辺は中央値で28 pxです。128 pxでは約19 pxとなりCOCOの「small object」の閾値を下回り、検出器ではなく
+          レンダラを評価することになってしまいます。</span></dd>
+        <dt><span lang="en">table half-size 1.5 m</span><span lang="ja">テーブルの半幅1.5 m</span></dt>
+        <dd><span lang="en">Not 0.5 m. The tilted camera's top frame ray only meets the ground 1.15 m out; a smaller plane leaves
           a constant black band across the top of every image — dead pixels, and a trivial cue for the network
-          to latch onto.</dd>
-        <dt>no physics</dt>
-        <dd>Objects are placed, not simulated. No <code>mj_step</code>; poses are written directly and
-          <code>mj_forward</code> recomputes the derived state.</dd>
-        <dt>0.075 m minimum separation</dt>
-        <dd>Objects can touch but not interpenetrate. This has a consequence used later: no two object centres
-          can land in the same stride-4 cell, which is what makes peak-picking exact.</dd>
+          to latch onto.</span><span lang="ja">0.5 mではありません。傾けたカメラのフレーム上端の光線は1.15 m先でようやく地面に当たります。平面が小さいと全画像の上部に
+          常に黒い帯が残り、無駄なピクセルになるうえ、ネットワークが頼ってしまう自明な手がかりになります。</span></dd>
+        <dt><span lang="en">no physics</span><span lang="ja">物理演算なし</span></dt>
+        <dd><span lang="en">Objects are placed, not simulated. No <code>mj_step</code>; poses are written directly and
+          <code>mj_forward</code> recomputes the derived state.</span><span lang="ja">物体は配置するだけで、シミュレーションはしません。<code>mj_step</code>は使わず、姿勢を直接書き込み、
+          <code>mj_forward</code>で派生する状態を再計算します。</span></dd>
+        <dt><span lang="en">0.075 m minimum separation</span><span lang="ja">最小間隔0.075 m</span></dt>
+        <dd><span lang="en">Objects can touch but not interpenetrate. This has a consequence used later: no two object centres
+          can land in the same stride-4 cell, which is what makes peak-picking exact.</span><span lang="ja">物体同士は接触できますが、めり込むことはありません。これは後で利用する性質につながります。2つの物体中心が
+          stride 4の同じセルに入ることはなく、そのためピーク抽出が厳密になります。</span></dd>
       </div>
     </div>
 
     <div class="stack">
-      <h3>What was generated</h3>
+      <h3><span lang="en">What was generated</span><span lang="ja">生成したデータ</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Split</th><th class="num">Images</th><th class="num">Objects</th><th class="num">Obj/img</th><th class="num">Occluded &lt;0.9</th><th class="num">&lt;0.5</th><th class="num">img/s</th></tr></thead>
+          <thead><tr><th>Split</th><th class="num"><span lang="en">Images</span><span lang="ja">画像数</span></th><th class="num"><span lang="en">Objects</span><span lang="ja">物体数</span></th><th class="num"><span lang="en">Obj/img</span><span lang="ja">物体/枚</span></th><th class="num"><span lang="en">Occluded &lt;0.9</span><span lang="ja">可視率 &lt;0.9</span></th><th class="num">&lt;0.5</th><th class="num">img/s</th></tr></thead>
           <tbody>
             <tr><td><code>hard/train</code></td><td class="num">12 000</td><td class="num">53 961</td><td class="num">4.50</td><td class="num">10.0 %</td><td class="num">0.6 %</td><td class="num">111.1</td></tr>
             <tr><td><code>hard/val</code></td><td class="num">2 000</td><td class="num">8 992</td><td class="num">4.50</td><td class="num">10.2 %</td><td class="num">0.6 %</td><td class="num">115.1</td></tr>
@@ -577,23 +464,27 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         </table>
       </div>
       <div class="note warnbox">
-        <span class="note-label">A limitation stated before any detector existed</span>
-        <p>Only 10 % of objects are occluded at all and 0.6 % past half. That is what a 39° elevation and a
+        <span class="note-label"><span lang="en">A limitation stated before any detector existed</span><span lang="ja">検出器を作る前に明記した制約</span></span>
+        <p lang="en">Only 10 % of objects are occluded at all and 0.6 % past half. That is what a 39° elevation and a
           0.075 m minimum separation produce. So mAP measured here is <em>not</em> stressed by occlusion, and
           any claim that the detector "handles occlusion" would be unsupported by this dataset. The honest fix
           is a lower camera and a regenerated set — not a softer sentence.</p>
+        <p lang="ja">少しでも隠れている物体は全体の10 %だけで、半分以上隠れている物体は0.6 %です。仰角39°と最小間隔0.075 mの結果です。
+          したがって、ここで計測したmAPはocclusionによる負荷を<em>受けていません</em>。検出器が「occlusionに対応できる」という主張は、
+          このデータセットでは裏付けられません。正しい対処は、表現を和らげることではなく、カメラを低くしてデータセットを作り直すことです。</p>
       </div>
     </div>
   </div>
 </section>
 
 <section id="metric">
-  <div class="sec-head"><span class="sec-num">05</span><h2>The scoring metric, written by hand</h2><p class="sec-sub">COCO mAP implemented from scratch — ten IoU thresholds, 101 recall points, and the matching rule.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">The scoring metric, written by hand</span><span lang="ja">自作の評価指標</span></h2><p class="sec-sub" lang="en">COCO mAP implemented from scratch — ten IoU thresholds, 101 recall points, and the matching rule.</p><p class="sec-sub" lang="ja">COCO mAPをゼロから実装。10個のIoU閾値、101点のrecall、そしてマッチングの規則。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>What mAP@[.5:.95] actually is</h3>
-      <p>Step by step, because the name hides the mechanism:</p>
-      <ol class="tight">
+      <h3><span lang="en">What mAP@[.5:.95] actually is</span><span lang="ja">mAP@[.5:.95]の中身</span></h3>
+      <p lang="en">Step by step, because the name hides the mechanism:</p>
+      <p lang="ja">名前だけでは仕組みが見えないので、順を追って説明します。</p>
+      <ol class="tight" lang="en">
         <li><strong>IoU</strong> — intersection over union — measures how well a predicted box overlaps a true
           one. 1.0 is perfect, 0 is no overlap.</li>
         <li>Pick an IoU threshold, say 0.5. Sort all detections by confidence. Walk down the list; each one is
@@ -604,60 +495,74 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         <li>Repeat at ten thresholds from 0.50 to 0.95 and average. Repeat per class and average again. That is
           mAP@[.5:.95].</li>
       </ol>
-      <p><code>pycocotools</code> is one import away and is deliberately not used. Everything interesting about
+      <ol class="tight" lang="ja">
+        <li><strong>IoU</strong>（intersection over union）は、予測矩形が正解矩形とどれだけ重なるかを表します。1.0が完全一致、0は重なりなしです。</li>
+        <li>IoU閾値を1つ決めます（例えば0.5）。全検出結果を信頼度順に並べ、上から順に見ていきます。まだ割り当てられていないground truthの矩形と
+          閾値以上重なればtrue positive、そうでなければfalse positiveです。マッチングは<em>greedy</em>で、画像の境界はまたぎません。</li>
+        <li>この走査でprecision–recall曲線が描けます。average precisionはその曲線下の面積で、固定された101点のrecallレベルでサンプリングします。</li>
+        <li>これを0.50〜0.95の10個の閾値で繰り返して平均し、さらにクラスごとに繰り返して平均します。これがmAP@[.5:.95]です。</li>
+      </ol>
+      <p lang="en"><code>pycocotools</code> is one import away and is deliberately not used. Everything interesting about
         detection evaluation lives inside those four steps; calling a library teaches none of it. The semantics
         follow pycocotools closely enough to be comparable, and the places they differ are marked in the source.</p>
+      <p lang="ja"><code>pycocotools</code>はimport 1行で使えますが、あえて使っていません。検出の評価で重要なことはすべてこの4ステップの中にあり、
+        ライブラリを呼ぶだけでは何も身に付かないからです。挙動は比較可能な程度にpycocotoolsに合わせてあり、異なる箇所はソースコード中に明記しています。</p>
     </div>
 
     <div class="stack">
-      <h3>Three unit cases that are counter-intuitive — and each one catches a real bug</h3>
+      <h3><span lang="en">Three unit cases that are counter-intuitive — and each one catches a real bug</span><span lang="ja">直感に反する3つのunit test（それぞれが実際のバグを検出する）</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Case</th><th class="num">AP@0.5</th><th>Why</th></tr></thead>
+          <thead><tr><th><span lang="en">Case</span><span lang="ja">ケース</span></th><th class="num">AP@0.5</th><th><span lang="en">Why</span><span lang="ja">理由</span></th></tr></thead>
           <tbody>
-            <tr><td>1 object, 1 correct hit, then 1 false positive</td><td class="num"><strong>1.000</strong></td>
-              <td>The false positive arrives <em>after</em> recall reached 1.0, so no recall level was ever achievable at lower precision. It costs nothing.</td></tr>
-            <tr><td>the same false positive placed <em>before</em> the hit</td><td class="num"><strong>0.500</strong></td>
-              <td>Identical detections, identical recall, half the AP. Ranking is part of the score.</td></tr>
-            <tr><td>1 of 2 objects found, no false positives</td><td class="num"><strong>0.5050</strong></td>
-              <td>Not 0.5 — 51 of the 101 recall levels are reachable, so it is 51/101.</td></tr>
+            <tr><td><span lang="en">1 object, 1 correct hit, then 1 false positive</span><span lang="ja">物体1個、正しい検出1個、その後にfalse positive 1個</span></td><td class="num"><strong>1.000</strong></td>
+              <td><span lang="en">The false positive arrives <em>after</em> recall reached 1.0, so no recall level was ever achievable at lower precision. It costs nothing.</span><span lang="ja">false positiveはrecallが1.0に達した<em>後</em>に来るため、低いprecisionでしか達成できないrecallレベルは存在しません。コストはゼロです。</span></td></tr>
+            <tr><td><span lang="en">the same false positive placed <em>before</em> the hit</span><span lang="ja">同じfalse positiveを正しい検出の<em>前</em>に置く</span></td><td class="num"><strong>0.500</strong></td>
+              <td><span lang="en">Identical detections, identical recall, half the AP. Ranking is part of the score.</span><span lang="ja">検出結果もrecallも同じなのに、APは半分。順位付けもスコアの一部です。</span></td></tr>
+            <tr><td><span lang="en">1 of 2 objects found, no false positives</span><span lang="ja">2個中1個を検出、false positiveなし</span></td><td class="num"><strong>0.5050</strong></td>
+              <td><span lang="en">Not 0.5 — 51 of the 101 recall levels are reachable, so it is 51/101.</span><span lang="ja">0.5ではありません。101点のrecallレベルのうち51点に到達できるため、51/101です。</span></td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>Ignore semantics, and why they get their own test</h3>
-      <p>Stratified AP — "how well does it do on small objects only" — depends entirely on this. Ground truth
+      <h3><span lang="en">Ignore semantics, and why they get their own test</span><span lang="ja">ignoreの扱いと、それ専用のテストがある理由</span></h3>
+      <p lang="en">Stratified AP — "how well does it do on small objects only" — depends entirely on this. Ground truth
         outside the stratum is marked <em>ignore</em>, not deleted. Deleting it turns every correct detection of
         an out-of-stratum object into a false positive. The test shows the same data scoring
         <strong>1.000 with ignore and 0.500 with deletion</strong>.</p>
+      <p lang="ja">層別AP（「小さい物体だけならどの程度か」など）は、これに完全に依存します。層の外にあるground truthは削除せず
+        <em>ignore</em>として扱います。削除すると、層の外の物体に対する正しい検出がすべてfalse positiveになってしまうからです。
+        テストでは同じデータが<strong>ignoreなら1.000、削除なら0.500</strong>になることを示しています。</p>
     </div>
 
     <div class="stack">
-      <h3>End-to-end controls: known inputs have known outputs</h3>
+      <h3><span lang="en">End-to-end controls: known inputs have known outputs</span><span lang="ja">End-to-endの対照実験：既知の入力には既知の出力</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Input</th><th class="num">mAP</th><th>Expected</th></tr></thead>
+          <thead><tr><th><span lang="en">Input</span><span lang="ja">入力</span></th><th class="num">mAP</th><th><span lang="en">Expected</span><span lang="ja">期待値</span></th></tr></thead>
           <tbody>
-            <tr><td>ground truth fed back as detections</td><td class="num">1.0000</td><td>exactly 1</td></tr>
-            <tr><td>correct boxes, classes shuffled</td><td class="num">0.1130</td><td>≈ 1/9 — precision ⅓ × recall ⅓</td></tr>
-            <tr><td>random boxes, correct classes</td><td class="num">0.0000</td><td>0</td></tr>
-            <tr><td>keep 75 % / 50 % / 25 % of hits</td><td class="num">0.7492 / 0.4983 / 0.2541</td><td>≈ the fraction kept</td></tr>
+            <tr><td><span lang="en">ground truth fed back as detections</span><span lang="ja">ground truthを検出結果として入力</span></td><td class="num">1.0000</td><td><span lang="en">exactly 1</span><span lang="ja">ちょうど1</span></td></tr>
+            <tr><td><span lang="en">correct boxes, classes shuffled</span><span lang="ja">矩形は正しく、クラスをシャッフル</span></td><td class="num">0.1130</td><td>≈ 1/9 — precision ⅓ × recall ⅓</td></tr>
+            <tr><td><span lang="en">random boxes, correct classes</span><span lang="ja">矩形はランダム、クラスは正しい</span></td><td class="num">0.0000</td><td>0</td></tr>
+            <tr><td><span lang="en">keep 75 % / 50 % / 25 % of hits</span><span lang="ja">正しい検出の75 % / 50 % / 25 %を残す</span></td><td class="num">0.7492 / 0.4983 / 0.2541</td><td><span lang="en">≈ the fraction kept</span><span lang="ja">≈ 残した割合</span></td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <div class="stack">
-      <h3>Why the range of thresholds matters — a controlled degradation</h3>
+      <h3><span lang="en">Why the range of thresholds matters — a controlled degradation</span><span lang="ja">閾値の範囲が重要な理由：制御された劣化実験</span></h3>
       <div class="prose stack">
-        <p>Shifting every box by <em>d</em> pixels in x gives an IoU of exactly <code>(w−d)/(w+d)</code>, so this
+        <p lang="en">Shifting every box by <em>d</em> pixels in x gives an IoU of exactly <code>(w−d)/(w+d)</code>, so this
           test has a predicted answer, not just an observed one.</p>
+        <p lang="ja">全矩形をx方向に<em>d</em>ピクセルずらすと、IoUはちょうど<code>(w−d)/(w+d)</code>になります。そのためこのテストには、
+          観測値だけでなく事前に予測できる答えがあります。</p>
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th class="num">Shift</th><th class="num">Predicted IoU (w = 28)</th><th class="num">mAP</th><th class="num">AP50</th></tr></thead>
+          <thead><tr><th class="num"><span lang="en">Shift</span><span lang="ja">ずらし量</span></th><th class="num"><span lang="en">Predicted IoU (w = 28)</span><span lang="ja">予測IoU（w = 28）</span></th><th class="num">mAP</th><th class="num">AP50</th></tr></thead>
           <tbody>
             <tr><td class="num">0 px</td><td class="num">1.000</td><td class="num">1.0000</td><td class="num">1.0000</td></tr>
             <tr><td class="num">2 px</td><td class="num">0.867</td><td class="num">0.7309</td><td class="num">1.0000</td></tr>
@@ -668,38 +573,45 @@ html.dark-mode .sb-theme .moon-icon{display:block}
         </table>
       </div>
       <div class="note key">
-        <span class="note-label">The argument for AP@[.5:.95] in one row</span>
-        <p>At a 4 px shift, AP50 is still a perfect 1.0000 while mAP has already lost more than half its value.
+        <span class="note-label"><span lang="en">The argument for AP@[.5:.95] in one row</span><span lang="ja">AP@[.5:.95]を使う理由を1行で</span></span>
+        <p lang="en">At a 4 px shift, AP50 is still a perfect 1.0000 while mAP has already lost more than half its value.
           AP50 alone cannot see localisation quality at all.</p>
+        <p lang="ja">4 pxずらした時点で、AP50はまだ満点の1.0000ですが、mAPはすでに半分以上失われています。AP50だけでは位置精度をまったく捉えられません。</p>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>Two stratification decisions</h3>
+      <h3><span lang="en">Two stratification decisions</span><span lang="ja">層別化に関する2つの判断</span></h3>
       <div class="pair">
-        <dt>size bands</dt>
-        <dd>Terciles of <em>this</em> dataset (cut at 25.5 and 31.9 px), not COCO's absolute 32/96 px, which were
+        <dt><span lang="en">size bands</span><span lang="ja">サイズ帯</span></dt>
+        <dd><span lang="en">Terciles of <em>this</em> dataset (cut at 25.5 and 31.9 px), not COCO's absolute 32/96 px, which were
           chosen for ~640 px images. At 192 px every object here is "small" and COCO's stratification would carry
           no information. The terciles show what a single number hides: a uniform 3 px shift costs mAP 0.517 on
-          the smallest third against 0.701 on the largest, because IoU is scale-relative.</dd>
-        <dt>visibility bands report recall, not AP</dt>
-        <dd>A visibility band can be applied to ground truth but not to a detection — the detector never says how
+          the smallest third against 0.701 on the largest, because IoU is scale-relative.</span><span lang="ja">COCOの絶対基準32/96 px（約640 pxの画像向けに決められたもの）ではなく、<em>このデータセット</em>の三分位（25.5 pxと31.9 pxで区切る）を使います。
+          192 pxの画像ではすべての物体が「small」になり、COCOの層別化では情報が得られないからです。三分位にすると、1つの数値に隠れていたものが見えます。
+          一律3 pxずらすと、最も小さい1/3ではmAPが0.517、最も大きい1/3では0.701になります。IoUがスケールに対して相対的だからです。</span></dd>
+        <dt><span lang="en">visibility bands report recall, not AP</span><span lang="ja">可視率帯ではAPではなくrecallを報告</span></dt>
+        <dd><span lang="en">A visibility band can be applied to ground truth but not to a detection — the detector never says how
           occluded it thought an object was. So unmatched detections cannot be attributed to a band, precision is
           undefined, and an "AP for heavily occluded objects" computed this way would be an artefact of where the
-          <em>other</em> bands' false positives landed.</dd>
+          <em>other</em> bands' false positives landed.</span><span lang="ja">可視率による区分はground truthには適用できますが、検出結果には適用できません。検出器は、物体がどの程度隠れていると判断したかを出力しないからです。
+          そのためマッチしなかった検出をどの帯にも割り当てられず、precisionが定義できません。この方法で「大きく隠れた物体のAP」を計算しても、
+          <em>他の</em>帯のfalse positiveがどこに落ちたかによる見かけ上の値にしかなりません。</span></dd>
       </div>
-      <p>Cost: 436 ms for 2000 images × 8992 objects × 3 classes × 10 thresholds. IoU is built once per image and
+      <p lang="en">Cost: 436 ms for 2000 images × 8992 objects × 3 classes × 10 thresholds. IoU is built once per image and
         reused across all ten thresholds — the only optimisation the metric needs.</p>
+      <p lang="ja">計算コスト：2000枚 × 8992物体 × 3クラス × 10閾値で436 ms。IoUは画像ごとに1回だけ計算し、10個の閾値すべてで再利用します。
+        この指標に必要な最適化はこれだけです。</p>
     </div>
   </div>
 </section>
 
 <section id="classical">
-  <div class="sec-head"><span class="sec-num">06</span><h2>The classical baseline</h2><p class="sec-sub">The classical baseline: watershed segmentation, nine hand-designed shape features, and a linear classifier.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The classical baseline</span><span lang="ja">古典的baseline</span></h2><p class="sec-sub" lang="en">The classical baseline: watershed segmentation, nine hand-designed shape features, and a linear classifier.</p><p class="sec-sub" lang="ja">古典的baseline：watershedによるセグメンテーション、手設計の9個の形状特徴量、線形分類器。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>The pipeline</h3>
-      <ol class="tight">
+      <h3><span lang="en">The pipeline</span><span lang="ja">パイプライン</span></h3>
+      <ol class="tight" lang="en">
         <li><strong>Estimate the table, per image.</strong> Either a heavily downsampled median filter or a
           morphological opening — both produce "what this image would look like with no objects on it".</li>
         <li><strong>Threshold the residual.</strong> What remains after subtracting that background is object.</li>
@@ -711,27 +623,44 @@ html.dark-mode .sb-theme .moon-icon{display:block}
           features, with a fourth <em>background</em> class so the pipeline can suppress its own false
           positives — a hand-built objectness. The confidence is the softmax probability of the chosen class.</li>
       </ol>
+      <ol class="tight" lang="ja">
+        <li><strong>画像ごとにテーブルを推定する。</strong>強く縮小したmedian filterか、morphological openingを使います。どちらも
+          「物体がない場合にこの画像がどう見えるか」を推定します。</li>
+        <li><strong>残差を二値化する。</strong>背景を差し引いた残りが物体です。</li>
+        <li><strong>接触している領域を分割する。</strong>距離変換によるwatershedを使いますが、必要な箇所だけに適用します（後述）。</li>
+        <li><strong>各領域を記述する。</strong>手設計の9個の形状特徴量（面積の対数、スケール、アスペクト比、extent、円形度、solidity、
+          正規化した縦位置、上部の充填率、細長さ）を使います。</li>
+        <li><strong>分類する。</strong>9個の特徴量に対し、クラス重みを均衡させた多クラスlogistic regressionを使います。4番目のクラスとして
+          <em>background</em>を持たせ、パイプライン自身が誤検出を抑制できるようにしています（手作りのobjectness）。
+          信頼度は選ばれたクラスのsoftmax確率です。</li>
+      </ol>
       <div class="note">
-        <span class="note-label">Why the classifier is linear on purpose</span>
-        <p>A linear model on hand-designed features is what the classical convention <em>is</em> — a linear
+        <span class="note-label"><span lang="en">Why the classifier is linear on purpose</span><span lang="ja">分類器をあえて線形にした理由</span></span>
+        <p lang="en">A linear model on hand-designed features is what the classical convention <em>is</em> — a linear
           model on HOG, on SIFT, on shape moments. Making it an MLP would quietly turn the baseline into a small
           neural network and destroy the comparison it exists for.</p>
+        <p lang="ja">手設計の特徴量に線形モデルを組み合わせることこそが、古典的手法の定石<em>そのもの</em>です（HOG、SIFT、形状モーメントに線形モデル）。
+          MLPにすると、baselineがいつの間にか小さなニューラルネットワークになり、比較の意味がなくなってしまいます。</p>
       </div>
-      <p>Two more rules that keep it honest: <strong>nothing is thresholded before AP</strong>, because AP
+      <p lang="en">Two more rules that keep it honest: <strong>nothing is thresholded before AP</strong>, because AP
         integrates over every score cut-off and discarding low-confidence detections in advance only removes
         recall the metric would have credited; and <strong>all tuning was done on train and reported on
         val</strong>, because choosing the watershed's smoothing parameter on the split you then report is
         exactly how a baseline gets silently inflated.</p>
+      <p lang="ja">公正さを保つためのルールがさらに2つあります。1つ目は<strong>AP計算の前にスコアで足切りしない</strong>ことです。APはすべてのスコア閾値に
+        わたって積分するため、信頼度の低い検出を事前に捨てても、指標が本来評価したはずのrecallを失うだけです。2つ目は
+        <strong>チューニングはすべてtrainで行い、valで報告する</strong>ことです。watershedの平滑化パラメータを報告対象のsplitで選ぶことは、
+        まさにbaselineが気付かないうちに水増しされる典型的なパターンだからです。</p>
     </div>
 
     <div class="stack">
-      <h3>Results on <code>val</code>, 2000 images</h3>
+      <h3><span lang="en">Results on <code>val</code>, 2000 images</span><span lang="ja"><code>val</code>での結果（2000枚）</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Method</th><th>Regime</th><th class="num">mAP</th><th class="num">AP50</th><th class="num">AP75</th><th class="num">Agnostic mAP</th><th class="num">Det rate</th><th class="num">ms/img</th></tr></thead>
+          <thead><tr><th><span lang="en">Method</span><span lang="ja">手法</span></th><th>Regime</th><th class="num">mAP</th><th class="num">AP50</th><th class="num">AP75</th><th class="num">Agnostic mAP</th><th class="num"><span lang="en">Det rate</span><span lang="ja">検出率</span></th><th class="num">ms/img</th></tr></thead>
           <tbody>
             <tr><td>otsu</td><td><code>easy</code></td><td class="num">0.4460</td><td class="num">0.5178</td><td class="num">0.4488</td><td class="num">0.5138</td><td class="num">0.5482</td><td class="num">0.36</td></tr>
-            <tr class="bad"><td>otsu</td><td><code>hard</code></td><td class="num" style="color:#9c4a45;font-weight:600">0.1430</td><td class="num">0.2182</td><td class="num">0.1401</td><td class="num">0.1699</td><td class="num">0.2316</td><td class="num">0.19</td></tr>
+            <tr class="bad"><td>otsu</td><td><code>hard</code></td><td class="num" style="color:var(--bad);font-weight:600">0.1430</td><td class="num">0.2182</td><td class="num">0.1401</td><td class="num">0.1699</td><td class="num">0.2316</td><td class="num">0.19</td></tr>
             <tr><td>bgsub</td><td><code>easy</code></td><td class="num">0.5002</td><td class="num">0.5639</td><td class="num">0.4962</td><td class="num">0.5307</td><td class="num">0.5524</td><td class="num">1.04</td></tr>
             <tr><td>bgsub</td><td><code>hard</code></td><td class="num">0.4114</td><td class="num">0.4979</td><td class="num">0.4128</td><td class="num">0.4761</td><td class="num">0.5251</td><td class="num">1.12</td></tr>
             <tr><td>bgsub + watershed</td><td><code>easy</code></td><td class="num">0.5895</td><td class="num">0.7672</td><td class="num">0.5853</td><td class="num">0.6658</td><td class="num">0.7164</td><td class="num">1.88</td></tr>
@@ -743,83 +672,104 @@ html.dark-mode .sb-theme .moon-icon{display:block}
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>A repair applied to something that is not broken is damage</h4>
-        <p><code>bgsub</code> alone leaves a <em>bimodal</em> error distribution: 47.3 % of objects recovered at
+        <h4><span lang="en">A repair applied to something that is not broken is damage</span><span lang="ja">壊れていないものへの修正は破壊になる</span></h4>
+        <p lang="en"><code>bgsub</code> alone leaves a <em>bimodal</em> error distribution: 47.3 % of objects recovered at
           IoU ≥ 0.9, and 38.6 % below 0.5 because touching objects merge into one region. The obvious fix —
           distance-transform watershed — made things <em>worse</em> when applied to every region.</p>
+        <p lang="ja"><code>bgsub</code>単体では誤差の分布が<em>二峰性</em>になります。47.3 %の物体はIoU ≥ 0.9で検出できる一方、38.6 %は
+          接触した物体が1つの領域に融合するためIoU 0.5未満になります。素直な対策である距離変換watershedを全領域に適用すると、結果は<em>悪化</em>しました。</p>
         <div class="tablewrap"><table>
-          <thead><tr><th>Variant</th><th class="num">Regions/img</th><th class="num">Det rate</th><th class="num">Agnostic mAP</th><th class="num">IoU ≥ 0.9</th><th class="num">IoU &lt; 0.5</th></tr></thead>
+          <thead><tr><th><span lang="en">Variant</span><span lang="ja">条件</span></th><th class="num"><span lang="en">Regions/img</span><span lang="ja">領域数/枚</span></th><th class="num"><span lang="en">Det rate</span><span lang="ja">検出率</span></th><th class="num">Agnostic mAP</th><th class="num">IoU ≥ 0.9</th><th class="num">IoU &lt; 0.5</th></tr></thead>
           <tbody>
             <tr><td><code>bgsub</code></td><td class="num">3.40</td><td class="num">0.5211</td><td class="num">0.3746</td><td class="num">47.3 %</td><td class="num">38.6 %</td></tr>
-            <tr class="bad"><td>watershed on <strong>every</strong> region</td><td class="num">4.29</td><td class="num">0.4933</td><td class="num">0.3004</td><td class="num" style="color:#9c4a45;font-weight:600">6.3 %</td><td class="num">25.0 %</td></tr>
-            <tr class="hl"><td>watershed on <strong>multi-seed regions only</strong></td><td class="num">4.29</td><td class="num"><strong>0.7067</strong></td><td class="num"><strong>0.5525</strong></td><td class="num"><strong>52.6 %</strong></td><td class="num"><strong>14.1 %</strong></td></tr>
+            <tr class="bad"><td><span lang="en">watershed on <strong>every</strong> region</span><span lang="ja"><strong>全</strong>領域にwatershed</span></td><td class="num">4.29</td><td class="num">0.4933</td><td class="num">0.3004</td><td class="num" style="color:var(--bad);font-weight:600">6.3 %</td><td class="num">25.0 %</td></tr>
+            <tr class="hl"><td><span lang="en">watershed on <strong>multi-seed regions only</strong></span><span lang="ja"><strong>seedが複数ある領域のみ</strong>にwatershed</span></td><td class="num">4.29</td><td class="num"><strong>0.7067</strong></td><td class="num"><strong>0.5525</strong></td><td class="num"><strong>52.6 %</strong></td><td class="num"><strong>14.1 %</strong></td></tr>
           </tbody>
         </table></div>
-        <p>Running the watershed everywhere redraws the boundary of regions that were already correct: the
+        <p lang="en">Running the watershed everywhere redraws the boundary of regions that were already correct: the
           near-perfect tier collapsed from 47.3 % to 6.3 % while the merged tier only fell from 38.6 % to 25.0 %.
           Counting distance-transform seeds inside each connected region first, and leaving single-seed regions
           untouched, keeps the good tier <em>and</em> fixes the merges. A parameter sweep would never have found
           this — the sweep converged towards "split less", which was the wrong axis entirely.</p>
+        <p lang="ja">watershedを全領域に適用すると、すでに正しかった領域の境界まで引き直されます。ほぼ完璧だった層は47.3 %から6.3 %に崩れ、
+          融合していた層は38.6 %から25.0 %にしか減りませんでした。先に連結領域ごとに距離変換のseedを数え、seedが1つの領域には手を付けないようにすると、
+          良い層を保ったまま融合も解消できます。パラメータsweepではこれは見つかりませんでした。sweepは「分割を減らす」方向に収束しましたが、
+          それはそもそも見当違いの軸だったからです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>A wrong prior still returns an answer</h4>
-        <p>Global Otsu thresholding on greyscale is a reasonable-looking method: objects and table differ in
+        <h4><span lang="en">A wrong prior still returns an answer</span><span lang="ja">誤った前提でも答えは返ってくる</span></h4>
+        <p lang="en">Global Otsu thresholding on greyscale is a reasonable-looking method: objects and table differ in
           brightness, so split the histogram. Under <code>easy</code> it scores 0.446. Under <code>hard</code>,
           where table value is uniform(0.25, 0.85) and object value uniform(0.45, 1.0), the two distributions
           overlap and the split lands <em>inside</em> the objects — mAP <strong>0.143</strong>, a 3.1× collapse,
           detection rate 0.232. It never raised an error. It returned a mask every time, and its per-class
           numbers read like a weak detector rather than a broken one.</p>
+        <p lang="ja">グレースケールに対する大域的なOtsu二値化は、一見妥当な手法です。物体とテーブルは明るさが違うので、ヒストグラムを分ければよい、という発想です。
+          <code>easy</code>では0.446を出します。しかし<code>hard</code>ではテーブルの明度がuniform(0.25, 0.85)、物体の明度がuniform(0.45, 1.0)で
+          2つの分布が重なり、閾値が物体の<em>内側</em>に来てしまいます。mAPは<strong>0.143</strong>と3.1分の1に崩れ、検出率は0.232でした。
+          それでもエラーは一度も出ませんでした。毎回maskを返し、クラスごとの数値も「壊れた検出器」ではなく「弱い検出器」のように見えました。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>Classification is the bottleneck, not localisation</h4>
-        <p>On <code>hard</code>, class-agnostic AP50 is <strong>0.823</strong> against class-aware AP50
+        <h4><span lang="en">Classification is the bottleneck, not localisation</span><span lang="ja">ボトルネックは位置推定ではなく分類</span></h4>
+        <p lang="en">On <code>hard</code>, class-agnostic AP50 is <strong>0.823</strong> against class-aware AP50
           <strong>0.698</strong>. The boxes are in the right place; the label on them is wrong 15 % of the time.
           Per class: sphere 0.695, cylinder 0.510, box <strong>0.391</strong>. A sphere's silhouette is a circle
           from every direction, so nine shape features describe it completely. A box's silhouette under a tilted
           camera changes with yaw, and at 28 px there is not enough of it left for a linear rule. That gap is the
           specific thing a learned feature extractor should close — and it is now measured rather than assumed.</p>
+        <p lang="ja"><code>hard</code>では、クラスを区別しないAP50が<strong>0.823</strong>、クラスを区別するAP50が<strong>0.698</strong>です。
+          矩形の位置は合っていますが、付いているラベルが15 %の割合で間違っています。クラス別ではsphere 0.695、cylinder 0.510、box <strong>0.391</strong>です。
+          球のシルエットはどの方向から見ても円なので、9個の形状特徴量で完全に記述できます。一方、傾いたカメラから見た箱のシルエットはyawによって変わり、
+          28 pxでは線形のルールで扱えるほどの情報が残りません。この差こそ学習ベースの特徴抽出器が埋めるべきもので、今回それを想定ではなく計測で示しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>Occlusion is where the classical pipeline stops, not degrades</h4>
-        <p>Recall at IoU 0.5 by visible fraction: <strong>0.785</strong> above 0.9 visibility,
+        <h4><span lang="en">Occlusion is where the classical pipeline stops, not degrades</span><span lang="ja">occlusionで古典的パイプラインは「劣化」ではなく「停止」する</span></h4>
+        <p lang="en">Recall at IoU 0.5 by visible fraction: <strong>0.785</strong> above 0.9 visibility,
           <strong>0.348</strong> between 0.5 and 0.9, and <strong>0.000</strong> below 0.5. Not a slope — a
           cliff. A partially hidden object has the wrong silhouette, so every shape feature it produces is wrong
           at once.</p>
+        <p lang="ja">可視率別のIoU 0.5でのrecallは、可視率0.9超で<strong>0.785</strong>、0.5〜0.9で<strong>0.348</strong>、0.5未満で<strong>0.000</strong>です。
+          緩やかな低下ではなく崖です。一部が隠れた物体はシルエットが正しくないため、そこから得られる形状特徴量がすべて同時に狂います。</p>
       </div></div>
     </div>
   </div>
 </section>
 
 <section id="detector">
-  <div class="sec-head"><span class="sec-num">07</span><h2>The anchor-free detector</h2><p class="sec-sub">The anchor-free detector: heatmap, size and offset heads, focal loss, and max-pooling used as suppression.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">The anchor-free detector</span><span lang="ja">Anchor-free検出器</span></h2><p class="sec-sub" lang="en">The anchor-free detector: heatmap, size and offset heads, focal loss, and max-pooling used as suppression.</p><p class="sec-sub" lang="ja">Anchor-free検出器：heatmap・サイズ・offsetの各head、focal loss、抑制処理として使うmax-pooling。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Where the idea comes from</h3>
-      <p>The previous project's winning head was a spatial soft-argmax: reduce a feature map to <em>one</em>
+      <h3><span lang="en">Where the idea comes from</span><span lang="ja">発想の出どころ</span></h3>
+      <p lang="en">The previous project's winning head was a spatial soft-argmax: reduce a feature map to <em>one</em>
         expected location. That is exactly why it cannot be used here — there are three to six objects, and one
         expectation cannot describe them.</p>
-      <p>The generalisation is to stop reducing the map at all. Keep it at stride 4 (48×48 for a 192 px input),
+      <p lang="ja">前のプロジェクトで最も良かったheadは空間的なsoft-argmaxで、feature mapを<em>1つ</em>の期待位置に集約するものでした。
+        まさにそれが、ここでは使えない理由です。物体は3〜6個あり、1つの期待値では表現できません。</p>
+      <p lang="en">The generalisation is to stop reducing the map at all. Keep it at stride 4 (48×48 for a 192 px input),
         predict a per-class centre heatmap on it, and read <em>every</em> local maximum instead of the mean.
         Size and offset ride along as two more heads on the same feature map. No anchor boxes, no region
         proposals, no IoU-based suppression anywhere.</p>
+      <p lang="ja">一般化の方法は、mapを集約するのをやめることです。stride 4（192 pxの入力なら48×48）のまま保ち、その上でクラスごとの中心heatmapを予測し、
+        平均ではなく<em>すべての</em>極大値を読み取ります。サイズとoffsetは、同じfeature map上の2つの追加headとして予測します。
+        anchor boxもregion proposalも、IoUに基づく抑制処理も一切ありません。</p>
     </div>
 
     <div class="stack">
-      <h3>Three heads on one feature map</h3>
+      <h3><span lang="en">Three heads on one feature map</span><span lang="ja">1つのfeature map上の3つのhead</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Head</th><th class="num">Channels</th><th>Predicts</th><th>Loss</th></tr></thead>
+          <thead><tr><th>Head</th><th class="num">Channels</th><th><span lang="en">Predicts</span><span lang="ja">予測対象</span></th><th>Loss</th></tr></thead>
           <tbody>
-            <tr><td><code>hm</code> — heatmap</td><td class="num">3</td><td>One map per class. A peak means "an object centre is here".</td><td>Focal loss on a Gaussian-splatted target</td></tr>
-            <tr><td><code>wh</code> — size</td><td class="num">2</td><td>Width and height in cells, read only at the peak.</td><td>Masked L1</td></tr>
-            <tr><td><code>off</code> — offset</td><td class="num">2</td><td>The sub-cell remainder — where inside the 4×4 pixel cell the true centre actually was.</td><td>Masked L1</td></tr>
+            <tr><td><code>hm</code> — heatmap</td><td class="num">3</td><td><span lang="en">One map per class. A peak means "an object centre is here".</span><span lang="ja">クラスごとに1枚のmap。ピークは「ここに物体中心がある」ことを意味します。</span></td><td><span lang="en">Focal loss on a Gaussian-splatted target</span><span lang="ja">Gaussian splattingしたターゲットに対するfocal loss</span></td></tr>
+            <tr><td><code>wh</code> — <span lang="en">size</span><span lang="ja">サイズ</span></td><td class="num">2</td><td><span lang="en">Width and height in cells, read only at the peak.</span><span lang="ja">セル単位の幅と高さ。ピーク位置でのみ読み取ります。</span></td><td>Masked L1</td></tr>
+            <tr><td><code>off</code> — offset</td><td class="num">2</td><td><span lang="en">The sub-cell remainder — where inside the 4×4 pixel cell the true centre actually was.</span><span lang="ja">セル未満の端数。4×4ピクセルのセル内のどこに真の中心があったかを表します。</span></td><td>Masked L1</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
     <div class="stack prose">
-      <h3>The network shape, and why there is a decoder</h3>
+      <h3><span lang="en">The network shape, and why there is a decoder</span><span lang="ja">ネットワーク構造と、decoderがある理由</span></h3>
       <pre><code>c1  3→16   stride 2   →  96×96
 c2 16→32   stride 2   →  48×48
 c3 32→64   stride 2   →  24×24
@@ -831,132 +781,170 @@ y2 = s2( l2(c2) + upsample(y3)     )     back to 48×48, stride 4
 hm  = 1×1 conv → 3 channels  (sigmoid)
 wh  = 1×1 conv → 2 channels
 off = 1×1 conv → 2 channels</code></pre>
-      <p>The decoder exists because the heads need both halves. Stride 16 has the receptive field to say
+      <p lang="en">The decoder exists because the heads need both halves. Stride 16 has the receptive field to say
         <em>"object"</em>; stride 4 has the resolution to say <em>"here"</em>. Predicting at stride 16 would give
         a 28 px object a 1.75-cell footprint, and the offset head would have to absorb an 8 px quantisation —
         larger than the localisation error the classical baseline already achieves. Total: 380 631 parameters.</p>
+      <p lang="ja">decoderがあるのは、headが両方の情報を必要とするからです。stride 16には<em>「物体だ」</em>と言える受容野があり、stride 4には
+        <em>「ここだ」</em>と言える解像度があります。stride 16で予測すると28 pxの物体は1.75セル分の大きさしかなく、offset headは8 pxの量子化誤差を
+        吸収しなければなりません。これは古典的baselineがすでに達成している位置誤差よりも大きい値です。パラメータ数は合計380 631です。</p>
     </div>
 
     <div class="stack prose">
-      <h3>Three details that are load-bearing rather than decorative</h3>
+      <h3><span lang="en">Three details that are load-bearing rather than decorative</span><span lang="ja">飾りではなく結果を左右する3つの細部</span></h3>
       <div class="pair">
-        <dt>bias starts at −4.6</dt>
-        <dd>That is <code>logit(0.01)</code>. 99.8 % of the 2304 cells in a target map are zeros. Initialised at
+        <dt><span lang="en">bias starts at −4.6</span><span lang="ja">biasの初期値は−4.6</span></dt>
+        <dd><span lang="en">That is <code>logit(0.01)</code>. 99.8 % of the 2304 cells in a target map are zeros. Initialised at
           p = 0.5, the focal loss is dominated by pushing background down and the first epochs are spent walking
-          the bias there — and training can diverge doing it.</dd>
-        <dt>3×3 max-pool is the NMS</dt>
-        <dd>A cell survives only if it is the maximum of its own 3×3 neighbourhood. That removes the ridge of
+          the bias there — and training can diverge doing it.</span><span lang="ja">これは<code>logit(0.01)</code>です。ターゲットmapの2304セルのうち99.8 %はゼロです。p = 0.5で初期化すると、focal lossは
+          背景を押し下げる項に支配され、最初の数epochはbiasをそこまで動かすことに費やされます。その過程で学習が発散することもあります。</span></dd>
+        <dt><span lang="en">3×3 max-pool is the NMS</span><span lang="ja">3×3 max-poolがNMS</span></dt>
+        <dd><span lang="en">A cell survives only if it is the maximum of its own 3×3 neighbourhood. That removes the ridge of
           near-peak cells the Gaussian target deliberately creates. It is not an approximation here: the 0.075 m
           minimum separation guarantees no two object centres land in the same cell, so peak-picking is
-          <em>exact</em> and there is no IoU-based suppression in the pipeline at all.</dd>
-        <dt>the larger quadratic root</dt>
-        <dd>The Gaussian radius comes from solving a quadratic for the overlap constraint. The CornerNet and
+          <em>exact</em> and there is no IoU-based suppression in the pipeline at all.</span><span lang="ja">セルは、自身の3×3近傍で最大値である場合にのみ残ります。これにより、Gaussianターゲットが意図的に作るピーク付近の尾根状のセルが取り除かれます。
+          ここではこれは近似ではありません。最小間隔0.075 mにより2つの物体中心が同じセルに入らないことが保証されているので、ピーク抽出は
+          <em>厳密</em>であり、パイプラインにIoUに基づく抑制処理は一切ありません。</span></dd>
+        <dt><span lang="en">the larger quadratic root</span><span lang="ja">二次方程式の大きい方の解</span></dt>
+        <dd><span lang="en">The Gaussian radius comes from solving a quadratic for the overlap constraint. The CornerNet and
           CenterNet reference implementations take the larger root, which is not what the algebra calls for. The
           smaller root was implemented first, and measured: at stride 4 a 28 px object is 7 cells across, and the
           smaller root gives r = 0.57, which floors to 0 and collapses the soft target back to a single hot
           pixel — destroying the only thing it exists for. The larger root gives r = 1.91. The discrepancy is
-          recorded in the source rather than quietly papered over.</dd>
+          recorded in the source rather than quietly papered over.</span><span lang="ja">Gaussian半径は、重なりの制約に関する二次方程式を解いて求めます。CornerNetとCenterNetの参照実装は大きい方の解を採用していますが、
+          これは代数的に導かれる解ではありません。最初に小さい方の解で実装して計測しました。stride 4では28 pxの物体は7セル幅で、小さい方の解は
+          r = 0.57となり、切り捨てで0になります。するとsoftなターゲットが1ピクセルだけのhotな点に戻ってしまい、存在意義そのものが失われます。
+          大きい方の解ではr = 1.91です。この食い違いは、黙って取り繕わずにソースコード中に記録しています。</span></dd>
       </div>
-      <p>Encode and decode were verified as exact inverses <em>before</em> any training, the same discipline the
+      <p lang="en">Encode and decode were verified as exact inverses <em>before</em> any training, the same discipline the
         metric got. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
         place.</p>
+      <p lang="ja">評価指標と同じ方針で、encodeとdecodeが厳密な逆変換であることを学習<em>前に</em>検証しました。この種のバグはクラッシュせず、
+        lossは低く収束したまま矩形を誤った位置に出します。</p>
     </div>
 
     <div class="stack">
-      <h3>Results, <code>hard/val</code>, 2000 images</h3>
+      <h3><span lang="en">Results, <code>hard/val</code>, 2000 images</span><span lang="ja">結果（<code>hard/val</code>、2000枚）</span></h3>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Metric</th><th class="num">Classical <code>bgsub+ws</code></th><th class="num">Detector</th><th class="num">Change</th></tr></thead>
+          <thead><tr><th><span lang="en">Metric</span><span lang="ja">指標</span></th><th class="num"><span lang="en">Classical</span><span lang="ja">古典的手法</span> <code>bgsub+ws</code></th><th class="num"><span lang="en">Detector</span><span lang="ja">検出器</span></th><th class="num"><span lang="en">Change</span><span lang="ja">差分</span></th></tr></thead>
           <tbody>
             <tr class="hl"><td>mAP@[.5:.95]</td><td class="num">0.5322</td><td class="num"><strong>0.9107</strong></td><td class="num">+0.379</td></tr>
             <tr><td>AP50</td><td class="num">0.6979</td><td class="num">0.9899</td><td class="num">+0.292</td></tr>
             <tr><td>AP75</td><td class="num">0.5637</td><td class="num">0.9896</td><td class="num">+0.426</td></tr>
-            <tr><td>class-agnostic mAP</td><td class="num">0.6108</td><td class="num">0.9099</td><td class="num">+0.299</td></tr>
-            <tr><td>detection rate @ 0.5</td><td class="num">0.6847</td><td class="num">0.9433</td><td class="num">+0.259</td></tr>
-            <tr><td>latency (eager, in-process)</td><td class="num"><strong>2.02 ms</strong></td><td class="num">3.87 ms</td><td class="num">1.9× slower</td></tr>
+            <tr><td><span lang="en">class-agnostic mAP</span><span lang="ja">クラス非区別mAP</span></td><td class="num">0.6108</td><td class="num">0.9099</td><td class="num">+0.299</td></tr>
+            <tr><td><span lang="en">detection rate @ 0.5</span><span lang="ja">検出率 @ 0.5</span></td><td class="num">0.6847</td><td class="num">0.9433</td><td class="num">+0.259</td></tr>
+            <tr><td><span lang="en">latency (eager, in-process)</span><span lang="ja">latency（eager、プロセス内）</span></td><td class="num"><strong>2.02 ms</strong></td><td class="num">3.87 ms</td><td class="num"><span lang="en">1.9× slower</span><span lang="ja">1.9倍遅い</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p class="prose" style="font-size:.9rem;color:var(--muted)">Training: 10 500 images with 1500 held out of
+      <p class="prose" style="font-size:.9rem;color:var(--muted)" lang="en">Training: 10 500 images with 1500 held out of
         <em>train</em> to watch for divergence; <code>val</code> was touched exactly once, at the very end.
         25 epochs, Adam + OneCycle, 34 min at 112–128 img/s on 8 threads. The latency row was measured
         in-process immediately after that 34-minute run — step 5 re-measures it on an idle box and gets a
         different answer.</p>
+      <p class="prose" style="font-size:.9rem;color:var(--muted)" lang="ja">学習：10 500枚を使用し、発散を監視するため<em>train</em>から1500枚を取り分けました。
+        <code>val</code>には最後に一度だけ触れています。25 epoch、Adam + OneCycle、8スレッドで112–128 img/s、所要34分。
+        latencyの行は、その34分の学習直後に同じプロセス内で計測したものです。step 5でアイドル状態のマシンで再計測すると、異なる結果になりました。</p>
     </div>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>The classification gap closed — which the baseline predicted</h4>
-        <p>Per-class AP: box 0.391 → <strong>0.914</strong>, cylinder 0.510 → 0.910, sphere 0.695 → 0.908. The
+        <h4><span lang="en">The classification gap closed — which the baseline predicted</span><span lang="ja">分類の差は解消された（baselineから予測した通り）</span></h4>
+        <p lang="en">Per-class AP: box 0.391 → <strong>0.914</strong>, cylinder 0.510 → 0.910, sphere 0.695 → 0.908. The
           spread across classes collapses from <strong>0.304 to 0.006</strong>. The learned extractor does not
           just score higher, it scores <em>evenly</em> — the class that was hardest for hand-designed features
           is now indistinguishable from the easiest. That was a stated prediction before training.</p>
+        <p lang="ja">クラス別AP：box 0.391 → <strong>0.914</strong>、cylinder 0.510 → 0.910、sphere 0.695 → 0.908。クラス間のばらつきは
+          <strong>0.304から0.006</strong>に縮まりました。学習した特徴抽出器はスコアが高いだけでなく、<em>クラス間で均一</em>です。
+          手設計の特徴量で最も難しかったクラスが、今では最も簡単なクラスと区別がつきません。これは学習前に明言していた予測です。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>The occlusion cliff is gone — with a caveat that matters more than the number</h4>
-        <p>Recall at IoU 0.5 by visible fraction: ≥0.9 → 0.785 becomes 1.000; 0.5–0.9 → 0.348 becomes 0.999;
+        <h4><span lang="en">The occlusion cliff is gone — with a caveat that matters more than the number</span><span lang="ja">occlusionの崖は消えた（ただし数値以上に重要な注意点あり）</span></h4>
+        <p lang="en">Recall at IoU 0.5 by visible fraction: ≥0.9 → 0.785 becomes 1.000; 0.5–0.9 → 0.348 becomes 0.999;
           &lt;0.5 → <strong>0.000 becomes 0.910</strong>. A centre heatmap has no coupling to the silhouette —
           the centre of a half-occluded object is still a centre, and the size head regresses the full extent
           from partial evidence.</p>
-        <p><strong>The caveat: n = 53.</strong> That is 0.6 % of the dataset, and 0.910 on 53 samples carries
+        <p lang="ja">可視率別のIoU 0.5でのrecall：≥0.9では0.785が1.000に、0.5–0.9では0.348が0.999に、&lt;0.5では<strong>0.000が0.910</strong>になりました。
+          中心heatmapはシルエットに依存しません。半分隠れた物体の中心もやはり中心であり、サイズheadは部分的な情報から全体の大きさをregressionします。</p>
+        <p lang="en"><strong>The caveat: n = 53.</strong> That is 0.6 % of the dataset, and 0.910 on 53 samples carries
           about ±0.04 at one sigma. The honest claim is narrow — <em>the specific failure mode that stops the
           classical pipeline does not appear here</em>. It is not evidence of robustness to heavy occlusion in
           general.</p>
+        <p lang="ja"><strong>注意点：n = 53。</strong>これはデータセットの0.6 %で、53サンプルでの0.910には1σで約±0.04の幅があります。
+          正直に言える主張は狭く、<em>古典的パイプラインを停止させる特定の失敗パターンがここでは現れない</em>ということだけです。
+          強いocclusion全般に対する頑健性の証拠ではありません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>Localisation is essentially exact, and AP75 is where it shows</h4>
-        <p>AP75 0.9896 against AP50 0.9899 — a gap of 0.0003. The baseline lost 0.134 between the same two
+        <h4><span lang="en">Localisation is essentially exact, and AP75 is where it shows</span><span lang="ja">位置推定はほぼ厳密で、それはAP75に表れる</span></h4>
+        <p lang="en">AP75 0.9896 against AP50 0.9899 — a gap of 0.0003. The baseline lost 0.134 between the same two
           thresholds. The metric's shift table gives the reading: a uniform 4 px error leaves AP50 at 1.000 while
           mAP has already fallen to 0.464, so AP50 alone cannot see localisation. The offset head is what buys
           this; it is measured at 2.00 px of worst-case centre error, which at stride 4 is exactly the
           quantisation it exists to undo.</p>
+        <p lang="ja">AP75 0.9896に対しAP50 0.9899で、差は0.0003です。baselineは同じ2つの閾値の間で0.134を失っていました。
+          評価指標のずらし実験の表が読み方を示しています。一律4 pxの誤差ではAP50は1.000のままですが、mAPはすでに0.464まで下がっており、
+          AP50だけでは位置精度は見えません。これを実現しているのはoffset headです。中心誤差の最悪値は2.00 pxと計測されており、
+          これはstride 4での量子化誤差、つまりoffset headが打ち消すべき量そのものです。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>The learned detector is slower, not faster</h4>
-        <p>3.87 ms against 2.02 ms, single image, PyTorch eager, decode included. Worth stating plainly because
+        <h4><span lang="en">The learned detector is slower, not faster</span><span lang="ja">学習ベースの検出器は速くない（遅い）</span></h4>
+        <p lang="en">3.87 ms against 2.02 ms, single image, PyTorch eager, decode included. Worth stating plainly because
           the convenient story would be that the network wins on every axis, and it does not. Step 5 was set up
           to find out whether that was the architecture or the runtime.</p>
+        <p lang="ja">画像1枚、PyTorch eager、decode込みで3.87 ms対2.02 msです。ネットワークがすべての面で勝つという都合の良い話にはならないので、
+          はっきり書いておきます。step 5は、この差がアーキテクチャによるものかruntimeによるものかを確かめるために設計しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4>Small objects still cost, in the expected direction</h4>
-        <p>By size tercile: 0.805 (&lt;25.5 px), 0.854 (25.5–31.9 px), 0.884 (&gt;31.9 px). IoU is scale-relative,
+        <h4><span lang="en">Small objects still cost, in the expected direction</span><span lang="ja">小さい物体は依然として不利（予想通りの方向）</span></h4>
+        <p lang="en">By size tercile: 0.805 (&lt;25.5 px), 0.854 (25.5–31.9 px), 0.884 (&gt;31.9 px). IoU is scale-relative,
           so a fixed pixel error costs a small box more. Output stride 4 means centres quantise to 4 px cells,
           which is 16 % of a 25 px object and 9 % of a 43 px one. The offset head removes most of that; the
           residual 0.079 spread is what is left.</p>
+        <p lang="ja">サイズの三分位別：0.805（&lt;25.5 px）、0.854（25.5–31.9 px）、0.884（&gt;31.9 px）。IoUはスケールに対して相対的なので、
+          同じピクセル誤差でも小さい矩形ほど影響が大きくなります。出力stride 4では中心が4 pxのセルに量子化され、これは25 pxの物体の16 %、
+          43 pxの物体の9 %に当たります。offset headがその大部分を取り除き、残ったのが0.079のばらつきです。</p>
       </div></div>
     </div>
   </div>
 </section>
 
 <section id="ablation">
-  <div class="sec-head"><span class="sec-num">08</span><h2>Augmentation against domain randomisation</h2><p class="sec-sub">Photometric augmentation against render-time randomisation, and the asymmetry the comparison exposed.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Augmentation against domain randomisation</span><span lang="ja">Augmentation対domain randomisation</span></h2><p class="sec-sub" lang="en">Photometric augmentation against render-time randomisation, and the asymmetry the comparison exposed.</p><p class="sec-sub" lang="ja">photometric augmentationとレンダリング時のランダム化の比較、そしてそこで明らかになった非対称性。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>The question, stated before the runs</h3>
-      <p>Photometric augmentation — randomly changing brightness, contrast, gamma, channel gain during training —
+      <h3><span lang="en">The question, stated before the runs</span><span lang="ja">実験前に立てた問い</span></h3>
+      <p lang="en">Photometric augmentation — randomly changing brightness, contrast, gamma, channel gain during training —
         exists because real datasets are captured under one set of lights and deployed under another. But the
         <code>hard</code> regime <em>already</em> randomises object hue, table shade, light position and light
         intensity at render time. Does augmentation add anything the randomiser does not already cover?</p>
-      <p>Two regimes × four augmentation settings, one identical budget per cell: 6000 training images, 12 epochs,
+      <p lang="ja">photometric augmentation（学習中に明るさ・コントラスト・ガンマ・チャンネルゲインをランダムに変える手法）が存在するのは、
+        実データセットがある照明条件で撮影され、別の照明条件で運用されるからです。しかし<code>hard</code> regimeでは、物体の色相・テーブルの濃淡・
+        光源の位置と強度を、レンダリング時に<em>すでに</em>ランダム化しています。augmentationは、ランダム化でカバーされていない何かを加えるのでしょうか。</p>
+      <p lang="en">Two regimes × four augmentation settings, one identical budget per cell: 6000 training images, 12 epochs,
         same seed, same schedule. Every model scored on <em>both</em> validation splits, so each row has an
         in-distribution number and a cross-regime number. The <code>easy</code>→<code>hard</code> column is the
         sim-to-real question in miniature — <code>easy</code> is a simulator nobody randomised,
         <code>hard</code> is the world it has to survive.</p>
+      <p lang="ja">2つのregime × 4種のaugmentation設定で、各条件の学習量は同一です（学習画像6000枚、12 epoch、同じseed、同じスケジュール）。
+        全モデルを<em>両方</em>のvalidation splitで評価するため、各行に分布内の数値とregimeをまたいだ数値があります。
+        <code>easy</code>→<code>hard</code>の列はsim-to-realの問題の縮図です。<code>easy</code>は誰もランダム化していないシミュレータ、
+        <code>hard</code>はモデルが生き残らなければならない世界に相当します。</p>
     </div>
 
     <div class="stack">
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Trained on</th><th>Augmentation</th><th class="num"><code>easy</code> val</th><th class="num"><code>hard</code> val</th><th class="num">Train s</th></tr></thead>
+          <thead><tr><th><span lang="en">Trained on</span><span lang="ja">学習データ</span></th><th>Augmentation</th><th class="num"><code>easy</code> val</th><th class="num"><code>hard</code> val</th><th class="num"><span lang="en">Train s</span><span lang="ja">学習時間 s</span></th></tr></thead>
           <tbody>
-            <tr class="bad"><td><code>easy</code></td><td>none</td><td class="num">0.9013</td><td class="num" style="color:#9c4a45;font-weight:600">0.1465</td><td class="num">595</td></tr>
+            <tr class="bad"><td><code>easy</code></td><td><span lang="en">none</span><span lang="ja">なし</span></td><td class="num">0.9013</td><td class="num" style="color:var(--bad);font-weight:600">0.1465</td><td class="num">595</td></tr>
             <tr><td><code>easy</code></td><td>photometric</td><td class="num">0.8945</td><td class="num">0.5214</td><td class="num">783</td></tr>
             <tr><td><code>easy</code></td><td>geometric</td><td class="num">0.9093</td><td class="num">0.1808</td><td class="num">608</td></tr>
-            <tr><td><code>easy</code></td><td>both</td><td class="num">0.9060</td><td class="num">0.5065</td><td class="num">737</td></tr>
-            <tr class="hl"><td><code>hard</code></td><td>none</td><td class="num">0.8683</td><td class="num">0.8735</td><td class="num">589</td></tr>
+            <tr><td><code>easy</code></td><td><span lang="en">both</span><span lang="ja">両方</span></td><td class="num">0.9060</td><td class="num">0.5065</td><td class="num">737</td></tr>
+            <tr class="hl"><td><code>hard</code></td><td><span lang="en">none</span><span lang="ja">なし</span></td><td class="num">0.8683</td><td class="num">0.8735</td><td class="num">589</td></tr>
             <tr><td><code>hard</code></td><td>photometric</td><td class="num">0.8643</td><td class="num">0.8742</td><td class="num">782</td></tr>
             <tr><td><code>hard</code></td><td>geometric</td><td class="num">0.8844</td><td class="num">0.8893</td><td class="num">648</td></tr>
-            <tr><td><code>hard</code></td><td>both</td><td class="num">0.8806</td><td class="num">0.8857</td><td class="num">839</td></tr>
+            <tr><td><code>hard</code></td><td><span lang="en">both</span><span lang="ja">両方</span></td><td class="num">0.8806</td><td class="num">0.8857</td><td class="num">839</td></tr>
           </tbody>
         </table>
       </div>
@@ -964,92 +952,120 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>The gap is appearance, and it is a cliff, not a slope</h4>
-        <p>A detector trained on fixed appearance scores 0.90 on what it saw and <strong>0.15</strong> when the
+        <h4><span lang="en">The gap is appearance, and it is a cliff, not a slope</span><span lang="ja">差の原因は外観で、緩やかな低下ではなく崖</span></h4>
+        <p lang="en">A detector trained on fixed appearance scores 0.90 on what it saw and <strong>0.15</strong> when the
           table colour and the light move. Detection rate falls to 0.29 — it does not misclassify seven objects in
           ten, it fails to <em>see</em> them. Nothing about the geometry, the camera, the shapes or the sizes
           changed. This is the number the whole track is about: a policy trained in an un-randomised simulator
           meets the real world in exactly this way, and the failure is silent — no error, just boxes missing.</p>
+        <p lang="ja">外観を固定して学習した検出器は、学習時と同じ条件では0.90ですが、テーブルの色と照明が変わると<strong>0.15</strong>になります。
+          検出率は0.29まで落ちます。10個中7個を誤分類しているのではなく、そもそも<em>見えていない</em>のです。形状配置・カメラ・物体の形・大きさは
+          何も変わっていません。これがこのトラック全体のテーマとなる数値です。ランダム化していないシミュレータで学習したpolicyは、
+          まさにこの形で現実世界に出会います。しかも失敗は静かで、エラーは出ず、矩形が欠けるだけです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>Photometric augmentation recovers a third of the gap and stops</h4>
-        <p>0.147 → 0.521, still 0.35 short of simply training on <code>hard</code> (0.874). The mechanism is
+        <h4><span lang="en">Photometric augmentation recovers half the gap and stops</span><span lang="ja">photometric augmentationは差の半分を取り戻し、そこで止まる</span></h4>
+        <p lang="en">0.147 → 0.521, still 0.35 short of simply training on <code>hard</code> (0.874). The mechanism is
           visible in what each one varies. Augmentation perturbs the <em>whole image</em> with one brightness, one
           contrast, one gamma, one channel gain — a global nuisance model. The randomiser gives every object its
           own hue and moves the light source, which changes the shading <em>direction</em> on every face.
           Augmentation is a hand-written model of the nuisance; the randomiser samples the nuisance itself. A
           model cannot be augmented towards a variation nobody wrote down.</p>
+        <p lang="ja">0.147 → 0.521となりましたが、単純に<code>hard</code>で学習した場合（0.874）にはまだ0.35届きません。仕組みは、それぞれが何を変化させるかを見ると分かります。
+          augmentationは<em>画像全体</em>に、1つの明るさ・1つのコントラスト・1つのガンマ・1つのチャンネルゲインを適用します。つまり大域的な外乱モデルです。
+          一方ランダム化は、物体ごとに別々の色相を与え、光源を動かすため、各面の陰影の<em>向き</em>まで変わります。augmentationは外乱を人が書いたモデルであり、
+          ランダム化は外乱そのものをサンプリングします。誰も書き下していない変動に向けてaugmentationすることはできません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>Geometric augmentation does nothing across the gap</h4>
-        <p>0.147 → 0.181, within the noise of a single seed. Flip and translation add placement diversity, and
+        <h4><span lang="en">Geometric augmentation does nothing across the gap</span><span lang="ja">geometric augmentationはこの差に対して効果なし</span></h4>
+        <p lang="en">0.147 → 0.181, within the noise of a single seed. Flip and translation add placement diversity, and
           placement was never the problem — the two regimes share one camera and one placement distribution. An
           augmentation only buys invariance along the axis it perturbs. Worth stating because the default recipe
           applies everything at once and then cannot say which part worked.</p>
+        <p lang="ja">0.147 → 0.181で、単一seedのノイズの範囲内です。反転と平行移動は配置の多様性を増やしますが、配置はそもそも問題ではありませんでした。
+          2つのregimeは同じカメラと同じ配置分布を共有しているからです。augmentationで得られる不変性は、それが摂動させる軸に沿ったものだけです。
+          よくあるレシピはすべてを同時に適用するため、どれが効いたのか説明できなくなります。だからこそ明記しておく価値があります。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>On top of the randomiser, photometric augmentation buys nothing</h4>
-        <p><code>hard/none</code> 0.8735 against <code>hard/photo</code> 0.8742: <strong>+0.0007</strong>, for
+        <h4><span lang="en">On top of the randomiser, photometric augmentation buys nothing</span><span lang="ja">ランダム化に上乗せしたphotometric augmentationは効果なし</span></h4>
+        <p lang="en"><code>hard/none</code> 0.8735 against <code>hard/photo</code> 0.8742: <strong>+0.0007</strong>, for
           33 % more training time. The randomiser already covers the axis photometric augmentation would add.
           Every hour spent on an augmentation pipeline for a randomised simulator is an hour spent on nothing.</p>
-        <p>Geometric augmentation <em>does</em> add +0.016 within <code>hard</code>. Single seed, so suggestive
+        <p lang="ja"><code>hard/none</code> 0.8735に対し<code>hard/photo</code> 0.8742で<strong>+0.0007</strong>、しかも学習時間は33 %増えます。
+          photometric augmentationが加えるはずの軸は、ランダム化がすでにカバーしています。ランダム化したシミュレータ向けにaugmentationパイプラインを
+          作る時間は、何も生まない時間です。</p>
+        <p lang="en">Geometric augmentation <em>does</em> add +0.016 within <code>hard</code>. Single seed, so suggestive
           rather than proven, but the direction is expected for a 6000-image dataset: flip and shift are extra
           placements, which the randomiser only samples 6000 times.</p>
+        <p lang="ja">geometric augmentationは、<code>hard</code>内では+0.016の効果が<em>あります</em>。単一seedなので証明ではなく示唆にとどまりますが、
+          6000枚のデータセットとしては予想通りの方向です。反転とずらしは追加の配置であり、ランダム化では配置は6000回しかサンプリングされないからです。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4>The randomised model transfers to the fixed regime for free</h4>
-        <p><code>hard/none</code> loses <strong>0.005</strong> going to <code>easy</code>.
+        <h4><span lang="en">The randomised model transfers to the fixed regime for free</span><span lang="ja">ランダム化したモデルは固定regimeにそのまま転移する</span></h4>
+        <p lang="en"><code>hard/none</code> loses <strong>0.005</strong> going to <code>easy</code>.
           <code>easy/none</code> loses <strong>0.75</strong> going the other way. That asymmetry is the entire
           argument for domain randomisation: the randomised distribution <em>contains</em> the fixed one, so a
           model trained on it has already seen the fixed regime as a special case. Nothing was tuned for
           <code>easy</code> and nothing needed to be.</p>
+        <p lang="ja"><code>hard/none</code>は<code>easy</code>に移っても<strong>0.005</strong>しか下がりません。逆方向の<code>easy/none</code>は
+          <strong>0.75</strong>下がります。この非対称性こそが、domain randomisationを使う理由のすべてです。ランダム化した分布は固定された分布を
+          <em>包含</em>しているため、そこで学習したモデルは固定regimeを特殊ケースとしてすでに見ています。<code>easy</code>向けの調整は一切しておらず、
+          その必要もありませんでした。</p>
       </div></div>
       <div class="finding"><span class="fnum">06</span><div class="fbody">
-        <h4>More data does not close an appearance gap</h4>
-        <p>The full-budget <code>easy/none</code> model saw 75 % more images and 67 % more epochs and gained
+        <h4><span lang="en">More data does not close an appearance gap</span><span lang="ja">データを増やしても外観の差は埋まらない</span></h4>
+        <p lang="en">The full-budget <code>easy/none</code> model saw 75 % more images and 67 % more epochs and gained
           +0.027 on <code>easy</code> — and only +0.033 on <code>hard</code>, from 0.147 to 0.180. Coverage of the
           distribution is what transfers, not the number of samples drawn from the wrong one. When a model fails
           out of distribution, "collect more data" is only the right answer if the new data comes from somewhere
           new.</p>
+        <p lang="ja">フル学習量の<code>easy/none</code>モデルは、画像を75 %、epochを67 %多く使い、<code>easy</code>では+0.027向上しましたが、
+          <code>hard</code>では0.147から0.180へ+0.033しか向上しませんでした。転移を決めるのは分布のカバー範囲であり、誤った分布から取ったサンプルの数ではありません。
+          モデルが分布外で失敗するとき、「データを増やす」が正解になるのは、新しいデータが新しい場所から来る場合だけです。</p>
       </div></div>
     </div>
   </div>
 </section>
 
 <section id="latency">
-  <div class="sec-head"><span class="sec-num">09</span><h2>Export, latency, and a measurement that was thrown away</h2><p class="sec-sub">ONNX export, thread scaling, and a latency measurement that was thrown away and kept in the repository.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Export, latency, and a measurement that was thrown away</span><span lang="ja">Export、latency、そして破棄した計測値</span></h2><p class="sec-sub" lang="en">ONNX export, thread scaling, and a latency measurement that was thrown away and kept in the repository.</p><p class="sec-sub" lang="ja">ONNX export、スレッド数によるスケーリング、そして破棄したうえでリポジトリに残したlatencyの計測値。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <h3>Verifying the export end to end</h3>
-      <p>An export that is 3× faster and 2 % wrong is not an optimisation, and a max-absolute-difference on raw
+      <h3><span lang="en">Verifying the export end to end</span><span lang="ja">exportをend-to-endで検証する</span></h3>
+      <p lang="en">An export that is 3× faster and 2 % wrong is not an optimisation, and a max-absolute-difference on raw
         tensors is not a proof: a small logit drift can move a heatmap peak by one cell and change a box entirely.
         So the check runs full detections through the ONNX graph and scores them with the same
         <code>ap.py</code>.</p>
+      <p lang="ja">3倍速くても2 %間違うexportは最適化とは言えません。また生のtensorでの最大絶対誤差は証明になりません。わずかなlogitのずれで
+        heatmapのピークが1セル動き、矩形がまったく別物になり得るからです。そこで検出処理全体をONNXグラフで実行し、同じ<code>ap.py</code>で評価します。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Check</th><th>Result</th></tr></thead>
+          <thead><tr><th><span lang="en">Check</span><span lang="ja">確認項目</span></th><th><span lang="en">Result</span><span lang="ja">結果</span></th></tr></thead>
           <tbody>
-            <tr><td>max |torch − onnx| per head</td><td>heatmap 2.4e−6 · size 1.1e−5 · offset 4.8e−6</td></tr>
-            <tr><td>mAP, first 500 <code>hard/val</code> images, PyTorch</td><td>0.9127</td></tr>
-            <tr class="hl"><td>mAP, same 500 images, ONNX Runtime</td><td><strong>0.9127</strong></td></tr>
-            <tr><td>graph</td><td>1.53 MB · 380 631 params · opset 17 · batch fixed at 1</td></tr>
+            <tr><td><span lang="en">max |torch − onnx| per head</span><span lang="ja">headごとの max |torch − onnx|</span></td><td>heatmap 2.4e−6 · size 1.1e−5 · offset 4.8e−6</td></tr>
+            <tr><td><span lang="en">mAP, first 500 <code>hard/val</code> images, PyTorch</span><span lang="ja">mAP、<code>hard/val</code>の最初の500枚、PyTorch</span></td><td>0.9127</td></tr>
+            <tr class="hl"><td><span lang="en">mAP, same 500 images, ONNX Runtime</span><span lang="ja">mAP、同じ500枚、ONNX Runtime</span></td><td><strong>0.9127</strong></td></tr>
+            <tr><td><span lang="en">graph</span><span lang="ja">グラフ</span></td><td><span lang="en">1.53 MB · 380 631 params · opset 17 · batch fixed at 1</span><span lang="ja">1.53 MB · 380 631 params · opset 17 · batch 1固定</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p>Batch is fixed at 1 deliberately: an edge camera delivers one frame at a time, and a graph exported for
+      <p lang="en">Batch is fixed at 1 deliberately: an edge camera delivers one frame at a time, and a graph exported for
         the shape it will actually see is the graph the runtime can plan for.</p>
+      <p lang="ja">batchはあえて1に固定しています。エッジのカメラは1フレームずつ届けるものであり、実際に入力される形状に合わせてexportしたグラフこそ、
+        runtimeが最適な実行計画を立てられるグラフだからです。</p>
     </div>
 
     <div class="stack">
-      <h3>Latency, batch 1, 200 images, idle box</h3>
-      <p class="prose">Decode — the 3×3 max-pool, the top-k and the gather — is 0.18 ms and does not depend on the
+      <h3><span lang="en">Latency, batch 1, 200 images, idle box</span><span lang="ja">Latency（batch 1、200枚、アイドル状態のマシン）</span></h3>
+      <p class="prose" lang="en">Decode — the 3×3 max-pool, the top-k and the gather — is 0.18 ms and does not depend on the
         runtime. It is added to every row, because a heatmap is not a detection.</p>
+      <p class="prose" lang="ja">decode（3×3 max-pool、top-k、gather）は0.18 msで、runtimeには依存しません。heatmapは検出結果そのものではないため、全行に加算しています。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Runtime</th><th class="num">Threads</th><th class="num">Model ms</th><th class="num">End to end ms</th><th class="num">vs classical 2.13 ms</th></tr></thead>
+          <thead><tr><th>Runtime</th><th class="num"><span lang="en">Threads</span><span lang="ja">スレッド数</span></th><th class="num"><span lang="en">Model ms</span><span lang="ja">モデル ms</span></th><th class="num">End to end ms</th><th class="num"><span lang="en">vs classical 2.13 ms</span><span lang="ja">古典的手法2.13 ms比</span></th></tr></thead>
           <tbody>
-            <tr class="hl"><td>ONNX Runtime</td><td class="num">8</td><td class="num">1.01</td><td class="num"><strong>1.20</strong></td><td class="num"><strong>1.8× faster</strong></td></tr>
-            <tr><td>ONNX Runtime</td><td class="num">4</td><td class="num">1.12</td><td class="num">1.30</td><td class="num">1.6× faster</td></tr>
+            <tr class="hl"><td>ONNX Runtime</td><td class="num">8</td><td class="num">1.01</td><td class="num"><strong>1.20</strong></td><td class="num"><strong><span lang="en">1.8× faster</span><span lang="ja">1.8倍速い</span></strong></td></tr>
+            <tr><td>ONNX Runtime</td><td class="num">4</td><td class="num">1.12</td><td class="num">1.30</td><td class="num"><span lang="en">1.6× faster</span><span lang="ja">1.6倍速い</span></td></tr>
             <tr><td>PyTorch eager</td><td class="num">4</td><td class="num">2.54</td><td class="num">2.72</td><td class="num">0.78×</td></tr>
             <tr><td>PyTorch eager</td><td class="num">8</td><td class="num">2.75</td><td class="num">2.93</td><td class="num">0.73×</td></tr>
             <tr><td>ONNX Runtime</td><td class="num">1</td><td class="num">3.69</td><td class="num">3.87</td><td class="num">0.55×</td></tr>
@@ -1061,8 +1077,8 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>The runtime is worth 2.7× at eight threads — and 1.4× at one</h4>
-        <p>The previous project found ONNX Runtime on <em>one</em> thread beating PyTorch eager on <em>eight</em>.
+        <h4><span lang="en">The runtime is worth 2.7× at eight threads — and 1.4× at one</span><span lang="ja">runtimeの効果は8スレッドで2.7倍、1スレッドでは1.4倍</span></h4>
+        <p lang="en">The previous project found ONNX Runtime on <em>one</em> thread beating PyTorch eager on <em>eight</em>.
           That does not repeat here. The difference is the model: that network was 27 k parameters with a 16×16
           output, so per-op dispatch overhead was most of the time and a runtime that removes overhead removes
           most of the time. This one is 14× larger with a 48×48×7 output; the convolutions themselves are the
@@ -1070,92 +1086,130 @@ off = 1×1 conv → 2 channels</code></pre>
           dominates while the model is small enough to be overhead-bound; once it is compute-bound, the thread
           budget matters as much as the engine.</strong> The earlier number was true and its generalisation was
           not.</p>
+        <p lang="ja">前のプロジェクトでは、<em>1</em>スレッドのONNX Runtimeが<em>8</em>スレッドのPyTorch eagerに勝ちました。ここではそれが再現しません。
+          違いはモデルです。前のネットワークはパラメータ27 k、出力16×16で、処理時間の大半がop単位のdispatchオーバーヘッドでした。
+          そのためオーバーヘッドを取り除くruntimeは、処理時間の大半を取り除けました。今回のモデルは14倍大きく出力は48×48×7で、コストは畳み込みそのものにあり、
+          その演算量はどちらのruntimeでも変わりません。<strong>修正したルール：モデルがオーバーヘッド律速なほど小さいうちはruntimeが支配的だが、
+          計算律速になるとスレッド数の割り当てがエンジンと同じくらい重要になる。</strong>以前の数値は正しく、その一般化が誤っていたということです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>Four threads is the knee, and eight is worse for eager</h4>
-        <p>ONNX Runtime: 3.69 → 1.12 → 1.01 ms for 1 → 4 → 8 threads. 3.3× from the first four, 10 % from the
+        <h4><span lang="en">Four threads is the knee, and eight is worse for eager</span><span lang="ja">4スレッドが変曲点で、eagerは8スレッドの方が遅い</span></h4>
+        <p lang="en">ONNX Runtime: 3.69 → 1.12 → 1.01 ms for 1 → 4 → 8 threads. 3.3× from the first four, 10 % from the
           next four. PyTorch eager on 8 threads (2.75) is <em>slower</em> than on 4 (2.54) — thread
           oversubscription on a batch-1 forward costs more than the parallelism returns. A node given 4 cores gets
           essentially everything this model can deliver; a node given 1 core is 1.8× slower than the classical
           pipeline it was meant to replace. The deployment question is not "how fast is the detector" but "how
           fast is the detector on the cores it will actually be given" — and that answer can land on either side
           of the baseline.</p>
+        <p lang="ja">ONNX Runtime：1 → 4 → 8スレッドで3.69 → 1.12 → 1.01 ms。最初の4スレッドで3.3倍、次の4スレッドでは10 %です。
+          PyTorch eagerは8スレッド（2.75）の方が4スレッド（2.54）より<em>遅く</em>なります。batch 1のforwardではスレッドの過剰割り当てによるコストが、
+          並列化で得られる効果を上回るからです。4コアを割り当てられたnodeは、このモデルが出せる性能をほぼすべて引き出せます。1コアしか割り当てられないnodeでは、
+          置き換えるはずだった古典的パイプラインより1.8倍遅くなります。デプロイで問うべきは「検出器はどれだけ速いか」ではなく
+          「実際に割り当てられるコア数で検出器はどれだけ速いか」です。その答えはbaselineのどちら側にもなり得ます。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>Decode is 15 % of the end-to-end latency at the best setting</h4>
-        <p>0.18 ms against 1.01 ms of model, and it does not shrink with the runtime. On a small, fast model the
+        <h4><span lang="en">Decode is 15 % of the end-to-end latency at the best setting</span><span lang="ja">最良の設定ではdecodeがend-to-end latencyの15 %を占める</span></h4>
+        <p lang="en">0.18 ms against 1.01 ms of model, and it does not shrink with the runtime. On a small, fast model the
           post-processing stops being free — any deployment budget that lists only the forward pass is
           under-reporting by that much.</p>
+        <p lang="ja">モデル1.01 msに対してdecodeは0.18 msで、runtimeを変えても縮みません。小さく高速なモデルでは後処理はもはや無視できず、
+          forward passだけを計上したデプロイ時の時間見積もりは、その分だけ過小になります。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>The first measurement was discarded, and why is the most reusable finding here</h4>
-        <p>Step 5 first ran unattended immediately after the 96-minute ablation and recorded ONNX-8t
+        <h4><span lang="en">The first measurement was discarded, and why is the most reusable finding here</span><span lang="ja">最初の計測値は破棄した。その理由がここで最も応用の利く知見</span></h4>
+        <p lang="en">Step 5 first ran unattended immediately after the 96-minute ablation and recorded ONNX-8t
           <strong>1.225 ms</strong> and eager-8t <strong>3.773 ms</strong>. Same weights, same code, same box,
           re-run idle the next morning: <strong>1.014</strong> and <strong>2.750</strong> — 17 % and 27 % faster.
           The single-threaded classical baseline moved only 5 % in the same comparison.</p>
-        <p>WSL exposes no temperature sensor, so the cause cannot be read directly. But the box had just finished
+        <p lang="ja">step 5は当初、96分のablationの直後に無人で実行され、ONNX-8tで<strong>1.225 ms</strong>、eager-8tで<strong>3.773 ms</strong>を記録しました。
+          同じweight、同じコード、同じマシンで、翌朝アイドル状態で再実行すると<strong>1.014</strong>と<strong>2.750</strong>で、それぞれ17 %と27 %速くなりました。
+          同じ比較で、シングルスレッドの古典的baselineは5 %しか変わりませんでした。</p>
+        <p lang="en">WSL exposes no temperature sensor, so the cause cannot be read directly. But the box had just finished
           1.5 hours at sustained 8-thread load, and the multithreaded numbers moved while the single-threaded one
           barely did. Three rules adopted for the rest of the track: a latency number is only reported with the
           conditions it was taken under; nothing timed directly after a training run is trusted; and
           <strong>both measurements stay in the repository</strong>, because a number that was silently replaced
           is worse than a number that was wrong.</p>
+        <p lang="ja">WSLでは温度センサーが見えないため、原因を直接読み取ることはできません。しかしマシンは8スレッドの連続負荷を1.5時間続けた直後で、
+          マルチスレッドの数値は変動し、シングルスレッドの数値はほとんど変わりませんでした。そこでトラックの残りでは3つのルールを採用しました。
+          latencyの数値は計測条件とセットでのみ報告する。学習直後に計測した値は信用しない。そして<strong>両方の計測値をリポジトリに残す</strong>。
+          黙って差し替えられた数値は、間違っていた数値よりも悪いからです。</p>
       </div></div>
     </div>
   </div>
 </section>
 
 <section id="edge">
-  <div class="sec-head"><span class="sec-num">10</span><h2>INT8 and pruning: the one-thread case</h2><p class="sec-sub">Static INT8 through ONNX Runtime, structured channel pruning with the channels physically removed, and one curve that puts every graph on the same axes.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">INT8 and pruning: the one-thread case</span><span lang="ja">INT8とpruning：1スレッドの場合</span></h2><p class="sec-sub" lang="en">Static INT8 through ONNX Runtime, structured channel pruning with the channels physically removed, and one curve that puts every graph on the same axes.</p><p class="sec-sub" lang="ja">ONNX Runtimeによるstatic INT8、channelを物理的に削除するstructured pruning、そして全グラフを同じ軸に並べた1本の曲線。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
-      <p>Step 5 left a loose end. On eight threads the detector beats the classical pipeline; on one thread it
+      <p lang="en">Step 5 left a loose end. On eight threads the detector beats the classical pipeline; on one thread it
         runs at 3.69 ms against 2.13 ms, and one thread is the budget a ROS 2 node on a shared CPU is most
         likely to get. Step 6 asks whether that can be fixed without touching the architecture, using the two
         tools that actually shrink CPU latency: fewer bits per multiply, and fewer multiplies.</p>
-      <p>Measured 2026-09-23 on the full <code>hard/val</code> split (2000 images), box idle, load average
+      <p lang="ja">step 5には未解決の課題が残りました。8スレッドなら検出器は古典的パイプラインに勝ちますが、1スレッドでは3.69 ms対2.13 msで負けます。
+        そして共有CPU上のROS 2 nodeに割り当てられる可能性が最も高いのは1スレッドです。step 6では、CPU latencyを実際に縮める2つの手段
+        （乗算あたりのビット数を減らす、乗算の回数を減らす）を使い、アーキテクチャに手を加えずにこれを解決できるかを検証します。</p>
+      <p lang="en">Measured 2026-09-23 on the full <code>hard/val</code> split (2000 images), box idle, load average
         0.28 at the start, thread count pinned inside the timing harness. The smoke run that preceded it
         (100 images, box busy) proved the pipeline executes and is not quoted anywhere.</p>
+      <p lang="ja">2026-09-23に<code>hard/val</code> split全体（2000枚）で計測しました。マシンはアイドル状態、開始時のload averageは0.28、
+        スレッド数は計測ハーネス内で固定しています。事前に行ったsmoke run（100枚、マシン使用中）はパイプラインが動くことの確認であり、どこにも引用していません。</p>
     </div>
 
     <div class="stack prose">
-      <h3>6a — static INT8 (<code>quantize.py</code>)</h3>
-      <p>Static, not dynamic, because this is a convolutional network. Dynamic quantisation stores INT8 weights
+      <h3><span lang="en">6a — static INT8 (<code>quantize.py</code>)</span><span lang="ja">6a — static INT8（<code>quantize.py</code>）</span></h3>
+      <p lang="en">Static, not dynamic, because this is a convolutional network. Dynamic quantisation stores INT8 weights
         and works out each activation's scale at run time, so every convolution pays for a range pass and a
         quantise step before it runs. Static quantisation fixes the activation
         scales once, from a calibration pass, and the runtime executes the whole conv chain in INT8 with fused
         requantisation. Both are measured; the dynamic row is there to show the gap, and the gap came out smaller
         on one thread than expected before the run (finding 03 below).</p>
-      <p>The graph is written in QDQ form (plain <code>QuantizeLinear</code> / <code>DequantizeLinear</code>
+      <p lang="ja">畳み込みネットワークなので、dynamicではなくstaticを使います。dynamic quantisationはINT8のweightを保持し、各activationのscaleを
+        実行時に求めるため、すべての畳み込みが実行前にレンジ計算と量子化のコストを払います。static quantisationはcalibrationで
+        activationのscaleを一度だけ確定し、runtimeは畳み込みの連鎖全体を、再量子化を融合した形でINT8のまま実行します。両方を計測しました。
+        dynamicの行は差を示すためのものですが、1スレッドでのその差は実験前の予想より小さくなりました（後述のfinding 03）。</p>
+      <p lang="en">The graph is written in QDQ form (plain <code>QuantizeLinear</code> / <code>DequantizeLinear</code>
         nodes that ONNX Runtime fuses into <code>QLinearConv</code> at session load), activations unsigned and
         weights signed per channel, which is the U8S8 pairing the x86 INT8 kernels want. Calibration images come
         from the <em>training</em> split, never from val: val is what the INT8 graph is scored on, and calibrating
         on it would make the drop look smaller than it is on new frames. Three calibration methods are compared on
         the same 200 training images, and every graph is scored end to end through the same <code>ap.py</code>
         as step 5.</p>
+      <p lang="ja">グラフはQDQ形式で書き出します（素の<code>QuantizeLinear</code> / <code>DequantizeLinear</code> nodeで、ONNX Runtimeがsession読み込み時に
+        <code>QLinearConv</code>へ融合します）。activationはunsigned、weightはper-channelのsignedで、x86のINT8カーネルが想定するU8S8の組み合わせです。
+        calibration画像は<em>training</em> splitから取り、valからは決して取りません。valはINT8グラフの評価に使うデータであり、そこでcalibrationすると
+        新しいフレームでの実際の低下より小さく見えてしまうからです。同じ学習画像200枚で3種類のcalibration手法を比較し、全グラフをstep 5と同じ
+        <code>ap.py</code>でend-to-endに評価しました。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Graph</th><th class="num">mAP</th><th class="num">Δ mAP</th><th class="num">ms, 1 thread</th><th class="num">ms, 4 threads</th><th class="num">MB</th><th class="num">recall, vis &lt; 0.5</th></tr></thead>
+          <thead><tr><th><span lang="en">Graph</span><span lang="ja">グラフ</span></th><th class="num">mAP</th><th class="num">Δ mAP</th><th class="num"><span lang="en">ms, 1 thread</span><span lang="ja">ms、1スレッド</span></th><th class="num"><span lang="en">ms, 4 threads</span><span lang="ja">ms、4スレッド</span></th><th class="num">MB</th><th class="num">recall, vis &lt; 0.5</th></tr></thead>
           <tbody>
-            <tr><td>fp32 ORT, same pre-processed graph</td><td class="num">0.9107</td><td class="num">—</td><td class="num">3.57</td><td class="num">1.52</td><td class="num">1.53</td><td class="num">0.910</td></tr>
+            <tr><td><span lang="en">fp32 ORT, same pre-processed graph</span><span lang="ja">fp32 ORT、同じ前処理済みグラフ</span></td><td class="num">0.9107</td><td class="num">—</td><td class="num">3.57</td><td class="num">1.52</td><td class="num">1.53</td><td class="num">0.910</td></tr>
             <tr class="hl"><td>INT8 static, MinMax</td><td class="num">0.9097</td><td class="num">-0.0010</td><td class="num">1.38</td><td class="num">0.61</td><td class="num">0.42</td><td class="num">0.910</td></tr>
             <tr><td>INT8 static, Percentile 99.99</td><td class="num">0.9060</td><td class="num">-0.0048</td><td class="num">1.38</td><td class="num">0.62</td><td class="num">0.42</td><td class="num">0.910</td></tr>
             <tr><td>INT8 static, Entropy</td><td class="num">0.9097</td><td class="num">-0.0010</td><td class="num">1.35</td><td class="num">0.60</td><td class="num">0.42</td><td class="num">0.910</td></tr>
-            <tr><td>INT8 dynamic, weights only</td><td class="num">0.9097</td><td class="num">-0.0010</td><td class="num">1.82</td><td class="num">1.54</td><td class="num">0.41</td><td class="num">0.898</td></tr>
+            <tr><td><span lang="en">INT8 dynamic, weights only</span><span lang="ja">INT8 dynamic、weightのみ</span></td><td class="num">0.9097</td><td class="num">-0.0010</td><td class="num">1.82</td><td class="num">1.54</td><td class="num">0.41</td><td class="num">0.898</td></tr>
           </tbody>
         </table>
       </div>
-      <p>Model time only; add step 5's 0.18 ms decode to every row for end to end. The last column is the recall
+      <p lang="en">Model time only; add step 5's 0.18 ms decode to every row for end to end. The last column is the recall
         on objects less than half visible, the small low-contrast detections quantisation noise takes first and
         the ones the classical pipeline never found.</p>
+      <p lang="ja">モデル部分の時間のみです。end-to-endにはstep 5のdecode 0.18 msを各行に加えてください。最後の列は可視率が半分未満の物体に対するrecallです。
+        小さくコントラストの低いこれらの検出は、量子化ノイズで最初に失われやすく、古典的パイプラインが一度も見つけられなかったものです。</p>
     </div>
 
     <div class="stack prose">
-      <h3>6b — structured channel pruning (<code>prune.py</code>)</h3>
-      <p>Structured, not unstructured, because the target is latency. Zeroing half the individual weights leaves
+      <h3><span lang="en">6b — structured channel pruning (<code>prune.py</code>)</span><span lang="ja">6b — structured channel pruning（<code>prune.py</code>）</span></h3>
+      <p lang="en">Structured, not unstructured, because the target is latency. Zeroing half the individual weights leaves
         every convolution the same shape and the same cost; a dense kernel does not skip zeros. Removing whole
         output channels makes the next layer's input narrower too, and the multiply-accumulates go down in the
         shape of the network rather than on paper.</p>
-      <p>Channels are ranked by the BatchNorm scale γ of their conv+BN block: a channel whose γ is near zero is
+      <p lang="ja">目的がlatencyなので、unstructuredではなくstructuredです。個々のweightの半分をゼロにしても、畳み込みの形状とコストは変わりません。
+        denseなカーネルはゼロをスキップしないからです。出力channelを丸ごと削除すれば次の層の入力も狭くなり、積和演算が紙の上ではなく
+        ネットワークの形状として実際に減ります。</p>
+      <p lang="en">Channels are ranked by the BatchNorm scale γ of their conv+BN block: a channel whose γ is near zero is
         one the network has already learned to ignore. A global threshold across all blocks lets the layers the
         network uses least lose the most. <strong>Masks are not pruning.</strong> A masked model proves an accuracy
         claim and not a latency claim, so the surgery is explicit: a physically narrower network is built, the
@@ -1164,45 +1218,61 @@ off = 1×1 conv → 2 channels</code></pre>
         the wiring is spelt out in the file. With ratio 0 the pruned network reproduces the original to 1e-5
         (<code>test_edge.py</code>), which is the check that catches a wrong channel index: that bug does not
         crash, it trains to a low loss with the wrong channels wired together.</p>
-      <p>After pruning, a three-epoch fine-tune with the same dataset class and the same losses as step 3, then
+      <p lang="ja">channelはconv+BNブロックのBatchNorm scale γで順位付けします。γがゼロに近いchannelは、ネットワークがすでに無視するよう学習したものです。
+        全ブロック共通の大域閾値を使うことで、ネットワークが最も使っていない層ほど多く削られます。<strong>maskはpruningではありません。</strong>
+        maskしたモデルで証明できるのは精度の主張であってlatencyの主張ではないため、手術は明示的に行います。物理的に幅の狭いネットワークを構築し、
+        残ったweightをコピーし、削られたtensorを受け取るすべての後段の入力channelを対応するようスライスします。FPNがあるためこれは自明ではなく
+        （1つのブロックが次の段と横方向の接続の両方に出力する）、配線はファイル中に明記しています。ratio 0ではpruning後のネットワークが元のモデルを
+        1e-5の精度で再現します（<code>test_edge.py</code>）。これはchannelのインデックス誤りを検出するためのチェックです。このバグはクラッシュせず、
+        間違ったchannel同士がつながったまま低いlossに収束します。</p>
+      <p lang="en">After pruning, a three-epoch fine-tune with the same dataset class and the same losses as step 3, then
         export through the same harness. <code>--int8</code> quantises the pruned graph too.</p>
+      <p lang="ja">pruningの後、step 3と同じデータセットクラスと同じlossで3 epochのfine-tuneを行い、同じハーネスでexportします。
+        <code>--int8</code>を付けるとpruning後のグラフも量子化します。</p>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Graph</th><th class="num">Params</th><th class="num">MACs</th><th class="num">mAP before fine-tune</th><th class="num">mAP after</th><th class="num">ms, 1 thread</th><th class="num">MB</th></tr></thead>
+          <thead><tr><th><span lang="en">Graph</span><span lang="ja">グラフ</span></th><th class="num">Params</th><th class="num">MACs</th><th class="num"><span lang="en">mAP before fine-tune</span><span lang="ja">fine-tune前mAP</span></th><th class="num"><span lang="en">mAP after</span><span lang="ja">fine-tune後mAP</span></th><th class="num"><span lang="en">ms, 1 thread</span><span lang="ja">ms、1スレッド</span></th><th class="num">MB</th></tr></thead>
           <tbody>
-            <tr><td>full, step 3</td><td class="num">380,631</td><td class="num">215.0 M</td><td class="num">0.9107</td><td class="num">—</td><td class="num">3.69</td><td class="num">1.53</td></tr>
-            <tr><td>pruned 25 %, global</td><td class="num">252,978</td><td class="num">155.6 M</td><td class="num">0.2199</td><td class="num">0.8919</td><td class="num">2.84</td><td class="num">1.02</td></tr>
-            <tr><td>pruned 50 %, global</td><td class="num">144,427</td><td class="num">101.8 M</td><td class="num">0.0000</td><td class="num">0.8454</td><td class="num">2.42</td><td class="num">0.58</td></tr>
-            <tr><td>pruned 25 % + INT8</td><td class="num">252,978</td><td class="num">155.6 M</td><td class="num">—</td><td class="num">0.8899</td><td class="num">1.41</td><td class="num">0.29</td></tr>
-            <tr><td>pruned 50 % + INT8</td><td class="num">144,427</td><td class="num">101.8 M</td><td class="num">—</td><td class="num">0.8411</td><td class="num">1.25</td><td class="num">0.18</td></tr>
+            <tr><td><span lang="en">full, step 3</span><span lang="ja">フルモデル、step 3</span></td><td class="num">380,631</td><td class="num">215.0 M</td><td class="num">0.9107</td><td class="num">—</td><td class="num">3.69</td><td class="num">1.53</td></tr>
+            <tr><td><span lang="en">pruned 25 %, global</span><span lang="ja">25 % pruning、大域</span></td><td class="num">252,978</td><td class="num">155.6 M</td><td class="num">0.2199</td><td class="num">0.8919</td><td class="num">2.84</td><td class="num">1.02</td></tr>
+            <tr><td><span lang="en">pruned 50 %, global</span><span lang="ja">50 % pruning、大域</span></td><td class="num">144,427</td><td class="num">101.8 M</td><td class="num">0.0000</td><td class="num">0.8454</td><td class="num">2.42</td><td class="num">0.58</td></tr>
+            <tr><td><span lang="en">pruned 25 % + INT8</span><span lang="ja">25 % pruning + INT8</span></td><td class="num">252,978</td><td class="num">155.6 M</td><td class="num">—</td><td class="num">0.8899</td><td class="num">1.41</td><td class="num">0.29</td></tr>
+            <tr><td><span lang="en">pruned 50 % + INT8</span><span lang="ja">50 % pruning + INT8</span></td><td class="num">144,427</td><td class="num">101.8 M</td><td class="num">—</td><td class="num">0.8411</td><td class="num">1.25</td><td class="num">0.18</td></tr>
           </tbody>
         </table>
       </div>
-      <p>MACs and parameters are counted, convolutions only, and checked against a hand count in
+      <p lang="en">MACs and parameters are counted, convolutions only, and checked against a hand count in
         <code>test_edge.py</code>.</p>
+      <p lang="ja">MAC数とパラメータ数は畳み込みのみを数えたもので、<code>test_edge.py</code>で手計算と照合しています。</p>
     </div>
 
     <div class="stack prose">
-      <h3>6c — the curve (<code>edge_curve.py</code>)</h3>
-      <p>One figure: model latency at one thread on the x axis, mAP on the y axis, every graph above as a labelled
+      <h3><span lang="en">6c — the curve (<code>edge_curve.py</code>)</span><span lang="ja">6c — 曲線（<code>edge_curve.py</code>）</span></h3>
+      <p lang="en">One figure: model latency at one thread on the x axis, mAP on the y axis, every graph above as a labelled
         point, the classical pipeline's 2.13 ms as a dashed line. One thread because that is the setting step 5
         left unresolved and the only one that does not depend on how many cores the box was given.</p>
+      <p lang="ja">1枚の図にまとめます。x軸が1スレッドでのモデルlatency、y軸がmAPで、上記の全グラフをラベル付きの点として、古典的パイプラインの2.13 msを
+        破線で示します。1スレッドにしたのは、step 5で未解決だった設定であり、マシンに何コア割り当てられたかに依存しない唯一の設定だからです。</p>
       <a href="https://github.com/AungKaung1928/mujoco-clutter-detect/blob/master/out/edge_curve.png"><img src="https://raw.githubusercontent.com/AungKaung1928/mujoco-clutter-detect/master/out/edge_curve.png" alt="mAP against one-thread latency for every graph in step 6" style="max-width:100%;border:1px solid var(--line)"></a>
     </div>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>Static INT8 turns the one-thread loss into a win, and takes nothing measurable with it</h4>
-        <p>fp32 through ONNX Runtime: 3.57 ms on one thread. Static INT8: 1.38 ms, a 2.6× cut, under the classical
+        <h4><span lang="en">Static INT8 turns the one-thread loss into a win, and takes nothing measurable with it</span><span lang="ja">static INT8は1スレッドでの負けを勝ちに変え、計測可能な損失はない</span></h4>
+        <p lang="en">fp32 through ONNX Runtime: 3.57 ms on one thread. Static INT8: 1.38 ms, a 2.6× cut, under the classical
           pipeline's 2.13 ms with room to spare. (The MinMax and Entropy rows are the same file timed twice, see
           finding 02, so read 1.38 and 1.35 as one number with its spread.) On four threads
           1.52 ms became 0.60 ms. mAP moved from 0.9107 to 0.9097, a drop of 0.0010; every class moved by
           0.001 or less; recall on objects less than half visible stayed at 0.910 on the same 53 objects. The
           number step 5 could not deliver on one core is delivered by changing the arithmetic, not the network.</p>
+        <p lang="ja">ONNX Runtimeでのfp32は1スレッドで3.57 ms。static INT8では1.38 msで2.6分の1になり、古典的パイプラインの2.13 msを余裕を持って下回りました
+          （MinMaxとEntropyの行は同じファイルを2回計測したものなので（finding 02参照）、1.38と1.35はばらつきを含む1つの数値として読んでください）。
+          4スレッドでは1.52 msが0.60 msになりました。mAPは0.9107から0.9097へ0.0010低下し、どのクラスも変化は0.001以下、
+          半分未満しか見えない物体へのrecallも同じ53物体で0.910のままでした。step 5で1コアでは達成できなかった数値を、ネットワークではなく演算方式を変えることで達成しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>Two of three calibration methods produce the same graph, and the elaborate one loses</h4>
-        <p>MinMax and Entropy do not merely give the same mAP to four decimals: the two output files have the same
+        <h4><span lang="en">Two of three calibration methods produce the same graph, and the elaborate one loses</span><span lang="ja">3つのcalibration手法のうち2つは同じグラフを生成し、凝った手法は負ける</span></h4>
+        <p lang="en">MinMax and Entropy do not merely give the same mAP to four decimals: the two output files have the same
           SHA-256. The entropy histograms were built, and took four times as long, but the KL search kept the full
           range on all 21 quantized activations, which is what bounded activations without heavy tails give you. Percentile 99.99 costs 0.0048, five times the
           other two, and almost all of it on the box class (0.914 to 0.904). With 200 calibration images the
@@ -1212,19 +1282,30 @@ off = 1×1 conv → 2 channels</code></pre>
           1.36, 1.44 and 1.80 ms against fp32's 3.72, 3.96 and 4.51 ms, a ratio of 2.5 to 2.75×. Each table row
           is one sample from one quiet window, so the ratio is the result and gaps under 10 % between rows are
           not.</p>
+        <p lang="ja">MinMaxとEntropyは、mAPが小数点以下4桁まで一致するだけではありません。2つの出力ファイルのSHA-256が同一です。entropyのヒストグラムは
+          実際に構築され、4倍の時間がかかりましたが、KL探索は量子化した21個のactivationすべてでレンジ全体を残しました。裾の重くない有界なactivationでは
+          そうなります。Percentile 99.99は0.0048の低下で他の2つの5倍、そのほぼすべてがboxクラスです（0.914から0.904）。calibration画像200枚では、
+          percentileのclipが、box検出が依存する少なくとも1つのtensorに対して狭すぎるレンジを選びました。ここではデフォルトで問題ありませんでしたが、
+          比較したからこそ、それが推測ではなく計測結果になります。計測の再現性は、同じ夜のうちに同じファイルを新しいプロセスで3回計測して確認しました。
+          1.36、1.44、1.80 msに対しfp32は3.72、3.96、4.51 msで、比は2.5〜2.75倍です。表の各行は静かな時間帯の1サンプルなので、
+          結果として言えるのはこの比であり、行間の10 %未満の差は結果とは言えません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>Dynamic quantisation was expected to buy no speed; on one thread it bought half</h4>
-        <p>3.57 ms to 1.82 ms on one thread, a 2.0× cut, but 1.54 ms on four threads against fp32's 1.52: nothing.
+        <h4><span lang="en">Dynamic quantisation was expected to buy no speed; on one thread it bought half</span><span lang="ja">dynamic quantisationは速度向上なしと予想したが、1スレッドでは時間が半分になった</span></h4>
+        <p lang="en">3.57 ms to 1.82 ms on one thread, a 2.0× cut, but 1.54 ms on four threads against fp32's 1.52: nothing.
           The integer convolution kernels the dynamic path runs did the single-thread work faster and did not scale
           with threads, while the static QDQ graph did both. The paragraph written before the run said dynamic
           quantisation "saves bytes and buys no speed"; that expectation was wrong on one thread and the
           repository keeps both the expectation and the measurement, because a corrected prediction is part of
           the record.</p>
+        <p lang="ja">1スレッドでは3.57 msから1.82 msへ2.0分の1になりましたが、4スレッドでは1.54 msでfp32の1.52 msと変わりませんでした。
+          dynamic経路が使う整数畳み込みカーネルは、シングルスレッドの処理は速くなったもののスレッド数に応じてスケールせず、static QDQグラフは両方を達成しました。
+          実験前に書いた段落では、dynamic quantisationは「容量は減るが速度は上がらない」としていました。この予想は1スレッドでは誤りでした。
+          修正された予測も記録の一部なので、リポジトリには予想と計測結果の両方を残しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>Pruning is the wrong tool for this network</h4>
-        <p>Removing 25 % of the channels took 28 % of the multiply-accumulates and 20 % of the one-thread latency
+        <h4><span lang="en">Pruning is the wrong tool for this network</span><span lang="ja">このネットワークにpruningは不適切</span></h4>
+        <p lang="en">Removing 25 % of the channels took 28 % of the multiply-accumulates and 20 % of the one-thread latency
           (3.57 to 2.84 ms), and cost 0.019 mAP after three fine-tune epochs. Removing 50 % took 53 % of the MACs and
           32 % of the latency (2.42 ms) and cost 0.065. Latency falls slower than the arithmetic because narrow
           convolutions run the kernels less efficiently and the per-operator overhead does not shrink at all. Before
@@ -1232,22 +1313,31 @@ off = 1×1 conv → 2 channels</code></pre>
           sparsity, so what it removed was in use. Pruned 50 % plus INT8 reaches 1.25 ms, under 10 % faster than
           static INT8 alone, for seven points of mAP. The decision is static INT8 with no pruning; a smaller network
           is a training decision, train it narrow, not surgery on a trained one.</p>
+        <p lang="ja">channelを25 %削除すると、積和演算は28 %、1スレッドlatencyは20 %減り（3.57から2.84 ms）、3 epochのfine-tune後でmAPは0.019低下しました。
+          50 %削除すると、MACsは53 %、latencyは32 %減り（2.42 ms）、mAPは0.065低下しました。latencyが演算量ほど減らないのは、幅の狭い畳み込みでは
+          カーネルの効率が下がり、operatorごとのオーバーヘッドはまったく減らないからです。fine-tune前の2つのpruning済みネットワークは0.220と0.000でした。
+          γによる順位付けはsparsityに向けて学習されていなかったため、削除したchannelは実際に使われていたのです。50 % pruning＋INT8は1.25 msに達しますが、
+          static INT8単体より10 %未満しか速くならず、その代わりにmAPを7ポイント失います。結論は、pruningなしのstatic INT8です。
+          小さいネットワークが欲しいなら、それは学習時の判断であり、学習済みモデルへの手術ではなく、最初から幅を狭くして学習すべきです。</p>
       </div></div>
     </div>
 
     <div class="note">
-      <p>A one-thread x86 latency under ONNX Runtime is not a Jetson latency. The deployment target is an ARM core
+      <p lang="en">A one-thread x86 latency under ONNX Runtime is not a Jetson latency. The deployment target is an ARM core
         plus TensorRT, a different INT8 path on different hardware; the ordering of the graphs is expected to carry,
         the ratios are not. Post-training quantisation only: if the INT8 drop had come out above about 0.01,
         quantisation-aware training would be the next step, not a different calibration method.</p>
+      <p lang="ja">ONNX Runtimeでのx86 1スレッドのlatencyは、Jetsonのlatencyではありません。デプロイ先はARMコア＋TensorRTで、異なるハードウェア上の異なるINT8経路です。
+        グラフ間の順位はそのまま当てはまると予想されますが、比率は当てはまりません。今回はpost-training quantisationのみです。
+        INT8での低下がおよそ0.01を超えていたら、次の手はcalibration手法の変更ではなくquantisation-aware trainingでした。</p>
     </div>
   </div>
 </section>
 
 <section id="limits">
-  <div class="sec-head"><span class="sec-num">11</span><h2>What this does not prove</h2><p class="sec-sub">The limits of a synthetic dataset with perfect labels, stated plainly.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">What this does not prove</span><span lang="ja">この結果から言えないこと</span></h2><p class="sec-sub" lang="en">The limits of a synthetic dataset with perfect labels, stated plainly.</p><p class="sec-sub" lang="ja">完全なラベルを持つ合成データセットの限界を、率直に記します。</p></div>
   <div class="stack prose">
-    <ul class="tight">
+    <ul class="tight" lang="en">
       <li><strong>Occlusion robustness.</strong> Only 0.6 % of objects are occluded past half. The 0.910 recall
         in that band rests on 53 samples. Testing it properly needs a lower camera and a smaller separation, and
         a regenerated dataset.</li>
@@ -1261,11 +1351,21 @@ off = 1×1 conv → 2 channels</code></pre>
       <li><strong>The classical baseline is one person's best attempt.</strong> A stronger classical pipeline
         exists in principle; the comparison is honest about being between these two implementations.</li>
     </ul>
+    <ul class="tight" lang="ja">
+      <li><strong>occlusionへの頑健性。</strong>半分以上隠れている物体は0.6 %だけです。その帯でのrecall 0.910は53サンプルに基づいています。
+        きちんと検証するには、カメラを低くし、物体間隔を狭めて、データセットを作り直す必要があります。</li>
+      <li><strong>Sim-to-real。</strong>どちらのregimeもレンダリング画像です。<code>easy</code>→<code>hard</code>の差は、現実とのギャップを計測可能な形で代替したものであり、
+        現実のギャップそのものではありません。</li>
+      <li><strong>ablationは単一seed。</strong>8条件のグリッドは1回しか実行していません。大きな効果（0.147対0.874）はseedによるノイズの範囲を大きく超えていますが、
+        小さな効果（geometric augmentationの+0.016）は証明ではなく示唆として扱っています。</li>
+      <li><strong>3クラス、カメラ姿勢1つ、配置分布1つ。</strong>新しい物体カテゴリや新しい視点への汎化は、ここでは一切検証していません。</li>
+      <li><strong>古典的baselineは1人の人間による最善の試み。</strong>原理的にはより強い古典的パイプラインが存在し得ます。この比較は、あくまでこの2つの実装間の比較です。</li>
+    </ul>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">12</span><h2>Running it</h2><p class="sec-sub">Setup, the commands in order, and the runtimes to expect on a CPU.</p></div>
+  <div class="sec-head"><span class="sec-num">12</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定所要時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/mujoco-clutter-detect.git
 cd mujoco-clutter-detect
@@ -1286,22 +1386,26 @@ nice -n 10 python export_onnx.py --ckpt runs/det_hard_none.pt \
 nice -n 10 python quantize.py --calib 200                            # step 6a, idle box only
 nice -n 10 python prune.py --ratios 0.25 0.5 --finetune-epochs 3 --int8   # step 6b
 python edge_curve.py --out out/edge_curve.png                        # step 6c, seconds</code></pre>
-    <h3>Or check the claims without regenerating anything</h3>
+    <h3><span lang="en">Or check the claims without regenerating anything</span><span lang="ja">または、何も再生成せずに主張を検証する</span></h3>
     <pre><code>./verify.sh</code></pre>
     <div class="prose stack">
-      <p>Six tiers. The first three need no dataset and no weights — the fifteen hand-computed AP cases, the
+      <p lang="en">Six tiers. The first three need no dataset and no weights — the fifteen hand-computed AP cases, the
         encode/decode inverse check, and the step-6 checks (INT8 round trip, pruning rewiring exactness, MAC
         count). They take under a minute. The later tiers need <code>data/</code> (2.9 GB, gitignored) and
         <code>runs/*.pt</code>, and say how to regenerate them rather than failing.</p>
-      <p>The script pins <code>MUJOCO_GL=glfw</code> and the thread count, because both change the numbers.</p>
+      <p lang="ja">6段階あります。最初の3段階はデータセットもweightも不要で、手計算した15件のAPケース、encode/decodeの逆変換チェック、
+        step 6のチェック（INT8の往復変換、pruningの再配線の厳密性、MAC数）を実行します。所要時間は1分未満です。後半の段階は
+        <code>data/</code>（2.9 GB、gitignore済み）と<code>runs/*.pt</code>を必要とし、ない場合は失敗せずに再生成方法を案内します。</p>
+      <p lang="en">The script pins <code>MUJOCO_GL=glfw</code> and the thread count, because both change the numbers.</p>
+      <p lang="ja">スクリプトは<code>MUJOCO_GL=glfw</code>とスレッド数を固定しています。どちらも数値を変えてしまうからです。</p>
     </div>
   </div>
 </section>
 
 <section id="summary" style="border-bottom:0">
-  <div class="sec-head"><span class="sec-num">13</span><h2>The short version</h2><p class="sec-sub">The whole project compressed into one paragraph.</p></div>
+  <div class="sec-head"><span class="sec-num">13</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">The whole project compressed into one paragraph.</p><p class="sec-sub" lang="ja">プロジェクト全体を1段落に凝縮します。</p></div>
   <div class="stack prose">
-    <p>Multi-object detection on a simulated tabletop, built metric-first. Labels come from MuJoCo's segmentation
+    <p lang="en">Multi-object detection on a simulated tabletop, built metric-first. Labels come from MuJoCo's segmentation
       buffer, so they are exact under perspective and occlusion; the occlusion fraction needs a second pass, which
       an exact pruning rule cuts by half. A COCO-style AP@[.5:.95] harness is written by hand and proved against
       fifteen paper-derived cases plus end-to-end controls. A fully fitted classical pipeline — background
@@ -1316,6 +1420,16 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
       Static INT8 with MinMax calibration then brings the one-thread model time from 3.57 ms to
       1.38 ms (2.6×), under the classical 2.13 ms, at mAP 0.9097 against fp32's
       0.9107; pruning half the channels reaches 0.8454 after a three-epoch fine-tune.</p>
+    <p lang="ja">シミュレーション上のテーブルを対象に、評価指標を先に作る方針で複数物体検出を構築しました。ラベルはMuJoCoのsegmentation bufferから取得するため、
+      遠近法やocclusionの下でも厳密です。occlusionの割合には2回目のパスが必要ですが、厳密な枝刈りルールでその量を半分にしました。
+      COCO形式のAP@[.5:.95]評価ハーネスを自作し、手計算で導いた15ケースとend-to-endの対照実験で正しさを証明しました。十分にfitさせた古典的パイプライン
+      （背景推定、seed数を数えるwatershed、9個の形状特徴量、backgroundクラス付きのクラス均衡logistic regression）はmAP 0.532で、その下の4つのfindingが、
+      手設計の特徴量の限界がどこにあるかを具体的に示しています。続いてパラメータ数381 kのanchor-free heatmap検出器は0.911を出し、クラス間のばらつきは
+      0.304から0.006に縮まり、古典的手法で見られたocclusionの崖も現れませんでした。8条件のablationにより、転移を生むのはランダム化した外観での学習であることが分かりました。
+      ランダム化しないモデルは外観の変化で0.15に崩れ、photometric augmentationでも0.52までしか回復せず、ランダム化に上乗せしても効果は0.0007です。
+      ONNX Runtimeを使うと、検出器はend-to-endで1.20 ms（古典的手法は2.13 ms）、mAPは同等です。最初のlatency計測値は過熱したマシンで取ったため破棄し、
+      両方の数値をリポジトリに残しています。さらにMinMax calibrationによるstatic INT8で、1スレッドのモデル時間は3.57 msから1.38 ms（2.6倍）となり、
+      古典的手法の2.13 msを下回りました。mAPは0.9097（fp32は0.9107）です。channelの半分をpruningすると、3 epochのfine-tune後で0.8454になります。</p>
   </div>
 </section>
 
@@ -1323,46 +1437,12 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>mujoco-clutter-detect</code> — <code>README.md</code>, <code>common.py</code>,
+  <span lang="en">Built from the source in</span><span lang="ja">作成元のソース：</span> <code>mujoco-clutter-detect</code> — <code>README.md</code>, <code>common.py</code>,
   <code>ap.py</code>, <code>detector.py</code>, <code>gen_dataset.py</code>, <code>train_det.py</code>,
   <code>baseline_cv.py</code>, <code>export_onnx.py</code>, <code>quantize.py</code>, <code>prune.py</code>,
-  <code>edge_curve.py</code>, <code>scene.xml</code> and <code>verify.sh</code>.
+  <code>edge_curve.py</code>, <code>scene.xml</code> <span lang="en">and</span><span lang="ja">、</span> <code>verify.sh</code>.
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>

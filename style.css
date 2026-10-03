@@ -8,15 +8,15 @@
     /* surfaces */
     --bg:            #ffffff;
     --bg-alpha:      rgba(255, 255, 255, 0.82);
-    --surface:       #f7f9fa;
-    --surface-2:     #eef2f4;
+    --surface:       #f6f8fa;
+    --surface-2:     #edf1f4;
 
     /* lines */
     --border:        #e4e9ec;
     --border-strong: #ccd6da;
 
     /* ink */
-    --ink:           #16202a;
+    --ink:           #141c26;
     --ink-2:         #485964;
     --ink-3:         #5E6C77;
 
@@ -38,23 +38,23 @@
 }
 
 html.dark-mode {
-    --bg:            #0f1417;
-    --bg-alpha:      rgba(15, 20, 23, 0.80);
-    --surface:       #161d21;
-    --surface-2:     #1d262c;
+    --bg:            #0e1420;
+    --bg-alpha:      rgba(14, 20, 32, 0.82);
+    --surface:       #141c29;
+    --surface-2:     #1b2533;
 
-    --border:        #253036;
-    --border-strong: #38474f;
+    --border:        #222d3d;
+    --border-strong: #323f54;
 
-    --ink:           #e8eef2;
-    --ink-2:         #a7b7c0;
-    --ink-3:         #7b8c97;
+    --ink:           #e6ebf2;
+    --ink-2:         #aab4c3;
+    --ink-3:         #808b9c;
 
     --accent:        #35BDD8;
     --accent-2:      #57D8E8;
     --accent-hover:  #63D5EA;
     --accent-soft:   rgba(53, 189, 216, 0.10);
-    --on-accent:     #05161b;
+    --on-accent:     #071a22;
 
     --grid-dot:      rgba(53, 189, 216, 0.09);
     --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.4);
@@ -66,7 +66,7 @@ html.dark-mode {
 html { scroll-behavior: smooth; scroll-padding-top: 86px; -webkit-text-size-adjust: 100%; }
 
 body {
-    font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+    font-family: 'Inter', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'BIZ UDPGothic', 'Yu Gothic UI', 'Yu Gothic', Meiryo, 'Noto Sans JP', 'Segoe UI', -apple-system, sans-serif;
     font-size: 16px;
     line-height: 1.65;
     color: var(--ink-2);
@@ -112,6 +112,40 @@ a { color: var(--accent); }
     transition: top 0.2s ease;
 }
 .skip-link:focus { top: 12px; }
+
+/* ── Language ────────────────────────────────────────────────────── */
+/* Every translated element exists twice, lang="en" and lang="ja"; the
+ * html[data-lang] attribute (set before first paint, see <head>) picks one. */
+html:not([data-lang="ja"]) body [lang="ja"] { display: none !important; }
+html[data-lang="ja"] body [lang="en"] { display: none !important; }
+html[data-lang="ja"] body { line-height: 1.8; }
+html[data-lang="ja"] :is(p, li, dd) { word-break: auto-phrase; line-break: strict; }
+html[data-lang="ja"] .hero-desc, html[data-lang="ja"] .lede { max-width: 40em; }
+
+.lang-switch {
+    flex-shrink: 0;
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg);
+}
+.lang-switch button {
+    font: 600 0.72rem/1 inherit;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    padding: 0 0.7rem;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+}
+.lang-switch button + button { border-left: 1px solid var(--border); }
+.lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.lang-switch button:not([aria-pressed="true"]):hover { color: var(--ink); background: var(--surface-2); }
+.header-tools { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 
 /* ── Scroll indicators ───────────────────────────────────────────── */
 
@@ -607,6 +641,51 @@ section + section { border-top: 1px solid var(--border); }
     gap: 0.75rem;
 }
 
+/* A card reads top-down: what, how, the measured result, the stated limit. */
+.project-result {
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--accent-2);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.8rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.55;
+    font-variant-numeric: tabular-nums;
+}
+.project-result b { color: var(--accent); font-weight: 650; }
+.project-limit {
+    font-size: 0.84rem;
+    color: var(--ink-3);
+    line-height: 1.55;
+    margin-bottom: 1.3rem;
+    padding-left: 1.1rem;
+    position: relative;
+}
+.project-limit::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.68em;
+    width: 5px;
+    height: 1.5px;
+    background: var(--ink-3);
+    opacity: 0.6;
+}
+.project-points { margin-bottom: 0.9rem; }
+.method-list { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; list-style: none; margin-top: 0.3rem; }
+.method-list li {
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.28rem 0.65rem;
+}
+.method-list li b { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent-2); margin-right: 0.35rem; }
+
 /* ── Contact ─────────────────────────────────────────────────────── */
 
 .contact-grid {
@@ -720,13 +799,22 @@ html.reveal-ready .reveal.in {
 }
 
 @media (max-width: 680px) {
-    html { scroll-padding-top: 74px; }
-    .header-content { min-height: 58px; gap: 0.75rem; }
+    /* Two rows: brand + tools, then the section nav on its own line. */
+    html { scroll-padding-top: 104px; }
+    .header-content { min-height: 0; flex-wrap: wrap; gap: 0 0.75rem; padding: 0.55rem 0 0; }
+    .brand-name { font-size: 0.95rem; white-space: nowrap; }
+    .header-tools { margin-left: auto; }
+    .lang-switch button { padding: 0 0.55rem; height: 30px; }
+    #theme-toggle { width: 30px; height: 30px; }
     nav {
-        gap: 1.1rem;
+        order: 3;
+        flex-basis: 100%;
+        margin-left: 0;
+        gap: 1.2rem;
         overflow-x: auto;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        padding: 0.35rem 0 0.1rem;
     }
     nav::-webkit-scrollbar { display: none; }
     nav a { font-size: 0.82rem; white-space: nowrap; }

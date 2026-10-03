@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--h:#8f6486" data-title-ja="ロボットフリート監視 — Aung Kaung Myat">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,386 +12,218 @@
 <meta property="og:title" content="Watching a Robot Fleet">
 <meta property="og:description" content="Three simulated robots stream position into Kafka; one service stores it, another notices when a robot stops moving and opens an alert that can be closed.">
 <meta name="twitter:card" content="summary">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%238f6486'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
-try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark-mode')}catch(e){}
+(function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
+if(l==='ja'){d.setAttribute('data-lang','ja');d.lang='ja'}
+if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark-mode')})(document.documentElement);
 </script>
-<style>
-html{color-scheme:light;-webkit-text-size-adjust:100%}
-img{max-width:100%;height:auto}
-[hidden]{display:none!important}
-
-:root{
-  --bg:#ffffff;
-  --paper:#faf7f9;
-  --paper2:#f2ecf0;
-  --ink:#1e1720;
-  --ink2:#4a4048;
-  --muted:#7b7079;
-  --line:#eae2e7;
-  --line2:#d9ccd5;
-  --accent:#8f6486;
-  --accent-deep:#734b6a;
-  --accent-soft:#f8f2f6;
-  --accent-line:#e0cddb;
-  --good:#3f6b4a;
-  --warn:#8a6a2c;
-  --bad:#9c4a45;
-  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
-  --disp:"Archivo","Helvetica Neue",Arial,sans-serif;
-  --body:"Source Serif 4",Georgia,"Times New Roman",serif;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
-  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,4vw,44px)}
-.prose{max-width:68ch}
-h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0}
-h1{font-size:clamp(2.1rem,5.4vw,3.4rem);line-height:1.04;letter-spacing:-.025em;font-weight:700}
-h2{font-size:clamp(1.35rem,3vw,1.85rem);line-height:1.15;letter-spacing:-.018em;font-weight:600}
-h3{font-size:1.09rem;line-height:1.3;letter-spacing:-.008em;font-weight:600}
-h4{font-size:.95rem;font-weight:600}
-p{margin:0}
-a{color:var(--accent-deep)}
-code,kbd{font-family:var(--mono);font-size:.86em;background:var(--paper2);padding:.1em .34em;
-  border-radius:3px;color:var(--ink);word-break:break-word}
-pre{font-family:var(--mono);font-size:.82rem;line-height:1.65;background:var(--paper);
-  border:1px solid var(--line);border-left:3px solid var(--accent-line);border-radius:0 5px 5px 0;
-  padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink2)}
-pre code{background:none;padding:0;font-size:1em}
-.eyebrow{font-family:var(--mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-header.top{border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 78%)}
-.head-inner{padding-block:clamp(34px,7vw,66px) 30px;display:flex;flex-direction:column;gap:20px}
-.deck{font-size:clamp(1.05rem,2.3vw,1.24rem);color:var(--ink2);max-width:62ch}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{font-family:var(--mono);font-size:.7rem;letter-spacing:.04em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:#fff;border-radius:100px}
-.factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line);margin-top:6px}
-.fact{background:var(--bg);padding:12px 14px;display:flex;flex-direction:column;gap:3px}
-.fact dt{font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.fact dd{margin:0;font-family:var(--disp);font-size:.98rem;font-weight:600;line-height:1.25}
-.fact dd em{font-style:normal;color:var(--accent)}
-nav.jump{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);
-  backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.jump-inner{display:flex;gap:2px;overflow-x:auto;padding-block:8px;scrollbar-width:thin}
-.jump a{font-family:var(--mono);font-size:.71rem;letter-spacing:.04em;white-space:nowrap;
-  padding:5px 10px;border-radius:4px;color:var(--ink2);text-decoration:none}
-.jump a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.jump a:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-section{padding-block:clamp(34px,6vw,58px);border-bottom:1px solid var(--line)}
-section:last-of-type{border-bottom:0}
-.sec-head{display:flex;gap:14px;align-items:baseline;margin-bottom:20px}
-.sec-num{font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent);
-  padding-top:.35em;letter-spacing:.06em}
-.stack{display:flex;flex-direction:column;gap:16px}
-.stack-lg{display:flex;flex-direction:column;gap:26px}
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--bad);background:#fbf1ef}
-.note-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;
-  color:var(--muted);font-weight:600}
-.note.key .note-label{color:var(--accent-deep)}
-.note.warnbox .note-label{color:var(--bad)}
-.note p{font-size:.95rem}
-.steps{display:flex;flex-wrap:wrap;margin-block:4px}
-.stepbox{flex:1 1 172px;min-width:0;border:1px solid var(--line2);background:var(--bg);
-  padding:12px 13px;display:flex;flex-direction:column;gap:5px}
-.stepbox + .stepbox{border-left:0}
-.stepbox.todo{background:var(--paper)}
-.stepbox .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-.stepbox.todo .sn{color:var(--muted)}
-.stepbox .st{font-family:var(--disp);font-size:.92rem;font-weight:600;line-height:1.25}
-.stepbox .sd{font-size:.82rem;color:var(--muted);line-height:1.42}
-.stepbox .sr{font-family:var(--mono);font-size:.72rem;color:var(--ink);font-weight:600;
-  border-top:1px dashed var(--line2);padding-top:6px;margin-top:auto}
-.stepbox.todo .sr{color:var(--muted);font-weight:400}
-@media (max-width:640px){.stepbox+.stepbox{border-left:1px solid var(--line2);border-top:0}}
-.tablewrap{overflow-x:auto;border:1px solid var(--line)}
-table{border-collapse:collapse;width:100%;font-size:.87rem;min-width:520px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-thead th{font-family:var(--disp);font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
-tbody tr:last-child td{border-bottom:0}
-td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:.84rem}
-td code{font-size:.82rem;background:none;padding:0;color:var(--accent-deep)}
-.filemap td:first-child{font-family:var(--mono);font-size:.79rem;white-space:nowrap}
-tbody tr:nth-child(even){background:#fdfaFc}
-tr.hl td{background:var(--accent-soft)}
-tr.hl td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-tr.bad td:first-child{box-shadow:inset 3px 0 0 var(--bad)}
-ul.tight{margin:0;padding-left:1.15em;display:flex;flex-direction:column;gap:8px}
-ul.tight li::marker{color:var(--accent)}
-ol.tight{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:10px}
-ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
-.pair{display:grid;grid-template-columns:minmax(150px,205px) 1fr;gap:6px 18px;font-size:.94rem}
-.pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
-.pair dd{margin:0;color:var(--ink2)}
-@media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-figure{margin:0;display:flex;flex-direction:column;gap:8px}
-figcaption{font-size:.83rem;color:var(--muted)}
-svg{max-width:100%;height:auto;display:block}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line)}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
-.finding:last-child{border-bottom:0}
-.finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
-.finding h4{margin-bottom:6px}
-.finding p{font-size:.93rem;color:var(--ink2)}
-.finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
-@media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}
-.obsbar{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line)}
-.obsseg{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px;flex:1 1 130px}
-.obsseg .od{font-family:var(--mono);font-size:1.15rem;font-weight:600;color:var(--accent);line-height:1}
-.obsseg .on{font-family:var(--disp);font-size:.85rem;font-weight:600}
-.obsseg .os{font-size:.78rem;color:var(--muted);line-height:1.35}
-.obsseg.drop{background:var(--paper)}
-.obsseg.drop .od{color:var(--bad);text-decoration:line-through}
-footer{padding-block:34px 60px;color:var(--muted);font-size:.85rem}
-.rule{height:1px;background:var(--line);border:0;margin:0}
-
-/* refinements */
-html{scroll-behavior:smooth}
-section{scroll-margin-top:58px}
-a{text-underline-offset:.16em;text-decoration-thickness:.055em}
-a:hover{color:var(--accent)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
-.progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:40;pointer-events:none}
-.progress i{display:block;height:100%;width:0;background:var(--accent);opacity:.7}
-.jump a[aria-current="true"]{background:var(--accent-soft);color:var(--accent-deep);
-  box-shadow:inset 0 -2px 0 var(--accent)}
-.sec-head{flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:16px}
-.sec-num{padding-top:0;display:inline-flex;align-items:center;justify-content:center;min-width:27px;
-  height:24px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-deep);
-  border-radius:4px;font-size:.7rem;letter-spacing:.04em}
-.sec-sub{flex:1 0 100%;margin:2px 0 0;font-size:.94rem;line-height:1.5;color:var(--muted);max-width:70ch}
-.glosswrap{display:flex;flex-direction:column;gap:11px;margin-top:30px}
-.glosswrap h3{font-family:var(--disp);font-size:.82rem;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
-.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;
-  background:var(--line);border:1px solid var(--line)}
-.gterm{background:var(--bg);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
-.gterm b{font-family:var(--mono);font-size:.75rem;font-weight:600;color:var(--accent-deep)}
-.gterm span{font-size:.86rem;line-height:1.45;color:var(--ink2)}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-@media (max-width:520px){.sec-sub{font-size:.9rem}}
-
-/* site chrome */
-.skip{position:absolute;left:-9999px;top:0;z-index:60;background:var(--accent-deep);color:#fff;
-  padding:8px 14px;font-family:var(--mono);font-size:.78rem}
-.skip:focus{left:8px;top:8px}
-.sitebar{border-bottom:1px solid var(--line);background:var(--paper)}
-.sitebar-inner{display:flex;align-items:center;gap:6px;padding-block:9px;
-  font-family:var(--mono);font-size:.73rem;flex-wrap:wrap}
-.sitebar a{color:var(--ink2);text-decoration:none;padding:4px 7px;border-radius:3px;white-space:nowrap}
-.sitebar a:hover{background:var(--accent-soft);color:var(--accent-deep)}
-.sb-sep{color:var(--line2)}
-.sb-repo{margin-left:auto;border:1px solid var(--accent-line);color:var(--accent-deep)}
-
-
-
-/* dark theme: follows the main site's toggle (localStorage 'theme') or the system setting */
-html.dark-mode{color-scheme:dark;
-  --bg:#0f1417;
-  --paper:#161d21;
-  --paper2:#1d262c;
-  --ink:#e8eef2;
-  --ink2:#a7b7c0;
-  --muted:#7b8c97;
-  --line:#253036;
-  --line2:#38474f;
-  --accent:#ba9fb4;
-  --accent-soft:#232129;
-  --accent-deep:#c7b2c2;
-  --accent-line:#4f3c4e;
-  --good:#8ca692;
-  --warn:#b9a680;
-  --bad:#c4928f;
-}
-html.dark-mode .chip{background:var(--paper)}
-html.dark-mode nav.jump{background:rgba(15,20,23,.94)}
-html.dark-mode .note.warnbox{background:#231c1d}
-html.dark-mode tbody tr:nth-child(even){background:#131a1e}
-html.dark-mode .skip{color:#0f1417}
-html.dark-mode svg[role="img"]{background:#f6f5f1;border-radius:6px}
-html.dark-mode img{background:#f6f5f1}
-html.dark-mode .links a.primary{color:color-mix(in srgb,var(--h) 55%,#fff);border-color:color-mix(in srgb,var(--h) 55%,#fff)}
-html.dark-mode .links a.primary:hover{background:color-mix(in srgb,var(--h) 18%,#0f1417)}
-html.dark-mode .hue{background:color-mix(in srgb,var(--h) 70%,#fff)}
-.sb-theme{flex-shrink:0;display:grid;place-items:center;width:30px;height:30px;padding:0;cursor:pointer;
-  background:transparent;border:1px solid var(--line2);border-radius:4px;color:var(--muted)}
-.sb-theme:hover{color:var(--accent-deep);border-color:var(--accent-line);background:var(--accent-soft)}
-.sb-theme{margin-left:auto}
-.sb-repo ~ .sb-theme{margin-left:0}
-.sb-theme .moon-icon{display:none}
-html.dark-mode .sb-theme .sun-icon{display:none}
-html.dark-mode .sb-theme .moon-icon{display:block}
-</style>
+<link rel="stylesheet" href="wt.css">
 </head>
 <body>
-<a class="skip" href="#main">Skip to content</a>
-<div class="sitebar"><div class="wrap sitebar-inner"><a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./">Walkthroughs</a><a class="sb-repo" href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener">Repository ↗</a><button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div></div>
+<a class="skip" href="#main"><span lang="en">Skip to content</span><span lang="ja">本文へ移動</span></a>
+<div class="sitebar"><div class="wrap sitebar-inner">
+  <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
+  <div class="sb-tools">
+    <a class="sb-repo" href="https://github.com/AungKaung1928/fleet_monitoring_ws" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+  </div>
+</div></div>
 <div class="progress" aria-hidden="true"><i></i></div>
 <header class="top">
   <div class="wrap head-inner">
-    <div class="eyebrow">ROS 2 · infrastructure · repo <code style="background:none;padding:0;color:inherit">fleet_monitoring_ws</code></div>
+    <div class="eyebrow">ROS 2 · <span lang="en">infrastructure · repo</span><span lang="ja">インフラ · リポジトリ</span> <code style="background:none;padding:0;color:inherit">fleet_monitoring_ws</code></div>
     <h1>Watching a Robot Fleet</h1>
-    <p class="deck">Three simulated robots publish where they are. A message bus carries it, one service files it into a
+    <p class="deck" lang="en">Three simulated robots publish where they are. A message bus carries it, one service files it into a
       time-series database, and another one notices when a robot has stopped moving and opens an alert that a human can
       acknowledge and close. The whole fleet is described in a single configuration file, and a job on every push proves
       the chain works end to end.</p>
+    <p class="deck" lang="ja">シミュレーション上の3台のロボットが自己位置をpublishします。メッセージバスがそれを運び、1つのサービスが時系列データベースに記録し、
+      もう1つのサービスがロボットの停止を検知して、人が確認（acknowledge）してクローズできるアラートを発行します。
+      フリート全体は1つの設定ファイルで定義され、pushのたびに実行されるジョブがパイプライン全体をend-to-endで検証します。</p>
     <div class="chips">
       <span class="chip">ROS 2 Humble</span><span class="chip">Gazebo Harmonic</span><span class="chip">Apache Kafka (KRaft)</span>
       <span class="chip">QuestDB</span><span class="chip">PostgreSQL</span><span class="chip">Grafana</span>
       <span class="chip">Docker Compose</span><span class="chip">GitHub Actions</span>
     </div>
     <dl class="factgrid">
-      <div class="fact"><dt>Robots</dt><dd><em>3</em>, defined in one file</dd></div>
-      <div class="fact"><dt>Databases</dt><dd>2, different jobs</dd></div>
-      <div class="fact"><dt>Stuck rule</dt><dd>variance &lt; <em>0.001</em> m²</dd></div>
-      <div class="fact"><dt>CI assertions</dt><dd><em>4 of 4</em> pass</dd></div>
-      <div class="fact"><dt>Smoke run</dt><dd>369 rows in 25 s</dd></div>
-      <div class="fact"><dt>Python</dt><dd>≈1 330 lines</dd></div>
+      <div class="fact"><dt><span lang="en">Robots</span><span lang="ja">ロボット</span></dt><dd><em>3</em><span lang="en">, defined in one file</span><span lang="ja">台（1ファイルで定義）</span></dd></div>
+      <div class="fact"><dt><span lang="en">Databases</span><span lang="ja">データベース</span></dt><dd>2<span lang="en">, different jobs</span><span lang="ja">つ（役割が別）</span></dd></div>
+      <div class="fact"><dt><span lang="en">Stuck rule</span><span lang="ja">停止判定</span></dt><dd><span lang="en">variance</span><span lang="ja">分散</span> &lt; <em>0.001</em> m²</dd></div>
+      <div class="fact"><dt><span lang="en">CI assertions</span><span lang="ja">CI assertion</span></dt><dd><em>4 of 4</em> <span lang="en">pass</span><span lang="ja">合格</span></dd></div>
+      <div class="fact"><dt><span lang="en">Smoke run</span><span lang="ja">Smoke test</span></dt><dd><span lang="en">369 rows in 25 s</span><span lang="ja">25 sで369行</span></dd></div>
+      <div class="fact"><dt>Python</dt><dd><span lang="en">≈1 330 lines</span><span lang="ja">約1 330行</span></dd></div>
     </dl>
   </div>
 </header>
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain">In plain words</a>
-    <a href="#path">The data path</a>
-    <a href="#files">Every file</a>
-    <a href="#config">One file defines the fleet</a>
-    <a href="#databases">Two databases</a>
-    <a href="#detector">The stuck detector</a>
-    <a href="#failure">When something breaks</a>
-    <a href="#ci">What CI proves</a>
-    <a href="#limits">What this does not do</a>
-    <a href="#run">Running it</a>
-    <a href="#short">The short version</a>
+    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#path"><span lang="en">The data path</span><span lang="ja">データの流れ</span></a>
+    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#config"><span lang="en">One file defines the fleet</span><span lang="ja">1ファイルでフリート定義</span></a>
+    <a href="#databases"><span lang="en">Two databases</span><span lang="ja">2つのデータベース</span></a>
+    <a href="#detector"><span lang="en">The stuck detector</span><span lang="ja">停止検知</span></a>
+    <a href="#failure"><span lang="en">When something breaks</span><span lang="ja">障害時の挙動</span></a>
+    <a href="#ci"><span lang="en">What CI proves</span><span lang="ja">CIで証明できること</span></a>
+    <a href="#limits"><span lang="en">What this does not do</span><span lang="ja">できないこと</span></a>
+    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#short"><span lang="en">The short version</span><span lang="ja">まとめ</span></a>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
 <section id="plain">
-  <div class="sec-head"><span class="sec-num">01</span><h2>In plain words</h2><p class="sec-sub">What the project is, and what problem it exists to solve.</p></div>
+  <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What the project is, and what problem it exists to solve.</p><p class="sec-sub" lang="ja">このプロジェクトが何であり、どんな問題を解くために存在するのか。</p></div>
   <div class="stack prose">
-    <p>One robot is easy to watch. You look at it, or you open a terminal and read its messages. Ten robots in a building
+    <p lang="en">One robot is easy to watch. You look at it, or you open a terminal and read its messages. Ten robots in a building
       are not: nobody is looking at any individual one, and the interesting question stops being <em>what is this robot
       doing</em> and becomes <em>which of these robots needs a human right now</em>.</p>
-    <p>This project builds the plumbing that answers the second question. Robots publish their position continuously.
+    <p lang="ja">ロボットが1台なら監視は簡単です。直接見るか、ターミナルを開いてメッセージを読めば済みます。しかし建物内に10台あるとそうはいきません。
+      誰も個々のロボットを見ていない状況では、問うべきことは<em>「このロボットは何をしているか」</em>ではなく、
+      <em>「今、人の対応が必要なのはどのロボットか」</em>に変わります。</p>
+    <p lang="en">This project builds the plumbing that answers the second question. Robots publish their position continuously.
       That stream is collected, stored, and watched by a rule. When a robot has not moved for a while, the system files
       an alert with the robot's identifier and its last known position. The alert stays open until either a person closes
       it or the robot starts moving again, at which point it closes itself.</p>
+    <p lang="ja">このプロジェクトは、後者の問いに答えるための基盤を構築します。ロボットは自己位置を常時publishし、そのストリームが収集・保存され、
+      ルールによって監視されます。ロボットが一定時間動かないと、システムはロボットのIDと最後の既知位置を付けてアラートを発行します。
+      アラートは、人がクローズするか、ロボットが再び動き出すまでopenのままで、後者の場合は自動的にクローズされます。</p>
     <div class="note key">
-      <span class="note-label">The thing that makes it more than a demo</span>
-      <p>Nothing here is hand-wired. The fleet is described once, in <code>config/fleet.yaml</code>. The simulation world,
+      <span class="note-label"><span lang="en">The thing that makes it more than a demo</span><span lang="ja">デモで終わらない理由</span></span>
+      <p lang="en">Nothing here is hand-wired. The fleet is described once, in <code>config/fleet.yaml</code>. The simulation world,
         the visualiser layout, the launch file, the message producers, the driving patterns and the tests all read that
         same file. Adding a fourth robot is five lines of configuration and one regeneration command — no code changes
         anywhere. A continuous-integration job refuses the change if the generated files and the configuration have
         drifted apart.</p>
+      <p lang="ja">手作業で配線した部分はありません。フリートは<code>config/fleet.yaml</code>に一度だけ記述されます。シミュレーションのworld、
+        可視化ツールのレイアウト、launchファイル、メッセージのproducer、走行パターン、テストはすべて同じファイルを読み込みます。
+        4台目のロボットを追加するには、設定5行と再生成コマンド1回だけで済み、コードの変更は一切不要です。
+        生成ファイルと設定の内容がずれていれば、CIのジョブがその変更を拒否します。</p>
     </div>
-    <h3>Why it sits alongside the learning projects</h3>
-    <p>The other projects on this site are about making a model that works. This one is about the layer underneath that:
+    <h3><span lang="en">Why it sits alongside the learning projects</span><span lang="ja">学習系プロジェクトと並べている理由</span></h3>
+    <p lang="en">The other projects on this site are about making a model that works. This one is about the layer underneath that:
       the part that has to keep running while nobody is watching it, notice something is wrong, and still be inspectable
       afterwards. It is deliberately the infrastructure slot rather than the main line of work, and it is built the way
       that layer has to be built — every service restartable, every failure visible, every claim checked by a test.</p>
+    <p lang="ja">このサイトの他のプロジェクトは、動くモデルを作ることがテーマです。本プロジェクトはその下の層を扱います。
+      誰も見ていない間も動き続け、異常に気づき、後から調査できなければならない部分です。
+      あえて主軸ではなくインフラ枠として位置づけていますが、その層に求められる作り方で構築しています。
+      すべてのサービスは再起動可能で、すべての障害は可視化され、すべての主張はテストで確認されています。</p>
   </div>
 <div class="glosswrap">
-  <h3>Terms used on this page</h3>
+  <h3><span lang="en">Terms used on this page</span><span lang="ja">このページの用語</span></h3>
   <div class="gloss">
-    <div class="gterm"><b>odometry</b><span>A robot's own running estimate of where it is and how fast it is going, computed from its wheels and sensors.</span></div>
-    <div class="gterm"><b>message bus</b><span>A service that takes messages from producers and hands them to any number of independent consumers. Here, Apache Kafka.</span></div>
-    <div class="gterm"><b>topic</b><span>A named channel on the bus. Producers write to it, consumers read from it, and neither knows the other exists.</span></div>
-    <div class="gterm"><b>time-series database</b><span>A database built for append-only data stamped with a time. Fast to write, fast to query over a window, bad at changing rows after the fact.</span></div>
-    <div class="gterm"><b>dead-letter queue</b><span>A separate topic where messages that could not be processed are parked, with the reason, instead of being dropped or crashing the reader.</span></div>
-    <div class="gterm"><b>sliding window</b><span>The last N samples, with the oldest falling off as each new one arrives. The detector's memory.</span></div>
-    <div class="gterm"><b>edge-triggered</b><span>Acting on the moment a condition changes, not on every sample while it holds. One alert per event, not one per message.</span></div>
-    <div class="gterm"><b>healthcheck</b><span>A command a container runs on itself so the orchestrator can tell "started" apart from "actually ready to serve".</span></div>
-    <div class="gterm"><b>TF frame</b><span>A named coordinate system in ROS 2. Two robots publishing the same frame name in one scene collide; prefixes keep them apart.</span></div>
+    <div class="gterm"><b>odometry</b><span lang="en">A robot's own running estimate of where it is and how fast it is going, computed from its wheels and sensors.</span><span lang="ja">ロボット自身が車輪やセンサーから逐次計算する、自己位置と速度の推定値。</span></div>
+    <div class="gterm"><b>message bus</b><span lang="en">A service that takes messages from producers and hands them to any number of independent consumers. Here, Apache Kafka.</span><span lang="ja">producerからメッセージを受け取り、任意の数の独立したconsumerに渡すサービス。本プロジェクトではApache Kafka。</span></div>
+    <div class="gterm"><b>topic</b><span lang="en">A named channel on the bus. Producers write to it, consumers read from it, and neither knows the other exists.</span><span lang="ja">バス上の名前付きチャネル。producerが書き込み、consumerが読み出しますが、互いの存在は知りません。</span></div>
+    <div class="gterm"><b>time-series database</b><span lang="en">A database built for append-only data stamped with a time. Fast to write, fast to query over a window, bad at changing rows after the fact.</span><span lang="ja">時刻付きの追記専用データ向けのデータベース（時系列DB）。書き込みと期間指定の検索は速い一方、後から行を変更するのは苦手です。</span></div>
+    <div class="gterm"><b>dead-letter queue</b><span lang="en">A separate topic where messages that could not be processed are parked, with the reason, instead of being dropped or crashing the reader.</span><span lang="ja">処理できなかったメッセージを、破棄したり読み手をクラッシュさせたりせず、理由とともに退避しておく別のtopic。</span></div>
+    <div class="gterm"><b>sliding window</b><span lang="en">The last N samples, with the oldest falling off as each new one arrives. The detector's memory.</span><span lang="ja">直近N個のサンプル。新しいサンプルが届くたびに最も古いものが外れます。検知器の記憶にあたります。</span></div>
+    <div class="gterm"><b>edge-triggered</b><span lang="en">Acting on the moment a condition changes, not on every sample while it holds. One alert per event, not one per message.</span><span lang="ja">条件が成立している間の毎サンプルではなく、条件が変化した瞬間にだけ動作する方式。アラートはメッセージごとではなく、事象ごとに1件です。</span></div>
+    <div class="gterm"><b>healthcheck</b><span lang="en">A command a container runs on itself so the orchestrator can tell "started" apart from "actually ready to serve".</span><span lang="ja">コンテナが自身に対して実行するコマンド。オーケストレーターが「起動しただけ」と「実際に処理可能」を区別できるようにします。</span></div>
+    <div class="gterm"><b>TF frame</b><span lang="en">A named coordinate system in ROS 2. Two robots publishing the same frame name in one scene collide; prefixes keep them apart.</span><span lang="ja">ROS 2における名前付きの座標系。同じシーンで2台が同名のframeをpublishすると衝突するため、prefixで区別します。</span></div>
   </div>
 </div>
 </section>
 
 <section id="path">
-  <div class="sec-head"><span class="sec-num">02</span><h2>The data path</h2><p class="sec-sub">One position reading, from the simulated robot to the alert on a dashboard.</p></div>
+  <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">The data path</span><span lang="ja">データの流れ</span></h2><p class="sec-sub" lang="en">One position reading, from the simulated robot to the alert on a dashboard.</p><p class="sec-sub" lang="ja">1件の位置データが、シミュレーション上のロボットからダッシュボードのアラートに届くまで。</p></div>
   <div class="stack">
     <div class="steps">
-      <div class="stepbox"><span class="sn">stage 1</span><span class="st">Gazebo Harmonic</span>
-        <span class="sd">Three TurtleBot3 models drive in the generated world. <code>ros_gz_bridge</code> carries odometry, velocity commands, joint states, transforms and the clock across to ROS 2.</span>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 1</span><span lang="ja">段階 1</span></span><span class="st">Gazebo Harmonic</span>
+        <span class="sd" lang="en">Three TurtleBot3 models drive in the generated world. <code>ros_gz_bridge</code> carries odometry, velocity commands, joint states, transforms and the clock across to ROS 2.</span>
+        <span class="sd" lang="ja">生成されたworld内で3台のTurtleBot3が走行します。<code>ros_gz_bridge</code>がodometry、速度指令、関節状態、座標変換、クロックをROS 2側へ中継します。</span>
         <span class="sr">/tb1/odom · /tb2/odom · /tb3/odom</span></div>
-      <div class="stepbox"><span class="sn">stage 2</span><span class="st">Producer node</span>
-        <span class="sd">A ROS 2 node subscribes to every robot's odometry topic and re-publishes each reading as one JSON message.</span>
-        <span class="sr">kafka_producer.py · 79 lines</span></div>
-      <div class="stepbox"><span class="sn">stage 3</span><span class="st">Kafka</span>
-        <span class="sd">The bus. Two topics: the odometry stream, and a dead-letter topic for anything unreadable.</span>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 2</span><span lang="ja">段階 2</span></span><span class="st"><span lang="en">Producer node</span><span lang="ja">Producer（ROS 2 node）</span></span>
+        <span class="sd" lang="en">A ROS 2 node subscribes to every robot's odometry topic and re-publishes each reading as one JSON message.</span>
+        <span class="sd" lang="ja">ROS 2 nodeが全ロボットのodometry topicをsubscribeし、各データを1件のJSONメッセージとして再送信します。</span>
+        <span class="sr">kafka_producer.py · <span lang="en">79 lines</span><span lang="ja">79行</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 3</span><span lang="ja">段階 3</span></span><span class="st">Kafka</span>
+        <span class="sd" lang="en">The bus. Two topics: the odometry stream, and a dead-letter topic for anything unreadable.</span>
+        <span class="sd" lang="ja">メッセージバスです。topicは2つで、odometryのストリームと、読み取れないメッセージ用のdead-letter topicです。</span>
         <span class="sr">robot_odom · robot_odom_dlq</span></div>
-      <div class="stepbox"><span class="sn">stage 4a</span><span class="st">Storage consumer</span>
-        <span class="sd">Reads the stream, writes each valid reading into QuestDB over the line protocol, and updates the robot's heartbeat in Postgres at most once every five seconds.</span>
-        <span class="sr">kafka_consumer.py · 104 lines</span></div>
-      <div class="stepbox"><span class="sn">stage 4b</span><span class="st">Detector</span>
-        <span class="sd">Reads the same stream independently, keeps a sliding window of positions per robot, and opens or resolves alerts on transitions.</span>
-        <span class="sr">anomaly_detector.py · 124 lines</span></div>
-      <div class="stepbox"><span class="sn">stage 5</span><span class="st">Grafana + CLI</span>
-        <span class="sd">Dashboards load themselves from the repository. A command-line tool lists robots and alerts and closes them.</span>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 4a</span><span lang="ja">段階 4a</span></span><span class="st"><span lang="en">Storage consumer</span><span lang="ja">保存用consumer</span></span>
+        <span class="sd" lang="en">Reads the stream, writes each valid reading into QuestDB over the line protocol, and updates the robot's heartbeat in Postgres at most once every five seconds.</span>
+        <span class="sd" lang="ja">ストリームを読み、有効なデータをline protocolでQuestDBに書き込みます。またPostgres上のロボットのheartbeatを最大5秒に1回更新します。</span>
+        <span class="sr">kafka_consumer.py · <span lang="en">104 lines</span><span lang="ja">104行</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 4b</span><span lang="ja">段階 4b</span></span><span class="st"><span lang="en">Detector</span><span lang="ja">検知器</span></span>
+        <span class="sd" lang="en">Reads the same stream independently, keeps a sliding window of positions per robot, and opens or resolves alerts on transitions.</span>
+        <span class="sd" lang="ja">同じストリームを独立に読み、ロボットごとに位置のsliding windowを保持し、状態が遷移した時点でアラートをopenまたはresolveします。</span>
+        <span class="sr">anomaly_detector.py · <span lang="en">124 lines</span><span lang="ja">124行</span></span></div>
+      <div class="stepbox"><span class="sn"><span lang="en">stage 5</span><span lang="ja">段階 5</span></span><span class="st">Grafana + CLI</span>
+        <span class="sd" lang="en">Dashboards load themselves from the repository. A command-line tool lists robots and alerts and closes them.</span>
+        <span class="sd" lang="ja">ダッシュボードはリポジトリから自動で読み込まれます。コマンドラインツールでロボットとアラートを一覧表示し、アラートをクローズできます。</span>
         <span class="sr">localhost:3000 · fleet_cli.py</span></div>
     </div>
     <div class="note">
-      <span class="note-label">Why two independent readers</span>
-      <p>Storage and detection are separate Kafka consumer groups reading the same topic. Neither blocks the other, either
+      <span class="note-label"><span lang="en">Why two independent readers</span><span lang="ja">読み手を2つに分けた理由</span></span>
+      <p lang="en">Storage and detection are separate Kafka consumer groups reading the same topic. Neither blocks the other, either
         can be restarted alone, and the detector can be changed without any risk to the data being recorded. That
         separation is the entire reason a bus is in the design rather than a direct database write from the robot.</p>
+      <p lang="ja">保存と検知は、同じtopicを読む別々のKafka consumer groupです。互いにブロックせず、どちらも単独で再起動でき、
+        記録中のデータに影響を与えることなく検知器を変更できます。ロボットからデータベースへ直接書き込むのではなく、
+        設計にバスを入れている理由はこの分離にほかなりません。</p>
     </div>
   </div>
 </section>
 <section id="files">
-  <div class="sec-head"><span class="sec-num">03</span><h2>Every file</h2><p class="sec-sub">The whole repository, with line counts. Generated files are marked.</p></div>
+  <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file</span><span lang="ja">全ファイル</span></h2><p class="sec-sub" lang="en">The whole repository, with line counts. Generated files are marked.</p><p class="sec-sub" lang="ja">リポジトリ全体と各ファイルの行数。自動生成ファイルには印を付けています。</p></div>
   <div class="stack">
     <div class="tablewrap">
       <table class="filemap">
-        <thead><tr><th>File</th><th class="num">Lines</th><th>What it does</th></tr></thead>
+        <thead><tr><th><span lang="en">File</span><span lang="ja">ファイル</span></th><th class="num"><span lang="en">Lines</span><span lang="ja">行数</span></th><th><span lang="en">What it does</span><span lang="ja">役割</span></th></tr></thead>
         <tbody>
-          <tr class="hl"><td>config/fleet.yaml</td><td class="num">46</td><td>The single source of truth: robots, spawn poses, colours, drive patterns, endpoints, detector thresholds.</td></tr>
-          <tr><td>scripts/generate_fleet.py</td><td class="num">284</td><td>Reads the yaml, writes the simulation world and the visualiser layout.</td></tr>
-          <tr><td>worlds/fleet.sdf</td><td class="num">420</td><td><em>Generated.</em> The Gazebo world — ground plane, lighting, one model per robot at its spawn pose.</td></tr>
-          <tr><td>config/fleet.rviz</td><td class="num">127</td><td><em>Generated.</em> RViz layout with one display group per robot.</td></tr>
-          <tr><td>launch/multi_robot.launch.py</td><td class="num">104</td><td>Starts the simulator, the bridge, one state publisher per robot, the static transforms, and optionally RViz.</td></tr>
-          <tr><td>pipeline/common.py</td><td class="num">181</td><td>Shared plumbing: config loading, endpoint resolution, retrying connections, the QuestDB writer, the Postgres store.</td></tr>
-          <tr><td>pipeline/kafka_producer.py</td><td class="num">79</td><td>ROS 2 node. Every robot's odometry topic to one Kafka topic, as JSON.</td></tr>
-          <tr class="hl"><td>pipeline/kafka_consumer.py</td><td class="num">104</td><td>Kafka to QuestDB, with the dead-letter path and the registry heartbeat.</td></tr>
-          <tr class="hl"><td>pipeline/anomaly_detector.py</td><td class="num">124</td><td>Sliding-window stuck detection and the full alert lifecycle.</td></tr>
-          <tr><td>pipeline/mock_producer.py</td><td class="num">77</td><td>Synthetic fleet emitting the identical message schema, so the pipeline runs with no simulator at all.</td></tr>
-          <tr><td>scripts/smoke_test.py</td><td class="num">96</td><td>Starts the three services, runs them for 25 seconds, then asserts four things about the databases.</td></tr>
-          <tr><td>scripts/fleet_cli.py</td><td class="num">91</td><td>List robots, list alerts, acknowledge one, resolve one.</td></tr>
-          <tr><td>scripts/drive_fleet.py</td><td class="num">56</td><td>Publishes each robot's configured drive pattern to its velocity topic.</td></tr>
-          <tr><td>dashboard/monitor.py</td><td class="num">138</td><td>Terminal dashboard, querying QuestDB over the Postgres wire protocol.</td></tr>
-          <tr><td>docker-compose.yml</td><td class="num">106</td><td>Kafka, QuestDB, Postgres and Grafana, each with a healthcheck.</td></tr>
-          <tr><td>docker/postgres/init.sql</td><td class="num">27</td><td>Two tables: the robot registry and the alert lifecycle, with their indexes.</td></tr>
-          <tr><td>docker/grafana/</td><td class="num">166</td><td>Datasources and the Fleet Overview dashboard, provisioned from the repository.</td></tr>
-          <tr><td>.github/workflows/ci.yml</td><td class="num">45</td><td>Lint, a drift check on the generated files, then the smoke test against the real container stack.</td></tr>
-          <tr><td>Makefile</td><td class="num">51</td><td>The short commands: up, sim, rviz, pipeline, mock, drive, test, down, clean.</td></tr>
+          <tr class="hl"><td>config/fleet.yaml</td><td class="num">46</td><td><span lang="en">The single source of truth: robots, spawn poses, colours, drive patterns, endpoints, detector thresholds.</span><span lang="ja">唯一の情報源（single source of truth）。ロボット、spawn位置・姿勢、色、走行パターン、接続先、検知器の閾値。</span></td></tr>
+          <tr><td>scripts/generate_fleet.py</td><td class="num">284</td><td><span lang="en">Reads the yaml, writes the simulation world and the visualiser layout.</span><span lang="ja">yamlを読み、シミュレーションのworldと可視化ツールのレイアウトを書き出します。</span></td></tr>
+          <tr><td>worlds/fleet.sdf</td><td class="num">420</td><td><span lang="en"><em>Generated.</em> The Gazebo world — ground plane, lighting, one model per robot at its spawn pose.</span><span lang="ja"><em>自動生成。</em>Gazeboのworld。地面、照明、各ロボットのspawn位置に置かれたモデル1つずつ。</span></td></tr>
+          <tr><td>config/fleet.rviz</td><td class="num">127</td><td><span lang="en"><em>Generated.</em> RViz layout with one display group per robot.</span><span lang="ja"><em>自動生成。</em>ロボットごとに表示グループを1つ持つRVizレイアウト。</span></td></tr>
+          <tr><td>launch/multi_robot.launch.py</td><td class="num">104</td><td><span lang="en">Starts the simulator, the bridge, one state publisher per robot, the static transforms, and optionally RViz.</span><span lang="ja">シミュレーター、bridge、ロボットごとのstate publisher、静的な座標変換、必要に応じてRVizを起動します。</span></td></tr>
+          <tr><td>pipeline/common.py</td><td class="num">181</td><td><span lang="en">Shared plumbing: config loading, endpoint resolution, retrying connections, the QuestDB writer, the Postgres store.</span><span lang="ja">共通基盤。設定の読み込み、接続先の解決、リトライ付きの接続、QuestDB writer、Postgres store。</span></td></tr>
+          <tr><td>pipeline/kafka_producer.py</td><td class="num">79</td><td><span lang="en">ROS 2 node. Every robot's odometry topic to one Kafka topic, as JSON.</span><span lang="ja">ROS 2 node。全ロボットのodometry topicを、JSONとして1つのKafka topicに送ります。</span></td></tr>
+          <tr class="hl"><td>pipeline/kafka_consumer.py</td><td class="num">104</td><td><span lang="en">Kafka to QuestDB, with the dead-letter path and the registry heartbeat.</span><span lang="ja">KafkaからQuestDBへの書き込み。dead-letterの経路と、ロボット台帳のheartbeat更新を含みます。</span></td></tr>
+          <tr class="hl"><td>pipeline/anomaly_detector.py</td><td class="num">124</td><td><span lang="en">Sliding-window stuck detection and the full alert lifecycle.</span><span lang="ja">sliding windowによる停止検知と、アラートのライフサイクル全体。</span></td></tr>
+          <tr><td>pipeline/mock_producer.py</td><td class="num">77</td><td><span lang="en">Synthetic fleet emitting the identical message schema, so the pipeline runs with no simulator at all.</span><span lang="ja">同一のメッセージスキーマを出力する合成フリート。シミュレーターなしでパイプラインを動かせます。</span></td></tr>
+          <tr><td>scripts/smoke_test.py</td><td class="num">96</td><td><span lang="en">Starts the three services, runs them for 25 seconds, then asserts four things about the databases.</span><span lang="ja">3つのサービスを起動して25秒間動かし、データベースについて4項目をassertします。</span></td></tr>
+          <tr><td>scripts/fleet_cli.py</td><td class="num">91</td><td><span lang="en">List robots, list alerts, acknowledge one, resolve one.</span><span lang="ja">ロボット一覧、アラート一覧、アラートのacknowledgeとresolve。</span></td></tr>
+          <tr><td>scripts/drive_fleet.py</td><td class="num">56</td><td><span lang="en">Publishes each robot's configured drive pattern to its velocity topic.</span><span lang="ja">各ロボットに設定された走行パターンを、その速度topicにpublishします。</span></td></tr>
+          <tr><td>dashboard/monitor.py</td><td class="num">138</td><td><span lang="en">Terminal dashboard, querying QuestDB over the Postgres wire protocol.</span><span lang="ja">ターミナル用ダッシュボード。Postgres wire protocol経由でQuestDBに問い合わせます。</span></td></tr>
+          <tr><td>docker-compose.yml</td><td class="num">106</td><td><span lang="en">Kafka, QuestDB, Postgres and Grafana, each with a healthcheck.</span><span lang="ja">Kafka、QuestDB、Postgres、Grafana。それぞれhealthcheck付き。</span></td></tr>
+          <tr><td>docker/postgres/init.sql</td><td class="num">27</td><td><span lang="en">Two tables: the robot registry and the alert lifecycle, with their indexes.</span><span lang="ja">2つのテーブル（ロボット台帳とアラートのライフサイクル）と、そのインデックス。</span></td></tr>
+          <tr><td>docker/grafana/</td><td class="num">166</td><td><span lang="en">Datasources and the Fleet Overview dashboard, provisioned from the repository.</span><span lang="ja">データソースとFleet Overviewダッシュボード。リポジトリから自動でプロビジョニングされます。</span></td></tr>
+          <tr><td>.github/workflows/ci.yml</td><td class="num">45</td><td><span lang="en">Lint, a drift check on the generated files, then the smoke test against the real container stack.</span><span lang="ja">lint、生成ファイルのずれ検査、そして実際のコンテナ構成に対するsmoke test。</span></td></tr>
+          <tr><td>Makefile</td><td class="num">51</td><td><span lang="en">The short commands: up, sim, rviz, pipeline, mock, drive, test, down, clean.</span><span lang="ja">短縮コマンド：up、sim、rviz、pipeline、mock、drive、test、down、clean。</span></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose" style="font-size:.92rem;color:var(--muted)">Roughly 1 330 lines of Python across the pipeline,
+    <p class="prose" style="font-size:.92rem;color:var(--muted)" lang="en">Roughly 1 330 lines of Python across the pipeline,
       scripts, dashboard and launch file. The two highlighted service files are where all the interesting behaviour is.</p>
+    <p class="prose" style="font-size:.92rem;color:var(--muted)" lang="ja">パイプライン、スクリプト、ダッシュボード、launchファイルを合わせて、Pythonは約1 330行です。
+      重要な挙動はすべて、ハイライトした2つのサービスファイルにあります。</p>
   </div>
 </section>
 
 <section id="config">
-  <div class="sec-head"><span class="sec-num">04</span><h2>One file defines the fleet</h2><p class="sec-sub">Why a configuration file generates the world instead of a human editing XML.</p></div>
+  <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">One file defines the fleet</span><span lang="ja">1つのファイルでフリートを定義</span></h2><p class="sec-sub" lang="en">Why a configuration file generates the world instead of a human editing XML.</p><p class="sec-sub" lang="ja">人がXMLを編集するのではなく、設定ファイルからworldを生成する理由。</p></div>
   <div class="stack">
-    <p class="prose">A robot in this system exists in six places at once: as a model in the simulation world, as a display
+    <p class="prose" lang="en">A robot in this system exists in six places at once: as a model in the simulation world, as a display
       group in the visualiser, as a state publisher and a static transform in the launch file, as a topic subscription in
       the producer, as an entry in the synthetic fleet, and as a target in the driver. Keeping six hand-written places in
       agreement is the kind of job that quietly stops being done.</p>
-    <p class="prose">So one file holds it, and the two file formats nobody wants to hand-edit are generated from it:</p>
+    <p class="prose" lang="ja">このシステムでは、1台のロボットが同時に6か所に存在します。シミュレーションworld内のモデル、可視化ツールの表示グループ、
+      launchファイル内のstate publisherと静的座標変換、producerのtopic subscription、合成フリートのエントリ、そして走行スクリプトの対象です。
+      手書きの6か所を常に一致させておく作業は、いつの間にか誰もやらなくなる類の仕事です。</p>
+    <p class="prose" lang="en">So one file holds it, and the two file formats nobody wants to hand-edit are generated from it:</p>
+    <p class="prose" lang="ja">そこで情報を1つのファイルにまとめ、誰も手で編集したくない2種類のファイル形式はそこから生成します。</p>
     <pre><code>robots:
   - id: tb1
     model: turtlebot3_burger
@@ -405,45 +237,56 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     spawn: {x: 0.0, y: 3.0, yaw: 1.57}
     drive: {linear: 0.1, angular: -0.5}    # circles the other way</code></pre>
     <div class="pair">
-      <dt>generate_fleet.py</dt><dd>Emits <code>worlds/fleet.sdf</code> (420 lines) and <code>config/fleet.rviz</code> (127 lines). Both carry a "do not edit" header.</dd>
-      <dt>launch, pipeline, driver</dt><dd>Read the same yaml directly at start-up. No generation step, no duplication.</dd>
-      <dt>detector thresholds</dt><dd>Window size, variance threshold and minimum sample count live in the same file, under <code>detector:</code>.</dd>
-      <dt>endpoints</dt><dd>Kafka, QuestDB and Postgres addresses resolve environment variable first, yaml second — so a container overrides them without a code change.</dd>
+      <dt>generate_fleet.py</dt><dd lang="en">Emits <code>worlds/fleet.sdf</code> (420 lines) and <code>config/fleet.rviz</code> (127 lines). Both carry a "do not edit" header.</dd><dd lang="ja"><code>worlds/fleet.sdf</code>（420行）と<code>config/fleet.rviz</code>（127行）を出力します。どちらにも「編集禁止」のヘッダーが付きます。</dd>
+      <dt><span lang="en">launch, pipeline, driver</span><span lang="ja">launch・パイプライン・走行スクリプト</span></dt><dd lang="en">Read the same yaml directly at start-up. No generation step, no duplication.</dd><dd lang="ja">起動時に同じyamlを直接読み込みます。生成ステップも重複もありません。</dd>
+      <dt><span lang="en">detector thresholds</span><span lang="ja">検知器の閾値</span></dt><dd lang="en">Window size, variance threshold and minimum sample count live in the same file, under <code>detector:</code>.</dd><dd lang="ja">window size、分散の閾値、最小サンプル数も同じファイルの<code>detector:</code>以下に置かれています。</dd>
+      <dt><span lang="en">endpoints</span><span lang="ja">接続先</span></dt><dd lang="en">Kafka, QuestDB and Postgres addresses resolve environment variable first, yaml second — so a container overrides them without a code change.</dd><dd lang="ja">Kafka、QuestDB、Postgresのアドレスは環境変数を優先し、次にyamlを参照します。そのためコンテナ側からコード変更なしで上書きできます。</dd>
     </div>
     <div class="note key">
-      <span class="note-label">The check that makes it hold</span>
-      <p>Generated files drift the moment somebody edits the yaml and forgets to regenerate. So CI regenerates them and
+      <span class="note-label"><span lang="en">The check that makes it hold</span><span lang="ja">一貫性を保証する検査</span></span>
+      <p lang="en">Generated files drift the moment somebody edits the yaml and forgets to regenerate. So CI regenerates them and
         runs <code>git diff --exit-code</code> on the results. If the committed world does not match the committed
         configuration, the build fails with the command needed to fix it. The guarantee is not "we remembered" — it is
         "the build will not pass if we did not".</p>
+      <p lang="ja">誰かがyamlを編集して再生成を忘れた瞬間に、生成ファイルはずれ始めます。そこでCIがファイルを再生成し、
+        その結果に<code>git diff --exit-code</code>を実行します。コミット済みのworldがコミット済みの設定と一致しなければ、
+        修正に必要なコマンドを表示してビルドが失敗します。保証の根拠は「忘れなかったこと」ではなく、「忘れたらビルドが通らないこと」です。</p>
     </div>
-    <p class="prose">One robot in the fleet has <code>drive: null</code>. That is not an oversight — it is the test
+    <p class="prose" lang="en">One robot in the fleet has <code>drive: null</code>. That is not an oversight — it is the test
       fixture. A robot that never moves is exactly the condition the detector exists to catch, so the default
       configuration always contains one, and the smoke test refuses to run if none is present.</p>
+    <p class="prose" lang="ja">フリート内の1台は<code>drive: null</code>になっています。これは見落としではなく、テスト用のfixtureです。
+      まったく動かないロボットこそ検知器が捉えるべき状態なので、デフォルト設定には必ず1台含まれており、
+      該当するロボットがいなければsmoke testは実行を拒否します。</p>
   </div>
 </section>
 
 <section id="databases">
-  <div class="sec-head"><span class="sec-num">05</span><h2>Two databases, on purpose</h2><p class="sec-sub">Telemetry and state are different problems, so they get different stores.</p></div>
+  <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Two databases, on purpose</span><span lang="ja">あえて2つのデータベース</span></h2><p class="sec-sub" lang="en">Telemetry and state are different problems, so they get different stores.</p><p class="sec-sub" lang="ja">テレメトリと状態は別の問題なので、保存先も分けています。</p></div>
   <div class="stack">
     <div class="tablewrap">
       <table>
         <thead><tr><th></th><th>QuestDB</th><th>PostgreSQL</th></tr></thead>
         <tbody>
-          <tr><td><strong>Holds</strong></td><td>Every position reading, and every alert event as it happened</td><td>The robot registry and the current state of each alert</td></tr>
-          <tr><td><strong>Shape</strong></td><td>Append-only, time-stamped, never updated</td><td>Rows that change: <code>open → acknowledged → resolved</code></td></tr>
-          <tr><td><strong>Written by</strong></td><td>Line protocol over a raw TCP socket, port 9009</td><td><code>psycopg2</code>, port 5432</td></tr>
-          <tr><td><strong>Read by</strong></td><td>Grafana and the terminal dashboard, over the Postgres wire protocol on 8812</td><td>Grafana and <code>fleet_cli.py</code></td></tr>
+          <tr><td><strong><span lang="en">Holds</span><span lang="ja">保存内容</span></strong></td><td><span lang="en">Every position reading, and every alert event as it happened</span><span lang="ja">すべての位置データと、発生したすべてのアラートイベント</span></td><td><span lang="en">The robot registry and the current state of each alert</span><span lang="ja">ロボット台帳と、各アラートの現在の状態</span></td></tr>
+          <tr><td><strong><span lang="en">Shape</span><span lang="ja">データの性質</span></strong></td><td><span lang="en">Append-only, time-stamped, never updated</span><span lang="ja">追記のみ、時刻付き、更新なし</span></td><td><span lang="en">Rows that change:</span><span lang="ja">変化する行：</span> <code>open → acknowledged → resolved</code></td></tr>
+          <tr><td><strong><span lang="en">Written by</span><span lang="ja">書き込み</span></strong></td><td><span lang="en">Line protocol over a raw TCP socket, port 9009</span><span lang="ja">生のTCP socket上のline protocol（port 9009）</span></td><td><code>psycopg2</code>, port 5432</td></tr>
+          <tr><td><strong><span lang="en">Read by</span><span lang="ja">読み出し</span></strong></td><td><span lang="en">Grafana and the terminal dashboard, over the Postgres wire protocol on 8812</span><span lang="ja">Grafanaとターミナル用ダッシュボード（port 8812のPostgres wire protocol経由）</span></td><td><span lang="en">Grafana and</span><span lang="ja">Grafanaと</span> <code>fleet_cli.py</code></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose">The split is the point. A time-series database is built to accept a very high rate of immutable
+    <p class="prose" lang="en">The split is the point. A time-series database is built to accept a very high rate of immutable
       rows; asking it to update one row from <em>open</em> to <em>resolved</em> is using it against its design. A
       relational database handles that update trivially but is the wrong shape for tens of readings per second per
       robot, forever.</p>
-    <p class="prose">So the alert exists twice, deliberately, in two different senses. QuestDB records that a stuck
+    <p class="prose" lang="ja">この分割こそが要点です。時系列データベースは、変更されない行を非常に高いレートで受け付けるために作られています。
+      1行を<em>open</em>から<em>resolved</em>に更新させるのは、その設計に逆らった使い方です。一方リレーショナルデータベースは、
+      その更新は簡単にこなせますが、ロボット1台あたり毎秒数十件のデータを際限なく受け続ける用途には向きません。</p>
+    <p class="prose" lang="en">So the alert exists twice, deliberately, in two different senses. QuestDB records that a stuck
       event <em>happened</em> at a particular instant, and that record never changes. Postgres records that an alert
       <em>is currently open</em>, and that row is the one a human acts on.</p>
+    <p class="prose" lang="ja">そのため、アラートは意図的に2か所に、異なる意味で存在します。QuestDBは停止イベントがある時点で<em>発生した</em>ことを記録し、
+      その記録は変わりません。Postgresはアラートが<em>現在openである</em>ことを記録し、人が対応するのはこちらの行です。</p>
     <pre><code>CREATE TABLE alerts (
     id              BIGSERIAL PRIMARY KEY,
     robot_id        TEXT NOT NULL REFERENCES robots (robot_id),
@@ -454,23 +297,30 @@ html.dark-mode .sb-theme .moon-icon{display:block}
     acknowledged_at TIMESTAMPTZ,
     resolved_at     TIMESTAMPTZ
 );</code></pre>
-    <p class="prose">The <code>CHECK</code> constraint is doing real work: the set of legal states is enforced by the
+    <p class="prose" lang="en">The <code>CHECK</code> constraint is doing real work: the set of legal states is enforced by the
       database, not by the Python that writes to it. A future service with a bug cannot put an alert into a state the
       rest of the system does not understand.</p>
-    <p class="prose">Grafana reads QuestDB through its Postgres wire protocol on port 8812, which means one datasource
+    <p class="prose" lang="ja"><code>CHECK</code>制約は実際に役割を果たしています。許される状態の集合を強制しているのは、書き込む側のPythonではなくデータベースです。
+      将来バグのあるサービスが加わっても、システムの他の部分が理解できない状態にアラートを置くことはできません。</p>
+    <p class="prose" lang="en">Grafana reads QuestDB through its Postgres wire protocol on port 8812, which means one datasource
       type covers both stores and no plugin is needed. Datasources and the dashboard are provisioned from files in the
       repository, so bringing the stack up produces working dashboards with nothing clicked.</p>
+    <p class="prose" lang="ja">GrafanaはQuestDBをport 8812のPostgres wire protocol経由で読むため、1種類のデータソースで両方のDBをカバーでき、プラグインも不要です。
+      データソースとダッシュボードはリポジトリ内のファイルからプロビジョニングされるので、スタックを立ち上げるだけで、
+      一切クリックせずに動作するダッシュボードが揃います。</p>
   </div>
 </section>
 <section id="detector">
-  <div class="sec-head"><span class="sec-num">06</span><h2>The stuck detector</h2><p class="sec-sub">One rule, one state machine, and the two database writes it triggers.</p></div>
+  <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The stuck detector</span><span lang="ja">停止検知器</span></h2><p class="sec-sub" lang="en">One rule, one state machine, and the two database writes it triggers.</p><p class="sec-sub" lang="ja">1つのルール、1つのstate machine、そしてそれが引き起こす2つのデータベース書き込み。</p></div>
   <div class="stack">
-    <p class="prose">The rule is deliberately simple, and simple is the right choice here: a robot that is not moving
+    <p class="prose" lang="en">The rule is deliberately simple, and simple is the right choice here: a robot that is not moving
       has a position that is not changing, and "not changing" is measurable as variance.</p>
+    <p class="prose" lang="ja">ルールは意図的に単純にしており、ここではそれが正しい選択です。動いていないロボットは位置が変化せず、
+      「変化していない」ことは分散として計測できます。</p>
     <div class="obsbar">
-      <div class="obsseg"><span class="od">10</span><span class="on">window size</span><span class="os">The last ten positions per robot, oldest dropped as each arrives.</span></div>
-      <div class="obsseg"><span class="od">5</span><span class="on">minimum samples</span><span class="os">Below this, the detector returns nothing — a robot that just appeared is not yet stuck.</span></div>
-      <div class="obsseg"><span class="od">0.001</span><span class="on">variance threshold, m²</span><span class="os">Population variance of x plus variance of y. Below it, the robot is considered stuck.</span></div>
+      <div class="obsseg"><span class="od">10</span><span class="on">window size</span><span class="os" lang="en">The last ten positions per robot, oldest dropped as each arrives.</span><span class="os" lang="ja">ロボットごとの直近10個の位置。新しい値が届くたびに最も古い値を捨てます。</span></div>
+      <div class="obsseg"><span class="od">5</span><span class="on"><span lang="en">minimum samples</span><span lang="ja">最小サンプル数</span></span><span class="os" lang="en">Below this, the detector returns nothing — a robot that just appeared is not yet stuck.</span><span class="os" lang="ja">これ未満では検知器は何も返しません。現れたばかりのロボットは、まだ停止とは判定されません。</span></div>
+      <div class="obsseg"><span class="od">0.001</span><span class="on"><span lang="en">variance threshold, m²</span><span lang="ja">分散の閾値（m²）</span></span><span class="os" lang="en">Population variance of x plus variance of y. Below it, the robot is considered stuck.</span><span class="os" lang="ja">xの母分散とyの母分散の和。これを下回るとロボットは停止とみなされます。</span></div>
     </div>
     <pre><code>xs, ys      = positions in the window
 variance    = ( Σ(x − x̄)² + Σ(y − ȳ)² ) / n
@@ -479,146 +329,193 @@ is_stuck    = variance &lt; 0.001
 moving → stuck      : QuestDB event + open an alert row in Postgres
 stuck  → moving     : QuestDB event + resolve that alert row
 otherwise           : nothing at all</code></pre>
-    <h3>Edge-triggered, not level-triggered</h3>
-    <p class="prose">The detector keeps a set of robot identifiers it currently believes are stuck. An alert fires on
+    <h3><span lang="en">Edge-triggered, not level-triggered</span><span lang="ja">level-triggeredではなくedge-triggered</span></h3>
+    <p class="prose" lang="en">The detector keeps a set of robot identifiers it currently believes are stuck. An alert fires on
       the transition <em>into</em> that set and a resolution fires on the transition <em>out</em> of it. A robot that
       stays stuck for an hour produces exactly one alert, not one per message. This is the difference between a system
       somebody watches and a system somebody mutes.</p>
-    <h3>Two layers of duplicate protection</h3>
-    <p class="prose">The in-memory set survives only as long as the process. If the detector restarts while a robot is
+    <p class="prose" lang="ja">検知器は、現在停止中と判断しているロボットIDの集合を保持します。その集合に<em>入る</em>遷移でアラートが発行され、
+      集合から<em>出る</em>遷移でresolveされます。1時間停止し続けたロボットでも、アラートはメッセージごとではなくちょうど1件です。
+      これが「人が見続けるシステム」と「人がミュートしてしまうシステム」の差です。</p>
+    <h3><span lang="en">Two layers of duplicate protection</span><span lang="ja">二重の重複防止</span></h3>
+    <p class="prose" lang="en">The in-memory set survives only as long as the process. If the detector restarts while a robot is
       still stuck, it will see the transition again and try to open a second alert. So the database refuses:</p>
+    <p class="prose" lang="ja">メモリ上の集合はプロセスが生きている間しか残りません。ロボットが停止したまま検知器が再起動すると、
+      同じ遷移を再び検出して2件目のアラートを開こうとします。そこでデータベース側が拒否します。</p>
     <pre><code>INSERT INTO alerts (robot_id, alert_type, severity, pos_x, pos_y)
 SELECT %s, %s, %s, %s, %s
 WHERE NOT EXISTS (
     SELECT 1 FROM alerts
     WHERE robot_id = %s AND alert_type = %s AND status &lt;&gt; 'resolved');</code></pre>
-    <p class="prose">One unresolved alert per robot per alert type, enforced in the write itself rather than by a
+    <p class="prose" lang="en">One unresolved alert per robot per alert type, enforced in the write itself rather than by a
       read-then-write that two processes could interleave. Resolution is the mirror image — a single <code>UPDATE</code>
       over every unresolved alert for that robot, returning the number of rows it actually changed, which is what gets
       logged.</p>
+    <p class="prose" lang="ja">未解決のアラートはロボット1台・アラート種別1つにつき1件までです。これを、2つのプロセスが割り込み合う可能性のある
+      「読んでから書く」処理ではなく、書き込みそのものの中で強制しています。resolveはその鏡像で、そのロボットの未解決アラートすべてに対して
+      1回の<code>UPDATE</code>を実行し、実際に変更された行数を返します。ログに記録されるのはその値です。</p>
     <div class="note">
-      <span class="note-label">A detail that shows in the code</span>
-      <p>The detector skips malformed messages with a bare <code>continue</code> and a comment saying the consumer
+      <span class="note-label"><span lang="en">A detail that shows in the code</span><span lang="ja">コードから読み取れる細部</span></span>
+      <p lang="en">The detector skips malformed messages with a bare <code>continue</code> and a comment saying the consumer
         service dead-letters them. That is correct while both services run — but it does mean that running the detector
         alone, without the storage consumer, silently discards bad messages instead of parking them. The division of
         responsibility is real, and it is a coupling worth knowing about.</p>
+      <p lang="ja">検知器は不正なメッセージを素の<code>continue</code>で読み飛ばし、「consumerサービスがdead-letterに回す」というコメントを付けています。
+        両サービスが動いている間はこれで正しいのですが、保存用consumerなしで検知器だけを動かすと、不正なメッセージは退避されずに
+        黙って破棄されることになります。責任の分担は実在するもので、知っておくべき結合です。</p>
     </div>
   </div>
 </section>
 
 <section id="failure">
-  <div class="sec-head"><span class="sec-num">07</span><h2>When something breaks</h2><p class="sec-sub">Four failure modes that were designed for rather than discovered.</p></div>
+  <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">When something breaks</span><span lang="ja">障害時の挙動</span></h2><p class="sec-sub" lang="en">Four failure modes that were designed for rather than discovered.</p><p class="sec-sub" lang="ja">後から見つかったのではなく、設計段階で想定した4つの障害モード。</p></div>
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>A malformed message arrives</h4>
-        <p>Parsing is a single function that raises on anything unexpected. The caller catches it, forwards the raw
+        <h4><span lang="en">A malformed message arrives</span><span lang="ja">不正なメッセージの到着</span></h4>
+        <p lang="en">Parsing is a single function that raises on anything unexpected. The caller catches it, forwards the raw
           bytes plus the error text to <code>robot_odom_dlq</code>, logs a running count, and carries on. The poison
           message is inspectable afterwards; the consumer does not die.</p>
-        <p style="color:var(--muted);font-size:.88rem">This one is not hypothetical. The synthetic producer once emitted
+        <p lang="ja">パースは1つの関数で行い、想定外の入力にはすべて例外を投げます。呼び出し側がそれを捕捉し、生のバイト列とエラー文を
+          <code>robot_odom_dlq</code>に転送し、累計件数をログに出して処理を続けます。問題のメッセージは後から調査でき、consumerは停止しません。</p>
+        <p style="color:var(--muted);font-size:.88rem" lang="en">This one is not hypothetical. The synthetic producer once emitted
           different key names for velocity and timestamp, and it crashed the consumer. The dead-letter path is the fix
           that came out of it.</p>
+        <p style="color:var(--muted);font-size:.88rem" lang="ja">これは仮定の話ではありません。以前、合成producerが速度とタイムスタンプに異なるキー名を出力し、
+          consumerがクラッシュしました。dead-letterの経路は、そこから生まれた修正です。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>A database or the bus is not up yet</h4>
-        <p>Every connection helper retries instead of failing: Kafka thirty times at two-second intervals, QuestDB and
+        <h4><span lang="en">A database or the bus is not up yet</span><span lang="ja">データベースやバスがまだ起動していない</span></h4>
+        <p lang="en">Every connection helper retries instead of failing: Kafka thirty times at two-second intervals, QuestDB and
           Postgres twenty times at three. Services can be started in any order, and a slow container start is not a
           crash.</p>
+        <p lang="ja">接続用のヘルパーはすべて、失敗せずにリトライします。Kafkaは2秒間隔で30回、QuestDBとPostgresは3秒間隔で20回です。
+          サービスはどの順番で起動してもよく、コンテナの起動が遅くてもクラッシュにはなりません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>The QuestDB socket dies mid-run</h4>
-        <p>The writer holds a raw TCP socket for the line protocol. A write that raises <code>BrokenPipeError</code> or
+        <h4><span lang="en">The QuestDB socket dies mid-run</span><span lang="ja">実行中にQuestDBのsocketが切れる</span></h4>
+        <p lang="en">The writer holds a raw TCP socket for the line protocol. A write that raises <code>BrokenPipeError</code> or
           <code>OSError</code> triggers a reconnect and one retry of that same line, so a database restart costs at most
           a reading rather than the process.</p>
+        <p lang="ja">writerはline protocol用に生のTCP socketを保持しています。書き込みで<code>BrokenPipeError</code>または
+          <code>OSError</code>が発生すると、再接続して同じ行を1回だけ再送します。そのため、データベースが再起動しても失うのは
+          最大でデータ1件で、プロセスは落ちません。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>The stack is "started" but not ready</h4>
-        <p>Every container declares a healthcheck and the stack is brought up with <code>--wait</code>, which blocks
+        <h4><span lang="en">The stack is "started" but not ready</span><span lang="ja">「起動した」が、まだ準備できていない</span></h4>
+        <p lang="en">Every container declares a healthcheck and the stack is brought up with <code>--wait</code>, which blocks
           until they pass. Nothing in the scripts or CI sleeps for an arbitrary number of seconds and hopes.</p>
+        <p lang="ja">すべてのコンテナがhealthcheckを宣言しており、スタックは<code>--wait</code>付きで起動されるため、healthcheckが通るまで待機します。
+          スクリプトにもCIにも、適当な秒数だけsleepして上手くいくことを祈るような処理はありません。</p>
       </div></div>
     </div>
     <div class="note">
-      <span class="note-label">Also worth naming</span>
-      <p>Both consumers use <code>auto_offset_reset="latest"</code>. That is the right choice for live monitoring — a
+      <span class="note-label"><span lang="en">Also worth naming</span><span lang="ja">補足</span></span>
+      <p lang="en">Both consumers use <code>auto_offset_reset="latest"</code>. That is the right choice for live monitoring — a
         service that restarts should show what is happening now, not replay an hour of history — but it does mean a
         consumer started after a producer misses whatever went past in between. The smoke test starts its consumers
         before its producer for exactly this reason.</p>
+      <p lang="ja">両consumerとも<code>auto_offset_reset="latest"</code>を使っています。ライブ監視ではこれが正しい選択です。
+        再起動したサービスが見せるべきは1時間分の履歴の再生ではなく、今起きていることだからです。ただしその結果、producerより後に起動した
+        consumerは、その間に流れたメッセージを取りこぼします。smoke testがproducerより先にconsumerを起動しているのは、まさにこのためです。</p>
     </div>
   </div>
 </section>
 
 <section id="ci">
-  <div class="sec-head"><span class="sec-num">08</span><h2>What CI actually proves</h2><p class="sec-sub">The four assertions, the numbers they produced, and what they leave untested.</p></div>
+  <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">What CI actually proves</span><span lang="ja">CIが実際に証明していること</span></h2><p class="sec-sub" lang="en">The four assertions, the numbers they produced, and what they leave untested.</p><p class="sec-sub" lang="ja">4つのassertion、その結果の数値、そしてテストされずに残る部分。</p></div>
   <div class="stack">
-    <p class="prose">Every push brings up the real container stack — Kafka, QuestDB, Postgres, Grafana — runs the
+    <p class="prose" lang="en">Every push brings up the real container stack — Kafka, QuestDB, Postgres, Grafana — runs the
       synthetic fleet for 25 seconds at five messages per second per robot, then queries both databases and asserts
       four things.</p>
+    <p class="prose" lang="ja">pushのたびに実際のコンテナ構成（Kafka、QuestDB、Postgres、Grafana）を立ち上げ、合成フリートをロボット1台あたり毎秒5メッセージで
+      25秒間動かしたあと、両方のデータベースに問い合わせて4項目をassertします。</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Assertion</th><th>Query</th><th>Result</th></tr></thead>
+        <thead><tr><th>Assertion</th><th><span lang="en">Query</span><span lang="ja">クエリ</span></th><th><span lang="en">Result</span><span lang="ja">結果</span></th></tr></thead>
         <tbody>
-          <tr><td>Odometry was stored</td><td><code>count() FROM robot_odom</code></td><td class="num">369 rows</td></tr>
-          <tr><td>A stuck event was recorded</td><td><code>count() FROM robot_alerts WHERE event = 'stuck'</code></td><td class="num">≥ 1</td></tr>
-          <tr><td>An open alert exists for the idle robot</td><td><code>alerts WHERE status = 'open'</code></td><td class="num">≥ 1</td></tr>
-          <tr><td>Every robot registered itself</td><td><code>count(*) FROM robots</code></td><td class="num">3 of 3</td></tr>
+          <tr><td><span lang="en">Odometry was stored</span><span lang="ja">odometryが保存された</span></td><td><code>count() FROM robot_odom</code></td><td class="num"><span lang="en">369 rows</span><span lang="ja">369行</span></td></tr>
+          <tr><td><span lang="en">A stuck event was recorded</span><span lang="ja">停止イベントが記録された</span></td><td><code>count() FROM robot_alerts WHERE event = 'stuck'</code></td><td class="num">≥ 1</td></tr>
+          <tr><td><span lang="en">An open alert exists for the idle robot</span><span lang="ja">停止中のロボットにopenのアラートがある</span></td><td><code>alerts WHERE status = 'open'</code></td><td class="num">≥ 1</td></tr>
+          <tr><td><span lang="en">Every robot registered itself</span><span lang="ja">全ロボットが自身を登録した</span></td><td><code>count(*) FROM robots</code></td><td class="num">3 of 3</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="prose">Three robots at five hertz for 25 seconds is 375 expected readings; 369 landed. The shortfall is
+    <p class="prose" lang="en">Three robots at five hertz for 25 seconds is 375 expected readings; 369 landed. The shortfall is
       the start-up and shutdown edges of a timed run, and it is the reason the assertion is <em>greater than zero</em>
       rather than an exact count — a test that demands 375 would fail on a slow runner for no useful reason.</p>
-    <p class="prose">The job also runs <code>ruff</code> over every Python directory, regenerates the world and RViz
+    <p class="prose" lang="ja">3台×5 Hz×25秒で期待値は375件、実際に届いたのは369件です。不足分は時間指定の実行における起動時と終了時の端数で、
+      assertionを厳密な件数ではなく<em>0より大きい</em>としているのもそのためです。375件を要求するテストは、遅いrunner上では
+      意味もなく失敗してしまいます。</p>
+    <p class="prose" lang="en">The job also runs <code>ruff</code> over every Python directory, regenerates the world and RViz
       files and fails on any diff, dumps the last hundred lines of every service log if anything fails, and tears the
       stack down with its volumes whatever the outcome. Fifteen-minute timeout.</p>
+    <p class="prose" lang="ja">このジョブはほかにも、すべてのPythonディレクトリに<code>ruff</code>をかけ、worldとRVizのファイルを再生成して差分があれば失敗させ、
+      何かが失敗したら各サービスログの末尾100行を出力し、結果にかかわらずvolumeごとスタックを破棄します。タイムアウトは15分です。</p>
     <div class="note warnbox">
-      <span class="note-label">What it does not prove</span>
-      <p>CI exercises the Gazebo-free path only: synthetic producer to Kafka to both databases. The simulator, the
+      <span class="note-label"><span lang="en">What it does not prove</span><span lang="ja">証明していないこと</span></span>
+      <p lang="en">CI exercises the Gazebo-free path only: synthetic producer to Kafka to both databases. The simulator, the
         bridge, the real ROS 2 producer node and the visualiser are not in CI and are not covered by any assertion.
         The end-to-end claim this project can make is about the data pipeline, not about the robots.</p>
+      <p lang="ja">CIが検証するのはGazeboを使わない経路だけです。合成producerからKafkaを経て両データベースまでです。シミュレーター、bridge、
+        実際のROS 2 producer node、可視化ツールはCIに含まれず、どのassertionでもカバーされていません。
+        このプロジェクトがend-to-endで主張できるのはデータパイプラインについてであり、ロボットについてではありません。</p>
     </div>
   </div>
 </section>
 <section id="limits">
-  <div class="sec-head"><span class="sec-num">09</span><h2>What this does not do</h2><p class="sec-sub">The honest boundary of the project, stated before anyone finds it themselves.</p></div>
+  <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">What this does not do</span><span lang="ja">このプロジェクトでできないこと</span></h2><p class="sec-sub" lang="en">The honest boundary of the project, stated before anyone finds it themselves.</p><p class="sec-sub" lang="ja">誰かに指摘される前に明記しておく、このプロジェクトの正直な範囲。</p></div>
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4>The simulator has never been watched running</h4>
-        <p>The launch file has been validated by inspection only — the three-robot fleet has not been brought up in
+        <h4><span lang="en">The simulator has never been watched running</span><span lang="ja">シミュレーターの動作を目視確認したことがない</span></h4>
+        <p lang="en">The launch file has been validated by inspection only — the three-robot fleet has not been brought up in
           Gazebo and RViz and observed. Every claim on this page about the data pipeline is backed by a test; the
           claims about the simulation layer are backed by code review and nothing else.</p>
+        <p lang="ja">launchファイルはコードを読んで確認しただけで、3台のフリートをGazeboとRVizで起動して観察したことはありません。
+          このページのデータパイプラインに関する主張はすべてテストで裏付けられていますが、シミュレーション層に関する主張の根拠は
+          コードレビューだけです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4>Nothing is measured for speed</h4>
-        <p>There is no latency figure from robot to database, no throughput ceiling, and no answer to how many robots
+        <h4><span lang="en">Nothing is measured for speed</span><span lang="ja">速度は何も計測していない</span></h4>
+        <p lang="en">There is no latency figure from robot to database, no throughput ceiling, and no answer to how many robots
           this handles. The Kafka topic is single-partition with one consumer per group; partitioning by robot
           identifier is designed but not built, and the "50+ robots" question is open.</p>
+        <p lang="ja">ロボットからデータベースまでのlatencyの数値も、throughputの上限も、何台まで扱えるかの答えもありません。
+          Kafka topicは単一partitionで、consumerはgroupごとに1つです。ロボットIDによるpartition分割は設計済みですが未実装で、
+          「50台以上」に対応できるかは未解決のままです。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4>One detector, one rule</h4>
-        <p>Position variance catches a robot that has stopped. It does not catch a robot moving wrongly, a velocity
+        <h4><span lang="en">One detector, one rule</span><span lang="ja">検知器は1つ、ルールも1つ</span></h4>
+        <p lang="en">Position variance catches a robot that has stopped. It does not catch a robot moving wrongly, a velocity
           spike, or a robot that has gone silent — dropout detection needs a timer over absence of messages, which is a
           different structure and is not written.</p>
+        <p lang="ja">位置の分散で検知できるのは、停止したロボットです。誤った動きをするロボット、速度の急変、通信が途絶えたロボットは検知できません。
+          途絶の検知にはメッセージが来ないことを監視するタイマーが必要で、構造が異なるため実装していません。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4>Three simulated robots, no hardware</h4>
-        <p>No physical robot has ever connected to this pipeline. The message schema is what a ROS 2 odometry topic
+        <h4><span lang="en">Three simulated robots, no hardware</span><span lang="ja">シミュレーション上の3台のみ、実機なし</span></h4>
+        <p lang="en">No physical robot has ever connected to this pipeline. The message schema is what a ROS 2 odometry topic
           provides, so a real robot would fit — but that has not been demonstrated here.</p>
+        <p lang="ja">このパイプラインに実機のロボットを接続したことは一度もありません。メッセージスキーマはROS 2のodometry topicが提供するものなので、
+          実機でも適合するはずですが、ここでは実証していません。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4>The producer is Python</h4>
-        <p>The odometry bridge is a Python ROS 2 node. For a node in the hot path of every robot's sensor stream, C++
+        <h4><span lang="en">The producer is Python</span><span lang="ja">producerがPython製</span></h4>
+        <p lang="en">The odometry bridge is a Python ROS 2 node. For a node in the hot path of every robot's sensor stream, C++
           with <code>librdkafka</code> is the correct language, and rewriting it with a latency comparison against the
           Python version is the first item on the project's own list.</p>
+        <p lang="ja">odometryの中継部分はPythonのROS 2 nodeです。全ロボットのセンサーストリームのhot pathにあるnodeには、<code>librdkafka</code>を使うC++が適切です。
+          C++で書き直し、Python版とのlatencyを比較することが、このプロジェクト自身のTODOリストの最優先項目です。</p>
       </div></div>
     </div>
   </div>
 </section>
 
 <section id="run">
-  <div class="sec-head"><span class="sec-num">10</span><h2>Running it</h2><p class="sec-sub">Two paths: the full simulator, or the pipeline alone on any machine.</p></div>
+  <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Two paths: the full simulator, or the pipeline alone on any machine.</p><p class="sec-sub" lang="ja">2通りの方法：シミュレーターを含む全体構成か、任意のマシンでパイプラインのみを動かすか。</p></div>
   <div class="stack">
-    <h3>Full stack</h3>
+    <h3><span lang="en">Full stack</span><span lang="ja">全体構成</span></h3>
     <pre><code>./scripts/start_all.sh          # everything
 
 # or step by step
@@ -626,41 +523,50 @@ make up                         # Kafka, QuestDB, Postgres, Grafana — waits fo
 make rviz                       # Gazebo Harmonic + RViz with the generated fleet
 make pipeline                   # producer, consumer, detector
 make drive                      # drive the robots per their configured patterns</code></pre>
-    <h3>No simulator needed</h3>
+    <h3><span lang="en">No simulator needed</span><span lang="ja">シミュレーター不要の構成</span></h3>
     <pre><code>make up
 make mock                                 # synthetic fleet into Kafka
 python3 pipeline/kafka_consumer.py        # separate terminal
 python3 pipeline/anomaly_detector.py      # separate terminal</code></pre>
-    <p class="prose">This second path is the one CI uses and the one that runs anywhere Docker does. It needs no ROS 2
+    <p class="prose" lang="en">This second path is the one CI uses and the one that runs anywhere Docker does. It needs no ROS 2
       installation and no simulator.</p>
-    <h3>Watching and closing alerts</h3>
+    <p class="prose" lang="ja">2つ目の方法はCIが使っているもので、Dockerが動く環境ならどこでも実行できます。ROS 2のインストールもシミュレーターも不要です。</p>
+    <h3><span lang="en">Watching and closing alerts</span><span lang="ja">アラートの確認とクローズ</span></h3>
     <pre><code>python3 scripts/fleet_cli.py robots              # registry and online status
 python3 scripts/fleet_cli.py alerts --status open
 python3 scripts/fleet_cli.py ack 3
 python3 scripts/fleet_cli.py resolve 3</code></pre>
     <div class="pair">
-      <dt>Grafana</dt><dd><code>localhost:3000</code> — the Fleet Overview dashboard loads itself.</dd>
-      <dt>QuestDB console</dt><dd><code>localhost:9000</code> — raw SQL over the telemetry.</dd>
-      <dt>make test</dt><dd>The same four assertions CI runs, locally.</dd>
-      <dt>make clean</dt><dd>Stops everything and deletes the volumes for a full reset.</dd>
+      <dt>Grafana</dt><dd lang="en"><code>localhost:3000</code> — the Fleet Overview dashboard loads itself.</dd><dd lang="ja"><code>localhost:3000</code> — Fleet Overviewダッシュボードが自動で読み込まれます。</dd>
+      <dt><span lang="en">QuestDB console</span><span lang="ja">QuestDBコンソール</span></dt><dd lang="en"><code>localhost:9000</code> — raw SQL over the telemetry.</dd><dd lang="ja"><code>localhost:9000</code> — テレメトリに対して直接SQLを実行できます。</dd>
+      <dt>make test</dt><dd lang="en">The same four assertions CI runs, locally.</dd><dd lang="ja">CIと同じ4つのassertionをローカルで実行します。</dd>
+      <dt>make clean</dt><dd lang="en">Stops everything and deletes the volumes for a full reset.</dd><dd lang="ja">すべてを停止し、volumeを削除して完全に初期化します。</dd>
     </div>
   </div>
 </section>
 
 <section id="short">
-  <div class="sec-head"><span class="sec-num">11</span><h2>The short version</h2><p class="sec-sub">What to take away in four sentences.</p></div>
+  <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">The short version</span><span lang="ja">まとめ</span></h2><p class="sec-sub" lang="en">What to take away in four sentences.</p><p class="sec-sub" lang="ja">要点を4文で。</p></div>
   <div class="stack prose">
-    <p>Three simulated robots publish their position; a message bus carries it to two independent readers, one that
+    <p lang="en">Three simulated robots publish their position; a message bus carries it to two independent readers, one that
       stores every reading and one that watches for a robot that has stopped, and an alert opened by the second can be
       acknowledged by a human or closed automatically when the robot moves again.</p>
-    <p>The fleet is described in one configuration file that generates the simulation world and the visualiser layout,
+    <p lang="ja">シミュレーション上の3台のロボットが自己位置をpublishし、メッセージバスがそれを2つの独立した読み手に届けます。1つはすべてのデータを保存し、
+      もう1つは停止したロボットを監視します。後者が開いたアラートは、人がacknowledgeするか、ロボットが再び動けば自動的にクローズされます。</p>
+    <p lang="en">The fleet is described in one configuration file that generates the simulation world and the visualiser layout,
       and continuous integration fails the build if the generated files and the configuration have drifted apart.</p>
-    <p>Telemetry and state live in different databases because they are different problems, malformed messages are
+    <p lang="ja">フリートは1つの設定ファイルで定義され、そこからシミュレーションのworldと可視化ツールのレイアウトを生成します。
+      生成ファイルと設定がずれていれば、CIがビルドを失敗させます。</p>
+    <p lang="en">Telemetry and state live in different databases because they are different problems, malformed messages are
       parked in a dead-letter topic rather than dropped, and every service reconnects rather than dying when something
       it depends on is not ready.</p>
-    <p>What is proved is the data pipeline, by four assertions against the real container stack on every push. What is
+    <p lang="ja">テレメトリと状態は別の問題なので別々のデータベースに置き、不正なメッセージは破棄せずdead-letter topicに退避し、
+      依存先の準備ができていないときもすべてのサービスは停止せずに再接続します。</p>
+    <p lang="en">What is proved is the data pipeline, by four assertions against the real container stack on every push. What is
       not proved is the simulator layer, the latency, or anything about scale — and those are stated on the page
       because a reviewer would find them anyway.</p>
+    <p lang="ja">証明されているのはデータパイプラインで、pushのたびに実際のコンテナ構成に対する4つのassertionで確認しています。
+      シミュレーション層、latency、スケールに関することは証明されていません。レビューする人はいずれ気づくので、このページに明記しています。</p>
   </div>
 </section>
 
@@ -668,47 +574,18 @@ python3 scripts/fleet_cli.py resolve 3</code></pre>
 
 <hr class="rule">
 <footer class="wrap">
-  Built from the source in <code>fleet_monitoring_ws</code> — <code>README.md</code>, <code>fleet.yaml</code>,
+  <p lang="en">Built from the source in <code>fleet_monitoring_ws</code> — <code>README.md</code>, <code>fleet.yaml</code>,
   <code>generate_fleet.py</code>, <code>common.py</code>, <code>kafka_producer.py</code>,
   <code>kafka_consumer.py</code>, <code>anomaly_detector.py</code>, <code>mock_producer.py</code>,
   <code>smoke_test.py</code>, <code>fleet_cli.py</code>, <code>init.sql</code>, <code>docker-compose.yml</code>
-  and <code>ci.yml</code>.
+  and <code>ci.yml</code>.</p>
+  <p lang="ja"><code>fleet_monitoring_ws</code>のソース（<code>README.md</code>、<code>fleet.yaml</code>、
+  <code>generate_fleet.py</code>、<code>common.py</code>、<code>kafka_producer.py</code>、
+  <code>kafka_consumer.py</code>、<code>anomaly_detector.py</code>、<code>mock_producer.py</code>、
+  <code>smoke_test.py</code>、<code>fleet_cli.py</code>、<code>init.sql</code>、<code>docker-compose.yml</code>、
+  <code>ci.yml</code>）をもとに作成しています。</p>
 </footer>
 
-<script>
-(function(){
-  var bar=document.querySelector('.progress i');
-  var links=Array.prototype.slice.call(document.querySelectorAll('nav.jump a'));
-  var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'));});
-  var queued=false;
-  function paint(){
-    queued=false;
-    var d=document.documentElement;
-    var max=d.scrollHeight-d.clientHeight;
-    bar.style.width=(max>0?Math.min(100,d.scrollTop/max*100):0)+'%';
-    var cur=0;
-    for(var i=0;i<secs.length;i++){
-      if(secs[i]&&secs[i].getBoundingClientRect().top<=110) cur=i;
-    }
-    for(var j=0;j<links.length;j++){
-      if(j===cur) links[j].setAttribute('aria-current','true');
-      else links[j].removeAttribute('aria-current');
-    }
-  }
-  function tick(){ if(!queued){queued=true;requestAnimationFrame(paint);} }
-  addEventListener('scroll',tick,{passive:true});
-  addEventListener('resize',tick);
-  paint();
-})();
-</script>
-
-<script>
-(function(){var b=document.getElementById('theme-toggle');if(!b)return;var r=document.documentElement;
-function s(){b.setAttribute('aria-pressed',String(r.classList.contains('dark-mode')))}
-b.addEventListener('click',function(){var d=r.classList.toggle('dark-mode');s();try{localStorage.setItem('theme',d?'dark':'light')}catch(e){}});s();
-function y(){try{var t=localStorage.getItem('theme');r.classList.toggle('dark-mode',t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches));s()}catch(e){}}
-window.addEventListener('pageshow',function(e){if(e.persisted)y()});window.addEventListener('storage',function(e){if(e.key==='theme')y()});
-})();
-</script>
+<script src="wt.js"></script>
 </body>
 </html>
