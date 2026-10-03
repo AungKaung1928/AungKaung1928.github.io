@@ -41,13 +41,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow">ROS 2 · <span lang="en">infrastructure · repo</span><span lang="ja">インフラ · リポジトリ</span> <code style="background:none;padding:0;color:inherit">fleet_monitoring_ws</code></div>
     <h1>Watching a Robot Fleet</h1>
-    <p class="deck" lang="en">Three simulated robots publish where they are. A message bus carries it, one service files it into a
-      time-series database, and another one notices when a robot has stopped moving and opens an alert that a human can
-      acknowledge and close. The whole fleet is described in a single configuration file, and a job on every push proves
-      the chain works end to end.</p>
-    <p class="deck" lang="ja">シミュレーション上の3台のロボットが自己位置をpublishします。メッセージバスがそれを運び、1つのサービスが時系列データベースに記録し、
-      もう1つのサービスがロボットの停止を検知して、人が確認（acknowledge）してクローズできるアラートを発行します。
-      フリート全体は1つの設定ファイルで定義され、pushのたびに実行されるジョブがパイプライン全体をend-to-endで検証します。</p>
+    <p class="deck" lang="en">Three simulated robots stream position through Kafka to two independent consumers: one stores every reading in QuestDB, the other opens an alert in PostgreSQL when a robot stops moving (position variance &lt; 0.001 m²). The whole fleet is one YAML file, and CI proves the chain with 4 of 4 assertions on every push.</p>
+    <p class="deck" lang="ja">シミュレーション上の3台のロボットの位置がKafkaを経て2つの独立したconsumerに届きます。1つは全データをQuestDBに保存し、もう1つはロボットの停止（位置の分散 &lt; 0.001 m²）を検知してPostgreSQLにアラートを開きます。フリート全体は1つのYAMLで定義され、pushのたびにCIが4つのassertionでパイプラインを検証します。</p>
     <div class="chips">
       <span class="chip">ROS 2 Humble</span><span class="chip">Gazebo Harmonic</span><span class="chip">Apache Kafka (KRaft)</span>
       <span class="chip">QuestDB</span><span class="chip">PostgreSQL</span><span class="chip">Grafana</span>
@@ -66,23 +61,112 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
     <a href="#path"><span lang="en">The data path</span><span lang="ja">データの流れ</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
-    <a href="#config"><span lang="en">One file defines the fleet</span><span lang="ja">1ファイルでフリート定義</span></a>
-    <a href="#databases"><span lang="en">Two databases</span><span lang="ja">2つのデータベース</span></a>
-    <a href="#detector"><span lang="en">The stuck detector</span><span lang="ja">停止検知</span></a>
-    <a href="#failure"><span lang="en">When something breaks</span><span lang="ja">障害時の挙動</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#config" data-depth="deep"><span lang="en">One file defines the fleet</span><span lang="ja">1ファイルでフリート定義</span></a>
+    <a href="#databases" data-depth="deep"><span lang="en">Two databases</span><span lang="ja">2つのデータベース</span></a>
+    <a href="#detector" data-depth="deep"><span lang="en">The stuck detector</span><span lang="ja">停止検知</span></a>
+    <a href="#failure" data-depth="deep"><span lang="en">When something breaks</span><span lang="ja">障害時の挙動</span></a>
     <a href="#ci"><span lang="en">What CI proves</span><span lang="ja">CIで証明できること</span></a>
     <a href="#limits"><span lang="en">What this does not do</span><span lang="ja">できないこと</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
     <a href="#short"><span lang="en">The short version</span><span lang="ja">まとめ</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">The data path, the numbers CI produced, and the boundary of what is proved — before any detail.</span><span lang="ja">データの流れ、CIが出した数値、そして証明できている範囲。詳細はその後で。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">Architecture — one position reading, robot to alert</span><span lang="ja">アーキテクチャ — 1件の位置データがロボットからアラートになるまで</span></div>
+      <div class="vsub"><span lang="en">Highlighted box = the one rule that opens and closes alerts. The bracket marks the path CI exercises; the robots themselves are not in it.</span><span lang="ja">強調したboxがアラートを開閉する唯一のルール。下の線はCIが検証する経路で、ロボット自体は含まれません。</span></div>
+      <svg class="viz" viewBox="0 0 540 404" role="img" aria-label="architecture: three robots publish odometry through a producer node into one Kafka topic; a storage consumer writes QuestDB, a detector opens alerts in PostgreSQL; CI covers the path from Kafka to both databases">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0L10 5L0 10z"/></marker></defs>
+<rect class="box" x="120" y="2" width="100" height="36" rx="4"><title>tb1 — drive: linear 0.15, angular 0.3</title></rect>
+<text x="170.0" y="17" text-anchor="middle" class="lbl">tb1</text>
+<text x="170.0" y="31" text-anchor="middle" class="mut" lang="en">drives a circle</text>
+<text x="170.0" y="31" text-anchor="middle" class="mut" lang="ja">円を走行</text>
+<rect class="box" x="230" y="2" width="100" height="36" rx="4"><title>tb2 — drive: null, the alert fixture</title></rect>
+<text x="280.0" y="17" text-anchor="middle" class="lbl">tb2</text>
+<text x="280.0" y="31" text-anchor="middle" class="mut" lang="en">never moves</text>
+<text x="280.0" y="31" text-anchor="middle" class="mut" lang="ja">動かない（停止）</text>
+<rect class="box" x="340" y="2" width="100" height="36" rx="4"><title>tb3 — drive: linear 0.1, angular −0.5</title></rect>
+<text x="390.0" y="17" text-anchor="middle" class="lbl">tb3</text>
+<text x="390.0" y="31" text-anchor="middle" class="mut" lang="en">reverse circle</text>
+<text x="390.0" y="31" text-anchor="middle" class="mut" lang="ja">逆向きに円走行</text>
+<text x="112" y="17" text-anchor="end" class="mut" lang="en">3 robots, one YAML</text>
+<text x="112" y="17" text-anchor="end" class="mut" lang="ja">3台、1つのYAML</text>
+<text x="112" y="31" text-anchor="end" class="mut" lang="en">not in CI</text>
+<text x="112" y="31" text-anchor="end" class="mut" lang="ja">CI対象外</text>
+<rect class="box" x="120" y="80" width="320" height="62" rx="4"><title>Apache Kafka (KRaft): topics robot_odom + robot_odom_dlq; storage and detector are two consumer groups on the same topic</title></rect>
+<text x="280.0" y="98" text-anchor="middle" class="lbl">Kafka</text>
+<text x="280.0" y="114" text-anchor="middle" class="mut">robot_odom · robot_odom_dlq</text>
+<text x="280.0" y="128" text-anchor="middle" class="mut" lang="en">2 consumer groups read the same topic independently</text>
+<text x="280.0" y="128" text-anchor="middle" class="mut" lang="ja">2つのconsumer groupが同じtopicを独立に読む</text>
+<path class="arrow" d="M170.0 38 V79"><title>ROS 2 odometry re-published as one JSON message per reading</title></path>
+<path class="arrow" d="M280.0 38 V79"><title>ROS 2 odometry re-published as one JSON message per reading</title></path>
+<path class="arrow" d="M390.0 38 V79"><title>ROS 2 odometry re-published as one JSON message per reading</title></path>
+<text x="112" y="56" text-anchor="end" class="mut">kafka_producer.py</text>
+<text x="112" y="69" text-anchor="end" class="mut">/tbN/odom → JSON</text>
+<rect class="box" x="10" y="172" width="250" height="90" rx="4"><title>kafka_consumer.py (104 lines): Kafka → QuestDB line protocol, dead-letter path, registry heartbeat at most once per 5 s</title></rect>
+<text x="135.0" y="189" text-anchor="middle" class="lbl" lang="en">Storage consumer</text>
+<text x="135.0" y="189" text-anchor="middle" class="lbl" lang="ja">保存用consumer</text>
+<text x="135.0" y="204" text-anchor="middle" class="mut">kafka_consumer.py</text>
+<text x="135.0" y="220" text-anchor="middle" class="mut" lang="en">every valid reading → QuestDB</text>
+<text x="135.0" y="220" text-anchor="middle" class="mut" lang="ja">有効データを全件 → QuestDB</text>
+<text x="135.0" y="234" text-anchor="middle" class="mut" lang="en">heartbeat to Postgres ≤ 1 / 5 s</text>
+<text x="135.0" y="234" text-anchor="middle" class="mut" lang="ja">heartbeatをPostgresへ、最大5秒に1回</text>
+<text x="135.0" y="248" text-anchor="middle" class="mut" lang="en">malformed → robot_odom_dlq</text>
+<text x="135.0" y="248" text-anchor="middle" class="mut" lang="ja">不正メッセージ → robot_odom_dlq</text>
+<rect class="box hi" x="280" y="172" width="250" height="90" rx="4"><title>anomaly_detector.py (124 lines): window 10, min 5 samples, var(x)+var(y) < 0.001 m² → stuck; edge-triggered, one alert per event</title></rect>
+<text x="405.0" y="189" text-anchor="middle" class="lbl" lang="en">Detector</text>
+<text x="405.0" y="189" text-anchor="middle" class="lbl" lang="ja">検知器</text>
+<text x="405.0" y="204" text-anchor="middle" class="mut">anomaly_detector.py</text>
+<text x="405.0" y="220" text-anchor="middle" class="mut" lang="en">window 10 · min 5 samples</text>
+<text x="405.0" y="220" text-anchor="middle" class="mut" lang="ja">window 10 · 最小5サンプル</text>
+<text x="405.0" y="234" text-anchor="middle" class="mut">var(x)+var(y) &lt; 0.001 m² → stuck</text>
+<text x="405.0" y="248" text-anchor="middle" class="mut" lang="en">edge-triggered · 1 alert / event</text>
+<text x="405.0" y="248" text-anchor="middle" class="mut" lang="ja">edge-triggered · イベントごとに1件</text>
+<path class="arrow" d="M190 142 V171"><title>consumer group: storage</title></path>
+<path class="arrow" d="M370 142 V171"><title>consumer group: detector</title></path>
+<rect class="box" x="10" y="292" width="250" height="76" rx="4"><title>QuestDB: 369 rows stored in the 25 s smoke run (375 expected at 3 robots × 5 Hz); stuck/moving events recorded as they happened</title></rect>
+<text x="135.0" y="309" text-anchor="middle" class="lbl">QuestDB</text>
+<text x="135.0" y="324" text-anchor="middle" class="mut" lang="en">append-only: readings + stuck events</text>
+<text x="135.0" y="324" text-anchor="middle" class="mut" lang="ja">追記のみ：位置データ + 停止イベント</text>
+<text x="135.0" y="341" text-anchor="middle" class="lbl num" lang="en">369 rows / 25 s</text>
+<text x="135.0" y="341" text-anchor="middle" class="lbl num" lang="ja">25 sで369行</text>
+<text x="135.0" y="356" text-anchor="middle" class="mut" lang="en">line protocol 9009 · read on 8812</text>
+<text x="135.0" y="356" text-anchor="middle" class="mut" lang="ja">line protocol 9009 · 読み出し 8812</text>
+<rect class="box" x="280" y="292" width="250" height="76" rx="4"><title>PostgreSQL: robots registry + alerts, status CHECK (open, acknowledged, resolved); one unresolved alert per robot per type</title></rect>
+<text x="405.0" y="309" text-anchor="middle" class="lbl">PostgreSQL</text>
+<text x="405.0" y="324" text-anchor="middle" class="mut" lang="en">robots registry + alerts</text>
+<text x="405.0" y="324" text-anchor="middle" class="mut" lang="ja">ロボット台帳 + アラート</text>
+<text x="405.0" y="340" text-anchor="middle" class="mut">open → acknowledged → resolved</text>
+<text x="405.0" y="356" text-anchor="middle" class="mut" lang="en">human closes · auto-resolve on move</text>
+<text x="405.0" y="356" text-anchor="middle" class="mut" lang="ja">人がクローズ／再移動で自動resolve</text>
+<path class="arrow" d="M135.0 262 V291"><title>line protocol, TCP 9009; reconnect + one retry on a dead socket</title></path>
+<path class="arrow" d="M405.0 262 V291"><title>psycopg2, port 5432; INSERT … WHERE NOT EXISTS unresolved</title></path>
+<path class="axis" d="M10 372 V378 H530 V372" fill="none"/>
+<text x="270.0" y="396" text-anchor="middle" class="lbl" lang="en">CI on every push · synthetic fleet · 25 s · 4 of 4 assertions pass</text>
+<text x="270.0" y="396" text-anchor="middle" class="lbl" lang="ja">pushごとのCI · 合成フリート · 25 s · assertion 4/4 合格</text>
+</svg>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>One YAML defines the whole fleet.</strong> 3 robots in <code>config/fleet.yaml</code> generate the Gazebo world (420 lines) and the RViz layout (127 lines); CI fails the build if the generated files drift from the config.</span><span lang="ja"><strong>1つのYAMLがフリート全体を定義。</strong><code>config/fleet.yaml</code>の3台からGazeboのworld（420行）とRVizレイアウト（127行）を生成。生成ファイルが設定からずれるとCIがビルドを失敗させます。</span></li>
+      <li><b>02</b><span lang="en"><strong>Two independent consumers, two databases.</strong> One Kafka topic feeds a storage consumer (QuestDB, append-only) and a detector (PostgreSQL alerts, open → acknowledged → resolved); malformed messages go to a dead-letter topic, every service reconnects instead of dying.</span><span lang="ja"><strong>独立したconsumerが2つ、データベースも2つ。</strong>1つのKafka topicを保存用consumer（QuestDB、追記のみ）と検知器（PostgreSQLのアラート、open → acknowledged → resolved）が読みます。不正なメッセージはdead-letter topicへ、全サービスは落ちずに再接続します。</span></li>
+      <li><b>03</b><span lang="en"><strong>Stuck rule: position variance &lt; 0.001 m².</strong> Over a 10-sample window, edge-triggered — one alert per event, closed by a human or automatically when the robot moves again.</span><span lang="ja"><strong>停止判定：位置の分散 &lt; 0.001 m²。</strong>直近10サンプルのwindowに対してedge-triggeredで判定。アラートはイベントごとに1件で、人がクローズするか、ロボットが再び動けば自動でクローズされます。</span></li>
+      <li><b>04</b><span lang="en"><strong>CI proves the pipeline: 4 of 4 assertions.</strong> Real container stack on every push, synthetic fleet for 25 s → 369 rows stored, ≥ 1 stuck event, ≥ 1 open alert, 3 of 3 robots registered. ≈1 330 lines of Python.</span><span lang="ja"><strong>CIがパイプラインを証明：assertion 4/4合格。</strong>pushのたびに実コンテナ構成を起動し、合成フリートを25 s動かして369行の保存、停止イベント≥ 1、openのアラート≥ 1、3台中3台の登録を確認。Pythonは約1 330行。</span></li>
+      <li class="neg"><b>05</b><span lang="en"><strong>Proved: the data pipeline. Not proved: the robots.</strong> Gazebo, the bridge and the ROS 2 producer are outside CI and were never watched running; no latency or throughput figure; 3 simulated robots, no hardware.</span><span lang="ja"><strong>証明済みはデータパイプライン、ロボットは未証明。</strong>Gazebo、bridge、ROS 2 producerはCIの対象外で、動作を目視したこともありません。latencyやthroughputの数値はなく、シミュレーション上の3台のみで実機なし。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What the project is, and what problem it exists to solve.</p><p class="sec-sub" lang="ja">このプロジェクトが何であり、どんな問題を解くために存在するのか。</p></div>
   <div class="stack prose">
     <p lang="en">One robot is easy to watch. You look at it, or you open a terminal and read its messages. Ten robots in a building
@@ -176,7 +260,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
     </div>
   </div>
 </section>
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file</span><span lang="ja">全ファイル</span></h2><p class="sec-sub" lang="en">The whole repository, with line counts. Generated files are marked.</p><p class="sec-sub" lang="ja">リポジトリ全体と各ファイルの行数。自動生成ファイルには印を付けています。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -212,7 +296,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="config">
+<section id="config" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">One file defines the fleet</span><span lang="ja">1つのファイルでフリートを定義</span></h2><p class="sec-sub" lang="en">Why a configuration file generates the world instead of a human editing XML.</p><p class="sec-sub" lang="ja">人がXMLを編集するのではなく、設定ファイルからworldを生成する理由。</p></div>
   <div class="stack">
     <p class="prose" lang="en">A robot in this system exists in six places at once: as a model in the simulation world, as a display
@@ -261,7 +345,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="databases">
+<section id="databases" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Two databases, on purpose</span><span lang="ja">あえて2つのデータベース</span></h2><p class="sec-sub" lang="en">Telemetry and state are different problems, so they get different stores.</p><p class="sec-sub" lang="ja">テレメトリと状態は別の問題なので、保存先も分けています。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -310,7 +394,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
       一切クリックせずに動作するダッシュボードが揃います。</p>
   </div>
 </section>
-<section id="detector">
+<section id="detector" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The stuck detector</span><span lang="ja">停止検知器</span></h2><p class="sec-sub" lang="en">One rule, one state machine, and the two database writes it triggers.</p><p class="sec-sub" lang="ja">1つのルール、1つのstate machine、そしてそれが引き起こす2つのデータベース書き込み。</p></div>
   <div class="stack">
     <p class="prose" lang="en">The rule is deliberately simple, and simple is the right choice here: a robot that is not moving
@@ -367,7 +451,7 @@ WHERE NOT EXISTS (
   </div>
 </section>
 
-<section id="failure">
+<section id="failure" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">When something breaks</span><span lang="ja">障害時の挙動</span></h2><p class="sec-sub" lang="en">Four failure modes that were designed for rather than discovered.</p><p class="sec-sub" lang="ja">後から見つかったのではなく、設計段階で想定した4つの障害モード。</p></div>
   <div class="stack">
     <div class="findings">
@@ -512,7 +596,7 @@ WHERE NOT EXISTS (
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Two paths: the full simulator, or the pipeline alone on any machine.</p><p class="sec-sub" lang="ja">2通りの方法：シミュレーターを含む全体構成か、任意のマシンでパイプラインのみを動かすか。</p></div>
   <div class="stack">
     <h3><span lang="en">Full stack</span><span lang="ja">全体構成</span></h3>
@@ -571,6 +655,7 @@ python3 scripts/fleet_cli.py resolve 3</code></pre>
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 7 more sections ↓</span><span lang="ja">全文を読む — 残り7セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

@@ -16,9 +16,9 @@ const CHAT_ENDPOINT = '';   // e.g. 'https://portfolio-chat.<you>.workers.dev'
 
 const EMAIL = 'aungkaungmyattt1928@gmail.com';
 
-/* Answers are thorough by default — the long form is what a visitor came
- * for. These words are the opt-out. */
-const BRIEF_RE = /\b(short|shortly|brief|briefly|quick|quickly|tldr|tl;dr|one line|one-line|summary|summarise|summarize|in a sentence|keep it short|just the)\b/;
+/* Answers are short by default — the walkthrough pages hold the depth.
+ * These words opt in to the long form. */
+const DETAIL_RE = /\b(detail|details|detailed|in depth|in-depth|more|elaborate|explain fully|long|everything|full)\b/;
 
 /* ── Knowledge base ──────────────────────────────────────────────────
  * a     — short answer, used when the visitor asks for "short" or "brief"
@@ -35,38 +35,19 @@ const TOPICS = [
         ask: 'What can I ask you?',
         k: ['help', 'topics', 'menu', 'options', '!what can i ask', '!what can you', 'commands', 'guide'],
         weight: 1.4,
-        a: "I answer questions about Aung Kaung Myat's robotics work. Six areas:\n\n" +
-           "## Background\n" +
-           "- Who he is, his experience level, how he works\n" +
-           "- Where he is heading: physical AI, sim-to-real transfer\n" +
-           "## Skills\n" +
-           "- Robot learning: PPO, imitation learning, language-conditioned policies, reward design, domain randomisation, system identification\n" +
-           "- ML / DL: PyTorch, CNNs, object detection, INT8 quantisation, ONNX Runtime\n" +
-           "- C++17 and ROS2: a threaded simulation backend, nodes, actions, MoveIt2, Nav2\n" +
-           "- Simulation: MuJoCo, Gazebo, RViz, synthetic data\n" +
-           "## Projects\n" +
-           "- The four current projects together, or any one by name\n" +
-           "- Microduck balance · C++ MuJoCo backend · SO-ARM100 manipulation · Clutter detector with INT8\n" +
-           "- The four earlier projects they grew out of: PPO vs LQR, cube pose CNN, MoveIt2 pick and place, fleet monitoring\n" +
-           "## Numbers\n" +
-           "- Every headline figure on the page and how it was measured\n" +
-           "## Contact\n" +
-           "- Email, GitHub, LinkedIn\n\n" +
-           "Ask in plain English. Add the word \"detail\" to any question and I will go long.",
-        next: ['Explain each project in detail', 'What numbers can he back up?', 'Does he do machine learning?', 'How do I contact him?'],
+        a: "Ask about: background · skills · projects · how he works · contact.\n" +
+           "Any of the eight projects by name, or all at once.\n" +
+           "The numbers behind them, and which numbers do not exist.\n" +
+           "Role fit, gaps, email.\n" +
+           "Add \"detail\" to any question for the long version.",
+        next: ['Explain each project', 'What numbers can he back up?', 'Does he do machine learning?', 'How do I contact him?'],
     },
     {
         id: 'greeting',
         label: null,
         k: ['hi', 'hello', 'hey', 'yo', 'howdy', 'good morning', 'good evening', 'good afternoon'],
         weight: 0.5,
-        a: "Hi. I am the assistant for this portfolio — I answer questions about Aung Kaung Myat, a robotics software engineer working on learned perception and control for physical machines.\n\n" +
-           "Good places to start:\n" +
-           "- His background and experience\n" +
-           "- His stack — robot learning, ML, ROS2, perception, manipulation\n" +
-           "- Any of the four current projects, the four earlier ones, or all of them at once\n" +
-           "- The numbers behind them, and which numbers do not exist\n\n" +
-           "Ask \"what can I ask you?\" for the full list.",
+        a: "Hi — I answer questions about Aung Kaung Myat's robotics work: background, stack, projects, how he works and contact; say \"what can I ask you?\" for the list.",
         next: ['Who is he?', 'What is his experience?', 'Explain each project', 'How do I contact him?'],
     },
     {
@@ -74,9 +55,7 @@ const TOPICS = [
         label: 'Who is he?',
         ask: 'Who is Aung Kaung Myat?',
         k: ['who', 'about him', '!about aung', 'background', 'yourself', 'introduce', 'bio', 'summary', 'profile', 'himself'],
-        a: "Aung Kaung Myat is a robotics software engineer. His day job is ROS2, C++ and LiDAR perception on real mobile robots. The projects on this page are personal work on learned perception and control — trained in simulation, measured against a classical baseline that had to be beaten, and exported to run on device.\n\n" +
-           "ROS2 and C++ carry the systems layer; PyTorch carries the learning. The pattern across every project is the same: build the hand-written method first, measure it, then find out whether the learned one is actually worth its cost.\n\n" +
-           "His direction is physical AI: sim-to-real transfer, legged locomotion, and perception that survives outside a staged scene.",
+        a: "Robotics software engineer; the day job is ROS2, C++ and LiDAR perception on real mobile robots. The projects here are personal robot-learning work: trained in simulation, measured against a classical baseline, exported to ONNX. Direction: physical AI, sim-to-real transfer, legged locomotion.",
         deep: "## Short version\n" +
            "Robotics software engineer, working on real mobile robots professionally — ROS2, C++, navigation and LiDAR perception. This page is his personal work: learned perception and control, built on ROS2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
            "## What he actually builds\n" +
@@ -92,10 +71,7 @@ const TOPICS = [
         label: 'Experience',
         ask: 'What is his experience?',
         k: ['experience', 'exp', 'years', 'career', 'worked', 'work history', 'job', 'jobs', 'role', 'roles', 'seniority', 'senior', 'junior', 'employment', 'history', 'professional'],
-        a: "Early-career robotics software engineer, working professionally on ROS2 systems — autonomous mobile robots, perception, and deployment onto real hardware.\n\n" +
-           "Alongside that, a self-directed robot-learning track: four current projects (a biped balance policy, a C++ simulation backend, arm manipulation by RL, imitation and language, and an INT8 detector) built on four earlier ones, all trained and measured on CPU only. None of them are tutorial follow-alongs — each exists to answer one question with a number.\n\n" +
-           "Day to day that means ROS2 in C++ and Python on Linux, PyTorch for the models, MuJoCo and Gazebo for simulation.\n\n" +
-           "For dates, employers and role specifics, email him: " + EMAIL,
+        a: "Early career. Professionally: ROS2 systems on autonomous mobile robots, perception and deployment onto real hardware, in C++ and Python on Linux. Personally: eight robot-learning projects, all trained and measured on CPU only. Employers and dates are not on the page; email " + EMAIL + ".",
         deep: "## Level\n" +
            "Early career, and honest about it. What he has is depth in a narrow band rather than a long list of years.\n\n" +
            "## What the day job looks like\n" +
@@ -111,16 +87,14 @@ const TOPICS = [
            "There is no GPU in any of this. The whole robot-learning track was designed around an 8-thread CPU budget, which is why the projects lead with feasibility measurements and small architectures rather than with scale.\n\n" +
            "## What is not on this page\n" +
            "Employers, dates, and specific role scope. Email " + EMAIL + " for the CV.",
-        next: ['Explain each project in detail', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
+        next: ['Explain each project', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'goal',
         label: 'Career direction',
         ask: 'What is he aiming for?',
         k: ['goal', 'goals', 'focus', 'future', 'direction', '!physical ai', 'aiming', 'aim', 'next', 'looking for', 'interested', 'ambition', 'want'],
-        a: "The target is Physical AI Engineer — shipping learned behaviour onto real machines rather than into a notebook.\n\n" +
-           "Concretely: sim-to-real transfer, legged locomotion, and perception that holds up outside a staged scene. The robot-learning track on this page is the deliberate route there, built block by block with a measurement closing each one.\n\n" +
-           "The ROS2 side is not being abandoned — it is the deployment layer that makes a learned policy useful on an actual robot.",
+        a: "Target: Physical AI Engineer, shipping learned behaviour onto real machines. Three pieces: sim-to-real transfer, legged locomotion, perception outside a staged scene. The robot-learning track on this page is the route there, one measured block at a time; ROS2 stays as the deployment layer.",
         deep: "## Now\n" +
            "Two tracks, run in parallel:\n" +
            "- Robot learning on CPU — a biped balance policy, arm manipulation by RL, imitation and language, a detector quantised to INT8, and a C++ simulation backend proven bit-identical to its Python reference\n" +
@@ -139,10 +113,7 @@ const TOPICS = [
         label: 'C++ or Python?',
         ask: 'C++ or Python — which does he use?',
         k: ['language', 'languages', '!python', 'coding', 'programming', 'code', 'linux', 'os', '!which language'],
-        a: "Both, and the split is deliberate.\n\n" +
-           "C++17 is the default for anything that runs per step or per frame: the threaded MuJoCo backend, built with CMake and bound to Python through pybind11, and the reachability validator in the MoveIt2 project, which is C++ so it cannot block the Python state machine above it.\n\n" +
-           "Python is for the learning work: PyTorch models, MuJoCo environments, training loops, evaluation. The training code in every project is Python; the C++ backend runs that Python training script unchanged.\n\n" +
-           "Rule of thumb: real-time and edge code in C++, research and orchestration in Python.",
+        a: "Both. C++17 for anything per step or per frame: the threaded MuJoCo backend (CMake, pybind11) and the MoveIt2 reachability validator. Python for the learning side: PyTorch models, MuJoCo environments, training, evaluation. Rule: real-time and edge code in C++, research and orchestration in Python.",
         deep: "## The split\n" +
            "- C++ — production nodes, real-time paths, anything performance-critical or destined for an edge device\n" +
            "- Python — model training, simulation, evaluation, orchestration\n" +
@@ -161,25 +132,9 @@ const TOPICS = [
     {
         id: 'stack',
         label: 'Full technical stack',
-        ask: 'What is his full technical stack?',
+        ask: 'What is his technical stack?',
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
-        a: "## Core\n" +
-           "ROS2 (Humble) · C++17 · Python · Linux · Docker · CMake\n" +
-           "## Robot Learning\n" +
-           "PPO · Imitation learning · Language-conditioned policies · Domain randomisation · System identification · Sim-to-real transfer\n" +
-           "## ML / DL\n" +
-           "PyTorch · CNN · Object detection · INT8 quantisation · ONNX Runtime\n" +
-           "## Perception\n" +
-           "LiDAR · IMU · Sensor fusion · OpenCV · PCL\n" +
-           "## Navigation & Manipulation\n" +
-           "Nav2 · SLAM · MoveIt2 · OMPL\n" +
-           "## Simulation\n" +
-           "MuJoCo · Gazebo · RViz\n" +
-           "## Navigation\n" +
-           "Nav2 · SLAM · AMCL · Cartographer\n" +
-           "## Control\n" +
-           "LQR · PID controllers · State machines · Path planning\n\n" +
-           "The through-line is the whole loop — sensor in, model, policy, planner, motion out — plus the infrastructure to run it: Docker, Kafka, time-series storage.",
+        a: "ROS2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL. MuJoCo, Gazebo.",
         deep: "## Core\n" +
            "ROS2 (Humble), C++17, Python, Linux, CMake. ROS2 is the runtime for the systems side; the learning code is Python until it is exported, and the one C++ project is a simulation backend that the Python training script runs on unchanged.\n" +
            "## Robot Learning\n" +
@@ -198,21 +153,16 @@ const TOPICS = [
            "LQR solved by iterating the Riccati recursion by hand in the earlier cart-pole project, PD and PID controllers measured as baselines, state machines, and path planning. The state-machine part is underrated: reliable robot behaviour is mostly a well-designed FSM with real recovery states.\n" +
            "## Infrastructure\n" +
            "Docker, GitHub Actions CI on every current repository, Kafka, QuestDB, ONNX Runtime. Enough to stand up a fleet and to ship a model, not only to train one.",
-        next: ['Explain each project in detail', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'C++ or Python?'],
+        next: ['Explain each project', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'C++ or Python?'],
     },
     {
         id: 'detection',
         label: 'Tabletop Clutter Detector, INT8 on One Thread',
         ask: 'Tell me about the clutter detection project',
         k: ['!clutter', '!detector', '!detection', '!object detection', '!map', '!coco', '!anchor-free', '!anchor free', '!centernet', '!heatmap', '!bounding box', '!occlusion', '!segmentation', '!augmentation', '!ablation', '!int8', '!quantisation', '!quantization', '!quantised', '!quantized', '!pruning', '!prune', '!edge ai', '!edge-ai', '!one thread', '!single thread'],
-        a: "## Tabletop Clutter Detector, INT8 on One Thread — Python, PyTorch, MuJoCo, ONNX Runtime\n" +
-           "An anchor-free detector for three to six objects on a table, where they overlap and hide one another, then taken down to INT8 for a one-thread CPU budget.\n\n" +
-           "- Every box is read straight out of the renderer's segmentation buffer, so no label is hand-drawn and every box is already correct under perspective and occlusion\n" +
-           "- mAP@[.5:.95] of 0.911 against a fitted classical pipeline's 0.532, with COCO mAP implemented from scratch and unit-tested rather than imported\n" +
-           "- 1.20 ms per image through ONNX Runtime on 8 CPU threads, but 3.69 ms on one thread against the classical pipeline's 2.13 ms, which is the budget a ROS2 node usually gets\n" +
-           "- Step 6 attacks that one-thread number with static INT8 quantisation and structured channel pruning, scored by the same mAP on the same images. Static INT8 (minmax calibration on 200 training images) runs the detector in 1.38 ms on one thread, 2.6x faster than fp32's 3.57 ms and under the classical pipeline's 2.13 ms, at mAP 0.9097 against fp32's 0.9107 (-0.0010); structured pruning was the wrong tool here: removing half the channels cost 0.065 mAP for 2.42 ms, and pruned-plus-INT8 at 1.25 ms buys under 10% over INT8 alone at that price, so static INT8 alone is what would ship.\n\n" +
-           "The part worth noticing: an ablation found that photometric augmentation on top of the simulator's own randomisation buys +0.0007 mAP. That is nothing, and it is reported as nothing.\n\n" +
-           "Repository: https://github.com/AungKaung1928/mujoco-clutter-detect",
+        a: "Anchor-free detector for 3–6 overlapping objects on a table, labels from the renderer's segmentation buffer.\n" +
+           "mAP@[.5:.95] 0.911 vs a fitted classical 0.532; static INT8 1.38 ms on one thread at mAP 0.9097 (-0.0010).\n" +
+           "Pruning cost 0.065 mAP; augmentation +0.0007, a null. Walkthrough: projects/clutter-detect.html",
         deep: "## Tabletop Clutter Detector, INT8 on One Thread — Python, PyTorch, MuJoCo, ONNX Runtime\n" +
            "Multi-object detection on a simulated tabletop: three classes, three to six objects per scene, a tilted camera, and a deployment budget of one CPU thread.\n" +
            "## Why the camera is tilted\n" +
@@ -240,21 +190,16 @@ const TOPICS = [
            "A one-thread x86 latency is not a Jetson latency; the ordering of the graphs is expected to carry to an ARM core with TensorRT, the ratios are not, and the page says so.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-clutter-detect",
-        next: ['Tell me about the C++ MuJoCo backend', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project in detail'],
+        next: ['Tell me about the C++ MuJoCo backend', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'rl',
         label: 'PPO vs LQR on Cart-Pole',
         ask: 'Tell me about the PPO project',
         k: ['!ppo', '!rl', '!reinforcement learning', '!policy gradient', '!lqr', '!riccati', '!cart-pole', '!cartpole', '!gae', '!advantage', '!seeds', '!permutation test', '!from scratch', '!optimal control'],
-        a: "## PPO vs LQR on Cart-Pole — Python, PyTorch, NumPy, MuJoCo\n" +
-           "Earlier work, and the engine under two current projects: the PPO loop written here is the one that trains the Microduck biped and the SO-ARM100 arm.\n\n" +
-           "The same problem solved twice: once with an optimal controller derived from the physics, once with PPO written from first principles.\n\n" +
-           "- No gymnasium, no stable-baselines3, no cleanrl copy-paste, no scipy — the discrete Riccati equation is solved by iterating the recursion, because understanding the recursion is the point\n" +
-           "- 16 seeds reported as median and interquartile range, plus ablations on GAE, advantage normalisation and ratio clipping, each judged by a two-sided permutation test\n" +
-           "- LQR reaches threshold at zero sample cost; PPO needs a median 62,144 environment steps and ends with a smaller basin of attraction\n\n" +
-           "The question the repository answers is not whether PPO can balance a pole. It is what the learned policy buys over a controller you can solve for, and what it costs — including the axes where it loses.\n\n" +
-           "Repository: https://github.com/AungKaung1928/ppo-from-scratch",
+        a: "Earlier work: cart-pole solved twice, LQR derived by hand and PPO from first principles; that loop now trains the Microduck and the arm.\n" +
+           "PPO: median 62,144 steps to threshold over 16 seeds, IQR [60,442, 63,448]; LQR costs zero samples.\n" +
+           "PPO's basin of attraction is smaller. Walkthrough: projects/ppo-from-scratch.html",
         deep: "## PPO vs LQR on Cart-Pole — Python, PyTorch, NumPy, MuJoCo\n" +
            "A hand-written environment, an optimal controller that costs zero samples, and PPO implemented from scratch.\n" +
            "## Why the environment is hand-written\n" +
@@ -271,22 +216,16 @@ const TOPICS = [
            "Searched on seeds 100 to 103, disjoint from the reported seeds 0 to 15. Tuning on the seeds you then report is the most common quiet mistake in an RL repository.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/ppo-from-scratch",
-        next: ['Tell me about the Microduck balance project', 'Tell me about the SO-ARM100 projects', 'What numbers can he back up?', 'Explain each project in detail'],
+        next: ['Tell me about the Microduck balance project', 'Tell me about the SO-ARM100 projects', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'duck',
         label: 'Microduck Balance and Push Recovery',
         ask: 'Tell me about the Microduck balance project',
         k: ['!microduck', '!duck', '!biped', '!bipedal', '!walking', '!walk', '!locomotion', '!gait', '!legged', '!servo', '!servos', '!balance', '!push recovery', '!recover', '!observation contract', '!cpu only', '!no gpu', '!reward'],
-        a: "## Microduck Balance and Push Recovery — Python, MuJoCo, PyTorch, ONNX\n" +
-           "A balance-and-recover policy for a 25 cm, 737 g open-source biped with 14 position-controlled servos, trained with PPO in MuJoCo on a laptop with no GPU anywhere in the stack.\n\n" +
-           "- The observation is 48 numbers and every one of them is something the real robot's sensors report: joint angles, joint speeds, the last commanded action, the gyro, and gravity in the body frame. The 13 quantities only a simulator knows were dropped on purpose\n" +
-           "- The reward was rebuilt from measurement. Three of the four penalties in the first version were each under 0.25% of the return, so two were dropped and the joint-velocity weight was set from its measured share; a height term that was flat everywhere the fallen robot actually lies became a linear ramp\n" +
-           "- The PD hold-pose controller that ships with the robot scores 175.2 ± 3.1 of a 500 ceiling under that reward (108.7 ± 2.9 under the old one), over 20 seeds with random pushes. That is the number the learned policy has to beat\n" +
-           "- After the full 50M steps, PPO scores 344.8 ± 2.9 of 500 against the PD controller's 175.8 ± 0.2 under the same reward and keeps the trunk above the fall height for 73% of steps (PD 47%), 100 episodes x 5 seeds. The first 25M-step chunk reached 332.6 ± 5.1, but its step size ran away (clip fraction 0.73, KL spikes above 50). The second chunk resumed with a KL stop at 0.02, which held the mean KL at 0.03, and every evaluation seed improved by 8.6 to 16.0. Survival did not move, and the learning rate annealing over the same span is a confound. The push column reads 99% against 88%, but with a 0.00 s time to recover it measures push resistance, not standing back up; getting up after a fall is not shown.\n\n" +
-           "- Domain randomisation, measured on two held-out physics models, made the policy worse: it learned to brace in a crouch, upright 28% of steps against 47%, robust to backlash but collapsed on rollers (147 against 374). Reported as it came out\n\n" +
-           "Also measured, and kept on the page: the training budget was set from 13,300 environment steps per second, and the real training loop runs at about 3,300, because the round trip to eight worker processes and the policy's forward pass were never in the composition. Fifth revision of that one number, and the first measured on the actual workload.\n\n" +
-           "Repository: https://github.com/AungKaung1928/microduck-rl",
+        a: "Balance-and-recover PPO policy for a 25 cm, 14-servo biped in CPU MuJoCo; 48-dim observation, sensor-reported values only.\n" +
+           "After 50M steps PPO scores 344.8 ± 2.9 of 500 vs the PD controller's 175.8 ± 0.2.\n" +
+           "Domain randomisation made it worse: a crouch, upright 28% vs 47%. Walkthrough: projects/microduck-rl.html",
         deep: "## Microduck Balance and Push Recovery — Python, MuJoCo, PyTorch, ONNX\n" +
            "Robot learning for a biped on a laptop with no GPU: stand, get pushed, recover, with every step measured before the next one was allowed to start.\n" +
            "## The robot and the task\n" +
@@ -316,14 +255,9 @@ const TOPICS = [
         label: 'Threaded C++ MuJoCo Backend, Bit-Identical',
         ask: 'Tell me about the C++ MuJoCo backend',
         k: ['!c++', '!cpp', '!c++17', '!bit-identical', '!bit identical', '!bit-exact', '!thread', '!threads', '!threaded', '!multithreading', '!pybind', '!pybind11', '!cmake', '!sanitizer', '!sanitizers', '!asan', '!tsan', '!vector environment', '!vector env', '!backend', '!vecenv', '!numpy'],
-        a: "## Threaded C++ MuJoCo Backend, Bit-Identical — C++17, MuJoCo, pybind11, CMake\n" +
-           "The Microduck environment rewritten in C++17, running eight environments on eight threads of one process instead of eight forked Python processes, with a binding that lets the Python training script run on it unchanged.\n\n" +
-           "- The claim comes first and it is not speed: over 25 episodes, 6,275 of 6,275 observations come out bit-identical to the Python environment, with identical rewards and flags. A faster environment that is even slightly different trains a different policy\n" +
-           "- Getting there meant matching numpy's pairwise summation tree, Python's power operator (which is the C library's pow, not x times x), a float32 constant promoted to float64, and a second MuJoCo forward pass that is not a no-op because the solver warm-starts\n" +
-           "- Measured after that: about 2x the Python processes at 8 workers (12,327 against 6,385 environment steps per second, alternated in the same run), 27,011 bare physics steps per second at 8 threads, and the same power-management dip over six minutes that the Python version shows\n" +
-           "- Tested on every commit under AddressSanitizer, UndefinedBehaviorSanitizer and ThreadSanitizer\n" +
-           "- The Python project's full 50M-step PPO run, repeated on this backend on three training seeds in about 3.1 hours each instead of 3.8 to 4.4, trains policies that score 339.4 ± 2.3 of 500 on the Python environment against 348.1 ± 8.1 for the ones trained there (100 episodes × 5 seeds per policy), and it reproduces the same step-size failure and the same KL-stop fix. Seed 0 alone showed a survival gap, 0.95 against 0.73; over three seeds it is 0.94 ± 0.06 against 0.87 ± 0.14, run-to-run spread rather than the backend\n\n" +
-           "Repository: https://github.com/AungKaung1928/mujoco-vecenv-cpp",
+        a: "The Microduck environment in C++17 on threads (pybind11, CMake), drop-in for the Python training script.\n" +
+           "6,275 of 6,275 observations bit-identical to Python; 1.9–2.0x the Python processes at 8 workers; CI under ASan, UBSan, TSan.\n" +
+           "Full 50M PPO run: 3.1 h vs 4.4, 1.41x not 2x. Walkthrough: projects/mujoco-vecenv-cpp.html",
         deep: "## Threaded C++ MuJoCo Backend, Bit-Identical — C++17, MuJoCo, pybind11, CMake\n" +
            "A vector environment is the object that steps N copies of a simulated robot together so a policy sees a batch of observations per step. Python can only run one thread of its own code at a time, so the Microduck project's vector environment forks eight processes and talks to them through pipes. This repository is the same environment in C++17 on threads.\n" +
            "## The one claim\n" +
@@ -349,21 +283,16 @@ const TOPICS = [
            "- Wall-clock for 50M steps: 3.1 hours against about 4.4 on seed 0, 1.41x over the first 25M and 1.45x over the second (seeds 1 and 2: 1.25x), less than the 2x under random actions because the policy forward pass and the update are single-threaded on the same critical path; the one training process sat at 470% CPU with eight environment threads\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-vecenv-cpp",
-        next: ['Tell me about the Microduck balance project', 'C++ or Python — which does he use?', 'What numbers can he back up?', 'Explain each project in detail'],
+        next: ['Tell me about the Microduck balance project', 'C++ or Python — which does he use?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'arm',
         label: 'SO-ARM100 Manipulation with RL, Imitation and Language',
         ask: 'Tell me about the SO-ARM100 projects',
         k: ['!so-arm100', '!so arm', '!so-arm', '!arm', '!manipulation', '!grasp', '!imitation', '!imitation learning', '!behaviour cloning', '!behavior cloning', '!dagger', '!act', '!action chunking', '!vla', '!language', '!language-conditioned', '!lerobot', '!smolvla', '!curriculum', '!minilm', '!lora', '!bench', '!scripted expert'],
-        a: "## SO-ARM100 Manipulation with RL, Imitation and Language — Python, MuJoCo, PyTorch, LeRobot\n" +
-           "One MuJoCo bench for the SO-ARM100 arm (a low-cost 5-joint arm with a parallel gripper, the one most open LeRobot data was recorded on) and three policy repositories that learn the same four tasks three different ways.\n\n" +
-           "- The bench: reach, push, lift and pick-and-place on three coloured cubes; a scripted inverse-kinematics expert; domain randomisation over mass, friction, servo gain, damping, cube size, action latency and sensor noise; six held-out physics settings that each sit outside the randomised range; one evaluation protocol of 100 episodes times 5 seeds; a recorder that writes LeRobot datasets\n" +
-           "- Reinforcement learning: PPO with a reach-to-push-to-lift curriculum, trained with and without randomisation, evaluated on the held-out physics to put a number on the transfer gap\n" +
-           "- Imitation: behaviour cloning, DAgger with a shadow expert relabelling the policy's own rollouts, and an action-chunking transformer, with a dataset-size scaling curve from 10 to 200 demonstrations\n" +
-           "- Language: a frozen sentence encoder, a keypoint CNN and an action-chunk transformer, scored on sentences it never saw and on task-colour pairs never seen together, with a 450M-parameter open VLA run zero-shot in the same simulator as a reference line\n\n" +
-           "Status, stated plainly: all four repositories are code-complete with 129 tests green. The bench reference is measured: at 100 episodes times 5 seeds the scripted expert scores 0.93 on lift and pick-and-place, but 0.73 and 0.72 on the small cube, the one physics setting that breaks it. Reinforcement learning is measured, on one training seed: PPO lifts the cube from scratch at 1.0 million steps; the same recipe under full randomisation stalled, rolling success never above 0.09, and was stopped at 4.9 million; a randomised fine-tune of the nominal policy halves the mean success drop on the six held-out physics settings, 0.120 to 0.056, almost all of it on 3 steps of action latency (0.46 to 0.76). The randomised policy also had 10 million more training steps, so part of that gain may be training length; the control run has not been done. Language is measured, on one training seed, and it is weak: 0.11 success on seen instructions, 0.10 on paraphrases, 0.03 on unseen task-colour pairs; the encoder ablation (MiniLM, hashed, no FiLM) sits inside its own noise, because held-out demonstration L1 is 0.128 against 0.057 on training ones and the fix is more demonstrations, not another encoder. SmolVLA-base zero-shot scores 0 of 40 and needs 3.2 s per 50-step action chunk on CPU. Imitation is measured on the same bench: from the same 200 scripted demonstrations, single-step behaviour cloning on the camera image lifts the cube 0.05 of the time and an action-chunking transformer 0.77, against the expert's 0.93, at 100 episodes times 5 seeds. DAgger lifts the single-step policy only to 0.14. On held-out physics the chunked policy loses 0.12 to 3 steps of action latency and 0.39 on the small cube. On the dataset-size curve (10 to 200 demonstrations, three training seeds, six for the chunking transformer, 50 episodes each), state-only and single-step image cloning stay near zero at every size (0.03 and 0.05 at 200) even as the image policy's validation loss falls fivefold, while the chunking transformer's mean climbs from 0.08 to 0.51; its six seeds at 200 split into 0.92, 0.82, 0.76 and 0.24, 0.18, 0.12, so the training seed matters more than anything the one-seed tables can show. Found while measuring: the slippery-friction cell is inert in every table on the bench, because MuJoCo gives a contact the larger friction of its two surfaces and only the cube's was lowered; the rows are kept as measured.\n\n" +
-           "Repositories: https://github.com/AungKaung1928/so-arm100-sim · https://github.com/AungKaung1928/so-arm100-rl · https://github.com/AungKaung1928/so-arm100-il · https://github.com/AungKaung1928/so-arm100-vla",
+        a: "One MuJoCo bench for the SO-ARM100 arm (four tasks, six held-out physics cells) feeds RL, imitation and language.\n" +
+           "Action chunking lifts 0.77 vs cloning 0.05 (expert 0.93); randomised RL fine-tune halves the held-out drop, 0.120 to 0.056.\n" +
+           "Language weak: 0.11 seen, 0.03 unseen. Walkthrough: projects/so-arm100.html",
         deep: "## SO-ARM100 Manipulation with RL, Imitation and Language — Python, MuJoCo, PyTorch, LeRobot\n" +
            "Four repositories: a shared bench and three ways of learning the same arm, arranged so that their result tables are directly comparable.\n" +
            "## The bench (so-arm100-sim)\n" +
@@ -395,14 +324,9 @@ const TOPICS = [
         label: 'Cube Pose Regression CNN',
         ask: 'Tell me about the cube pose project',
         k: ['!cube', '!pose', '!pose estimation', '!pose regression', '!soft-argmax', '!soft argmax', '!keypoint', '!regression', '!baseline', '!classical cv', '!hsv', '!sub-millimetre', '!sub millimeter'],
-        a: "## Cube Pose Regression CNN — Python, PyTorch, MuJoCo, OpenCV\n" +
-           "Earlier work; its spatial soft-argmax keypoint head is the vision front end of the SO-ARM100 image and language policies.\n\n" +
-           "Recovering the planar pose of a cube — x, y and yaw — from a single 128x128 render.\n\n" +
-           "- A hand-written OpenCV baseline is measured first, twice, with two different thresholds so that \"classical CV fails\" cannot be blamed on one badly chosen prior\n" +
-           "- Calibrating a single scalar on the training split removed a systematic +2.98 mm radial bias and took the baseline from 3.41 mm to 1.91 mm — 53% of the gap to the network, closed for free\n" +
-           "- A spatial soft-argmax head reaches 0.59 mm median error with 27k parameters: five times smaller, 2.6 times faster and with a better error tail than a 130k generic head\n\n" +
-           "The conclusion is stated against the network's interest: if 1.9 mm is inside tolerance, the CNN is the wrong engineering choice.\n\n" +
-           "Repository: https://github.com/AungKaung1928/mujoco-cube-pose-cnn",
+        a: "Earlier: planar cube pose (x, y, yaw) from one 128x128 render; its soft-argmax head is the front end of the SO-ARM100 image policies.\n" +
+           "0.59 mm median error from 27k parameters vs a refitted OpenCV baseline at 1.91 mm.\n" +
+           "If 1.9 mm is inside tolerance the CNN is the wrong choice. Walkthrough: projects/cube-pose-cnn.html",
         deep: "## Cube Pose Regression CNN — Python, PyTorch, MuJoCo, OpenCV\n" +
            "One question, answered with numbers: when does a learned model beat hand-written geometry, and when does it not.\n" +
            "## The setup\n" +
@@ -421,21 +345,15 @@ const TOPICS = [
            "Exported to ONNX and proven, not just exported: maximum absolute output difference against PyTorch plus the full task metrics recomputed through ONNX Runtime. 0.23 ms on one thread against 0.65 ms in eager PyTorch on eight.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-cube-pose-cnn",
-        next: ['Tell me about the clutter detection project', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project in detail'],
+        next: ['Tell me about the clutter detection project', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'manipulation',
         label: 'MoveIt2 Pick & Place',
         ask: 'Tell me about the MoveIt2 pick and place project',
         k: ['!moveit', '!moveit2', 'manipulator', 'pick', 'place', '!panda', '!franka', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof', '!reachability', '!validator', '!fsm', '!pick and place', '!pick-and-place'],
-        a: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
-           "Earlier work on the ROS2 systems side; its walkthrough is still on the site.\n\n" +
-           "A 7-DOF Franka Panda clears seven balls from a table and drops them into a box, fully autonomously.\n\n" +
-           "- Nothing is hard-coded. A simulated camera renders the scene, an OpenCV node finds the balls, a C++ validator discards anything the arm cannot reach, and a state machine grasps only what survived that chain\n" +
-           "- Cartesian-first execution gives straight-line end-effector motion, with OMPL RRTConnect as the fallback when a straight line is not available\n" +
-           "- Action-server verification at startup, post-planning trajectory retiming for velocity scaling, and recovery to a known home state when planning fails\n\n" +
-           "Stated on the repository itself: detection is HSV on synthetic frames and positions are recovered by exact pinhole back-projection onto a known table plane. It demonstrates the pipeline architecture, not robustness to real-sensor noise.\n\n" +
-           "Repository: https://github.com/AungKaung1928/moveit_pickplace_demo",
+        a: "Earlier ROS2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt2 with OMPL fallback.\n" +
+           "No accuracy or success-rate figure was measured; HSV on synthetic frames. Walkthrough: projects/moveit-pickplace.html",
         deep: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
            "A closed perception-to-execution loop on a 7-DOF arm, in simulation.\n" +
            "## The loop\n" +
@@ -458,20 +376,15 @@ const TOPICS = [
            "The repository carries an explicit honest-simulation note: HSV detection on synthetic frames with exact geometric back-projection is not robustness to real-sensor noise. There is no positioning-accuracy figure and no success-rate figure, because neither was measured.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/moveit_pickplace_demo",
-        next: ['Explain each project in detail', 'How does he handle failure and recovery?', 'How deep is his ROS2 knowledge?', 'How do I contact him?'],
+        next: ['Explain each project', 'How does he handle failure and recovery?', 'How deep is his ROS2 knowledge?', 'How do I contact him?'],
     },
     {
         id: 'fleet',
         label: 'Fleet Monitoring System',
         ask: 'Tell me about the fleet monitoring project',
         k: ['fleet', '!kafka', '!docker', 'container', 'containerized', 'containerised', '!telemetry', 'database', '!questdb', 'postgres', '!postgresql', 'infra', 'infrastructure', 'monitoring', 'dashboard', 'multi-robot', 'multi robot', '!turtlebot', '!turtlebot3', 'devops', 'time-series', 'time series', 'scale'],
-        a: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
-           "A distributed multi-robot telemetry pipeline: ROS2 topics feed Kafka, Kafka feeds QuestDB as a time-series store.\n\n" +
-           "- Simulates production fleet infrastructure with multiple TurtleBot3 robots running at once in Gazebo\n" +
-           "- Fully containerised with Docker\n" +
-           "- Real-time dashboard reading from QuestDB over the PostgreSQL wire protocol\n\n" +
-           "Earlier work, and the infrastructure slot rather than the main line: it shows he can build the layer around the robots, which is a useful secondary skill for a team that has robots and no telemetry.\n\n" +
-           "Repository: https://github.com/AungKaung1928/fleet_monitoring_ws",
+        a: "Earlier infrastructure work: multi-robot telemetry, ROS2 topics into Kafka, Kafka into QuestDB, a dashboard over the PostgreSQL wire protocol; several TurtleBot3 in Gazebo, all in Docker.\n" +
+           "No throughput figure was measured. Walkthrough: projects/fleet-monitoring.html",
         deep: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
            "The infrastructure a fleet needs, rather than the software on one robot.\n" +
            "## The data path\n" +
@@ -489,20 +402,14 @@ const TOPICS = [
            "It is deliberately the last project on the page. The main line of work is robot learning and manipulation; this one exists because a robotics team eventually needs someone who can stand up the observability layer, and it is the only project here that proves he can.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/fleet_monitoring_ws",
-        next: ['Explain each project in detail', 'How does he deploy and package his work?', 'What is his stack?', 'How do I contact him?'],
+        next: ['Explain each project', 'How does he deploy and package his work?', 'What is his stack?', 'How do I contact him?'],
     },
     {
         id: 'ml',
         label: 'ML / deep learning',
         ask: 'Does he do machine learning?',
         k: ['ml', '!machine learning', '!deep learning', 'dl', 'neural', '!pytorch', '!cnn', 'ai', 'model', 'models', 'training', 'train', 'inference', 'vision', '!onnx', '!onnx runtime', '!network', '!architecture'],
-        a: "Yes — every current project trains or runs a PyTorch model, and every one is measured against a hand-written method that was built first.\n\n" +
-           "- Microduck Balance and Push Recovery — PPO for a 14-servo biped against a measured PD baseline of 175.2 ± 3.1\n" +
-           "- SO-ARM100 Manipulation — curriculum PPO, behaviour cloning, DAgger, an action-chunking transformer and a language-conditioned policy, all on one bench\n" +
-           "- Tabletop Clutter Detector — anchor-free detection, mAP 0.911 against a fitted classical baseline's 0.532, then static INT8 and structured pruning\n" +
-           "- Earlier: a cube-pose CNN at 0.59 mm median error from 27k parameters, and PPO written from first principles against LQR over 16 seeds\n\n" +
-           "PyTorch throughout, ONNX Runtime for export, MuJoCo for the simulation. No GPU anywhere in the stack — the whole track is designed around an 8-thread CPU budget.\n\n" +
-           "What this is not: a research record. There are no publications and no benchmark leaderboard entries, and he does not claim any.",
+        a: "Yes. Every current project trains a PyTorch model against a hand-written baseline measured first: Microduck PPO 344.8 vs PD 175.8 of 500; arm RL, imitation and language policies; detector mAP 0.911 vs 0.532, then INT8. Earlier: cube-pose CNN 0.59 mm, PPO vs LQR over 16 seeds. CPU only, no publications.",
         deep: "## What is actually here\n" +
            "Learned projects, all public, all reproducible on a CPU:\n" +
            "- Microduck Balance and Push Recovery — PPO with a running normaliser and a truncation bootstrap, a reward rebuilt from measured term shares, a PD baseline of 175.2 ± 3.1 of 500 under that reward\n" +
@@ -528,11 +435,7 @@ const TOPICS = [
         label: 'Control & simulation',
         ask: 'What control and simulation experience does he have?',
         k: ['control', 'controller', '!pid', '!state machine', 'fsm', '!gazebo', '!mujoco', 'simulation', 'simulator', 'sim', '!rviz', 'motion control', '!synthetic data'],
-        a: "## Control\n" +
-           "PD and PID controllers measured as baselines (the Microduck's shipped PD controller is scored over 20 seeds before any policy trains), LQR derived by iterating the discrete Riccati recursion by hand in the earlier cart-pole project, path planning and state machines. A curriculum and a scripted inverse-kinematics expert on the arm are control engineering too: the expert integrates end-effector error to cancel servo sag before it is allowed to demonstrate anything.\n\n" +
-           "## Simulation\n" +
-           "MuJoCo for all the learning work: scene generation, segmentation-buffer labels, and physics for control. Gazebo for the ROS2 side. RViz throughout for looking at what a pipeline actually produced.\n\n" +
-           "Synthetic data generation is a first-class part of every learned project — the label comes out of the renderer, not out of a person, which is the concrete reason robot learning starts in simulation.",
+        a: "Control: PD and PID measured as baselines (the Microduck PD controller is scored over 20 seeds before training), LQR by iterating the Riccati recursion by hand, state machines, path planning, a scripted IK expert on the arm. Simulation: MuJoCo for the learning work, Gazebo for ROS2, RViz; labels from the renderer.",
         next: ['Tell me about the PPO project', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'Explain each project'],
     },
     {
@@ -540,10 +443,7 @@ const TOPICS = [
         label: 'Navigation & SLAM',
         ask: 'What is his navigation and SLAM experience?',
         k: ['navigation', 'navigate', '!nav2', '!slam', '!amcl', '!cartographer', '!localization', '!localisation', 'mapping', '!costmap', 'path planning', 'planner', 'autonomous mobile'],
-        a: "Navigation is professional work rather than portfolio work, and the page is clear about that.\n\n" +
-           "Nav2 for the planning and control stack, SLAM for mapping, AMCL for localization against a known map, Cartographer among the mapping tools. That comes from his day job on autonomous mobile robots, not from a project on this page.\n\n" +
-           "What is on the page instead: motion planning on a 7-DOF arm with MoveIt2 and OMPL, and path planning as part of the control skill set.\n\n" +
-           "For the scope of the navigation work — which robots, which environments, how long — email " + EMAIL,
+        a: "Professional work, not portfolio work: Nav2, SLAM, AMCL and Cartographer on autonomous mobile robots at the day job. No navigation project on this page; what is shown instead is 7-DOF arm planning with MoveIt2 and OMPL. For the scope of that work, email " + EMAIL + ".",
         deep: "## The stack he uses professionally\n" +
            "- Nav2 — the planning and control stack: global and local planners, behaviour trees, recovery behaviours\n" +
            "- SLAM for building maps, with Cartographer among the tools\n" +
@@ -560,16 +460,10 @@ const TOPICS = [
     {
         id: 'projects',
         label: 'The projects',
-        ask: 'Explain each project in detail',
+        ask: 'Explain each project',
         k: ['project', 'projects', 'portfolio', 'built', 'build', 'repo', 'repos', 'repository', 'github', 'work on', 'works on', 'showcase', 'made', 'demos'],
         weight: 0.9,
-        a: "Four current projects, all robot learning on a CPU, and four earlier ones they grew out of.\n\n" +
-           "1. Microduck Balance and Push Recovery — MuJoCo, PyTorch. PPO for a 14-servo biped, reward rebuilt from measurement, PD baseline 175.2 ± 3.1 of 500 to beat.\n" +
-           "2. Threaded C++ MuJoCo Backend, Bit-Identical — C++17, pybind11. The same environment on threads, 6,275 of 6,275 observations identical to Python, about 2x its throughput at 8 workers.\n" +
-           "3. SO-ARM100 Manipulation with RL, Imitation and Language — MuJoCo, PyTorch, LeRobot. One bench, three ways to learn the same arm; 129 tests, bench reference and RL measured (randomised fine-tune halves the held-out drop, mostly on latency), imitation measured (action chunking 0.77 lift against single-step cloning 0.05 and DAgger 0.14), language measured and weak (0.11 seen, 0.03 unseen pairs).\n" +
-           "4. Tabletop Clutter Detector, INT8 on One Thread — PyTorch, ONNX Runtime. mAP 0.911 against a fitted classical 0.532, then INT8 and pruning for a one-thread budget.\n\n" +
-           "Earlier: PPO vs LQR on Cart-Pole (the PPO loop reused above), Cube Pose Regression CNN (the keypoint head reused above), MoveIt2 Pick & Place Demo, Fleet Monitoring System.\n\n" +
-           "Ask about any one by name, or say \"explain each project in detail\" for the full breakdown. Every card above links to its repository.",
+        a: "Four current projects, all robot learning on CPU: Microduck biped (PPO 344.8 vs PD 175.8 of 500), C++ MuJoCo backend (6,275 of 6,275 bit-identical, 1.9–2.0x), SO-ARM100 arm (chunking 0.77 vs cloning 0.05), clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms). Earlier: PPO vs LQR, cube pose CNN, MoveIt2, fleet.",
         deep: "Four current projects and four earlier ones. All of the current work is robot learning, trained and measured on CPU only.\n\n" +
            "## 1 · Microduck Balance and Push Recovery — Python, MuJoCo, PyTorch, ONNX\n" +
            "A balance-and-recover policy for a 25 cm, 14-servo biped with no GPU in the stack.\n" +
@@ -615,39 +509,25 @@ const TOPICS = [
         ask: 'What is his strongest project?',
         k: ['!strongest', 'best', 'favourite', 'favorite', 'impressive', 'highlight', 'proudest', 'standout', 'stand out', '!why hire', '!why him', '!hire him', '!should we hire', '!worth hiring', '!good fit', 'differentiator', 'unique'],
         weight: 1.2,
-        a: "Depends what the role needs, and the honest read is this:\n\n" +
-           "- Best complete result — Tabletop Clutter Detector, INT8 on One Thread. mAP 0.911 against a fitted classical 0.532, a metric implemented from scratch, a deployment path measured at 8 threads and at one\n" +
-           "- Most exacting engineering — Threaded C++ MuJoCo Backend, Bit-Identical. 6,275 of 6,275 observations identical to the Python environment, which took matching numpy's summation order and libm's pow, then a measured 2x\n" +
-           "- Closest to where he is heading — Microduck Balance and Push Recovery. A biped, a reward rebuilt from measurement, PPO against a measured baseline\n" +
-           "- Widest method coverage — SO-ARM100 Manipulation. RL, imitation and language on one bench with one protocol; the least measured of the four, and it says so\n\n" +
-           "The common thread is not any single project: it is that every learned result on this page sits next to a hand-written method that was measured first, and the comparison is reported even when it goes the wrong way.",
-        next: ['Explain each project in detail', 'What are the gaps in his experience?', 'What is he aiming for?', 'How do I contact him?'],
+        a: "Depends on the role. Best complete result: the clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms on one thread). Most exacting engineering: the C++ backend (6,275 of 6,275 bit-identical, then 2x). Closest to his direction: the Microduck biped. Widest coverage: the SO-ARM100 bench, the least measured of the four.",
+        next: ['Explain each project', 'What are the gaps in his experience?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'contact',
         label: 'Contact',
         ask: 'How do I contact him?',
         k: ['contact', 'email', 'mail', 'reach', 'hire', 'hiring', 'recruit', 'recruiter', '!linkedin', 'cv', '!resume', 'talk', '!get in touch', 'available', 'availability', 'opportunity', 'opportunities', 'interview', 'apply'],
-        a: "## Email — fastest route\n" + EMAIL + "\n" +
-           "## GitHub\n" +
-           "github.com/AungKaung1928 — every project is public\n" +
-           "## LinkedIn\n" +
-           "Linked in the Contact section above\n\n" +
-           "For a CV, role details, availability, or anything this page does not cover, email is the right channel.",
-        next: ['What is his experience?', 'Explain each project in detail', 'What is his stack?', 'Who is he?'],
+        a: "Email: " + EMAIL + "\n" +
+           "GitHub: github.com/AungKaung1928\n" +
+           "LinkedIn: linked in the Contact section above",
+        next: ['What is his experience?', 'Explain each project', 'What is his stack?', 'Who is he?'],
     },
     {
         id: 'ros2',
         label: 'ROS2 depth',
         ask: 'How deep is his ROS2 knowledge?',
         k: ['!ros2', '!ros', '!humble', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
-        a: "## ROS2 — Humble, in C++ and Python\n" +
-           "He works inside ROS2's interfaces rather than only on top of them. Concrete markers on this page:\n\n" +
-           "- A multi-node pipeline in the MoveIt2 project where each stage is its own node with a defined topic contract: ground truth, rendered image, detections, validated targets\n" +
-           "- A C++ node and a Python node in the same package, split on a real criterion — the per-detection reachability filter must not block the orchestrating state machine\n" +
-           "- Action-server verification before execution, so a missing controller fails at startup instead of mid-motion\n" +
-           "- A latched topic for scene ground truth, so a node that starts late still receives it\n\n" +
-           "Professionally: Nav2, SLAM and AMCL on autonomous mobile robots, which is where the deeper navigation-side ROS2 work sits.",
+        a: "ROS2 Humble in C++ and Python. On this page: the MoveIt2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
         deep: "## The version and the languages\n" +
            "ROS2 Humble, C++ and Python, on Linux. C++ for nodes that run per frame or per detection; Python where iteration speed and async orchestration matter more.\n" +
            "## Where the depth shows on this page\n" +
@@ -669,15 +549,7 @@ const TOPICS = [
         ask: 'What about sim-to-real transfer?',
         k: ['!sim-to-real', '!sim to real', '!sim2real', '!reality gap', '!domain gap', '!simulation to reality', '!real world', '!transfer', '!domain randomisation', '!domain randomization', '!system identification', '!does it work on real hardware'],
         weight: 1.3,
-        a: "This is his stated differentiator, and the honest version matters more than the enthusiastic one.\n\n" +
-           "## What is on this page\n" +
-           "- Domain randomisation measured rather than described: the detection project randomises hue, lighting and table shade at render time, and then ablates whether photometric augmentation on top adds anything. It adds +0.0007 mAP\n" +
-           "- The same question asked in the pose project, with two dataset regimes — fixed appearance and randomised appearance — and the classical baseline's detection rate collapsing to 10.9% under the hard one\n" +
-           "- An evaluation habit that transfers: hold out the split you report on, search hyperparameters on disjoint seeds, and report the axis where the learned method loses\n" +
-           "- ONNX export verified by recomputing the task metric through the runtime, which is the step that gets a model onto a robot\n\n" +
-           "## What is not on this page\n" +
-           "A policy trained in simulation and measured on hardware. There is no robot to deploy to. That is the missing artefact and he would say so first.\n\n" +
-           "If a role turns on that specifically, email him: " + EMAIL,
+        a: "His stated differentiator, measured rather than described: Microduck domain randomisation on held-out physics came out negative (a crouch); the arm's randomised fine-tune halved the held-out drop, 0.120 to 0.056; augmentation on the detector bought +0.0007 mAP. Missing: no policy has run on hardware, there is no robot.",
         deep: "## Why this is the differentiator\n" +
            "His stated target is Physical AI Engineer, and the thing that separates one from a general ML engineer is sim-to-real: domain randomisation, system identification, residual policies, and hardware failure analysis. That is a systems problem — the failure lives in the seams: frames, latency, sensor noise, actuator saturation, contact.\n" +
            "## What the page actually supports\n" +
@@ -701,11 +573,7 @@ const TOPICS = [
         label: 'Legged robotics',
         ask: 'What legged robotics experience does he have?',
         k: ['!legged robotics', '!quadruped', '!quadrupedal', '!four-legged', '!four legged', '!walking robot', '!dog robot', '!humanoid'],
-        a: "## What exists\n" +
-           "Microduck Balance and Push Recovery — a balance-and-recover policy for a 25 cm, 737 g open-source biped with 14 position-controlled servos, in MuJoCo. The environment contract is 48 observations (only what the robot's own sensors report) and 14 actions at 50 Hz, the reward was rebuilt after measuring that three of four penalties were inert, and the shipped PD controller scores 175.2 ± 3.1 of 500 under that reward. PPO trains against it, and a C++17 backend runs the same environment bit-identically at about twice the speed under random actions and 1.4 times in the full PPO run.\n\n" +
-           "## What that is and is not\n" +
-           "It is a balance-and-recovery task, not a walking gait, and there is no physical robot. Domain randomisation was measured on held-out physics and made this policy worse, because it learned to brace instead of stand; that comparison is between the first 25M steps of each run, on one seed, and the nominal run has since finished its 50M steps at 344.8 of 500.\n\n" +
-           "Legged locomotion is one of the three things he names as his direction, and this is the first deliberate step rather than the finished article.",
+        a: "Microduck Balance and Push Recovery: a balance-and-recover policy for a 25 cm, 737 g, 14-servo open-source biped in MuJoCo; PD baseline 175.2 ± 3.1 of 500, PPO 344.8 after 50M steps. Not a walking gait, no physical robot, and domain randomisation made it worse. A first step towards legged locomotion.",
         next: ['Tell me about the Microduck balance project', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
     },
     {
@@ -713,16 +581,7 @@ const TOPICS = [
         label: 'Robots & sensors',
         ask: 'Which robots and sensors has he worked with?',
         k: ['!hardware', '!real robot', '!real robots', '!physical robot', '!physical hardware', '!which robots', '!what robots', '!robot platforms', '!platforms', '!actuator', '!actuators', '!motor', '!motors', '!sensor suite', '!sensors used', '!sensor stack', '!on real hardware'],
-        a: "## Platforms named on this page\n" +
-           "- Microduck — a 25 cm, 737 g open-source biped with 14 servos, in MuJoCo\n" +
-           "- SO-ARM100 — a low-cost 5-joint arm with a parallel gripper, the MuJoCo Menagerie model, in simulation\n" +
-           "- Franka Panda, 7-DOF arm — the earlier closed-loop pick-and-place stack, in simulation\n" +
-           "- TurtleBot3, several at once — the earlier fleet telemetry project, in Gazebo\n\n" +
-           "## Sensors\n" +
-           "LiDAR, IMU and camera, with sensor fusion across them. PCL for point clouds, OpenCV for images — used both as a tool and as the baseline the learned models have to beat.\n\n" +
-           "## The honest split\n" +
-           "He works on real robot hardware professionally — mobile platforms, navigation, LiDAR perception. Every project on this page is personal work and runs in simulation; the machines from his job are not published here.\n\n" +
-           "For the real-hardware detail, employers and dates, email him: " + EMAIL,
+        a: "Platforms on this page, all simulated: Microduck biped (25 cm, 737 g, 14 servos), SO-ARM100 5-joint arm, Franka Panda 7-DOF, several TurtleBot3 in Gazebo. Sensors: LiDAR, IMU, camera with sensor fusion; PCL and OpenCV. Real hardware is professional work, not published here; email " + EMAIL + ".",
         deep: "## Platforms\n" +
            "- Microduck — a 25 cm, 737 g open-source biped with 14 position-controlled servos, simulated in MuJoCo at 500 Hz physics with 50 Hz control\n" +
            "- SO-ARM100 — five joints and a parallel gripper on position servos, 20 Hz control, a scripted IK expert that has to correct for the servos' gravity sag\n" +
@@ -737,7 +596,7 @@ const TOPICS = [
            "The About section states that his professional work covers deployment on real hardware. The page does not name those robots, so neither will I.\n" +
            "## What to ask him directly\n" +
            "Which physical platforms, at what scale, and for how long — email " + EMAIL + " for that.",
-        next: ['What about sim-to-real transfer?', 'Explain each project in detail', 'What numbers can he back up?', 'How do I contact him?'],
+        next: ['What about sim-to-real transfer?', 'Explain each project', 'What numbers can he back up?', 'How do I contact him?'],
     },
     {
         id: 'reliability',
@@ -745,11 +604,7 @@ const TOPICS = [
         ask: 'How does he handle failure and recovery?',
         k: ['!reliability', '!reliable', '!robust', '!robustness', '!recovery', '!recover', '!fallback', '!failure', '!failures', '!fail', '!safety', '!safe', '!error handling', '!graceful', '!edge case', '!edge cases', '!unattended', '!production ready', '!production-ready'],
         weight: 1.1,
-        a: "Failure paths are designed, not bolted on — and the same instinct shows up in how the measurements are run.\n\n" +
-           "- MoveIt2 Pick & Place Demo — a C++ validator rejects unreachable targets before the planner is asked, Cartesian planning falls back to OMPL RRTConnect, the action server is verified at startup, and a planning failure routes to a homing state rather than ending the run\n" +
-           "- PPO vs LQR on Cart-Pole — runs that never reach threshold are entered as budget plus one rather than dropped, because dropping them is how a bad configuration is made to look good\n" +
-           "- Fleet Monitoring System — Kafka between producers and consumers, so a slow or dead consumer does not take telemetry down with it\n\n" +
-           "The pattern: assume it breaks, decide what happens next, and make the breakage visible — in a robot and in a results table.",
+        a: "Failure paths are designed in: the MoveIt2 project validates reachability before planning, falls back from Cartesian to OMPL RRTConnect, checks the action server at startup, homes on planning failure. In measurements: unsolved RL runs count as budget plus one; nulls and corrections stay visible. Kafka decouples fleet.",
         deep: "## In the robot code\n" +
            "- The reachability validator is a filter placed before the planner, so an impossible target is a rejected message rather than a planning failure. Failing early is cheaper than failing loudly\n" +
            "- Cartesian-first with OMPL RRTConnect as fallback: the preferred motion is the predictable one, and the sampling planner is what happens when the preferred motion is unavailable\n" +
@@ -774,17 +629,7 @@ const TOPICS = [
         label: 'The numbers',
         ask: 'What numbers can he back up?',
         k: ['!metric', '!metrics', '!accuracy', '!success rate', '!numbers', '!measured', '!measurable', '!benchmark', '!benchmarks', '!precision', '!latency', '!throughput', '!fps', '!proof', '!evidence', '!quantify', '!quantified', '!results'],
-        a: "## Published on this page\n" +
-           "- mAP@[.5:.95] 0.911 against a fitted classical pipeline's 0.532 — Tabletop Clutter Detector, COCO mAP implemented from scratch\n" +
-           "- 1.20 ms per image through ONNX Runtime on 8 CPU threads, against 3.87 ms in eager PyTorch — same project\n" +
-           "- 0.59 mm median position error from 27k parameters — Cube Pose Regression CNN, against a refitted classical baseline at 1.91 mm\n" +
-           "- Steps-to-threshold median 62,144 over 16 seeds, IQR [60,442, 63,448] — PPO vs LQR on Cart-Pole, against LQR at zero sample cost\n" +
-           "- PD baseline 175.2 ± 3.1 of 500 under the rebuilt reward, 108.7 ± 2.9 under the old one; training loop at about 3,300 environment steps per second, measured on the workload itself — Microduck Balance and Push Recovery\n" +
-           "- 6,275 of 6,275 observations bit-identical; 1.9 to 2.0x the Python processes at 8 workers (12,327 vs 6,385 environment steps per second); 27,011 bare physics steps per second at 8 threads; the full 50M-step PPO run in 3.1 hours instead of 4.4, its policy at 341.9 of 500 on the Python environment against 344.8 — Threaded C++ MuJoCo Backend\n" +
-           "- 129 tests green across four repositories, the expert reference, the RL transfer table (one seed) and the imitation tables measured (action chunking 0.77 against single-step cloning 0.05), language measured and weak — SO-ARM100 Manipulation\n\n" +
-           "## Not published\n" +
-           "No result table yet for the SO-ARM100 policies. No positioning-accuracy or success-rate figure for the earlier MoveIt2 project — neither was measured, so neither is claimed. No throughput number for the telemetry pipeline. No hardware-versus-simulation comparison, because nothing has run on hardware.\n\n" +
-           "Every project links to its repository and every number above is reproducible from it.",
+        a: "mAP 0.911 vs classical 0.532, INT8 1.38 ms on one thread; cube pose 0.59 mm vs 1.91 mm; PPO median 62,144 steps over 16 seeds; Microduck PPO 344.8 vs PD 175.8 of 500; C++ backend 6,275 of 6,275 bit-identical, 12,327 vs 6,385 steps/s; arm chunking 0.77 vs cloning 0.05. Not measured: hardware, MoveIt2 accuracy, fleet.",
         deep: "## The numbers, with their mechanism attached\n" +
            "A figure without its method is decoration, so each one comes with how it was obtained.\n" +
            "- **mAP@[.5:.95] 0.911** — Tabletop Clutter Detector, 380,631 parameters, 25 epochs, 34 minutes on 8 CPU threads. The comparison point is a classical pipeline refitted with a score, at 0.532. The metric itself is implemented from scratch and unit-tested, and the val split was touched exactly once\n" +
@@ -812,13 +657,7 @@ const TOPICS = [
         label: 'Deployment & packaging',
         ask: 'How does he deploy and package his work?',
         k: ['!deploy', '!deployment', '!deploying', '!packaging', '!containerised', '!containerized', '!reproducible', '!ship', '!shipping', '!export', '!ci', '!cd', '!build system', '!setup', '!install', '!run it', '!devops', '!edge'],
-        a: "## Models\n" +
-           "The learned projects export to ONNX, and the export is proven rather than assumed: the full task metric is recomputed through ONNX Runtime and compared, not just the output tensors. In the detection project that step turned a 3.87 ms eager forward pass into 1.20 ms end to end, and step 6 takes the same graph to static INT8 and prunes it for a one-thread budget. The Microduck and arm policies export with their observation normaliser folded into the graph, because a policy shipped without its normaliser is a different policy.\n\n" +
-           "## Systems\n" +
-           "The fleet monitoring stack is fully containerised with Docker — broker, time-series database, dashboard and ROS2 nodes — so the whole system comes up as a unit on someone else's machine.\n\n" +
-           "## Why the ONNX step matters for robotics\n" +
-           "A model that only runs inside a Python training script is not deployed. Exporting it is what lets a C++ ROS2 node run the same weights on a robot, and re-scoring the task through the runtime is what proves the exported graph is the same model.\n\n" +
-           "Every current repository ships a Dockerfile and a GitHub Actions workflow that runs its tests on each push; the C++ backend's CI also rebuilds under three sanitizers. Not on this page: cross-compilation or edge-device images.",
+        a: "Models export to ONNX, verified by recomputing the full task metric through ONNX Runtime: detector 3.87 ms eager to 1.20 ms at 8 threads, static INT8 1.38 ms on one thread; policies export with the normaliser folded in. Every current repo ships a Dockerfile and GitHub Actions CI; C++ adds sanitizers. Not done: Jetson.",
         deep: "## Model deployment\n" +
            "- ONNX export in both vision projects, with opset and graph size recorded\n" +
            "- Verified by recomputing the entire task metric through ONNX Runtime, not by checking a maximum absolute difference alone. A graph can be numerically close and still have a wrong output order or a dropped layer\n" +
@@ -844,14 +683,7 @@ const TOPICS = [
         label: 'How he debugs',
         ask: 'How does he debug robot problems?',
         k: ['!debug', '!debugging', '!troubleshoot', '!troubleshooting', '!diagnose', '!root cause', '!failure analysis', '!goes wrong', '!something breaks', '!find bugs', '!fix bugs', '!observability', '!monitoring health'],
-        a: "Two habits show up repeatedly.\n\n" +
-           "## Verify the substrate before blaming the algorithm\n" +
-           "The cart-pole environment was checked against the published dynamics — 13 checks — before any RL existed, precisely so that \"algorithm or environment\" would be a cheap question later. The dataset labels are drawn back onto the images before any model is trained, because if the markers miss the objects the label convention is wrong and nothing downstream means anything.\n\n" +
-           "## Make the invisible observable\n" +
-           "- Raw and processed data rendered side by side rather than trusted\n" +
-           "- Action-server verification that fails loudly at startup instead of silently at runtime\n" +
-           "- Throughput measured under sustained load and then on the training loop itself, after the burst number proved misleading four times\n\n" +
-           "The theme: turn a debugging session into a signal you can watch.",
+        a: "Two habits: verify the layer underneath before blaming the algorithm (cart-pole dynamics checked 13 ways before any RL, labels drawn back onto images, mAP tested before a detector existed); make silent failures observable (action-server checks at startup, throughput re-measured on the training loop itself).",
         deep: "## First principle — verify the layer underneath\n" +
            "Every project builds the thing that could be silently wrong, then checks it before building on top.\n" +
            "- The cart-pole dynamics are verified against the 1983 source equations, 13 checks, before PPO is written. When PPO then fails to learn, the environment is already excluded\n" +
@@ -874,13 +706,7 @@ const TOPICS = [
         label: 'Maths & control theory',
         ask: 'What is his maths and control theory background?',
         k: ['!kinematics', '!inverse kinematics', '!forward kinematics', '!dynamics', '!maths', '!mathematics', '!math background', '!linear algebra', '!transform math', '!rotation', '!quaternion', '!quaternions', '!frames math', '!control theory', '!riccati', '!statistics'],
-        a: "## Control theory, applied rather than cited\n" +
-           "The LQR baseline in the PPO project is derived, not imported: linearise the plant, iterate the discrete Riccati recursion, project the continuous control onto the available actuation. No scipy — the recursion is the point.\n\n" +
-           "## Rigid-body geometry\n" +
-           "A 7-DOF arm with redundant degrees of freedom, joint limits, orientation constraints and trajectory retiming. Pinhole back-projection onto a known plane to recover world coordinates from pixels. Projective geometry used to check labels rather than to describe them.\n\n" +
-           "## Statistics, which is the underrated one\n" +
-           "Median and IQR over 16 seeds instead of a best curve. Two-sided permutation tests on differences of medians. Hyperparameters searched on disjoint seeds. A conclusion that changed between 8 and 16 seeds, and is reported as having changed.\n\n" +
-           "The practical value: when a result looks good, he can tell whether it is real.",
+        a: "Control theory applied: LQR by iterating the discrete Riccati recursion, no scipy. Geometry: a 7-DOF redundant arm with constraints and retiming, pinhole back-projection onto a known plane. Statistics: median and IQR over 16 seeds, two-sided permutation tests, hyperparameters on disjoint seeds. Degree: not on the page.",
         deep: "## Control theory\n" +
            "- LQR derived from the linearised cart-pole: the discrete Riccati recursion iterated directly, then the continuous control projected onto a two-action plant through a sign-based switching surface\n" +
            "- The plant dynamics themselves written from the published equations, including the half-length convention and the 4/3 term that comes from a uniform rod's moment of inertia\n" +
@@ -907,15 +733,7 @@ const TOPICS = [
         ask: 'What are the gaps in his experience?',
         k: ['!weakness', '!weaknesses', '!gap', '!gaps', '!limitation', '!limitations', '!missing', '!concern', '!concerns', '!red flag', '!red flags', '!downside', '!risk', '!risks', '!not done', '!blind spot', '!what he cannot', '!honest assessment'],
         weight: 1.2,
-        a: "Straight answer, because the question deserves one.\n\n" +
-           "- Early career. Depth in a narrow band, not a long track record\n" +
-           "- Every project runs in simulation. Nothing on this page has been transferred to hardware, which is awkward for someone whose stated differentiator is sim-to-real\n" +
-           "- No GPU experience in the portfolio. No CUDA, no TensorRT, no distributed training — the whole learning track is an 8-thread CPU budget by necessity\n" +
-           "- Most learning results are one training seed, and the one curve with several seeds shows why that matters: the chunked imitation policy's six seeds at 200 demonstrations split into 0.76 to 0.92 and 0.12 to 0.24. The language policy is weak, and Microduck domain randomisation, the cleanest sim-to-real method test, came out negative\n" +
-           "- Model scale is small: the largest network on the page is 380,631 parameters\n" +
-           "- Employers, dates and role scope are not on the page at all\n\n" +
-           "What is genuinely strong: measurement discipline that is rare at any level — baselines refitted until they are hard to beat, null results published, corrections left visible, and conclusions reported against the learned method when that is what the data says.\n\n" +
-           "For anything in the first list, email " + EMAIL,
+        a: "Early career. Everything runs in simulation; nothing transferred to hardware. No GPU work: no CUDA, TensorRT or distributed training. Most results are one training seed; the language policy is weak and Microduck domain randomisation came out negative. Largest model 380,631 parameters. Employers, dates: not on the page.",
         deep: "## The gaps, plainly\n" +
            "- Early career. The claim is depth in a narrow band, not seniority. He would say the same\n" +
            "- Simulation only. Eight projects, zero hardware results. His professional work involves real robots, but none of that is documented here — and sim-to-real is precisely the thing he names as his differentiator\n" +
@@ -940,17 +758,7 @@ const TOPICS = [
         label: 'Role fit',
         ask: 'What roles is he a fit for?',
         k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
-        a: "## Direct fits\n" +
-           "- Physical AI / robot learning engineer, junior to mid — perception models, policies, sim-to-real, on a team that has the hardware\n" +
-           "- Perception engineering: detection and pose estimation with a deployment path, not just a notebook\n" +
-           "- Robotics software engineer on a ROS2 stack — manipulation, MoveIt2, closed perception-to-execution loops\n" +
-           "- Robot infrastructure adjacent work: telemetry, fleet observability, containerised deployment\n\n" +
-           "## Poor fits\n" +
-           "- ML research positions — no publications, no benchmark record, and he does not claim either\n" +
-           "- Large-scale training or GPU infrastructure roles — there is no GPU experience in this portfolio\n" +
-           "- Pure cloud or web engineering\n" +
-           "- Roles needing a shipped hardware policy today rather than in a year\n\n" +
-           "For scope, availability and the CV: " + EMAIL,
+        a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS2 robotics software with MoveIt2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
         deep: "## Where he lines up well\n" +
            "- Robot learning, junior to mid — a biped policy, arm manipulation by RL, imitation and language, a detector, each with a measured baseline under it, metrics implemented from scratch, and ONNX deployment. On a team with hardware, the missing half of sim-to-real closes quickly\n" +
            "- Simulation and training infrastructure — a threaded C++17 environment proven bit-identical to its Python reference, sanitizer-clean, with benchmarks that carry their own stability verdicts\n" +
@@ -974,12 +782,7 @@ const TOPICS = [
         label: 'How he works',
         ask: 'How does he work?',
         k: ['!how does he work', '!work style', '!workstyle', '!approach', '!process', '!methodology', '!philosophy', '!principles', '!way of working', '!engineering approach', '!habits', '!standards', '!code quality'],
-        a: "Four habits are visible across the projects.\n\n" +
-           "- Build the baseline first, and make it hard to beat. The cube-pose project refits its OpenCV baseline until it closes 53% of the gap to the CNN, then reports that if 1.9 mm is inside tolerance the network is the wrong choice\n" +
-           "- Publish the null and the correction. An augmentation ablation worth +0.0007 mAP, five successive throughput figures with the reason each earlier one was wrong, a training-selection leak found and quantified, a benchmark guard's unstable verdict printed next to the rows it flagged\n" +
-           "- Measure before committing. Every project opens with a feasibility or verification step: is the machine fast enough, is the environment correct, is the metric right, is the label convention right\n" +
-           "- Right language for the job. C++ for per-frame and per-detection work, Python for models and orchestration\n\n" +
-           "And one structural choice: the projects are sequenced as blocks, each closing on a number, rather than accumulated as demos.",
+        a: "Four habits: build the baseline first and make it hard to beat (the cube-pose OpenCV baseline was refit to 1.91 mm before the CNN's 0.59 mm counted); publish the null and the correction (+0.0007 mAP, five throughput revisions); measure before committing (every project opens with a gate); C++ per frame, Python for ML.",
         deep: "## Baseline first, and make it hard to beat\n" +
            "A learned model measured against a weak baseline proves nothing. The Cube Pose Regression CNN runs two different hand-written thresholds so \"classical CV fails\" cannot be blamed on one bad prior, then calibrates a scalar that closes 53% of the remaining gap — and states that if 1.9 mm is inside tolerance, the CNN is the wrong engineering choice. The detection project fits a score onto its classical pipeline for the same reason.\n" +
            "## Publish the null, keep the correction\n" +
@@ -996,7 +799,7 @@ const TOPICS = [
            "The learning track runs as blocks: pose regression, then detection, then reinforcement learning, then the biped, the C++ backend under it, and the arm. Each closes on a measurement and each one's result is the starting point of the next — the soft-argmax head from block 1 is the front end of the arm's image policies, and the PPO loop from block 3 trains the biped and the arm.\n" +
            "## Written down\n" +
            "Every project has a full written walkthrough on this site explaining the architecture, every source file, the measurements and what the result does not prove.",
-        next: ['What numbers can he back up?', 'How does he handle failure and recovery?', 'What is his strongest project?', 'Explain each project in detail'],
+        next: ['What numbers can he back up?', 'How does he handle failure and recovery?', 'What is his strongest project?', 'Explain each project'],
     },
 ];
 
@@ -1094,8 +897,8 @@ const TOPIC_GROUPS = [
 const STARTERS = [
     'Who is Aung Kaung Myat?',
     'What is his experience?',
-    'Explain each project in detail',
-    'What is his full technical stack?',
+    'Explain each project',
+    'What is his technical stack?',
     'Does he do machine learning?',
     'Tell me about the Microduck balance project',
     'Tell me about the C++ MuJoCo backend',
@@ -1123,13 +926,11 @@ const STARTERS = [
 /* Questions the page genuinely cannot answer — say so instead of guessing. */
 const NOT_COVERED = {
     k: ['salary', 'pay', 'rate', 'age', 'old', 'married', 'visa', 'sponsor', 'relocate', 'relocation', 'remote', 'onsite', 'on-site', 'notice period', 'start date', 'address', 'phone', 'live', 'lives', 'located', 'location', 'city', 'country', 'nationality', 'citizenship', 'university', 'school', 'degree', 'graduated', 'gpa', 'certification', 'certificate', 'employer', 'employers', 'company', 'companies', 'references', 'hobby', 'hobbies', 'family', 'religion', 'politics', 'japanese', 'english level'],
-    a: "That is not published on this page, and I do not guess about it — inventing a detail about someone's employment or personal life would be worse than not answering.\n\n" +
-       "Things that genuinely are not here: employers, dates, location, visa and salary, university and grades, availability.\n\n" +
-       "Email him directly and he will answer: " + EMAIL,
+    a: "That is not published on this page and I do not guess about it. Employers, dates, location, visa, salary, university and availability are all absent. Email him directly: " + EMAIL,
     next: ['What is his experience?', 'What is his stack?', 'Explain each project', 'How do I contact him?'],
 };
 
-const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project in detail', 'What roles is he a fit for?'];
+const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project', 'What roles is he a fit for?'];
 
 const FALLBACK =
     "I did not catch that. I cover his robotics work only: background, stack, projects, how he works, contact.\n\n" +
@@ -1185,7 +986,7 @@ function scoreTopics(q) {
 /* Returns { text, next } so the UI can offer relevant follow-ups. */
 function localAnswer(raw) {
     const q = raw.toLowerCase();
-    const brief = BRIEF_RE.test(q);
+    const brief = !DETAIL_RE.test(q);
     const scored = scoreTopics(q);
 
     // Drop the greeting once any real topic also matched.
@@ -1219,7 +1020,7 @@ function localAnswer(raw) {
 
     // Follow-ups: the top topic's, minus anything it just answered.
     const answered = new Set(picked.slice(0, 2).map((s) => s.t.ask));
-    const next = (top.t.next ?? FALLBACK_NEXT).filter((s) => !answered.has(s)).slice(0, 4);
+    const next = (top.t.next ?? FALLBACK_NEXT).filter((s) => !answered.has(s)).slice(0, 3);
 
     return { text: parts.join('\n\n'), next: next.length ? next : FALLBACK_NEXT };
 }
@@ -1491,24 +1292,24 @@ panel.innerHTML = `
 const UI = {
     en: {
         title: 'Ask about this portfolio',
-        sub: 'Answers come from this page only',
+        sub: 'From this page only',
         placeholder: 'Ask a question…',
         fab: 'Ask about this portfolio',
-        opening: 'Ask about the projects, the stack, or how he works.',
+        opening: 'Projects, stack, or how he works.',
         starters: [
-            ['The projects', 'Explain each project in detail'],
+            ['The projects', 'Explain each project'],
             ['How he works', 'How does he work?'],
             ['Robots & sensors', 'Which robots and sensors has he worked with?'],
         ],
     },
     ja: {
         title: 'ポートフォリオについて質問',
-        sub: '回答はこのページの内容のみ・英語で回答',
+        sub: 'このページの内容のみ',
         placeholder: '質問を入力…',
         fab: 'ポートフォリオについて質問',
-        opening: 'プロジェクト、技術スタック、進め方について質問できます。回答は英語です。',
+        opening: 'プロジェクト・技術・進め方について。回答は英語。',
         starters: [
-            ['プロジェクト', 'Explain each project in detail'],
+            ['プロジェクト', 'Explain each project'],
             ['進め方', 'How does he work?'],
             ['ロボットとセンサー', 'Which robots and sensors has he worked with?'],
         ],
@@ -1834,6 +1635,8 @@ async function showBot(text) {
 async function run(text) {
     try {
         setPhase('thinking');
+        const hint = log.querySelector('.chat-empty');
+        if (hint) hint.remove();
         record('user', text);
         addMsg(text, 'user');
         setSuggestions([]);
@@ -1888,17 +1691,14 @@ async function ask(raw) {
     try { await pending; } catch (e) { console.warn('chat failed:', e); } finally { pending = null; }
 }
 
-async function greet() {
-    try {
-        setPhase('thinking');
-        const dots = addTyping();
-        await wait(360);
-        dots.remove();
-        await showBot(UI[uiLang()].opening);
-        setSuggestions(starterSet());
-    } finally {
-        setPhase('idle');
-    }
+/* An empty conversation shows one quiet hint and three chips, no bot bubble. */
+function greet() {
+    const t = UI[uiLang()];
+    const el = document.createElement('p');
+    el.className = 'chat-empty';
+    el.textContent = t.opening;
+    log.appendChild(el);
+    setSuggestions(starterSet());
 }
 
 function submit() {

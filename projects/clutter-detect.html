@@ -41,13 +41,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">CPU-only robot-learning track · block 2 · repo</span><span lang="ja">CPUのみのrobot learningトラック · block 2 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-clutter-detect</code></div>
     <h1>Tabletop Clutter Detector</h1>
-    <p class="deck" lang="en">Three to six objects of three kinds, jumbled on a table, seen from a tilted camera. Find all
-      of them and say what each one is. A hand-written scoring harness, a fully fitted classical pipeline, and
-      a 381 k-parameter anchor-free network — built in that order so the network's win could be attributed
-      rather than assumed.</p>
-    <p class="deck" lang="ja">3種類・3〜6個の物体がテーブル上に雑然と置かれ、それを斜め上のカメラから撮影します。すべての物体を見つけ、
-      それぞれが何かを答えるタスクです。自作の評価ハーネス、十分にfitさせた古典的パイプライン、パラメータ数381 kのanchor-freeネットワークを、
-      この順番で構築しました。ネットワークの優位を「想定」ではなく「要因まで特定できる形」で示すためです。</p>
+    <p class="deck" lang="en">Three kinds of objects jumbled on a simulated table, found and named by a 381 k-parameter anchor-free detector: mAP 0.911 against a fully fitted classical pipeline's 0.532. The scoring metric was written by hand first so the win could be attributed rather than assumed; the detector was then quantised to INT8 for a one-thread CPU.</p>
+    <p class="deck" lang="ja">シミュレーション上のテーブルに雑然と置かれた3種類の物体を、パラメータ数381 kのanchor-free検出器で検出・分類します：mAP 0.911（十分にfitさせた古典的パイプラインは0.532）。評価指標を先に自作して優位の要因を特定できる形にしたうえで、1スレッドのCPU向けにINT8へ量子化しました。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
       <span class="chip">ONNX Runtime</span><span class="chip">COCO mAP, hand-written</span>
@@ -66,24 +61,53 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
     <a href="#steps"><span lang="en">The six steps</span><span lang="ja">6つのステップ</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
-    <a href="#scene"><span lang="en">Scene &amp; labels</span><span lang="ja">シーンとラベル</span></a>
-    <a href="#metric"><span lang="en">The AP metric</span><span lang="ja">AP指標</span></a>
-    <a href="#classical"><span lang="en">Classical baseline</span><span lang="ja">古典的baseline</span></a>
-    <a href="#detector"><span lang="en">The detector</span><span lang="ja">検出器</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#scene" data-depth="deep"><span lang="en">Scene &amp; labels</span><span lang="ja">シーンとラベル</span></a>
+    <a href="#metric" data-depth="deep"><span lang="en">The AP metric</span><span lang="ja">AP指標</span></a>
+    <a href="#classical" data-depth="deep"><span lang="en">Classical baseline</span><span lang="ja">古典的baseline</span></a>
+    <a href="#detector" data-depth="deep"><span lang="en">The detector</span><span lang="ja">検出器</span></a>
     <a href="#ablation"><span lang="en">Augmentation study</span><span lang="ja">Augmentationの検証</span></a>
     <a href="#latency">Latency</a>
     <a href="#edge"><span lang="en">INT8 &amp; pruning</span><span lang="ja">INT8とpruning</span></a>
     <a href="#limits"><span lang="en">Limits</span><span lang="ja">限界</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">Every graph on one accuracy-versus-latency chart, the chosen one marked — before any detail.</span><span lang="ja">全グラフを精度対latencyの1枚のチャートに並べ、採用したものを示します。詳細はその後で。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">mAP against latency per image — every graph, <code>hard/val</code>, 2000 images</span><span lang="ja">mAP対1枚あたりのlatency — 全グラフ、<code>hard/val</code>、2000枚</span></div>
+      <div class="vsub"><span lang="en">One-thread points are model time as the step 6 tables report it; the 8-thread point is end to end (1.01 ms model + 0.18 ms decode); classical is its whole pipeline.</span><span lang="ja">1スレッドの点はstep 6の表どおりモデル時間、8スレッドの点はend-to-end（モデル1.01 ms＋decode 0.18 ms）、古典的手法はパイプライン全体の時間です。</span></div>
+      <svg class="viz" viewBox="0 0 520 352" role="img" aria-label="scatter chart: mAP against latency per image for every graph"><line class="grid" x1="58" y1="298.0" x2="500" y2="298.0"/><text x="50" y="302.0" text-anchor="end" class="mut">0.5</text><line class="grid" x1="58" y1="240.7" x2="500" y2="240.7"/><text x="50" y="244.7" text-anchor="end" class="mut">0.6</text><line class="grid" x1="58" y1="183.3" x2="500" y2="183.3"/><text x="50" y="187.3" text-anchor="end" class="mut">0.7</text><line class="grid" x1="58" y1="126.0" x2="500" y2="126.0"/><text x="50" y="130.0" text-anchor="end" class="mut">0.8</text><line class="grid" x1="58" y1="68.7" x2="500" y2="68.7"/><text x="50" y="72.7" text-anchor="end" class="mut">0.9</text><line class="axis" x1="58" y1="298" x2="500" y2="298"/><line class="axis" x1="58" y1="40" x2="58" y2="298"/><line class="axis" x1="86.9" y1="298" x2="86.9" y2="303"/><text x="86.9" y="317" text-anchor="middle" class="mut">1</text><line class="axis" x1="277.3" y1="298" x2="277.3" y2="303"/><text x="277.3" y="317" text-anchor="middle" class="mut">2</text><line class="axis" x1="388.6" y1="298" x2="388.6" y2="303"/><text x="388.6" y="317" text-anchor="middle" class="mut">3</text><line class="axis" x1="467.7" y1="298" x2="467.7" y2="303"/><text x="467.7" y="317" text-anchor="middle" class="mut">4</text><text x="500" y="336" text-anchor="end" class="mut" lang="en">latency per image, ms — log scale, left is faster</text><text x="500" y="336" text-anchor="end" class="mut" lang="ja">1枚あたりのlatency、ms — 対数軸、左ほど速い</text><text x="4" y="18" class="mut">mAP@[.5:.95]</text><line class="grid" x1="294.6" y1="40" x2="294.6" y2="298" stroke-dasharray="4 4"/><text x="300.6" y="34" class="mut" lang="en">← faster than classical (2.13 ms)</text><text x="300.6" y="34" class="mut" lang="ja">← 古典的手法（2.13 ms）より速い</text><circle class="dot ref" cx="294.6" cy="279.7" r="5"><title>classical pipeline (watershed + 9 features + logistic regression): mAP 0.532, 2.13 ms per image, single thread</title></circle><text x="303.6" y="276.7" text-anchor="start" class="lbl" lang="en">classical pipeline</text><text x="303.6" y="276.7" text-anchor="start" class="lbl" lang="ja">古典的パイプライン</text><text x="303.6" y="289.7" text-anchor="start" class="lbl num mut">0.532 · 2.13 ms</text><circle class="dot" cx="137.0" cy="62.4" r="5"><title>learned detector, fp32, ONNX Runtime, 8 threads: mAP 0.911, 1.20 ms end to end (1.01 model + 0.18 decode)</title></circle><text x="167.0" y="37.4" text-anchor="end" class="lbl" lang="en">fp32 · 8 thr</text><text x="167.0" y="37.4" text-anchor="end" class="lbl" lang="ja">fp32 · 8スレッド</text><text x="167.0" y="50.4" text-anchor="end" class="lbl num mut">0.911 · 1.20 ms</text><circle class="dot" cx="445.5" cy="62.4" r="5"><title>learned detector, fp32, ONNX Runtime, 1 thread: mAP 0.9107, 3.69 ms model time</title></circle><text x="436.5" y="59.4" text-anchor="end" class="lbl" lang="en">fp32 · 1 thr</text><text x="436.5" y="59.4" text-anchor="end" class="lbl" lang="ja">fp32 · 1スレッド</text><text x="436.5" y="72.4" text-anchor="end" class="lbl num mut">0.911 · 3.69 ms</text><circle class="dot" cx="175.4" cy="62.9" r="7"><title>static INT8 (MinMax), ONNX Runtime, 1 thread: mAP 0.9097 (−0.0010), 1.38 ms model time — the chosen graph</title></circle><text x="189.4" y="55.9" text-anchor="start" class="lbl" lang="en">static INT8 · 1 thr</text><text x="189.4" y="55.9" text-anchor="start" class="lbl" lang="ja">static INT8 · 1スレッド</text><text x="189.4" y="68.9" text-anchor="start" class="lbl num mut">0.910 · 1.38 ms</text><circle class="dot neg" cx="181.3" cy="74.4" r="5"><title>pruned 25 % of channels + INT8, 1 thread: mAP 0.8899, 1.41 ms — rejected</title></circle><text x="191.3" y="82.4" text-anchor="start" class="lbl" lang="en">pruned 25 % + INT8</text><text x="191.3" y="82.4" text-anchor="start" class="lbl" lang="ja">25 % pruning + INT8</text><text x="191.3" y="95.4" text-anchor="start" class="lbl num mut">0.890 · 1.41 ms</text><circle class="dot neg" cx="148.2" cy="102.5" r="5"><title>pruned 50 % of channels + INT8, 1 thread: mAP 0.8411, 1.25 ms (−0.065 mAP) — rejected</title></circle><text x="158.2" y="107.5" text-anchor="start" class="lbl" lang="en">pruned 50 % + INT8</text><text x="158.2" y="107.5" text-anchor="start" class="lbl" lang="ja">50 % pruning + INT8</text><text x="158.2" y="120.5" text-anchor="start" class="lbl num mut">0.841 · 1.25 ms</text></svg>
+      <div class="legend"><span><span lang="en">learned detector — fp32 and static INT8 (large dot = chosen)</span><span lang="ja">学習ベースの検出器 — fp32とstatic INT8（大きい点＝採用）</span></span><span class="ref"><span lang="en">classical pipeline</span><span lang="ja">古典的パイプライン</span></span><span class="neg"><span lang="en">pruned + INT8 — rejected</span><span lang="ja">pruning + INT8 — 不採用</span></span></div>
+      <details class="tbl"><summary><span lang="en">Numbers as a table</span><span lang="ja">数値を表で見る</span></summary>
+        <div class="tablewrap"><table><thead><tr><th><span lang="en">Graph</span><span lang="ja">グラフ</span></th><th class="num"><span lang="en">threads</span><span lang="ja">スレッド</span></th><th class="num">mAP</th><th class="num">ms</th><th><span lang="en">what the ms is</span><span lang="ja">msの内訳</span></th></tr></thead>
+        <tbody><tr><td><span lang="en">classical pipeline</span><span lang="ja">古典的パイプライン</span></td><td class="num">1</td><td class="num">0.532</td><td class="num">2.13</td><td><span lang="en">whole pipeline</span><span lang="ja">パイプライン全体</span></td></tr>
+        <tr><td>fp32 · ONNX Runtime</td><td class="num">8</td><td class="num">0.911</td><td class="num">1.20</td><td><span lang="en">end to end (1.01 + 0.18 decode)</span><span lang="ja">end-to-end（1.01＋decode 0.18）</span></td></tr>
+        <tr><td>fp32 · ONNX Runtime</td><td class="num">1</td><td class="num">0.9107</td><td class="num">3.69</td><td><span lang="en">model time</span><span lang="ja">モデル時間</span></td></tr>
+        <tr class="hl"><td>static INT8 · MinMax</td><td class="num">1</td><td class="num">0.9097</td><td class="num">1.38</td><td><span lang="en">model time · Δ mAP −0.0010</span><span lang="ja">モデル時間 · Δ mAP −0.0010</span></td></tr>
+        <tr><td><span lang="en">pruned 25 % + INT8</span><span lang="ja">25 % pruning + INT8</span></td><td class="num">1</td><td class="num">0.8899</td><td class="num">1.41</td><td><span lang="en">model time</span><span lang="ja">モデル時間</span></td></tr>
+        <tr><td><span lang="en">pruned 50 % + INT8</span><span lang="ja">50 % pruning + INT8</span></td><td class="num">1</td><td class="num">0.8411</td><td class="num">1.25</td><td><span lang="en">model time · −0.065 mAP</span><span lang="ja">モデル時間 · mAP −0.065</span></td></tr></tbody></table></div></details>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>Detector 0.911 mAP against classical 0.532.</strong> A 380 631-parameter anchor-free network beats a fully fitted watershed + nine-feature pipeline on 2000 <code>hard/val</code> images, and the per-class spread collapses from 0.304 to 0.006.</span><span lang="ja"><strong>検出器はmAP 0.911、古典的手法は0.532。</strong>パラメータ数380 631のanchor-freeネットワークが、十分にfitさせたwatershed＋9特徴量のパイプラインを<code>hard/val</code> 2000枚で上回り、クラス間のばらつきは0.304から0.006に縮小。</span></li>
+      <li><b>02</b><span lang="en"><strong>Metric first, labels exact.</strong> COCO AP@[.5:.95] written by hand and proved against 15 paper-derived cases; 28 000 rendered images (2.9 GB) with labels read from MuJoCo's segmentation buffer, not drawn.</span><span lang="ja"><strong>評価指標を先に、ラベルは厳密に。</strong>COCO AP@[.5:.95]を自作し、手計算で導いた15ケースで証明。28 000枚（2.9 GB）のレンダリング画像のラベルは、手描きではなくMuJoCoのsegmentation bufferから読み出し。</span></li>
+      <li><b>03</b><span lang="en"><strong>Randomised appearance is what transfers.</strong> Eight-cell ablation, one seed: un-randomised training collapses to 0.147 under appearance shift, photometric augmentation recovers it only to 0.521, and on top of the randomiser it adds +0.0007.</span><span lang="ja"><strong>転移を生むのはランダム化した外観。</strong>8条件のablation（単一seed）：ランダム化なしの学習は外観の変化で0.147に崩れ、photometric augmentationでも0.521までしか回復せず、ランダム化への上乗せ効果は+0.0007。</span></li>
+      <li><b>04</b><span lang="en"><strong>1.20 ms end to end vs classical 2.13 ms</strong> through ONNX Runtime on 8 threads at identical mAP (0.9127 both, 500 images); the first measurement (1.225 ms, hot box) was discarded and kept in the repository. On one thread fp32 loses: 3.69 ms.</span><span lang="ja"><strong>end-to-endで1.20 ms、古典的手法は2.13 ms</strong>（ONNX Runtime、8スレッド、mAPは同一の0.9127・500枚）。最初の計測値（1.225 ms、過熱したマシン）は破棄し、リポジトリに残しています。1スレッドではfp32は3.69 msで負け。</span></li>
+      <li class="neg"><b>05</b><span lang="en"><strong>Static INT8 wins at one thread; pruning rejected.</strong> MinMax INT8 cuts model time 3.57 → 1.38 ms (2.6×) at mAP 0.9097 vs 0.9107; pruning half the channels reaches 1.25 ms but costs 0.065 mAP (0.8454 before INT8). Both regimes are rendered — the <code>easy</code>→<code>hard</code> gap stands in for the real one.</span><span lang="ja"><strong>1スレッドではstatic INT8が勝ち、pruningは不採用。</strong>MinMaxのINT8でモデル時間は3.57 → 1.38 ms（2.6倍）、mAPは0.9107に対し0.9097。channelの半分をpruningすると1.25 msに達するもmAPを0.065失う（INT8前で0.8454）。どちらのregimeもレンダリング画像で、<code>easy</code>→<code>hard</code>の差は現実とのギャップの代替です。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">The task: find every object on a cluttered table, in images where objects hide each other.</p><p class="sec-sub" lang="ja">タスク：物体同士が隠し合う画像の中で、雑然としたテーブル上のすべての物体を見つけること。</p></div>
   <div class="stack prose">
     <p lang="en">Object detection is a harder question than it sounds. It is not "is there a box in this picture" — it is
@@ -184,7 +208,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">すべてのソースファイルについて、規模と担当する1つの役割を示します。</p></div>
   <div class="stack">
     <h3><span lang="en">Core</span><span lang="ja">コア</span></h3>
@@ -344,7 +368,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="scene">
+<section id="scene" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">The scene, and where the labels come from</span><span lang="ja">シーンとラベルの出どころ</span></h2><p class="sec-sub" lang="en">How the MuJoCo scene is arranged, and why the labels are exact rather than drawn by hand.</p><p class="sec-sub" lang="ja">MuJoCoシーンの構成と、ラベルが手描きではなく厳密である理由。</p></div>
   <div class="stack-lg">
     <div class="stack">
@@ -477,7 +501,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="metric">
+<section id="metric" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">The scoring metric, written by hand</span><span lang="ja">自作の評価指標</span></h2><p class="sec-sub" lang="en">COCO mAP implemented from scratch — ten IoU thresholds, 101 recall points, and the matching rule.</p><p class="sec-sub" lang="ja">COCO mAPをゼロから実装。10個のIoU閾値、101点のrecall、そしてマッチングの規則。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -606,7 +630,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="classical">
+<section id="classical" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The classical baseline</span><span lang="ja">古典的baseline</span></h2><p class="sec-sub" lang="en">The classical baseline: watershed segmentation, nine hand-designed shape features, and a linear classifier.</p><p class="sec-sub" lang="ja">古典的baseline：watershedによるセグメンテーション、手設計の9個の形状特徴量、線形分類器。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -735,7 +759,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="detector">
+<section id="detector" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">The anchor-free detector</span><span lang="ja">Anchor-free検出器</span></h2><p class="sec-sub" lang="en">The anchor-free detector: heatmap, size and offset heads, focal loss, and max-pooling used as suppression.</p><p class="sec-sub" lang="ja">Anchor-free検出器：heatmap・サイズ・offsetの各head、focal loss、抑制処理として使うmax-pooling。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -1364,7 +1388,7 @@ off = 1×1 conv → 2 channels</code></pre>
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">12</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定所要時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/mujoco-clutter-detect.git
@@ -1434,6 +1458,7 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 7 more sections ↓</span><span lang="ja">全文を読む — 残り7セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

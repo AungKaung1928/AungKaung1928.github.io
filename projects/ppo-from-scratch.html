@@ -41,13 +41,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">CPU-only robot-learning track · secondary project · repo <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></span><span lang="ja">CPUのみのrobot learningトラック · サブプロジェクト · リポジトリ <code style="background:none;padding:0;color:inherit">ppo-from-scratch</code></span></div>
     <h1>PPO Against LQR</h1>
-    <p class="deck" lang="en">Reinforcement learning, implemented from nothing, and then measured against a controller
-      you can solve for with pen and paper. Both balance the pole perfectly. The learned one paid 62 144
-      environment steps for that, and its recoverable region is <strong>half the size</strong> — a difference
-      the usual score cannot see at all.</p>
-    <p class="deck" lang="ja">強化学習をゼロから実装し、紙とペンで解ける制御器と比較計測しました。どちらもポールを完璧に立て続けます。
-      ただし学習側はそのために62 144環境ステップを費やし、復帰できる領域は<strong>半分の広さ</strong>しかありません。
-      この差は通常のスコアにはまったく現れません。</p>
+    <p class="deck" lang="en">PPO implemented from nothing, then measured against an LQR controller you can solve for with pen and paper. Both score a perfect 500.0 — PPO paid 62 144 environment steps for it, and its recoverable region is <strong>half the size</strong>, a difference the usual score cannot see.</p>
+    <p class="deck" lang="ja">強化学習をゼロから実装し、紙とペンで解けるLQR制御器と比較計測しました。どちらも500.0点満点ですが、PPOはそのために62 144環境ステップを費やし、復帰できる領域は<strong>半分の広さ</strong>です。この差は通常のスコアには現れません。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">NumPy</span><span class="chip">MuJoCo</span>
       <span class="chip">no gymnasium</span><span class="chip">no stable-baselines3</span>
@@ -66,23 +61,66 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
     <a href="#steps"><span lang="en">Six steps</span><span lang="ja">6つのステップ</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">ファイル一覧</span></a>
-    <a href="#env"><span lang="en">The environment</span><span lang="ja">環境</span></a>
-    <a href="#lqr"><span lang="en">The LQR baseline</span><span lang="ja">LQRによるbaseline</span></a>
-    <a href="#ppo"><span lang="en">PPO, written out</span><span lang="ja">PPOの実装</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">ファイル一覧</span></a>
+    <a href="#env" data-depth="deep"><span lang="en">The environment</span><span lang="ja">環境</span></a>
+    <a href="#lqr" data-depth="deep"><span lang="en">The LQR baseline</span><span lang="ja">LQRによるbaseline</span></a>
+    <a href="#ppo" data-depth="deep"><span lang="en">PPO, written out</span><span lang="ja">PPOの実装</span></a>
     <a href="#study"><span lang="en">Seeds &amp; ablations</span><span lang="ja">seedとablation</span></a>
     <a href="#basin"><span lang="en">Where it counts</span><span lang="ja">差が出る指標</span></a>
-    <a href="#continuous"><span lang="en">Continuous actions</span><span lang="ja">連続action</span></a>
+    <a href="#continuous" data-depth="deep"><span lang="en">Continuous actions</span><span lang="ja">連続action</span></a>
     <a href="#limits"><span lang="en">Limits</span><span lang="ja">制約</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">Five metrics, two controllers: where PPO matches the textbook answer, what it paid, and where it falls short.</span><span lang="ja">5つの指標、2つの制御器。PPOが教科書の答えに並ぶ点、支払ったコスト、及ばない点。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">LQR vs PPO, metric by metric — same cart-pole, same termination test</span><span lang="ja">LQR vs PPO、指標ごとの比較 — 同じcart-pole、同じ終了判定</span></div>
+      <div class="vsub"><span lang="en">Each row is scaled to its own larger value. PPO values are the median of 16 seeds.</span><span lang="ja">各行は大きい方の値を基準にスケーリング。PPOの値は16 seedの中央値。</span></div>
+<svg class="viz" viewBox="0 0 520 288" role="img" aria-label="dumbbell chart, LQR versus PPO on five metrics"><text x="8" y="15" class="lbl" lang="en">Samples to threshold (env steps)</text><text x="8" y="15" class="lbl" lang="ja">閾値到達までのサンプル数（環境ステップ）</text><text x="512" y="15" text-anchor="end" class="mut" lang="en">lower is better</text><text x="512" y="15" text-anchor="end" class="mut" lang="ja">少ないほど良い</text><line class="grid" x1="16" y1="35" x2="504" y2="35"/><line class="line ref" x1="16.0" y1="35" x2="504.0" y2="35"/><circle class="dot ref" cx="16.0" cy="35" r="6"><title>LQR: 0 environment steps — solved in closed form</title></circle><circle class="dot" cx="504.0" cy="35" r="6"><title>PPO: 62 144 environment steps, median of 16 seeds (IQR 60 442–63 448)</title></circle><text x="10.0" y="53" text-anchor="start" class="lbl num mut">0</text><text x="510.0" y="53" text-anchor="end" class="lbl num">62 144</text><text x="8" y="73" class="lbl" lang="en">Time to a working controller</text><text x="8" y="73" class="lbl" lang="ja">制御器が得られるまでの時間</text><text x="512" y="73" text-anchor="end" class="mut" lang="en">lower is better</text><text x="512" y="73" text-anchor="end" class="mut" lang="ja">短いほど良い</text><line class="grid" x1="16" y1="93" x2="504" y2="93"/><line class="line ref" x1="16.9" y1="93" x2="504.0" y2="93"/><circle class="dot ref" cx="16.9" cy="93" r="6"><title>LQR: 866 Riccati sweeps in 22 ms</title></circle><circle class="dot" cx="504.0" cy="93" r="6"><title>PPO: one 150 k-step training run, 11.4 s on one core</title></circle><text x="10.9" y="111" text-anchor="start" class="lbl num mut">22 ms</text><text x="510.0" y="111" text-anchor="end" class="lbl num">11.4 s</text><text x="8" y="131" class="lbl" lang="en">Nominal return, of 500</text><text x="8" y="131" class="lbl" lang="ja">公称条件でのreturn（500点満点）</text><text x="512" y="131" text-anchor="end" class="mut" lang="en">tie — metric saturated</text><text x="512" y="131" text-anchor="end" class="mut" lang="ja">同点 — 指標は飽和</text><line class="grid" x1="16" y1="151" x2="504" y2="151"/><line class="line ref" x1="504.0" y1="151" x2="490.0" y2="151"/><circle class="dot ref" cx="504.0" cy="151" r="6"><title>LQR: 500.0 of 500, 100 episodes</title></circle><circle class="dot" cx="490.0" cy="151" r="6"><title>PPO: 500.0 of 500, median of 16 seeds, worst seed 500.0</title></circle><text x="512" y="169" text-anchor="end" class="lbl num">500.0 = 500.0</text><text x="8" y="189" class="lbl" lang="en">Recovery basin — critical θ̇₀</text><text x="8" y="189" class="lbl" lang="ja">復帰可能領域 — 臨界θ̇₀</text><text x="512" y="189" text-anchor="end" class="mut" lang="en">higher is better</text><text x="512" y="189" text-anchor="end" class="mut" lang="ja">大きいほど良い</text><line class="grid" x1="16" y1="209" x2="504" y2="209"/><line class="line ref" x1="504.0" y1="209" x2="259.4" y2="209"/><circle class="dot ref" cx="504.0" cy="209" r="6"><title>LQR: critical θ̇₀ 2.169 rad/s</title></circle><circle class="dot" cx="259.4" cy="209" r="6"><title>PPO: critical θ̇₀ 1.082 rad/s, median of 16 seeds (best seed 2.004)</title></circle><text x="510.0" y="227" text-anchor="end" class="lbl num mut">2.169 rad/s</text><text x="259.4" y="227" text-anchor="middle" class="lbl num">1.082 rad/s</text><text x="8" y="247" class="lbl" lang="en">Recovery basin — critical ẋ₀</text><text x="8" y="247" class="lbl" lang="ja">復帰可能領域 — 臨界ẋ₀</text><text x="512" y="247" text-anchor="end" class="mut" lang="en">higher is better</text><text x="512" y="247" text-anchor="end" class="mut" lang="ja">大きいほど良い</text><line class="grid" x1="16" y1="267" x2="504" y2="267"/><line class="line ref" x1="504.0" y1="267" x2="181.1" y2="267"/><circle class="dot ref" cx="504.0" cy="267" r="6"><title>LQR: critical ẋ₀ 2.435 m/s</title></circle><circle class="dot" cx="181.1" cy="267" r="6"><title>PPO: critical ẋ₀ 0.824 m/s, median of 16 seeds (best seed 1.935)</title></circle><text x="510.0" y="285" text-anchor="end" class="lbl num mut">2.435 m/s</text><text x="181.1" y="285" text-anchor="middle" class="lbl num">0.824 m/s</text></svg>
+      <div class="legend"><span class="ref">LQR</span><span><span lang="en">PPO, median of 16 seeds</span><span lang="ja">PPO（16 seedの中央値）</span></span></div>
+      <details class="tbl"><summary><span lang="en">Numbers as a table</span><span lang="ja">数値を表で見る</span></summary>
+        <div class="tablewrap"><table><thead><tr><th><span lang="en">Metric</span><span lang="ja">指標</span></th><th class="num">LQR</th><th class="num"><span lang="en">PPO, median</span><span lang="ja">PPO中央値</span></th><th class="num"><span lang="en">PPO best seed</span><span lang="ja">PPO最良seed</span></th></tr></thead>
+        <tbody><tr class="hl"><td><span lang="en">steps to threshold</span><span lang="ja">閾値到達ステップ数</span></td><td class="num">0</td><td class="num">62 144</td><td class="num">—</td></tr>
+        <tr><td><span lang="en">time to a controller</span><span lang="ja">制御器が得られるまでの時間</span></td><td class="num">22 ms</td><td class="num">11.4 s</td><td class="num">—</td></tr>
+        <tr><td><span lang="en">nominal return, of 500</span><span lang="ja">公称return（500点満点）</span></td><td class="num">500.0</td><td class="num">500.0</td><td class="num">500.0</td></tr>
+        <tr><td><span lang="en">critical θ̇₀</span><span lang="ja">臨界θ̇₀</span></td><td class="num">2.169 rad/s</td><td class="num">1.082 rad/s</td><td class="num">2.004 rad/s</td></tr>
+        <tr><td><span lang="en">critical ẋ₀</span><span lang="ja">臨界ẋ₀</span></td><td class="num">2.435 m/s</td><td class="num">0.824 m/s</td><td class="num">1.935 m/s</td></tr></tbody></table></div></details>
+      <div class="vtitle" style="margin-top:8px"><span lang="en">The one PPO ingredient that dominates — ratio clipping, 16 seeds each</span><span lang="ja">PPOで支配的な唯一の要素 — ratio clip（各16 seed）</span></div>
+      <div class="vs">
+        <div>
+          <span class="tag"><span lang="en">With clipping (baseline)</span><span lang="ja">clipあり（baseline）</span></span>
+          <span class="big">16/16</span>
+          <p lang="en">solved · 62 144 steps median. Discrete and continuous alike.</p>
+          <p lang="ja">達成 · 中央値62 144ステップ。離散・連続とも同じ。</p>
+        </div>
+        <div>
+          <span class="tag"><span lang="en">Without clipping</span><span lang="ja">clipなし</span></span>
+          <span class="big">8/16 → 0/16</span>
+          <p lang="en">discrete: 145 368 steps, 2.34×, p = 0.0001 · continuous (MuJoCo): no seed reaches threshold, 28.2 % of actions saturated.</p>
+          <p lang="ja">離散：145 368ステップ、2.34×、p = 0.0001 · 連続（MuJoCo）：閾値に達したseedはゼロ、actionの28.2 %が飽和。</p>
+        </div>
+      </div>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>Both controllers score a perfect 500.0.</strong> LQR gets there by iterating the Riccati recursion by hand (866 sweeps vs 923 predicted, 22 ms) at zero sample cost; PPO, written without gymnasium, stable-baselines3 or cleanrl, matches it after a median 62 144 environment steps on 16/16 seeds, 11.4 s per run.</span><span lang="ja"><strong>どちらの制御器も500.0点満点。</strong>LQRはRiccati漸化式を手で反復し（866回、理論予測923回、22 ms）、サンプルコストゼロで到達。PPOはgymnasium・stable-baselines3・cleanrlを使わずに実装し、16/16 seedで中央値62 144環境ステップ（学習1回11.4 s）をかけて並びました。</span></li>
+      <li class="neg"><b>02</b><span lang="en"><strong>PPO's recovery basin is half to a third of LQR's.</strong> Critical θ̇₀ 1.082 vs 2.169 rad/s, critical ẋ₀ 0.824 vs 2.435 m/s at identical nominal return — the difference the score cannot see, and the seeds spread from 0.831 to 2.004 rad/s.</span><span lang="ja"><strong>PPOの復帰可能領域はLQRの半分〜3分の1。</strong>公称returnは同じでも、臨界θ̇₀は1.082 vs 2.169 rad/s、臨界ẋ₀は0.824 vs 2.435 m/s。スコアには現れない差で、seed間でも0.831〜2.004 rad/sとばらつきます。</span></li>
+      <li><b>03</b><span lang="en"><strong>Ratio clipping is the only ingredient that dominates.</strong> Without it 8/16 seeds solve at 2.34× the steps (p = 0.0001); GAE is worth 11 %, advantage normalisation is not resolved at the 5 % level — and eight seeds had those two in the wrong order.</span><span lang="ja"><strong>支配的な要素はratio clipだけ。</strong>clipなしでは達成8/16、ステップ数2.34×（p = 0.0001）。GAEの効果は11 %、advantage正規化は5 %水準で判別できず、8 seedではこの2つの順位が逆でした。</span></li>
+      <li><b>04</b><span lang="en"><strong>The conclusion survives continuous actions.</strong> On a MuJoCo plant proved identical to 1.4e−14, a Gaussian policy solves in 63 748 steps, and removing the clip turns from a slowdown into a 0/16 failure mode.</span><span lang="ja"><strong>結論は連続actionでも維持。</strong>1.4e−14の精度で同一と証明したMuJoCoプラント上で、Gaussian policyは63 748ステップで達成。clipを外すと学習の遅れではなく0/16の失敗モードになります。</span></li>
+      <li><b>05</b><span lang="en"><strong>Everything hand-written and verified; no reward curve anywhere.</strong> The environment passes 13/13 checks (Lagrangian 2.6e−15, divergence rate 3.4e−11); because return saturates, every result ranks on steps-to-threshold and basin instead.</span><span lang="ja"><strong>すべて自作・検証済み。reward曲線は1本もなし。</strong>環境は検証13/13（Lagrangian 2.6e−15、発散率3.4e−11）。returnは飽和するため、すべての結果は閾値到達ステップ数とbasinで順位付けしています。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">Two controllers for the same cart-pole: one solved with linear algebra, one learned from nothing.</p><p class="sec-sub" lang="ja">同じcart-poleに対する2つの制御器。一方は線形代数で解き、もう一方はゼロから学習します。</p></div>
   <div class="stack prose">
     <p lang="en">Cart-pole is the "hello world" of reinforcement learning: a pole hinged on a cart, and a controller that
@@ -162,7 +200,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">各ソースファイルの規模と、それぞれが担う唯一の役割。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -235,7 +273,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="env">
+<section id="env" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">Step 1 — the environment, and why it is hand-written</span><span lang="ja">Step 1 — 環境と、自作する理由</span></h2><p class="sec-sub" lang="en">Why the environment is hand-written rather than imported, and how it is checked against a saved trajectory.</p><p class="sec-sub" lang="ja">環境をimportせず自作した理由と、保存済みtrajectoryとの照合方法。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -349,7 +387,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="lqr">
+<section id="lqr" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Step 2 — the baseline that costs nothing</span><span lang="ja">Step 2 — コストゼロのbaseline</span></h2><p class="sec-sub" lang="en">LQR from first principles: linearisation, discretisation, the Riccati recursion, and what it costs to run.</p><p class="sec-sub" lang="ja">第一原理からのLQR。線形化、離散化、Riccati漸化式、そして実行コスト。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -552,7 +590,7 @@ K       = (R + Bdᵀ P Bd)⁻¹ Bdᵀ P Ad,      u = −Kx</code></pre>
   </div>
 </section>
 
-<section id="ppo">
+<section id="ppo" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Step 3 — PPO, written out</span><span lang="ja">Step 3 — PPOを書き下す</span></h2><p class="sec-sub" lang="en">PPO written out in full — GAE, the clipped objective, and the truncation bootstrap that is easy to get wrong.</p><p class="sec-sub" lang="ja">PPOの完全な実装。GAE、clipped objective、そして間違えやすいtruncation時のbootstrap。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -841,7 +879,7 @@ python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-
   </div>
 </section>
 
-<section id="continuous">
+<section id="continuous" data-depth="deep">
   <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Step 6 — continuous actions on MuJoCo</span><span lang="ja">Step 6 — MuJoCo上の連続action</span></h2><p class="sec-sub" lang="en">The same algorithm on continuous actions and MuJoCo physics, and the saturation problem that exposed.</p><p class="sec-sub" lang="ja">同じアルゴリズムを連続actionとMuJoCoの物理で動かした結果と、そこで露呈した飽和の問題。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -1077,7 +1115,7 @@ python visualize.py --controller ppo --ckpt runs/study/baseline_seed0.pt --zero-
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定実行時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/ppo-from-scratch.git
@@ -1137,6 +1175,7 @@ python visualize.py --controller lqr --record out/frames   # offscreen, no windo
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 7 more sections ↓</span><span lang="ja">全文を読む — 残り7セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

@@ -32,6 +32,33 @@
   addEventListener('resize', tick);
   paint();
 
+  /* ── reading depth ─────────────────────────────────────────────── */
+  function setFull(on) {
+    root.classList.toggle('full', on);
+    document.querySelectorAll('.jump-toggle').forEach(function (b) { b.setAttribute('aria-expanded', String(on)); });
+    tick();
+  }
+  document.querySelectorAll('.jump-toggle, .deep-note button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var on = !root.classList.contains('full');
+      setFull(on);
+      if (on && b.closest('.deep-note')) {
+        var first = document.querySelector('section[data-depth="deep"]');
+        if (first) first.scrollIntoView({ block: 'start' });
+      }
+    });
+  });
+  /* A link straight to a deep section opens the full view first. */
+  function openHash() {
+    var h = location.hash && document.querySelector(location.hash);
+    if (h && h.closest('section[data-depth="deep"]') && !root.classList.contains('full')) {
+      setFull(true);
+      requestAnimationFrame(function () { h.scrollIntoView({ block: 'start' }); });
+    }
+  }
+  addEventListener('hashchange', openHash);
+  openHash();
+
   /* ── theme ─────────────────────────────────────────────────────── */
   var tb = document.getElementById('theme-toggle');
   function showTheme() { if (tb) tb.setAttribute('aria-pressed', String(root.classList.contains('dark-mode'))); }

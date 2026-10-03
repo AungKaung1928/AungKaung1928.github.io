@@ -41,14 +41,12 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">CPU-only robot-learning track · block 1 · repo</span><span lang="ja">CPUのみのrobot learningトラック · ブロック1 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-cube-pose-cnn</code></div>
     <h1>Sub-Millimetre Cube Pose</h1>
-    <p class="deck" lang="en">Given one 128×128 photograph of a cube on a table, where is it and which way is it turned?
-      A small convolutional network answers to <strong>0.59 mm</strong> and <strong>0.21°</strong>. The point of
-      the project is not that number — it is the four measurements around it that say how much of that win was
-      really the network, and how much was arithmetic anyone could have done by hand.</p>
-    <p class="deck" lang="ja">テーブル上の立方体を写した128×128の画像1枚から、その位置と向きを求めます。
-      小さな畳み込みネットワークの誤差は<strong>0.59 mm</strong>と<strong>0.21°</strong>です。
-      ただし、このプロジェクトの要点はこの数値そのものではありません。その周囲にある4つの計測によって、
-      成果のうちどこまでが本当にネットワークの力で、どこまでが手計算でも出せたものかを切り分けている点にあります。</p>
+    <p class="deck" lang="en">One 128×128 overhead render of a cube in, its position and yaw out: a 27 k-parameter CNN reaches
+      <strong>0.59 mm</strong> and <strong>0.21°</strong> median on a laptop CPU. The point is the measurements around that
+      number — one calibrated scalar closed 53 % of the gap before the network did anything.</p>
+    <p class="deck" lang="ja">テーブル上の立方体を写した128×128の画像1枚から位置とyawを推定し、27 kパラメータのCNNがノートPCのCPUだけで
+      中央値<strong>0.59 mm</strong>・<strong>0.21°</strong>に到達しました。要点はその数値ではなく周囲の計測にあり、
+      calibrationしたスカラー1つだけでネットワークとの差の53 %が埋まっています。</p>
     <div class="chips">
       <span class="chip">PyTorch (CPU)</span><span class="chip">MuJoCo 3.12</span><span class="chip">OpenCV</span>
       <span class="chip">ONNX Runtime</span><span class="chip">NumPy</span><span class="chip">no CUDA anywhere</span>
@@ -66,23 +64,51 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
-    <a href="#task"><span lang="en">The task</span><span lang="ja">タスク定義</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#task" data-depth="deep"><span lang="en">The task</span><span lang="ja">タスク定義</span></a>
     <a href="#pipeline"><span lang="en">Pipeline</span><span lang="ja">パイプライン</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">ファイル構成</span></a>
-    <a href="#data"><span lang="en">Making data</span><span lang="ja">データ生成</span></a>
-    <a href="#baseline"><span lang="en">The baselines</span><span lang="ja">Baseline手法</span></a>
-    <a href="#model"><span lang="en">The network</span><span lang="ja">ネットワーク</span></a>
-    <a href="#onnx">Export</a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">ファイル構成</span></a>
+    <a href="#data" data-depth="deep"><span lang="en">Making data</span><span lang="ja">データ生成</span></a>
+    <a href="#baseline" data-depth="deep"><span lang="en">The baselines</span><span lang="ja">Baseline手法</span></a>
+    <a href="#model" data-depth="deep"><span lang="en">The network</span><span lang="ja">ネットワーク</span></a>
+    <a href="#onnx" data-depth="deep">Export</a>
     <a href="#results"><span lang="en">Results</span><span lang="ja">結果</span></a>
     <a href="#findings"><span lang="en">What the numbers say</span><span lang="ja">数値からわかること</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">Where the error went as each method was added, and what the network costs — before any detail.</span><span lang="ja">手法を加えるごとに誤差がどう下がったか、そしてネットワークのコスト。詳細はその後で。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">Median position error — randomised appearance (hard), n = 2000</span><span lang="ja">位置誤差の中央値 — 見た目をランダム化した条件（hard）、n = 2000</span></div>
+      <div class="vsub"><span lang="en">Each step is one method added; the dashed treads show how much of the previous error survived.</span><span lang="ja">1段が手法1つ。破線は、前の誤差のうちどれだけが残ったかを示します。</span></div>
+      <svg class="viz" viewBox="0 0 520 240" role="img" aria-label="Descending staircase of median position error per method, with parameter count, latency and dataset size as stat tiles"><line class="axis" x1="14" y1="192" x2="334" y2="192"/><rect class="bar ref" x="34" y="42" width="24" height="150"><title>OpenCV saturation prior, hard: 3.41 mm median, 5.57 mm p95, +2.98 mm radial bias</title></rect><text x="46" y="36" text-anchor="middle" class="lbl num">3.41 mm</text><text x="46" y="208" text-anchor="middle" class="lbl" lang="en">OpenCV sat</text><text x="46" y="208" text-anchor="middle" class="lbl" lang="ja">OpenCV sat</text><text x="46" y="223" text-anchor="middle" class="mut" lang="en">no learning</text><text x="46" y="223" text-anchor="middle" class="mut" lang="ja">学習なし</text><rect class="bar ref" x="119" y="108" width="24" height="84"><title>v2: OpenCV + one calibrated radial scalar (k = 0.951), hard: 1.91 mm median, 2.89 mm p95, +0.01 mm bias</title></rect><text x="131" y="102" text-anchor="middle" class="lbl num">1.91 mm</text><text x="131" y="208" text-anchor="middle" class="lbl" lang="en">+ 1 scalar</text><text x="131" y="208" text-anchor="middle" class="lbl" lang="ja">＋スカラー1つ</text><text x="131" y="223" text-anchor="middle" class="mut" lang="en">fitted on train</text><text x="131" y="223" text-anchor="middle" class="mut" lang="ja">trainで補正</text><rect class="bar ref" x="204" y="159" width="24" height="33"><title>CNN, flatten head, 130 k parameters, hard: 0.75 mm median, 2.00 mm p95</title></rect><text x="216" y="153" text-anchor="middle" class="lbl num">0.75 mm</text><text x="216" y="208" text-anchor="middle" class="lbl" lang="en">flatten</text><text x="216" y="208" text-anchor="middle" class="lbl" lang="ja">flatten</text><text x="216" y="223" text-anchor="middle" class="mut" lang="en">CNN · 130 k</text><text x="216" y="223" text-anchor="middle" class="mut" lang="ja">CNN · 130 k</text><rect class="bar" x="289" y="166" width="24" height="26"><title>CNN, soft-argmax head, 27 k parameters, hard: 0.59 mm median, 1.32 mm p95</title></rect><text x="301" y="160" text-anchor="middle" class="lbl num">0.59 mm</text><text x="301" y="208" text-anchor="middle" class="lbl" lang="en">soft-argmax</text><text x="301" y="208" text-anchor="middle" class="lbl" lang="ja">soft-argmax</text><text x="301" y="223" text-anchor="middle" class="mut" lang="en">CNN · 27 k</text><text x="301" y="223" text-anchor="middle" class="mut" lang="ja">CNN · 27 k</text><line class="grid" x1="58" y1="42" x2="119" y2="42" stroke-dasharray="3 3"/><line class="grid" x1="143" y1="108" x2="204" y2="108" stroke-dasharray="3 3"/><line class="grid" x1="228" y1="159" x2="289" y2="159" stroke-dasharray="3 3"/><text x="64" y="79" class="mut" lang="en">53 % of the gap</text><text x="64" y="79" class="mut" lang="ja">差の53 %</text><rect class="box" x="342" y="8" width="174" height="64" rx="4"><title>Best model: 27 k parameters, soft-argmax head</title></rect><text x="354" y="40" class="lbl num" font-size="22">27 k</text><text x="354" y="60" class="mut" lang="en">parameters, soft-argmax head</text><text x="354" y="60" class="mut" lang="ja">パラメータ、soft-argmax</text><rect class="box" x="342" y="82" width="174" height="64" rx="4"><title>Latency: 0.23 ms per image, ONNX Runtime on 1 thread (0.12 ms on 8)</title></rect><text x="354" y="114" class="lbl num" font-size="22">0.23 ms</text><text x="354" y="134" class="mut" lang="en">ONNX Runtime, 1 thread</text><text x="354" y="134" class="mut" lang="ja">ONNX Runtime、1スレッド</text><rect class="box" x="342" y="156" width="174" height="64" rx="4"><title>Dataset: 12 000 rendered images per regime, labels read from MuJoCo</title></rect><text x="354" y="188" class="lbl num" font-size="22">12 000</text><text x="354" y="208" class="mut" lang="en">images per regime</text><text x="354" y="208" class="mut" lang="ja">条件ごとの画像枚数</text></svg>
+      <div class="legend"><span class="ref"><span lang="en">classical baselines and the larger CNN head — reference</span><span lang="ja">古典的baselineと大きい方のCNN head — 参照</span></span><span><span lang="en">27 k soft-argmax CNN — the shipped model</span><span lang="ja">27 k soft-argmax CNN — 採用モデル</span></span></div>
+      <details class="tbl"><summary><span lang="en">Numbers as a table</span><span lang="ja">数値を表で見る</span></summary>
+        <div class="tablewrap"><table><thead><tr><th><span lang="en">Method (hard)</span><span lang="ja">手法（hard）</span></th><th class="num"><span lang="en">Params</span><span lang="ja">パラメータ数</span></th><th class="num"><span lang="en">Median xy</span><span lang="ja">xy 中央値</span></th><th class="num">p95 xy</th><th class="num"><span lang="en">Median yaw</span><span lang="ja">yaw 中央値</span></th><th class="num">p95 yaw</th><th class="num">Latency</th></tr></thead>
+        <tbody><tr><td><span lang="en">OpenCV, saturation</span><span lang="ja">OpenCV、彩度</span></td><td class="num">0</td><td class="num">3.41 mm</td><td class="num">5.57</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">0.05 ms</td></tr>
+        <tr><td><span lang="en">v2 · OpenCV + 1 calibrated scalar</span><span lang="ja">v2 · OpenCV＋calibrationしたスカラー1つ</span></td><td class="num">1</td><td class="num">1.91 mm</td><td class="num">2.89</td><td class="num">0.19°</td><td class="num">1.66</td><td class="num">0.06 ms</td></tr>
+        <tr><td>CNN, flatten head</td><td class="num">130 k</td><td class="num">0.75 mm</td><td class="num">2.00</td><td class="num">0.28°</td><td class="num">0.94</td><td class="num">1.70 ms</td></tr>
+        <tr class="hl"><td>CNN, soft-argmax head</td><td class="num">27 k</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">0.65 ms</td></tr>
+        <tr><td><span lang="en">same weights, ONNX Runtime, 1 thread</span><span lang="ja">同じ重み、ONNX Runtime、1スレッド</span></td><td class="num">27 k</td><td class="num">0.59 mm</td><td class="num">1.32</td><td class="num">0.21°</td><td class="num">0.66</td><td class="num">0.23 ms</td></tr></tbody></table></div></details>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>0.59 mm median, 1.32 mm p95, 0.21° yaw.</strong> A 27 k-parameter soft-argmax CNN on randomised appearance, trained in ≈4 min per run on a laptop CPU from 12 000 rendered images per regime, no GPU.</span><span lang="ja"><strong>中央値0.59 mm、p95 1.32 mm、yaw 0.21°。</strong>27 kパラメータのsoft-argmax CNNを、見た目をランダム化した条件で評価。学習は条件ごとに12 000枚のレンダリング画像から、ノートPCのCPUだけで1回約4分。GPUなし。</span></li>
+      <li><b>02</b><span lang="en"><strong>Half the win was one scalar, not learning.</strong> A single radial correction (k = 0.951) fitted on train takes the OpenCV baseline from 3.41 mm to 1.91 mm — 53 % of the gap to the network, with no training loop.</span><span lang="ja"><strong>勝ちの半分は学習ではなくスカラー1つ。</strong>trainで求めた半径方向の補正1つ（k = 0.951）で、OpenCV baselineは3.41 mmから1.91 mmに。ネットワークとの差の53 %が学習ループなしで埋まりました。</span></li>
+      <li class="neg"><b>03</b><span lang="en"><strong>Classical still wins median yaw and speed.</strong> 0.19° vs 0.21° median yaw and 0.06 ms vs 0.65 ms per image; the network's real gain is the tail — p95 yaw 0.66° vs 1.66°, p95 xy 1.32 vs 2.89 mm — so if 1.9 mm is in tolerance the network is the wrong choice.</span><span lang="ja"><strong>yawの中央値と速度では古典的手法が依然優位。</strong>yaw中央値は0.19° vs 0.21°、1枚あたり0.06 ms vs 0.65 ms。ネットワークが本当に勝つのはtail（p95 yaw 0.66° vs 1.66°、p95 xy 1.32 vs 2.89 mm）で、1.9 mmが許容範囲ならネットワークは誤った選択です。</span></li>
+      <li><b>04</b><span lang="en"><strong>Architectural prior beat parameter count.</strong> Soft-argmax head 27 k / 0.65 ms / 0.59 mm against the flatten head's 130 k / 1.70 ms / 0.75 mm — 5× smaller, 2.6× faster, more accurate on every axis.</span><span lang="ja"><strong>パラメータ数よりアーキテクチャのpriorが効いた。</strong>soft-argmax headは27 k / 0.65 ms / 0.59 mm、flatten headは130 k / 1.70 ms / 0.75 mm。5分の1のサイズで2.6×速く、すべての軸でより高精度。</span></li>
+      <li><b>05</b><span lang="en"><strong>The runtime mattered more than the model.</strong> Same weights: PyTorch eager 0.65 ms on 8 threads, ONNX Runtime 0.23 ms on 1 thread and 0.12 ms on 8 (~2.8×); the export is checked on tensors and task metrics, and every claim re-runs from a clean clone through <code>verify.sh</code>.</span><span lang="ja"><strong>モデルより実行ランタイムの方が効いた。</strong>同じ重みで、PyTorch eagerは8スレッドで0.65 ms、ONNX Runtimeは1スレッドで0.23 ms、8スレッドで0.12 ms（約2.8×）。exportはテンソルとタスク指標の両方で検証し、すべての主張はクリーンなcloneから<code>verify.sh</code>で再実行できます。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">The problem in one picture: a rendered cube, and a network that has to say where it sits and how it is turned.</p><p class="sec-sub" lang="ja">問題を一言でいえば、レンダリングされた立方体が1つあり、ネットワークがその位置と向きを答える、というものです。</p></div>
   <div class="stack prose">
     <p lang="en">A robot that is going to pick something up needs to know exactly where that thing is and how it is
@@ -147,7 +173,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 </div>
 </section>
 
-<section id="task">
+<section id="task" data-depth="deep">
   <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">The task, defined precisely</span><span lang="ja">タスクの厳密な定義</span></h2><p class="sec-sub" lang="en">What pose means here, what the network outputs, and the symmetry that makes yaw awkward.</p><p class="sec-sub" lang="ja">ここでのposeの意味、ネットワークの出力、そしてyawを扱いにくくしている対称性について。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -265,7 +291,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">各ソースファイルの規模と、それぞれが担う1つの役割です。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -354,7 +380,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="data">
+<section id="data" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Making the data</span><span lang="ja">データの生成</span></h2><p class="sec-sub" lang="en">How the training images are generated in MuJoCo, and what is varied between them.</p><p class="sec-sub" lang="ja">学習画像をMuJoCoでどう生成するか、画像ごとに何を変えるか。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -425,7 +451,7 @@ labels[i] = [x, y, sin(4·yaw), cos(4·yaw), yaw]</code></pre>
   </div>
 </section>
 
-<section id="baseline">
+<section id="baseline" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The baselines — and why there are two of them</span><span lang="ja">Baseline、そしてそれが2つある理由</span></h2><p class="sec-sub" lang="en">The classical-vision baseline, the bias found in it, and the one-line correction that removed it.</p><p class="sec-sub" lang="ja">古典的な画像処理によるbaseline、そこで見つかったbias、そしてそれを取り除いた1行の補正。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -523,7 +549,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
   </div>
 </section>
 
-<section id="model">
+<section id="model" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">The network — two heads, one question</span><span lang="ja">ネットワーク：1つの問いに2つのhead</span></h2><p class="sec-sub" lang="en">Two output heads compared on identical data — flatten against spatial soft-argmax.</p><p class="sec-sub" lang="ja">同一データで2つの出力headを比較します。flattenとspatial soft-argmaxです。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -640,7 +666,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
   </div>
 </section>
 
-<section id="onnx">
+<section id="onnx" data-depth="deep">
   <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Export, and what counts as proving it</span><span lang="ja">Exportと、その正しさの証明</span></h2><p class="sec-sub" lang="en">ONNX export, the numerical tolerance it is checked against, and what a passing check does not prove.</p><p class="sec-sub" lang="ja">ONNX export、照合に使う数値の許容誤差、そしてチェックに通っても証明されないこと。</p></div>
   <div class="stack prose">
     <p lang="en">ONNX is a portable graph format: train in PyTorch, run anywhere — including a C++ node on an embedded
@@ -793,7 +819,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定実行時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/mujoco-cube-pose-cnn.git
@@ -858,6 +884,7 @@ python export_onnx.py --regime hard --head softargmax</code></pre>
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 8 more sections ↓</span><span lang="ja">全文を読む — 残り8セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

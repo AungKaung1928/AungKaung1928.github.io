@@ -41,13 +41,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow">ROS 2 Humble · <span lang="en">workspace</span><span lang="ja">ワークスペース</span> <code style="background:none;padding:0;color:inherit">moveit_pickplace_demo</code></div>
     <h1>Panda Pick-and-Place Pipeline</h1>
-    <p class="deck" lang="en">A 7-axis Franka Panda arm clears seven red balls off a table and drops them into a box.
-      Nothing is hard-coded: a simulated camera renders the scene, an OpenCV node finds the balls in the
-      picture, a C++ node throws away anything the arm cannot reach, and a state machine picks up
-      <em>only</em> what survived that chain.</p>
-    <p class="deck" lang="ja">7軸のFranka Pandaアームが、テーブル上の赤いボール7個を拾って箱に入れます。
-      座標のハードコードはありません。シミュレーション上のカメラがシーンを描画し、OpenCVのnodeが画像内のボールを検出し、
-      C++のnodeがアームの届かない対象を除外し、state machineはその流れを通過したもの<em>だけ</em>を掴みます。</p>
+    <p class="deck" lang="en">A ROS 2 Humble workspace in which a Franka Panda clears seven red balls into a box using only what a simulated camera saw. An OpenCV node finds the balls, a C++ node drops what the arm cannot reach, and a state machine grasps <em>only</em> what survived — 7 of 7 placed, on mock hardware.</p>
+    <p class="deck" lang="ja">ROS 2 Humbleのワークスペースで、Franka Pandaが模擬カメラの見たものだけを頼りに赤いボール7個を箱へ片付けます。OpenCVのnodeがボールを検出し、C++のnodeが届かない対象を除外し、state machineは残ったもの<em>だけ</em>を掴みます（mock hardware上で7個中7個を配置）。</p>
     <div class="chips">
       <span class="chip">ROS 2 Humble</span><span class="chip">MoveIt 2</span><span class="chip">Python 3.10</span>
       <span class="chip">C++17</span><span class="chip">OpenCV</span><span class="chip">ros2_control (mock)</span>
@@ -65,22 +60,94 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
     <a href="#flow"><span lang="en">Data flow</span><span lang="ja">データの流れ</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
-    <a href="#vision"><span lang="en">The vision half</span><span lang="ja">画像処理側</span></a>
-    <a href="#motion"><span lang="en">The motion half</span><span lang="ja">動作計画側</span></a>
-    <a href="#launch"><span lang="en">The launch file</span><span lang="ja">launchファイル</span></a>
-    <a href="#config"><span lang="en">Parameters</span><span lang="ja">パラメータ</span></a>
-    <a href="#decisions"><span lang="en">Design decisions</span><span lang="ja">設計判断</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#vision" data-depth="deep"><span lang="en">The vision half</span><span lang="ja">画像処理側</span></a>
+    <a href="#motion" data-depth="deep"><span lang="en">The motion half</span><span lang="ja">動作計画側</span></a>
+    <a href="#launch" data-depth="deep"><span lang="en">The launch file</span><span lang="ja">launchファイル</span></a>
+    <a href="#config" data-depth="deep"><span lang="en">Parameters</span><span lang="ja">パラメータ</span></a>
+    <a href="#decisions" data-depth="deep"><span lang="en">Design decisions</span><span lang="ja">設計判断</span></a>
     <a href="#honest"><span lang="en">Limits</span><span lang="ja">限界</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#summary"><span lang="en">Summary</span><span lang="ja">まとめ</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">The whole chain in one picture — what each node does, which topic carries the data, and the result — before any detail.</span><span lang="ja">全体の流れを1枚で。各nodeの役割、データを運ぶtopic、そして結果。詳細はその後で。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">Perception drives motion — five nodes, one feedback loop</span><span lang="ja">認識が動作を決める — 5つのnodeと1つのフィードバックループ</span></div>
+      <div class="vsub"><span lang="en">Each lane is one node; the labels on the arrows are the ROS 2 topics between them. The state machine subscribes to the validator's output, never to the ground truth.</span><span lang="ja">各レーンが1つのnode。矢印のラベルはnode間のROS 2 topicです。state machineがsubscribeするのはvalidatorの出力であって、真値ではありません。</span></div>
+      <svg class="viz" viewBox="0 0 520 440" role="img" aria-label="Swimlane process diagram: camera simulator → OpenCV detector → C++ reachability filter → state machine → MoveIt 2, with the ROS 2 topics between them and the remove:ball_n feedback loop back to the camera; 7 of 7 balls placed on mock hardware">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0L10 5L0 10z"/></marker></defs>
+<text x="4" y="31" class="lbl" lang="en">camera</text><text x="4" y="31" class="lbl" lang="ja">カメラ</text>
+<text x="4" y="47" class="mut" lang="en">python · simulated</text><text x="4" y="47" class="mut" lang="ja">python・模擬</text>
+<rect class="box" x="104" y="12" width="230" height="44" rx="4"><title>camera_simulator (python): renders a 640×480 BGR top-down frame at 10 Hz from the ground-truth ball layout</title></rect>
+<text x="114" y="30" class="lbl num">camera_simulator</text>
+<text x="114" y="47" class="mut" lang="en">640×480 BGR @ 10 Hz · draws the truth</text><text x="114" y="47" class="mut" lang="ja">640×480 BGR・10 Hz・真値を描画</text>
+<path class="arrow" d="M152 56V90"><title>/camera/image_raw · Image — /camera/camera_info · CameraInfo</title></path>
+<text x="160" y="67" class="mut">/camera/image_raw · Image</text><text x="160" y="79" class="mut">/camera/camera_info · CameraInfo</text>
+<line class="grid" x1="0" y1="82" x2="520" y2="82"/>
+<text x="4" y="109" class="lbl">OpenCV</text>
+<text x="4" y="125" class="mut">python</text>
+<rect class="box" x="136" y="90" width="230" height="44" rx="4"><title>vision_detector (python): HSV red mask (two hue windows), contours ≥ 400 px², moment centroid, pinhole back-projection onto the table plane z = 0</title></rect>
+<text x="146" y="108" class="lbl num">vision_detector</text>
+<text x="146" y="125" class="mut" lang="en">HSV red mask → contours → centroid → z = 0</text><text x="146" y="125" class="mut" lang="ja">HSV赤マスク → 輪郭 → 重心 → z = 0</text>
+<path class="arrow" d="M184 134V168"><title>/detected_objects · MarkerArray — one sphere marker per red blob</title></path>
+<text x="192" y="145" class="mut">/detected_objects · MarkerArray</text>
+<text x="192" y="157" class="mut" lang="en">one sphere marker per red blob</text><text x="192" y="157" class="mut" lang="ja">赤い領域1つにつき球marker 1つ</text>
+<line class="grid" x1="0" y1="160" x2="520" y2="160"/>
+<text x="4" y="187" class="lbl" lang="en">reach filter</text><text x="4" y="187" class="lbl" lang="ja">到達判定</text>
+<text x="4" y="203" class="mut">c++17</text>
+<rect class="box" x="168" y="168" width="230" height="44" rx="4"><title>workspace_validator (C++17): keeps detections inside the reachable cylinder (r 0.18–0.82 m, z −0.05–0.98 m), rejects the singularity column r < 0.08 m</title></rect>
+<text x="178" y="186" class="lbl num">workspace_validator</text>
+<text x="178" y="203" class="mut" lang="en">cylinder r 0.18–0.82 m · drops r < 0.08 m</text><text x="178" y="203" class="mut" lang="ja">円筒 r 0.18–0.82 m・r < 0.08 m は除外</text>
+<path class="arrow" d="M216 212V246"><title>/validated_targets · PoseArray — survivors only, rejections logged</title></path>
+<text x="224" y="223" class="mut">/validated_targets · PoseArray</text>
+<text x="224" y="235" class="mut" lang="en">survivors only, rejections logged</text><text x="224" y="235" class="mut" lang="ja">通過したもののみ・除外はログに記録</text>
+<line class="grid" x1="0" y1="238" x2="520" y2="238"/>
+<text x="4" y="265" class="lbl">state machine</text>
+<text x="4" y="281" class="mut">python</text>
+<rect class="box hi" x="200" y="246" width="230" height="44" rx="4"><title>smart_pick_place (python): IDLE → GRASPING → PLACING → DONE; subscribes only to /validated_targets, never to the truth. 7 of 7 balls placed</title></rect>
+<text x="210" y="264" class="lbl num">smart_pick_place</text>
+<text x="210" y="281" class="mut" lang="en">nearest validated target → grasp → place</text><text x="210" y="281" class="mut" lang="ja">最寄りの検証済み対象 → 把持 → 配置</text>
+<path class="arrow" d="M248 290V324"><title>/compute_cartesian_path (service) — /move_action (action, fallback)</title></path>
+<text x="256" y="301" class="mut">/compute_cartesian_path (service)</text>
+<text x="256" y="313" class="mut" lang="en">/move_action (action, fallback)</text><text x="256" y="313" class="mut" lang="ja">/move_action（action・fallback）</text>
+<line class="grid" x1="0" y1="316" x2="520" y2="316"/>
+<text x="4" y="343" class="lbl">MoveIt 2</text>
+<text x="4" y="359" class="mut" lang="en">OMPL · ros2_control</text><text x="4" y="359" class="mut" lang="ja">OMPL・ros2_control</text>
+<rect class="box" x="232" y="324" width="230" height="44" rx="4"><title>move_group (MoveIt 2): Cartesian path accepted at fraction ≥ 0.95, otherwise OMPL RRTConnect; executes on ros2_control mock_components</title></rect>
+<text x="242" y="342" class="lbl num">move_group</text>
+<text x="242" y="359" class="mut" lang="en">Cartesian ≥ 0.95 → OMPL fallback · mock HW</text><text x="242" y="359" class="mut" lang="ja">Cartesian ≥ 0.95 → OMPL fallback・mock駆動</text>
+<path class="arrow" d="M430 268H496V34H336"><title>/scene_object_updates · String — remove:ball_n after each grasp; the camera stops drawing that ball, so the next frame has one ball fewer</title></path>
+<text x="342" y="28" class="mut" lang="en">on grasp: remove:ball_n</text><text x="342" y="28" class="mut" lang="ja">把持後: remove:ball_n</text>
+<text x="342" y="48" class="mut">/scene_object_updates</text>
+<line class="axis" x1="0" y1="394" x2="520" y2="394"/>
+<text x="4" y="417" class="lbl num" style="font-size:16px">7 / 7</text>
+<text x="104" y="412" class="mut" lang="en">balls placed · 11 nodes · 2 packages (Python + C++)</text>
+<text x="104" y="412" class="mut" lang="ja">7個中7個を配置・node 11個・パッケージ2個（Python + C++）</text>
+<text x="104" y="427" class="mut" lang="en">≈1 600 source lines · mock ros2_control, no hardware</text>
+<text x="104" y="427" class="mut" lang="ja">ソース約1 600行・ros2_controlはmock、実機なし</text>
+</svg>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>Perception drives motion — 7 of 7 balls placed.</strong> The state machine subscribes only to <code>/validated_targets</code>; the ground-truth layout exists only to draw the 640×480 camera frame at 10 Hz.</span><span lang="ja"><strong>認識が動作を決める — 7個中7個を配置。</strong>state machineは<code>/validated_targets</code>だけをsubscribeし、真値の配置は640×480のカメラ画像を10 Hzで描くためだけに存在します。</span></li>
+      <li><b>02</b><span lang="en"><strong>Two packages, 11 nodes, ≈1 600 lines.</strong> Python for the camera, the HSV detector and the state machine; C++17 for the per-frame reachability filter (cylinder r 0.18–0.82 m, singularity column r &lt; 0.08 m rejected).</span><span lang="ja"><strong>パッケージ2個、node 11個、約1 600行。</strong>カメラ・HSV検出器・state machineはPython、フレームごとの到達可能性フィルタはC++17（円筒 r 0.18–0.82 m、特異点の柱 r &lt; 0.08 m は除外）。</span></li>
+      <li><b>03</b><span lang="en"><strong>Straight-line motion first, OMPL as fallback.</strong> A Cartesian path is accepted at fraction ≥ 0.95, otherwise RRTConnect; the Cartesian trajectory is retimed by hand (scale 0.5) because Humble's service has no velocity scaling.</span><span lang="ja"><strong>まず直線動作、OMPLはfallback。</strong>Cartesian pathはfraction ≥ 0.95で採用し、それ以外はRRTConnect。Humbleのserviceに速度スケーリングがないため、Cartesian軌道は自前でretiming（scale 0.5）。</span></li>
+      <li><b>04</b><span lang="en"><strong>Every number in two YAML files, 15 contract tests</strong> on the one file that replaces <code>cv_bridge</code>: exact round-trip, padded and zero stride, truncated buffer, wrong encoding.</span><span lang="ja"><strong>全数値は2つのYAMLに、契約テストは15個</strong>。対象は<code>cv_bridge</code>を置き換えた唯一のファイルで、完全な往復変換、パディング付き・0のストライド、途中で切れたバッファ、誤ったエンコーディングを確認。</span></li>
+      <li class="neg"><b>05</b><span lang="en"><strong>No hardware, no sensor realism, no depth.</strong> Images are drawn, not captured; positions come from a z = 0 plane assumption; <code>mock_components</code> returns the commanded joints. HSV thresholding works because the image is perfect.</span><span lang="ja"><strong>実機なし、センサーのリアリティなし、深度なし。</strong>画像は撮影ではなく描画、位置はz = 0の平面仮定、<code>mock_components</code>は指令値をそのまま返します。HSVの閾値処理が動くのは画像が完璧だからです。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What the system does, and the one design choice that makes it more than a scripted animation.</p><p class="sec-sub" lang="ja">システムが何をするのか、そして単なる台本通りのアニメーションで終わらせないための設計判断です。</p></div>
   <div class="stack prose">
     <p lang="en">Imagine a robot arm bolted to a table. Seven red balls are scattered in front of it and there is an
@@ -228,7 +295,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file in both packages, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">2つのパッケージに含まれる全ソースファイルの規模と、それぞれが担う1つの役割です。</p></div>
   <div class="stack">
     <p class="prose" lang="en">A ROS 2 workspace has a fixed shape: source packages under <code>src/</code>, and
@@ -342,7 +409,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="vision">
+<section id="vision" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">The vision half, step by step</span><span lang="ja">画像処理側の詳細</span></h2><p class="sec-sub" lang="en">From a drawn image to a metre coordinate — HSV masking, contour filtering, and the pinhole back-projection.</p><p class="sec-sub" lang="ja">描画された画像からメートル座標まで。HSVマスク、輪郭のフィルタリング、ピンホールモデルによるback-projectionです。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -467,7 +534,7 @@ wz = 0.0        # DETECT_Z — the table plane assumption</code></pre>
   </div>
 </section>
 
-<section id="motion">
+<section id="motion" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">The motion half, step by step</span><span lang="ja">動作計画側の詳細</span></h2><p class="sec-sub" lang="en">How a validated coordinate becomes a grasp: pose construction, Cartesian planning, the fallback, and the state machine.</p><p class="sec-sub" lang="ja">検証済みの座標が把持動作になるまで。poseの構築、Cartesian計画、fallback、そしてstate machineです。</p></div>
   <div class="stack-lg">
     <div class="stack">
@@ -602,7 +669,7 @@ accelerations ×= scale²</code></pre>
   </div>
 </section>
 
-<section id="launch">
+<section id="launch" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">The launch file, line by line</span><span lang="ja">launchファイルの逐行解説</span></h2><p class="sec-sub" lang="en">What the launch file starts, in what order, and why each delay exists.</p><p class="sec-sub" lang="ja">launchファイルが何を、どの順序で起動するか、そして各遅延がなぜ必要かを説明します。</p></div>
   <div class="stack">
     <p class="prose" lang="en">One command starts eleven processes. A ROS 2 launch file is Python that returns a
@@ -684,7 +751,7 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
   </div>
 </section>
 
-<section id="config">
+<section id="config" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Every tunable number</span><span lang="ja">調整可能な全数値</span></h2><p class="sec-sub" lang="en">The two YAML files that hold every parameter, with what each one changes if you touch it.</p><p class="sec-sub" lang="ja">全パラメータを保持する2つのYAMLファイルと、各値を変えたときに何が変わるかです。</p></div>
   <div class="stack">
     <p class="prose" lang="en">Nothing numeric is hard-coded in the nodes. Every value below is declared as a ROS 2
@@ -743,7 +810,7 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
   </div>
 </section>
 
-<section id="decisions">
+<section id="decisions" data-depth="deep">
   <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">Decisions worth defending</span><span lang="ja">説明できる設計判断</span></h2><p class="sec-sub" lang="en">Places where a different choice was available, and the reason this one was taken.</p><p class="sec-sub" lang="ja">別の選択肢があった箇所と、この方法を選んだ理由です。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -822,7 +889,7 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Building and running it</span><span lang="ja">ビルドと実行</span></h2><p class="sec-sub" lang="en">Dependencies, the build command, and what a correct run looks like on screen.</p><p class="sec-sub" lang="ja">依存関係、ビルドコマンド、そして正しく動いたときの画面の様子です。</p></div>
   <div class="stack">
     <div class="stack prose">
@@ -907,6 +974,7 @@ ROS_DOMAIN_ID=42 ros2 node list</code></pre>
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 8 more sections ↓</span><span lang="ja">全文を読む — 残り8セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

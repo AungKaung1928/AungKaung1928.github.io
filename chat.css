@@ -219,6 +219,16 @@
     padding: 7px 11px;
 }
 
+/* Empty state: one line, muted, centred in the free space. */
+.chat-empty {
+    margin: auto 0;
+    padding: 18px 10px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    animation: none;
+}
+
 /* ── Structured answer rendering ─────────────────────────────────── */
 
 .chat-msg.bot p { margin: 0 0 0.62em; }

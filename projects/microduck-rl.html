@@ -41,17 +41,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">CPU-only robot-learning track · project 3 · repo</span><span lang="ja">CPUのみのrobot learningトラック · プロジェクト3 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">microduck-rl</code></div>
     <h1>Microduck Balance and Push Recovery</h1>
-    <p class="deck" lang="en">A 25 cm, 737 g open-source biped with fourteen servos. Upstream trains it on a GPU cluster.
-      This does it on a laptop with no graphics card. Two steps prove, with numbers, that the machine and the
-      environment can be trusted; the third rebuilds the reward from what was measured and trains a PPO policy
-      against a PD controller; the fourth trains a second policy under randomised physics and tests both on
-      physics models neither has seen, and found that randomisation, as run here, made the robot worse at
-      standing; the fifth exports the policy to ONNX.</p>
-    <p class="deck" lang="ja">全高25 cm・重さ737 g、14サーボのオープンソース二足ロボットです。本家はGPUクラスタで学習していますが、
-      ここではグラフィックボードのないノートPCで行います。最初の2ステップで、マシンと環境が信頼できることを数値で示します。
-      3つ目では計測結果をもとにrewardを作り直し、PD controllerを相手にPPOのpolicyを学習します。
-      4つ目ではphysicsをランダム化して2つ目のpolicyを学習し、どちらも見たことのないphysicsモデルで両者をテストしました。
-      その結果、今回の条件ではランダム化によってロボットの立つ能力がかえって悪化しました。5つ目ではpolicyをONNXへexportします。</p>
+    <p class="deck" lang="en">A 25 cm, 737 g open-source biped with fourteen servos, trained to stay up under shoves with PPO on a laptop CPU — no GPU, no hardware. Measured against a PD controller, tested on physics it never saw, exported to ONNX.</p>
+    <p class="deck" lang="ja">全高25 cm・重さ737 g、14サーボのオープンソース二足ロボットに、押されても立ち続ける動作をノートPCのCPUだけでPPO学習させました（GPUも実機もなし）。PD controllerと比較し、見たことのない物理モデルで検証し、ONNXへexportしています。</p>
     <div class="chips">
       <span class="chip">MuJoCo 3.12</span><span class="chip">PyTorch CPU</span><span class="chip">PPO</span>
       <span class="chip">multiprocessing</span><span class="chip">14-DOF biped</span><span class="chip">sim-to-sim transfer</span>
@@ -70,30 +61,61 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
     <a href="#steps"><span lang="en">The six steps</span><span lang="ja">6つのステップ</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
-    <a href="#gate"><span lang="en">The feasibility gate</span><span lang="ja">実現可能性の判定</span></a>
-    <a href="#model"><span lang="en">Three model findings</span><span lang="ja">モデルの3つの発見</span></a>
-    <a href="#drop"><span lang="en">Drop tests</span><span lang="ja">落下テスト</span></a>
-    <a href="#contract"><span lang="en">The environment</span><span lang="ja">環境</span></a>
-    <a href="#baseline"><span lang="en">The PD baseline</span><span lang="ja">PD baseline</span></a>
-    <a href="#defects"><span lang="en">Five silent defects</span><span lang="ja">5つの潜在バグ</span></a>
-    <a href="#risks"><span lang="en">Three open risks</span><span lang="ja">3つの未解決リスク</span></a>
-    <a href="#reward"><span lang="en">The reward decision</span><span lang="ja">rewardの決定</span></a>
-    <a href="#ppo"><span lang="en">The training loop</span><span lang="ja">学習ループ</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#gate" data-depth="deep"><span lang="en">The feasibility gate</span><span lang="ja">実現可能性の判定</span></a>
+    <a href="#model" data-depth="deep"><span lang="en">Three model findings</span><span lang="ja">モデルの3つの発見</span></a>
+    <a href="#drop" data-depth="deep"><span lang="en">Drop tests</span><span lang="ja">落下テスト</span></a>
+    <a href="#contract" data-depth="deep"><span lang="en">The environment</span><span lang="ja">環境</span></a>
+    <a href="#baseline" data-depth="deep"><span lang="en">The PD baseline</span><span lang="ja">PD baseline</span></a>
+    <a href="#defects" data-depth="deep"><span lang="en">Five silent defects</span><span lang="ja">5つの潜在バグ</span></a>
+    <a href="#risks" data-depth="deep"><span lang="en">Three open risks</span><span lang="ja">3つの未解決リスク</span></a>
+    <a href="#reward" data-depth="deep"><span lang="en">The reward decision</span><span lang="ja">rewardの決定</span></a>
+    <a href="#ppo" data-depth="deep"><span lang="en">The training loop</span><span lang="ja">学習ループ</span></a>
     <a href="#results"><span lang="en">Results, 50M steps</span><span lang="ja">結果（50M step）</span></a>
-    <a href="#rate"><span lang="en">The fifth revision</span><span lang="ja">5回目の修正</span></a>
+    <a href="#rate" data-depth="deep"><span lang="en">The fifth revision</span><span lang="ja">5回目の修正</span></a>
     <a href="#dr"><span lang="en">Domain randomisation</span><span lang="ja">Domain randomisation</span></a>
-    <a href="#onnx"><span lang="en">ONNX export</span><span lang="ja">ONNX export</span></a>
-    <a href="#cpp"><span lang="en">The C++ sibling</span><span lang="ja">C++版</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#onnx" data-depth="deep"><span lang="en">ONNX export</span><span lang="ja">ONNX export</span></a>
+    <a href="#cpp" data-depth="deep"><span lang="en">The C++ sibling</span><span lang="ja">C++版</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">The result, the one negative finding, and what was built — before any detail.</span><span lang="ja">結果と、1つのネガティブな発見と、作ったもの。詳細はその後で。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">Return of 500 — 100 episodes × 5 seeds</span><span lang="ja">return（500点満点）— 100 episodes × 5 seeds</span></div>
+      <svg class="viz" viewBox="0 0 520 112" role="img" aria-label="bar chart"><line class="axis" x1="118" y1="0" x2="118" y2="102"/><text x="108" y="19.0" text-anchor="end" class="lbl" lang="en">PPO · 50M steps</text><text x="108" y="19.0" text-anchor="end" class="lbl" lang="ja">PPO · 50M step</text><rect class="bar " x="118" y="4" width="237" height="18" rx="0"><title>PPO v2, 50M steps: 344.8 ± 2.9 of 500</title></rect><text x="363" y="17.0" class="lbl num">344.8</text><text x="108" y="55.0" text-anchor="end" class="lbl" lang="en">PPO · 25M steps</text><text x="108" y="55.0" text-anchor="end" class="lbl" lang="ja">PPO · 25M step</text><rect class="bar ref" x="118" y="40" width="229" height="18" rx="0"><title>PPO v2, 25M steps (chunk 1): 332.6 ± 5.1</title></rect><text x="355" y="53.0" class="lbl num">332.6</text><text x="108" y="91.0" text-anchor="end" class="lbl" lang="en">PD controller</text><text x="108" y="91.0" text-anchor="end" class="lbl" lang="ja">PD controller</text><rect class="bar ref" x="118" y="76" width="121" height="18" rx="0"><title>PD hold-pose, reward v2: 175.8 ± 0.2</title></rect><text x="247" y="89.0" class="lbl num">175.8</text></svg>
+      <div class="vtitle" style="margin-top:8px"><span lang="en">Share of steps upright</span><span lang="ja">直立していたstepの割合</span></div>
+      <svg class="viz" viewBox="0 0 520 112" role="img" aria-label="bar chart"><line class="axis" x1="118" y1="0" x2="118" y2="102"/><text x="108" y="19.0" text-anchor="end" class="lbl" lang="en">PPO · 50M steps</text><text x="108" y="19.0" text-anchor="end" class="lbl" lang="ja">PPO · 50M step</text><rect class="bar " x="118" y="4" width="251" height="18" rx="0"><title>upright 73% of steps</title></rect><text x="377" y="17.0" class="lbl num">73%</text><text x="108" y="55.0" text-anchor="end" class="lbl" lang="en">PPO · 25M steps</text><text x="108" y="55.0" text-anchor="end" class="lbl" lang="ja">PPO · 25M step</text><rect class="bar ref" x="118" y="40" width="255" height="18" rx="0"><title>upright 74% of steps</title></rect><text x="381" y="53.0" class="lbl num">74%</text><text x="108" y="91.0" text-anchor="end" class="lbl" lang="en">PD controller</text><text x="108" y="91.0" text-anchor="end" class="lbl" lang="ja">PD controller</text><rect class="bar ref" x="118" y="76" width="162" height="18" rx="0"><title>upright 47% of steps</title></rect><text x="288" y="89.0" class="lbl num">47%</text></svg>
+      <div class="vtitle" style="margin-top:14px"><span lang="en">Domain randomisation on held-out physics — upright share</span><span lang="ja">held-out physicsでのdomain randomisation — 直立割合</span></div>
+      <div class="vsub"><span lang="en">Trained on groundcontact; backlash and rollers are the authors' own variants the policies never saw.</span><span lang="ja">学習はgroundcontactモデル。backlashとrollersは作者が公開する別モデルで、policyは一度も見ていません。</span></div>
+      <svg class="viz" viewBox="0 0 520 163" role="img" aria-label="bar chart"><line class="axis" x1="118" y1="0" x2="118" y2="153"/><text x="108" y="27.5" text-anchor="end" class="lbl" lang="en">groundcontact</text><text x="108" y="27.5" text-anchor="end" class="lbl" lang="ja">groundcontact</text><rect class="bar " x="118" y="4" width="162" height="14" rx="0"><title>nominal policy, training model: upright 47%</title></rect><text x="288" y="15.0" class="lbl num">47%</text><rect class="bar neg" x="118" y="25" width="96" height="14" rx="0"><title>randomised policy: upright 28%</title></rect><text x="222" y="36.0" class="lbl num">28%</text><text x="108" y="80.5" text-anchor="end" class="lbl" lang="en">+ backlash</text><text x="108" y="80.5" text-anchor="end" class="lbl" lang="ja">+ backlash</text><rect class="bar " x="118" y="57" width="131" height="14" rx="0"><title>nominal policy on held-out backlash model: 38%</title></rect><text x="257" y="68.0" class="lbl num">38%</text><rect class="bar neg" x="118" y="78" width="83" height="14" rx="0"><title>randomised policy: 24%</title></rect><text x="209" y="89.0" class="lbl num">24%</text><text x="108" y="133.5" text-anchor="end" class="lbl" lang="en">rollers</text><text x="108" y="133.5" text-anchor="end" class="lbl" lang="ja">rollers</text><rect class="bar " x="118" y="110" width="251" height="14" rx="0"><title>nominal policy on held-out rollers model: 73%</title></rect><text x="377" y="121.0" class="lbl num">73%</text><rect class="bar neg" x="118" y="131" width="45" height="14" rx="0"><title>randomised policy: 13%</title></rect><text x="171" y="142.0" class="lbl num">13%</text></svg>
+      <div class="legend"><span><span lang="en">nominal policy</span><span lang="ja">通常のpolicy</span></span><span class="neg"><span lang="en">randomised policy — worse</span><span lang="ja">ランダム化したpolicy — 悪化</span></span></div>
+      <details class="tbl"><summary><span lang="en">Numbers as a table</span><span lang="ja">数値を表で見る</span></summary>
+        <div class="tablewrap"><table><thead><tr><th><span lang="en">Policy</span><span lang="ja">Policy</span></th><th class="num"><span lang="en">return</span><span lang="ja">return</span></th><th class="num"><span lang="en">upright</span><span lang="ja">直立</span></th></tr></thead>
+        <tbody><tr class="hl"><td>PPO · 50M</td><td class="num">344.8 ± 2.9</td><td class="num">0.73</td></tr><tr><td>PPO · 25M</td><td class="num">332.6 ± 5.1</td><td class="num">0.74</td></tr><tr><td>PD</td><td class="num">175.8 ± 0.2</td><td class="num">0.47</td></tr>
+        <tr><td><span lang="en">nominal / randomised on groundcontact</span><span lang="ja">通常 / ランダム化（groundcontact）</span></td><td class="num">332.6 / 312.2</td><td class="num">0.47 / 0.28</td></tr>
+        <tr><td><span lang="en">… on backlash</span><span lang="ja">… backlash</span></td><td class="num">317.4 / 315.4</td><td class="num">0.38 / 0.24</td></tr>
+        <tr><td><span lang="en">… on rollers</span><span lang="ja">… rollers</span></td><td class="num">373.6 / 147.3</td><td class="num">0.73 / 0.13</td></tr></tbody></table></div></details>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>PPO beats the PD controller 344.8 vs 175.8 of 500</strong> and stays upright 73% vs 47% of steps, on a 14-servo biped under three seeded shoves per episode.</span><span lang="ja"><strong>PPOがPD controllerを上回る：500点中344.8 vs 175.8</strong>。直立割合は73% vs 47%。14サーボの二足ロボットに、1 episodeあたり3回の押しを与えた条件。</span></li>
+      <li><b>02</b><span lang="en"><strong>Only real sensors.</strong> 48-dim observation (joints, gyro, gravity, last action); the reward was rebuilt after three of four penalties measured under 0.25% of the return.</span><span lang="ja"><strong>入力は実機センサーの値のみ。</strong>48次元のobservation（関節・ジャイロ・重力・直前のaction）。rewardは、4つのpenaltyのうち3つがreturnの0.25%未満と計測されたため再設計。</span></li>
+      <li><b>03</b><span lang="en"><strong>Training was repaired mid-run.</strong> Chunk 1's step size ran away (clip fraction 0.73, KL spikes above 50); chunk 2 resumed with a KL stop and every seed improved.</span><span lang="ja"><strong>学習は途中で修正。</strong>chunk 1でstep sizeが暴走（clip fraction 0.73、KLが50超）。chunk 2はKL stopを入れて再開し、全seedで改善。</span></li>
+      <li class="neg"><b>04</b><span lang="en"><strong>Domain randomisation made it worse.</strong> On two held-out physics models the randomised policy braces in a crouch: upright 28% vs 47%, and 13% on rollers. Reported as a negative result.</span><span lang="ja"><strong>Domain randomisationは悪化。</strong>2つのheld-out物理モデルで、ランダム化したpolicyはしゃがんで踏ん張る挙動に：直立28% vs 47%、rollersでは13%。ネガティブな結果としてそのまま報告。</span></li>
+      <li><b>05</b><span lang="en"><strong>Runs on CPU end to end.</strong> ≈3,300 env-steps/s in the training loop, 50M steps in 2.4 h; ONNX export 0.033 ms p99 on one thread. Getting up after a fall is still unshown.</span><span lang="ja"><strong>すべてCPUで完結。</strong>学習ループで約3,300 env-steps/s、50M stepを2.4時間。ONNX exportは1スレッドでp99 0.033 ms。転倒後の起き上がりは未達成。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">Teaching a small biped to stay up and get back up, on a laptop CPU, after checking that it is possible at all.</p><p class="sec-sub" lang="ja">小型二足ロボットに「倒れずに立ち続け、倒れたら起き上がる」ことをノートPCのCPUで学習させます。まず、それがそもそも可能かを確かめてから始めます。</p></div>
   <div class="stack prose">
     <p lang="en">The Microduck is a small open-source walking robot. Its authors publish the physics model, the meshes,
@@ -201,7 +223,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every source file, how big it is, and the single job it owns.</p><p class="sec-sub" lang="ja">すべてのソースファイルについて、その規模と、担当する唯一の役割をまとめます。</p></div>
   <div class="stack">
     <div class="tablewrap">
@@ -316,7 +338,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="gate">
+<section id="gate" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">Step 1 — the feasibility gate, and four wrong answers</span><span lang="ja">Step 1 — 実現可能性の判定と、4つの誤った答え</span></h2><p class="sec-sub" lang="en">The throughput measurement that decides whether the project is feasible, and the four wrong numbers before the right one.</p><p class="sec-sub" lang="ja">プロジェクトが実現可能かを決めるthroughputの計測と、正しい数値にたどり着くまでの4つの誤った数値。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -564,7 +586,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="model">
+<section id="model" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Three things about the model that changed the plan</span><span lang="ja">計画を変えたモデルの3つの性質</span></h2><p class="sec-sub" lang="en">Three properties of the robot model that forced the plan to change.</p><p class="sec-sub" lang="ja">ロボットモデルの3つの性質が、計画の変更を余儀なくさせました。</p></div>
   <div class="findings">
     <div class="finding"><span class="fnum">01</span><div class="fbody">
@@ -646,7 +668,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="drop">
+<section id="drop" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Do the physics behave? Two drop tests</span><span lang="ja">物理は正しく動くか — 2つの落下テスト</span></h2><p class="sec-sub" lang="en">Two physics checks confirming the model falls, settles and collides the way it should.</p><p class="sec-sub" lang="ja">モデルが正しく落下し、静止し、衝突することを確かめる2つの物理チェック。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -684,7 +706,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="contract">
+<section id="contract" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Step 2 — the environment contract</span><span lang="ja">Step 2 — 環境の契約</span></h2><p class="sec-sub" lang="en">The 48-dimensional observation, the action scaling, and the six reward terms.</p><p class="sec-sub" lang="ja">48次元のobservation、actionのスケーリング、6つのreward項。</p></div>
   <div class="stack-lg">
     <div class="stack">
@@ -818,7 +840,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="baseline">
+<section id="baseline" data-depth="deep">
   <div class="sec-head"><span class="sec-num">08</span><h2><span lang="en">The number a learned policy has to beat</span><span lang="ja">学習したpolicyが超えるべき数値</span></h2><p class="sec-sub" lang="en">The hand-tuned PD controller that any learned policy has to beat.</p><p class="sec-sub" lang="ja">学習したpolicyが必ず超えなければならない、手調整のPD controller。</p></div>
   <div class="stack">
     <p class="prose" lang="en">The shipped PD controller commanded to hold STAND — which is exactly what a zero action
@@ -854,7 +876,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="defects">
+<section id="defects" data-depth="deep">
   <div class="sec-head"><span class="sec-num">09</span><h2><span lang="en">Five silent defects the tests did not catch</span><span lang="ja">テストが見逃した5つの潜在バグ</span></h2><p class="sec-sub" lang="en">Defects the test suite passed over, and what each would have cost during training.</p><p class="sec-sub" lang="ja">テストスイートをすり抜けた不具合と、それぞれが学習中にもたらしたはずの損失。</p></div>
   <div class="stack">
     <p class="prose" lang="en">Step 2 closed by reviewing the environment against <em>the thing that is about to consume
@@ -926,7 +948,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="risks">
+<section id="risks" data-depth="deep">
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Three open risks at the end of step 2</span><span lang="ja">Step 2終了時点の3つの未解決リスク</span></h2><p class="sec-sub" lang="en">The three measured facts step 2 handed to step 3, and how step 3 answered each.</p><p class="sec-sub" lang="ja">Step 2からstep 3へ引き継いだ3つの計測事実と、step 3がそれぞれにどう答えたか。</p></div>
   <div class="stack-lg">
     <div class="stack">
@@ -1045,7 +1067,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="reward">
+<section id="reward" data-depth="deep">
   <div class="sec-head"><span class="sec-num">11</span><h2><span lang="en">Step 3 — the reward decision</span><span lang="ja">Step 3 — rewardの決定</span></h2><p class="sec-sub" lang="en">Four measured facts, one rejected fix, and a second reward version that keeps the first reproducible.</p><p class="sec-sub" lang="ja">4つの計測事実、却下した1つの修正案、そして1つ目の再現性を保ったままの2つ目のrewardバージョン。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -1141,7 +1163,7 @@ range 12 600 – 13 800 across the band</code></pre>
   </div>
 </section>
 
-<section id="ppo">
+<section id="ppo" data-depth="deep">
   <div class="sec-head"><span class="sec-num">12</span><h2><span lang="en">Step 3 — the training loop</span><span lang="ja">Step 3 — 学習ループ</span></h2><p class="sec-sub" lang="en">A textbook PPO with four additions this environment demands, and what each one prevents.</p><p class="sec-sub" lang="ja">教科書どおりのPPOに、この環境が必要とする4つの追加を加えたもの。それぞれが何を防ぐか。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -1285,7 +1307,7 @@ python eval_policy.py runs/ppo_v2.pt --variant groundcontact      # -&gt; runs/e
   </div>
 </section>
 
-<section id="rate">
+<section id="rate" data-depth="deep">
   <div class="sec-head"><span class="sec-num">14</span><h2><span lang="en">The fifth revision of the throughput figure</span><span lang="ja">throughputの数値の5回目の修正</span></h2><p class="sec-sub" lang="en">Five numbers for the same quantity, what each one left out, and the one that finally measured the workload itself.</p><p class="sec-sub" lang="ja">同じ量に対する5つの数値、それぞれが見落としていたもの、そして最終的にワークロードそのものを計測した数値。</p></div>
   <div class="stack-lg">
     <div class="tablewrap">
@@ -1458,7 +1480,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
   </div>
 </section>
 
-<section id="onnx">
+<section id="onnx" data-depth="deep">
   <div class="sec-head"><span class="sec-num">16</span><h2><span lang="en">Step 5 — one graph, normaliser included</span><span lang="ja">Step 5 — normaliserを含む1つのグラフ</span></h2><p class="sec-sub" lang="en">The export design, the two checks that run before any timing, and the one-thread latency table for the chunk-1 policy.</p><p class="sec-sub" lang="ja">exportの設計、時間計測の前に行う2つのチェック、chunk 1のpolicyの1スレッドlatencyの表。</p></div>
   <div class="stack-lg">
     <div class="stack prose">
@@ -1496,7 +1518,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
   </div>
 </section>
 
-<section id="cpp">
+<section id="cpp" data-depth="deep">
   <div class="sec-head"><span class="sec-num">17</span><h2><span lang="en">The same environment in C++</span><span lang="ja">C++で書いた同じ環境</span></h2><p class="sec-sub" lang="en">A sibling repository that reproduces this environment to the bit and what it found out about this one.</p><p class="sec-sub" lang="ja">この環境をビット単位で再現する姉妹リポジトリと、それがこの環境について明らかにしたこと。</p></div>
   <div class="stack prose">
     <p lang="en">A separate project, <a href="mujoco-vecenv-cpp.html">a threaded C++17 backend</a>, ports <code>env.py</code>
@@ -1524,7 +1546,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">18</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">Setup, the commands in order, and the runtimes to expect on a CPU.</p><p class="sec-sub" lang="ja">セットアップ、実行するコマンドの順序、CPUでの想定実行時間。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/microduck-rl.git
@@ -1626,6 +1648,7 @@ nice -n 10 python3 bench_wrapper.py --seconds 12        # 1 core, no load</code>
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 15 more sections ↓</span><span lang="ja">全文を読む — 残り15セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">

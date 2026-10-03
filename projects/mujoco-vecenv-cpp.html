@@ -41,16 +41,12 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">CPU-only robot-learning track · infrastructure · repo</span><span lang="ja">CPUのみのrobot learning · 基盤 · リポジトリ</span> <code style="background:none;padding:0;color:inherit">mujoco-vecenv-cpp</code></div>
     <h1><span lang="en">A C++ Environment That Matches Python to the Bit</span><span lang="ja">Pythonとビット単位で一致するC++環境</span></h1>
-    <p class="deck" lang="en">The Microduck project trains a balance policy in a Python MuJoCo environment that runs eight
-      forked processes on a laptop. This repo is that environment again in C++17, on threads instead of
-      processes, with a Python binding so the same training script runs on it unchanged. The claim it makes is
-      not "faster". It is that the two environments produce the same 48 numbers, the same reward and the same
-      flags at every step, to the last bit, and that a test proves it on every commit. The speed was measured
-      afterwards.</p>
-    <p class="deck" lang="ja">Microduckプロジェクトでは、ノートPC上で8つのforkプロセスを動かすPython版MuJoCo環境でバランスpolicyを学習しています。
-      このリポジトリは同じ環境をC++17で書き直したもので、プロセスの代わりにスレッドで動き、Python bindingにより同じ学習スクリプトを無修正で実行できます。
-      主張は「速い」ことではありません。2つの環境が毎step、同じ48個の数値・同じreward・同じフラグを最後のビットまで出力すること、
-      そしてそれをコミットごとにテストで証明していることです。速度はその後で計測しました。</p>
+    <p class="deck" lang="en">The Microduck balance environment rewritten in C++17 on eight threads, with a pybind11 drop-in so
+      the Python training script runs on it unchanged. Proven bit-identical to the Python reference first
+      (6,275 of 6,275 observations, tested on every commit), measured afterwards: 1.9–2.0× the throughput, the
+      same policy score.</p>
+    <p class="deck" lang="ja">MicroduckのバランスEnvironmentをC++17で8スレッド上に書き直し、pybind11の差し替えクラスによってPythonの学習スクリプトを無修正で動かせるようにしました。
+      まずPython版とのビット単位の一致（6,275個中6,275個のobservation、コミットごとにテスト）を証明し、その後に計測したところ、throughputは1.9〜2.0倍、policyのスコアは同等でした。</p>
     <div class="chips">
       <span class="chip">C++17</span><span class="chip">MuJoCo 3.12</span><span class="chip">pybind11</span>
       <span class="chip">std::thread</span><span class="chip">doctest</span><span class="chip">ASan · UBSan · TSan</span>
@@ -69,22 +65,65 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
 <nav class="jump">
   <div class="wrap jump-inner">
-    <a href="#plain"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
-    <a href="#why"><span lang="en">Why it exists</span><span lang="ja">作った理由</span></a>
-    <a href="#files"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
-    <a href="#equality"><span lang="en">The equality test</span><span lang="ja">一致テスト</span></a>
-    <a href="#arith"><span lang="en">Three arithmetic details</span><span lang="ja">3つの演算の細部</span></a>
-    <a href="#threads"><span lang="en">Threading design</span><span lang="ja">スレッド設計</span></a>
-    <a href="#san"><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></a>
+    <a href="#glance"><span lang="en">At a glance</span><span lang="ja">要点</span></a>
+    <a href="#plain" data-depth="deep"><span lang="en">In plain words</span><span lang="ja">概要</span></a>
+    <a href="#why" data-depth="deep"><span lang="en">Why it exists</span><span lang="ja">作った理由</span></a>
+    <a href="#files" data-depth="deep"><span lang="en">Every file</span><span lang="ja">全ファイル</span></a>
+    <a href="#equality" data-depth="deep"><span lang="en">The equality test</span><span lang="ja">一致テスト</span></a>
+    <a href="#arith" data-depth="deep"><span lang="en">Three arithmetic details</span><span lang="ja">3つの演算の細部</span></a>
+    <a href="#threads" data-depth="deep"><span lang="en">Threading design</span><span lang="ja">スレッド設計</span></a>
+    <a href="#san" data-depth="deep"><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></a>
     <a href="#speed"><span lang="en">Throughput and training</span><span lang="ja">Throughputと学習</span></a>
     <a href="#limits"><span lang="en">What it does not prove</span><span lang="ja">言えないこと</span></a>
-    <a href="#run"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+    <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
+      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
 <main class="wrap" id="main">
 
-<section id="plain">
+<section id="glance">
+  <div class="sec-head"><span class="sec-num">00</span><h2><span lang="en">At a glance</span><span lang="ja">要点</span></h2><p class="sec-sub"><span lang="en">Python against C++ on the same laptop: equality first, then speed, then the training result.</span><span lang="ja">同じノートPCでのPython対C++。一致、速度、学習結果の順に。</span></p></div>
+  <div class="glance">
+    <div class="glance-visual">
+      <div class="vtitle"><span lang="en">One environment, two implementations — 6,275 / 6,275 observations bit-identical</span><span lang="ja">1つの環境、2つの実装 — 6,275 / 6,275個のobservationがビット単位で一致</span></div>
+      <div class="vsub"><span lang="en">25 episodes, 250 identical actions each, no tolerance; 0 reward diffs, 0 info mismatches. Both measured on the same 8-of-14-core budget.</span><span lang="ja">25 episodes、各250個の同一action、許容誤差なし。reward差0、info不一致0。どちらも同じ14コア中8コアの枠で計測。</span></div>
+      <div class="vs">
+        <div>
+          <span class="tag"><span lang="en">Python · 8 forked processes</span><span lang="ja">Python · 8 forkプロセス</span></span>
+          <span class="big" style="color:var(--muted)">3.8–4.4 h</span>
+          <p lang="en">50M-step PPO run. Return <strong>348.1 ± 8.1</strong> of 500 over 3 seeds. Actions pickled out and observations back through 8 pipes every step.</p>
+          <p lang="ja">50M stepのPPO学習。returnは500点中<strong>348.1 ± 8.1</strong>（3 seeds）。毎step、actionをpickleして8本のpipeで送り、observationを戻します。</p>
+        </div>
+        <div>
+          <span class="tag"><span lang="en">C++17 · 8 threads, this repo</span><span lang="ja">C++17 · 8スレッド（本リポジトリ）</span></span>
+          <span class="big">3.1 h</span>
+          <p lang="en">Same 50M-step PPO run, <code>ppo.py</code> unchanged. Return <strong>339.4 ± 2.3</strong> over 3 seeds — no backend difference. Shared memory, one atomic counter; ASan · UBSan · TSan clean in CI.</p>
+          <p lang="ja">同じ50M stepのPPO学習、<code>ppo.py</code>は無修正。returnは<strong>339.4 ± 2.3</strong>（3 seeds）でbackend間の差なし。共有メモリとatomicカウンタ1つ。CIでASan · UBSan · TSanすべてクリア。</p>
+        </div>
+      </div>
+      <div class="vtitle" style="margin-top:8px"><span lang="en">env-steps/s at 8 workers — identical random actions, same hour</span><span lang="ja">8 workerでのenv-steps/s — 同一のランダムaction、同じ時間帯</span></div>
+      <svg class="viz" viewBox="0 0 520 76" role="img" aria-label="bar chart: env-steps per second at 8 workers, Python processes against C++ threads"><line class="axis" x1="118" y1="0" x2="118" y2="66"/><text x="108" y="17.0" text-anchor="end" class="lbl" lang="en">Python ×8</text><text x="108" y="17.0" text-anchor="end" class="lbl" lang="ja">Python ×8</text><rect class="bar ref" x="118" y="4" width="155" height="18" rx="0"><title>Python, 8 forked processes: 6,385 env-steps/s</title></rect><text x="281" y="17.0" class="lbl num">6,385</text><text x="108" y="53.0" text-anchor="end" class="lbl" lang="en">C++ ×8</text><text x="108" y="53.0" text-anchor="end" class="lbl" lang="ja">C++ ×8</text><rect class="bar" x="118" y="40" width="300" height="18" rx="0"><title>C++, 8 threads: 12,327 env-steps/s (1.93× Python)</title></rect><text x="426" y="53.0" class="lbl num">12,327</text><text x="478" y="53.0" class="mut">1.93×</text></svg>
+      <div class="legend"><span class="ref"><span lang="en">Python processes</span><span lang="ja">Pythonプロセス</span></span><span><span lang="en">C++ threads</span><span lang="ja">C++スレッド</span></span></div>
+      <details class="tbl"><summary><span lang="en">Numbers as a table</span><span lang="ja">数値を表で見る</span></summary>
+        <div class="tablewrap"><table><thead><tr><th><span lang="en">Measure</span><span lang="ja">項目</span></th><th class="num">Python</th><th class="num">C++</th></tr></thead>
+        <tbody><tr class="hl"><td><span lang="en">env-steps/s, 8 workers</span><span lang="ja">8 workerでのenv-steps/s</span></td><td class="num">6,385</td><td class="num">12,327 (1.93×)</td></tr>
+        <tr><td><span lang="en">50M-step PPO, wall time</span><span lang="ja">50M step PPOの所要時間</span></td><td class="num">3.8–4.4 h</td><td class="num">3.1 h</td></tr>
+        <tr><td><span lang="en">return of 500, 3 seeds</span><span lang="ja">return（500点満点）、3 seeds</span></td><td class="num">348.1 ± 8.1</td><td class="num">339.4 ± 2.3</td></tr>
+        <tr><td><span lang="en">efficiency at 8 workers</span><span lang="ja">8 workerでの効率</span></td><td class="num">42%</td><td class="num">45%</td></tr>
+        <tr><td><span lang="en">observations bit-identical</span><span lang="ja">ビット一致したobservation</span></td><td class="num" colspan="2">6,275 / 6,275</td></tr></tbody></table></div></details>
+    </div>
+    <ul class="keypoints">
+      <li><b>01</b><span lang="en"><strong>Bit-identical to the Python environment.</strong> 6,275 of 6,275 observations, 0 reward diffs over 25 episodes with no tolerance; CI reruns it on every push against a pinned commit of the Python repo.</span><span lang="ja"><strong>Python環境とビット単位で一致。</strong>25 episodesで6,275個中6,275個のobservationが一致、reward差0、許容誤差なし。CIがpushごとに、Pythonリポジトリの固定コミットに対して再実行。</span></li>
+      <li><b>02</b><span lang="en"><strong>1.9–2.0× the Python processes at 8 workers.</strong> 12,327 vs 6,385 env-steps/s under identical random actions, above the 1.3× the README set as the bar; the full environment alone runs 20,287 burst and 13,300–16,200 sustained over six minutes.</span><span lang="ja"><strong>8 workerでPythonプロセスの1.9〜2.0倍。</strong>同一のランダムactionで12,327対6,385 env-steps/s。READMEが定めた基準1.3×を上回る。環境単体では20,287 burst、6分間のsustainedで13,300〜16,200。</span></li>
+      <li><b>03</b><span lang="en"><strong>Trains the same policy, faster.</strong> The 50M-step PPO run takes 3.1 h here vs 3.8–4.4 h; 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 over 3 seeds, no backend difference in return or survival, and the same step-size failure and fix reproduce.</span><span lang="ja"><strong>同じpolicyをより速く学習。</strong>50M stepのPPO学習は3.8〜4.4時間に対して3.1時間。3 seedsで500点中339.4 ± 2.3対348.1 ± 8.1、returnにもsurvivalにもbackend間の差なし。同じstep sizeの失敗と対処も再現。</span></li>
+      <li><b>04</b><span lang="en"><strong>34 C++ cases, 41 Python tests, three sanitizers.</strong> CI builds Release plus ASan/UBSan and TSan; four arithmetic details (numpy's pairwise sum, <code>pow</code>, float32 widening, solver warm-start) decided the last bit.</span><span lang="ja"><strong>C++ 34ケース、Python 41テスト、3つのsanitizer。</strong>CIはReleaseに加えASan/UBSanとTSanでビルド。最終ビットを決めたのは4つの演算の細部（numpyのpairwise sum、<code>pow</code>、float32の拡張、ソルバーのwarm-start）。</span></li>
+      <li class="neg"><b>05</b><span lang="en"><strong>Scaling stalls at 45% — the chip, not the processes.</strong> Thread efficiency at 8 workers matches the Python processes' 42%, and the Python environment delivers about 6,400 env-steps/s, half the 13,300 its project had budgeted. Equality is proven on one machine, one compiler, one C library.</span><span lang="ja"><strong>スケーリングは効率45%で頭打ち — 原因はプロセスではなくチップ。</strong>8 workerでのスレッド効率はPythonプロセスの42%と同水準。Python環境は約6,400 env-steps/sで、同プロジェクトが見積もった13,300の半分。一致の証明は1台のマシン・1つのコンパイラ・1つのCライブラリでのもの。</span></li>
+    </ul>
+  </div>
+</section>
+
+<section id="plain" data-depth="deep">
   <div class="sec-head"><span class="sec-num">01</span><h2><span lang="en">In plain words</span><span lang="ja">概要</span></h2><p class="sec-sub" lang="en">What a vector environment is, why this one is written in C++, and what "bit-identical" buys.</p><p class="sec-sub" lang="ja">vector environmentとは何か、なぜC++で書いたのか、「ビット単位で一致」で何が得られるのか。</p></div>
   <div class="stack prose">
     <p lang="en">Reinforcement learning trains a policy by letting it act in a simulator millions of times. To do that
@@ -143,7 +182,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 </div>
 </section>
 
-<section id="why">
+<section id="why" data-depth="deep">
   <div class="sec-head"><span class="sec-num">02</span><h2><span lang="en">Why it exists</span><span lang="ja">作った理由</span></h2><p class="sec-sub" lang="en">Two open questions from the Python project, and the rule that equality comes before speed.</p><p class="sec-sub" lang="ja">Pythonプロジェクトに残った2つの疑問と、「速度より先に一致」というルール。</p></div>
   <div class="stack prose">
     <p lang="en">The Python project left two measurements it could not explain from inside Python. First, its
@@ -172,7 +211,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="files">
+<section id="files" data-depth="deep">
   <div class="sec-head"><span class="sec-num">03</span><h2><span lang="en">Every file, and what it is for</span><span lang="ja">全ファイルとその役割</span></h2><p class="sec-sub" lang="en">Every tracked file outside the vendored test framework, grouped by directory, with line counts.</p><p class="sec-sub" lang="ja">同梱のテストフレームワークを除く全追跡ファイルを、ディレクトリごとに行数付きで示します。</p></div>
   <div class="stack">
     <p class="prose" lang="en">About 4,100 tracked lines outside <code>third_party/</code>, including the README, CI and the
@@ -260,7 +299,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   </div>
 </section>
 
-<section id="equality">
+<section id="equality" data-depth="deep">
   <div class="sec-head"><span class="sec-num">04</span><h2><span lang="en">How the equality test works</span><span lang="ja">一致テストの仕組み</span></h2><p class="sec-sub" lang="en">Python draws the randomness, C++ replays it, and everything that comes back is compared with no tolerance.</p><p class="sec-sub" lang="ja">Pythonが乱数を引き、C++がそれを再生し、返ってきたものをすべて許容誤差なしで比較します。</p></div>
   <div class="stack prose">
     <p lang="en">The Python environment gets its randomness from numpy: initial joint noise, then which control steps
@@ -327,7 +366,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
   </div>
 </section>
 
-<section id="arith">
+<section id="arith" data-depth="deep">
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Three arithmetic details, and one about the solver</span><span lang="ja">3つの演算の細部と、ソルバーに関する1点</span></h2><p class="sec-sub" lang="en">What was actually different the first time the two environments disagreed in the last bit, and how each was found.</p><p class="sec-sub" lang="ja">2つの環境が最初に最終ビットで食い違ったとき、実際に何が違っていたのか。そしてそれぞれをどう見つけたか。</p></div>
   <div class="stack">
     <div class="findings">
@@ -383,7 +422,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
   </div>
 </section>
 
-<section id="threads">
+<section id="threads" data-depth="deep">
   <div class="sec-head"><span class="sec-num">06</span><h2><span lang="en">Threading design</span><span lang="ja">スレッド設計</span></h2><p class="sec-sub" lang="en">One model per environment, a fixed thread assignment so results never depend on the thread count, and a wake-up scheme that costs nothing when idle.</p><p class="sec-sub" lang="ja">環境ごとに1つのモデル、結果がスレッド数に依存しない固定のスレッド割り当て、そしてアイドル時にコストのかからない起床方式。</p></div>
   <div class="stack prose">
     <dl class="pair">
@@ -431,7 +470,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
   </div>
 </section>
 
-<section id="san">
+<section id="san" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></h2><p class="sec-sub" lang="en">Three CI jobs, and two things about MuJoCo's prebuilt library that had to be worked around to run them.</p><p class="sec-sub" lang="ja">3つのCIジョブと、それを動かすために回避が必要だったMuJoCoビルド済みライブラリの2つの問題。</p></div>
   <div class="stack prose">
     <p lang="en">CI runs three jobs on every push. The first builds Release, runs the 34 C++ cases, the 41 Python tests
@@ -757,7 +796,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
   </div>
 </section>
 
-<section id="run">
+<section id="run" data-depth="deep">
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Running it</span><span lang="ja">実行方法</span></h2><p class="sec-sub" lang="en">A C++17 compiler, CMake 3.18 or later, Python 3.8 or later, and the Python project next door.</p><p class="sec-sub" lang="ja">C++17コンパイラ、CMake 3.18以降、Python 3.8以降、そして隣のディレクトリにPythonプロジェクトが必要です。</p></div>
   <div class="stack">
     <pre><code>git clone https://github.com/AungKaung1928/microduck-rl.git ../microduck-rl
@@ -858,6 +897,7 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
 </section>
 
 </main>
+<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 8 more sections ↓</span><span lang="ja">全文を読む — 残り8セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">
