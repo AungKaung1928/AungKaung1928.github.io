@@ -667,10 +667,11 @@ python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</c
       <p lang="en">Refit on single episodes, the real joint friction spans 0.22–0.28, outside the training randomisation range
         (0.05–0.2). Made into a held-out cell (<code>real_fit</code>), it costs little: scripted expert lift 0.97, PPO lift 0.996
         nominal-trained and 0.992 DR fine-tuned. Limits: one public recording, not my arm; passive damping came out 0.20, 0.018 and
-        0.11 in three runs, so this data does not identify it.</p>
+        0.11 in three runs, so this data does not identify it. CI now replays held-out real episode 40 on every
+        push and fails above 0.37° (measured 0.345°); a wrong gain or a 2-frame delay pushes it to 0.61–0.76°.</p>
       <p lang="ja">エピソードごとに単独でフィットし直すと、実機の関節摩擦は0.22〜0.28で、学習時のランダム化範囲（0.05〜0.2）の外にあります。
         これをheld-outセル（<code>real_fit</code>）にしても影響は小さく、スクリプトのエキスパートのliftは0.97、PPOのliftはnominal学習で0.996、
-        DRでのファインチューニング後で0.992です。限界：自分のアームではなく公開記録1つだけです。受動減衰は3回の実行で0.20、0.018、0.11となり、このデータでは決まりません。</p>
+        DRでのファインチューニング後で0.992です。限界：自分のアームではなく公開記録1つだけです。受動減衰は3回の実行で0.20、0.018、0.11となり、このデータでは決まりません。CIは毎回のpushでホールドアウトの実機エピソード40を再生し、0.37°を超えると失敗します（計測値0.345°）。ゲインの誤りや2フレームの遅延では0.61〜0.76°になります。</p>
     </div>
   </div>
 </section>
