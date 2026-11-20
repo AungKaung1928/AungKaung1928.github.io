@@ -227,7 +227,7 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    a CNN; structured channel pruning at 25% and 50% with a 3-epoch fine-tune;
    every graph scored by the same mAP on the same images, with recall on
    objects under 50% visible watched separately; one figure of one-thread
-   latency against mAP. Result: Static INT8 (minmax calibration on 200 training images) runs the detector in 1.38 ms on one thread, 2.6x faster than fp32's 3.57 ms and under the classical pipeline's 2.13 ms, at mAP 0.9097 against fp32's 0.9107 (-0.0010); structured pruning was the wrong tool here: removing half the channels cost 0.065 mAP for 2.42 ms, and pruned-plus-INT8 at 1.25 ms buys under 10% over INT8 alone at that price, so static INT8 alone is what would ship.
+   latency against mAP. Result: Static INT8 (minmax calibration on 200 training images) runs the detector in 1.38 ms on one thread, 2.6x faster than fp32's 3.57 ms and under the classical pipeline's 2.13 ms from another session (timed together in one process: classical 1.80 ms, INT8 1.56 ms as a model, 1.94 ms end to end, so INT8 wins as a model only), at mAP 0.9097 against fp32's 0.9107 (-0.0010); structured pruning was the wrong tool here: removing half the channels cost 0.065 mAP for 2.42 ms, and pruned-plus-INT8 at 1.25 ms buys under 10% over INT8 alone at that price, so static INT8 alone is what would ship.
    A one-thread x86 latency is not a Jetson latency; the ordering is expected
    to carry, the ratios are not.
 

@@ -1282,14 +1282,16 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">Static INT8 turns the one-thread loss into a win, and takes nothing measurable with it</span><span lang="ja">static INT8は1スレッドでの負けを勝ちに変え、計測可能な損失はない</span></h4>
+        <h4><span lang="en">Static INT8 turns the one-thread loss into a win as model time, and takes nothing measurable with it</span><span lang="ja">static INT8はモデル時間では1スレッドでの負けを勝ちに変え、計測可能な損失はない</span></h4>
         <p lang="en">fp32 through ONNX Runtime: 3.57 ms on one thread. Static INT8: 1.38 ms, a 2.6× cut, under the classical
-          pipeline's 2.13 ms with room to spare. (The MinMax and Entropy rows are the same file timed twice, see
+          pipeline's 2.13 ms, but those two numbers come from different sessions. Timed together in one process
+          (200 images, 10 interleaved rounds), classical took 1.80 ms, INT8 1.56 ms as a model and 1.94 ms end to
+          end with decoding, so the win holds for the model and not end to end. (The MinMax and Entropy rows are the same file timed twice, see
           finding 02, so read 1.38 and 1.35 as one number with its spread.) On four threads
           1.52 ms became 0.60 ms. mAP moved from 0.9107 to 0.9097, a drop of 0.0010; every class moved by
           0.001 or less; recall on objects less than half visible stayed at 0.910 on the same 53 objects. The
           number step 5 could not deliver on one core is delivered by changing the arithmetic, not the network.</p>
-        <p lang="ja">ONNX Runtimeでのfp32は1スレッドで3.57 ms。static INT8では1.38 msで2.6分の1になり、古典的パイプラインの2.13 msを余裕を持って下回りました
+        <p lang="ja">ONNX Runtimeでのfp32は1スレッドで3.57 ms。static INT8では1.38 msで2.6分の1になり、古典的パイプラインの2.13 msを下回りました。ただしこの2つは別のセッションの計測値です。1つのプロセスで同時に計測すると（画像200枚、交互に10ラウンド）、古典的手法1.80 ms、INT8はモデルのみ1.56 ms、デコード込みのend-to-endで1.94 msで、勝っているのはモデル単体だけでした
           （MinMaxとEntropyの行は同じファイルを2回計測したものなので（finding 02参照）、1.38と1.35はばらつきを含む1つの数値として読んでください）。
           4スレッドでは1.52 msが0.60 msになりました。mAPは0.9107から0.9097へ0.0010低下し、どのクラスも変化は0.001以下、
           半分未満しか見えない物体へのrecallも同じ53物体で0.910のままでした。step 5で1コアでは達成できなかった数値を、ネットワークではなく演算方式を変えることで達成しました。</p>
@@ -1445,7 +1447,7 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
       detector runs end to end in 1.20 ms against the classical 2.13 ms at identical mAP — and the first latency
       measurement was discarded for having been taken on a hot box, with both numbers kept in the repository.
       Static INT8 with MinMax calibration then brings the one-thread model time from 3.57 ms to
-      1.38 ms (2.6×), under the classical 2.13 ms, at mAP 0.9097 against fp32's
+      1.38 ms (2.6×), under the classical 2.13 ms from another session (timed together end to end: 1.94 vs 1.80 ms), at mAP 0.9097 against fp32's
       0.9107; pruning half the channels reaches 0.8454 after a three-epoch fine-tune.</p>
     <p lang="ja">シミュレーション上のテーブルを対象に、評価指標を先に作る方針で複数物体検出を構築しました。ラベルはMuJoCoのsegmentation bufferから取得するため、
       遠近法やocclusionの下でも厳密です。occlusionの割合には2回目のパスが必要ですが、厳密な枝刈りルールでその量を半分にしました。
@@ -1456,7 +1458,7 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
       ランダム化しないモデルは外観の変化で0.15に崩れ、photometric augmentationでも0.52までしか回復せず、ランダム化に上乗せしても効果は0.0007です。
       ONNX Runtimeを使うと、検出器はend-to-endで1.20 ms（古典的手法は2.13 ms）、mAPは同等です。最初のlatency計測値は過熱したマシンで取ったため破棄し、
       両方の数値をリポジトリに残しています。さらにMinMax calibrationによるstatic INT8で、1スレッドのモデル時間は3.57 msから1.38 ms（2.6倍）となり、
-      古典的手法の2.13 msを下回りました。mAPは0.9097（fp32は0.9107）です。channelの半分をpruningすると、3 epochのfine-tune後で0.8454になります。</p>
+      別セッションで計測した古典的手法の2.13 msを下回りました（同一プロセスのend-to-endでは1.94 ms対1.80 ms）。mAPは0.9097（fp32は0.9107）です。channelの半分をpruningすると、3 epochのfine-tune後で0.8454になります。</p>
   </div>
 </section>
 

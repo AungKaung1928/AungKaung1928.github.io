@@ -295,7 +295,7 @@
                             <li>重なり合う3〜6個の物体を検出するanchor-free検出器。ラベルはレンダラーのsegmentation bufferから生成</li>
                             <li>COCO mAPはライブラリを使わず自前で実装。baselineは古典的な画像処理パイプライン</li>
                         </ul>
-                        <p class="project-result">mAP@[.5:.95] <b>0.911</b> vs classical 0.532 · INT8 <b>1.38 ms</b> <span lang="en">on one thread</span><span lang="ja">（1スレッド）</span> at mAP 0.910, 2.6× fp32, <span lang="en">under classical 2.13 ms</span><span lang="ja">古典手法の2.13 msを下回る</span></p>
+                        <p class="project-result">mAP@[.5:.95] <b>0.911</b> vs classical 0.532 · INT8 <b>1.38 ms</b> <span lang="en">on one thread</span><span lang="ja">（1スレッド）</span> at mAP 0.910, 2.6× fp32, <span lang="en">faster than classical as a model; end to end in one process 1.94 vs 1.80 ms</span><span lang="ja">モデル単体では古典手法より速いが、同一プロセスのend-to-endでは1.94 ms対1.80 ms</span></p>
                         <p class="project-limit" lang="en">Pruning cost 0.065 mAP for little latency, so INT8 alone ships. Rendered data only; no real-camera test.</p>
                         <p class="project-limit" lang="ja">PruningはmAPを0.065落とす割にlatencyがほぼ変わらず不採用。INT8のみ採用。データはレンダリング画像のみで、実カメラでの検証は未実施。</p>
                         <div class="project-links">
