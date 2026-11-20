@@ -1365,8 +1365,11 @@ off = 1×1 conv → 2 channels</code></pre>
       <li><strong>Occlusion robustness.</strong> Only 0.6 % of objects are occluded past half. The 0.910 recall
         in that band rests on 53 samples. Testing it properly needs a lower camera and a smaller separation, and
         a regenerated dataset.</li>
-      <li><strong>Sim-to-real.</strong> Both regimes are rendered. The <code>easy</code>→<code>hard</code> gap is
-        a measured stand-in for the real gap, not the real gap.</li>
+      <li><strong>Sim-to-real: measured, and it does not transfer.</strong> On 50 labelled real photos of toy
+        groceries (HOPE), cropped to the sim camera's view so objects come out at the sim's own size (27.9 vs 28.4 px),
+        the <code>hard</code> model scores mAP 0.0063 and the <code>easy</code> model 0.0002. The randomiser varies only colour,
+        table and light; the real objects carry printed packaging, and which difference costs most is not measured. Textures, a frozen pretrained backbone and distractors are
+        coded as next tests and not measured yet (repo README, step 7).</li>
       <li><strong>Single seed on the ablation.</strong> The eight-cell grid was run once. The large effects
         (0.147 vs 0.874) are far outside any plausible seed noise; the small ones (+0.016 for geometric
         augmentation) are labelled suggestive rather than proven.</li>
@@ -1378,8 +1381,8 @@ off = 1×1 conv → 2 channels</code></pre>
     <ul class="tight" lang="ja">
       <li><strong>occlusionへの頑健性。</strong>半分以上隠れている物体は0.6 %だけです。その帯でのrecall 0.910は53サンプルに基づいています。
         きちんと検証するには、カメラを低くし、物体間隔を狭めて、データセットを作り直す必要があります。</li>
-      <li><strong>Sim-to-real。</strong>どちらのregimeもレンダリング画像です。<code>easy</code>→<code>hard</code>の差は、現実とのギャップを計測可能な形で代替したものであり、
-        現実のギャップそのものではありません。</li>
+      <li><strong>Sim-to-real：計測した結果、転移しません。</strong>おもちゃの食料品を写したラベル付きの実写真50枚（HOPE）を、シミュレーションのカメラと同じ画角に切り出して評価しました（物体の大きさは27.9 pxで、シミュレーションの28.4 pxとほぼ同じ）。
+        <code>hard</code>モデルはmAP 0.0063、<code>easy</code>モデルは0.0002です。ランダム化しているのは色・テーブル・照明だけで、実物には印刷されたパッケージがあります。どの違いが最も効いているかは計測していません。テクスチャ、事前学習済みバックボーンの固定、ディストラクタは次の検証として実装済みですが、まだ計測していません（リポジトリのREADME step 7）。</li>
       <li><strong>ablationは単一seed。</strong>8条件のグリッドは1回しか実行していません。大きな効果（0.147対0.874）はseedによるノイズの範囲を大きく超えていますが、
         小さな効果（geometric augmentationの+0.016）は証明ではなく示唆として扱っています。</li>
       <li><strong>3クラス、カメラ姿勢1つ、配置分布1つ。</strong>新しい物体カテゴリや新しい視点への汎化は、ここでは一切検証していません。</li>
