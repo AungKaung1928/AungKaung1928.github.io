@@ -43,10 +43,10 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
     <h1><span lang="en">A C++ Environment That Matches Python to the Bit</span><span lang="ja">Pythonとビット単位で一致するC++環境</span></h1>
     <p class="deck" lang="en">The Microduck balance environment rewritten in C++17 on eight threads, with a pybind11 drop-in so
       the Python training script runs on it unchanged. Proven bit-identical to the Python reference first
-      (6,275 of 6,275 observations, tested on every commit), measured afterwards: 1.9–2.0× the throughput, the
-      same policy score.</p>
+      (6,275 of 6,275 observations, tested on every commit), measured afterwards: 1.9–2.0× the throughput, a
+      similar policy score. Correction 2026-11-21: the C++ runs trained with a joint-velocity penalty 21× weaker than the Python runs (one hard-coded weight, now fixed); final scores are fair, C++ retrain pending.</p>
     <p class="deck" lang="ja">MicroduckのバランスEnvironmentをC++17で8スレッド上に書き直し、pybind11の差し替えクラスによってPythonの学習スクリプトを無修正で動かせるようにしました。
-      まずPython版とのビット単位の一致（6,275個中6,275個のobservation、コミットごとにテスト）を証明し、その後に計測したところ、throughputは1.9〜2.0倍、policyのスコアは同等でした。</p>
+      まずPython版とのビット単位の一致（6,275個中6,275個のobservation、コミットごとにテスト）を証明し、その後に計測したところ、throughputは1.9〜2.0倍、policyのスコアは同等でした。（2026-11-21訂正：C++側の学習はjoint速度ペナルティがPython側の21分の1でした。重み1つのハードコードが原因で修正済み。最終評価は公平、C++の再学習は未実施。）</p>
     <div class="chips">
       <span class="chip">C++17</span><span class="chip">MuJoCo 3.12</span><span class="chip">pybind11</span>
       <span class="chip">std::thread</span><span class="chip">doctest</span><span class="chip">ASan · UBSan · TSan</span>
@@ -98,8 +98,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         <div>
           <span class="tag"><span lang="en">C++17 · 8 threads, this repo</span><span lang="ja">C++17 · 8スレッド（本リポジトリ）</span></span>
           <span class="big">3.1 h</span>
-          <p lang="en">Same 50M-step PPO run, <code>ppo.py</code> unchanged. Return <strong>339.4 ± 2.3</strong> over 3 seeds — no backend difference. Shared memory, one atomic counter; ASan · UBSan · TSan clean in CI.</p>
-          <p lang="ja">同じ50M stepのPPO学習、<code>ppo.py</code>は無修正。returnは<strong>339.4 ± 2.3</strong>（3 seeds）でbackend間の差なし。共有メモリとatomicカウンタ1つ。CIでASan · UBSan · TSanすべてクリア。</p>
+          <p lang="en">Same 50M-step PPO run, <code>ppo.py</code> unchanged, one reward weight 21× weaker (fixed 2026-11-21, retrain pending). Return <strong>339.4 ± 2.3</strong> over 3 seeds — no backend difference. Shared memory, one atomic counter; ASan · UBSan · TSan clean in CI.</p>
+          <p lang="ja">同じ50M stepのPPO学習、<code>ppo.py</code>は無修正（reward重み1つが21分の1、2026-11-21修正、再学習は未実施）。returnは<strong>339.4 ± 2.3</strong>（3 seeds）でbackend間の差なし。共有メモリとatomicカウンタ1つ。CIでASan · UBSan · TSanすべてクリア。</p>
         </div>
       </div>
       <div class="vtitle" style="margin-top:8px"><span lang="en">env-steps/s at 8 workers — identical random actions, same hour</span><span lang="ja">8 workerでのenv-steps/s — 同一のランダムaction、同じ時間帯</span></div>
@@ -116,7 +116,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
     <ul class="keypoints">
       <li><b>01</b><span lang="en"><strong>Bit-identical to the Python environment.</strong> 6,275 of 6,275 observations, 0 reward diffs over 25 episodes with no tolerance; CI reruns it on every push against a pinned commit of the Python repo.</span><span lang="ja"><strong>Python環境とビット単位で一致。</strong>25 episodesで6,275個中6,275個のobservationが一致、reward差0、許容誤差なし。CIがpushごとに、Pythonリポジトリの固定コミットに対して再実行。</span></li>
       <li><b>02</b><span lang="en"><strong>1.9–2.0× the Python processes at 8 workers.</strong> 12,327 vs 6,385 env-steps/s under identical random actions, above the 1.3× the README set as the bar; the full environment alone runs 20,287 burst and 13,300–16,200 sustained over six minutes.</span><span lang="ja"><strong>8 workerでPythonプロセスの1.9〜2.0倍。</strong>同一のランダムactionで12,327対6,385 env-steps/s。READMEが定めた基準1.3×を上回る。環境単体では20,287 burst、6分間のsustainedで13,300〜16,200。</span></li>
-      <li><b>03</b><span lang="en"><strong>Trains the same policy, faster.</strong> The 50M-step PPO run takes 3.1 h here vs 3.8–4.4 h; 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 over 3 seeds, no backend difference in return or survival, and the same step-size failure and fix reproduce.</span><span lang="ja"><strong>同じpolicyをより速く学習。</strong>50M stepのPPO学習は3.8〜4.4時間に対して3.1時間。3 seedsで500点中339.4 ± 2.3対348.1 ± 8.1、returnにもsurvivalにもbackend間の差なし。同じstep sizeの失敗と対処も再現。</span></li>
+      <li><b>03</b><span lang="en"><strong>Trains a similar policy, faster.</strong> The C++ runs used a joint-velocity penalty 21× weaker (fixed 2026-11-21, retrain pending). The 50M-step PPO run takes 3.1 h here vs 3.8–4.4 h; 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 over 3 seeds, no backend difference in return or survival, and the same step-size failure and fix reproduce.</span><span lang="ja"><strong>同等のpolicyをより速く学習。</strong>C++側はjoint速度ペナルティが21分の1でした（2026-11-21修正、再学習は未実施）。50M stepのPPO学習は3.8〜4.4時間に対して3.1時間。3 seedsで500点中339.4 ± 2.3対348.1 ± 8.1、returnにもsurvivalにもbackend間の差なし。同じstep sizeの失敗と対処も再現。</span></li>
       <li><b>04</b><span lang="en"><strong>34 C++ cases, 41 Python tests, three sanitizers.</strong> CI builds Release plus ASan/UBSan and TSan; four arithmetic details (numpy's pairwise sum, <code>pow</code>, float32 widening, solver warm-start) decided the last bit.</span><span lang="ja"><strong>C++ 34ケース、Python 41テスト、3つのsanitizer。</strong>CIはReleaseに加えASan/UBSanとTSanでビルド。最終ビットを決めたのは4つの演算の細部（numpyのpairwise sum、<code>pow</code>、float32の拡張、ソルバーのwarm-start）。</span></li>
       <li class="neg"><b>05</b><span lang="en"><strong>Scaling stalls at 45% — the chip, not the processes.</strong> Thread efficiency at 8 workers matches the Python processes' 42%, and the Python environment delivers about 6,400 env-steps/s, half the 13,300 its project had budgeted. Equality is proven on one machine, one compiler, one C library.</span><span lang="ja"><strong>スケーリングは効率45%で頭打ち — 原因はプロセスではなくチップ。</strong>8 workerでのスレッド効率はPythonプロセスの42%と同水準。Python環境は約6,400 env-steps/sで、同プロジェクトが見積もった13,300の半分。一致の証明は1台のマシン・1つのコンパイラ・1つのCライブラリでのもの。</span></li>
     </ul>
@@ -664,11 +664,11 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
         プロセス間の往復は、その積算に含まれていなかったのです。学習スクリプト自体がupdateごとに速度をログに出しており、見積もりは積算値ではなくその数値から立てるべきです。</p>
     </div>
     <h3><span lang="en">PPO on the C++ environment, 50M steps</span><span lang="ja">C++環境でのPPO、50M steps</span></h3>
-    <p class="prose" lang="en">The Python project's step-3 run, repeated here with the same configuration and training seed, the
+    <p class="prose" lang="en">The Python project's step-3 run, repeated here with the same configuration (except the joint-velocity weight, 21× weaker on C++ until the 2026-11-21 fix) and training seed, the
       same schedule (25M steps without a KL stop, then 25M resumed with <code>--target-kl 0.02</code>), and its
       <code>ppo.py</code> unchanged. Both final policies were then scored on the <em>Python</em> environment,
       100 episodes on each of the same 5 evaluation seeds, ± over the seed means.</p>
-    <p class="prose" lang="ja">Pythonプロジェクトのstep 3の学習を、同じ設定・同じ学習seed・同じスケジュール（KL stopなしで25M steps、その後<code>--target-kl 0.02</code>付きで25M再開）、
+    <p class="prose" lang="ja">Pythonプロジェクトのstep 3の学習を、同じ設定（joint速度の重みのみ例外：2026-11-21の修正までC++側は21分の1）・同じ学習seed・同じスケジュール（KL stopなしで25M steps、その後<code>--target-kl 0.02</code>付きで25M再開）、
       そして無修正の<code>ppo.py</code>でここで再実行しました。最終的な2つのpolicyはどちらも<em>Python</em>環境で評価し、同じ5つの評価seedそれぞれで100 episodes、±はseed平均間のばらつきです。</p>
     <div class="tablewrap">
       <table>
@@ -878,7 +878,7 @@ obs, rew, done, info = envs.step(actions)                     # actions: (8, 14)
       isolation was not the scaling loss; the chip is. Then the proof that matters: the Python project's full
       50M-step PPO run, repeated on this backend on three training seeds in about 3.1 hours each instead of
       3.8 to 4.4, trains policies that score 339.4 ± 2.3 of 500 on the Python environment against 348.1 ± 8.1
-      for the ones trained there, with no backend difference in return or survival at three seeds,
+      for the ones trained there, with no backend difference in return or survival at three seeds (the C++ runs used a 21× weaker joint-velocity penalty, fixed 2026-11-21, retrain pending),
       and it reproduces the same step-size failure and the same fix along the way.</p>
     <p lang="ja">Microduckのバランスタスクには、8つのforkプロセスで動くPython環境があります。本プロジェクトは同じ環境をC++17で8スレッド上に実装し、
       pybind11 bindingと差し替え用クラスによって、Pythonの学習スクリプトを無修正で動かせるようにしたものです。時間計測より先に、両者をビット単位で一致させました。

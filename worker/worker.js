@@ -116,7 +116,9 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    2.0x in both runs, clearing the 1.3x rule written in advance. The
    comparison also showed the Python vector env delivering about 6,400
    env-steps/s at 8 processes, half the 13,300 budget. Training on it: the
-   Python project's full 50M-step PPO run, repeated with the same config and
+   Python project's full 50M-step PPO run, repeated with the same config (except the v2 joint_vel
+   weight: -2e-3 on C++ vs -4.2e-2 on Python, 21x, fixed 2026-11-21, C++ retrain
+   pending) and
    training seed, took 3.1 h instead of 4.4 (1.41x over the first 25M, 1.45x
    over the second; the forward pass and update are single-threaded on the
    critical path; seeds 1 and 2 ran 1.25x). Over three training seeds per

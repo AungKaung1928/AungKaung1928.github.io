@@ -1528,7 +1528,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
       across 25 episodes are bit-identical to this environment's, which took matching numpy's summation order,
       Python's <code>pow</code> and a float32 constant. Its second claim is the one that matters here: alternating
       the two backends in one run, its threads deliver 1.9 to 2.0× this vector environment at eight workers. Its
-      third is this page's step 3, run again on that backend with the same configuration and training seed: 50M
+      third is this page's step 3, run again on that backend with the same configuration (except one reward weight, 21× weaker on C++ until a 2026-11-21 fix; retrain pending) and training seed: 50M
       steps in 3.1 hours instead of 4.4, and a policy that scores 341.9 ± 4.1 of 500 on this environment against
       344.8 ± 2.9 for the one trained here, inside the evaluation noise. The runaway step size of chunk 1
       reproduced there too, and the KL stop fixed it the same way. Its survival was 0.95 against this policy's
@@ -1539,7 +1539,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
     <p lang="ja">別プロジェクトの<a href="mujoco-vecenv-cpp.html">スレッド化したC++17バックエンド</a>は、<code>env.py</code>と<code>vec_env.py</code>を8スレッドの単一プロセスとpybind11のバインディングに移植し、
       その上で<code>ppo.py</code>を無変更で動かします。1つ目の主張は速度ではなく同一性です。25 episodeにわたる6,275個中6,275個のobservationがこの環境とビット単位で一致しており、
       そのためにnumpyの加算順序、Pythonの<code>pow</code>、float32の定数まで合わせました。2つ目の主張がここで重要なものです。1回の実行の中で2つのバックエンドを交互に使って比べると、
-      8 workerでC++版のスレッドはこのvector環境の1.9〜2.0倍の速度を出します。3つ目は、このページのstep 3を同じ設定・同じ学習seedでそのバックエンド上で再実行したものです。
+      8 workerでC++版のスレッドはこのvector環境の1.9〜2.0倍の速度を出します。3つ目は、このページのstep 3を同じ設定（reward重み1つのみ例外：2026-11-21の修正までC++側は21分の1、再学習は未実施）・同じ学習seedでそのバックエンド上で再実行したものです。
       50 M stepが4.4時間ではなく3.1時間で終わり、得られたpolicyはこの環境で500点中341.9 ± 4.1を記録しました。ここで学習したpolicyの344.8 ± 2.9とは評価ノイズの範囲内です。
       chunk 1でのstep sizeの暴走はC++版でも再現し、KL stopで同じように解消しました。survivalはC++版が0.95、このpolicyが0.73だったため、両バックエンドでさらに2つのseedで学習しました。
       このステップをseed 1と2で再実行すると、scoreは357.3と342.2、survivalは0.999と0.895でした。ここでの0.73は3回中の低い引きであり、バックエンドごとに3 seedで比べると、

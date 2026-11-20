@@ -252,8 +252,8 @@
                             <li>6,275個のobservationすべてがPythonとビット単位で一致。CIはASan・UBSan・TSan付きで実行</li>
                         </ul>
                         <p class="project-result"><b>1.9–2.0×</b> <span lang="en">the Python vector env at 8 workers</span><span lang="ja">Python vector env比（8 workers）</span> (12,327 vs 6,385 env-steps/s) · 50M-step PPO <b>3.1 h</b> vs 3.8–4.4 h</p>
-                        <p class="project-limit" lang="en">Three training seeds per backend: 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 on the Python env, no backend difference in return or survival. Faster to train, not better.</p>
-                        <p class="project-limit" lang="ja">backendごとに3 seeds学習し、Python環境での評価は339.4 ± 2.3 vs 348.1 ± 8.1（500点満点）。returnにも生存率にも差はなし。速くなるだけで、賢くはならない。</p>
+                        <p class="project-limit" lang="en">Three training seeds per backend: 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 on the Python env, no backend difference in return or survival. Faster to train, not better. Correction 2026-11-21: the C++ runs trained with a joint-velocity penalty 21× weaker than the Python runs (one hard-coded weight, now fixed); final scores are fair, C++ retrain pending.</p>
+                        <p class="project-limit" lang="ja">backendごとに3 seeds学習し、Python環境での評価は339.4 ± 2.3 vs 348.1 ± 8.1（500点満点）。returnにも生存率にも差はなし。速くなるだけで、賢くはならない。（2026-11-21訂正：C++側の学習はjoint速度ペナルティがPython側の21分の1でした。重み1つのハードコードが原因で修正済み。最終評価は公平、C++の再学習は未実施。）</p>
                         <div class="project-links">
                             <a href="projects/mujoco-vecenv-cpp.html" class="project-link is-primary"><span lang="en">How it works</span><span lang="ja">解説を読む</span> <span aria-hidden="true">&rarr;</span></a>
                             <a href="https://github.com/AungKaung1928/mujoco-vecenv-cpp" target="_blank" rel="noopener" class="project-link"><span lang="en">View on GitHub</span><span lang="ja">GitHub</span> <span aria-hidden="true">&rarr;</span></a>
