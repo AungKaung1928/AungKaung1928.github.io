@@ -1512,6 +1512,7 @@ python eval_gap.py --nominal runs/ppo_v2_chunk1.pt --dr runs/ppo_v2dr.pt   # -&g
           <tr class="hl"><td><span lang="en">ONNX Runtime, 1 intra-op thread, batch 1, p50 / p99</span><span lang="ja">ONNX Runtime、1 intra-opスレッド、batch 1、p50 / p99</span></td><td class="num">0.010 / 0.033 ms</td></tr>
           <tr><td><span lang="en">torch eager, 1 thread, batch 1, p50 / p99</span><span lang="ja">torch eager、1スレッド、batch 1、p50 / p99</span></td><td class="num">0.026 / 0.128 ms</td></tr>
           <tr><td><span lang="en">share of the 20 ms control period used at p99</span><span lang="ja">p99時点で20 msの制御周期に占める割合</span></td><td class="num">0.2%</td></tr>
+          <tr><td><span lang="en">same graph from the C++ API, ONNX Runtime 1.30.0, outputs bit-identical to Python: p50 C++ vs Python (5 runs each, on battery; added 2026-11-20)</span><span lang="ja">C++ APIから同じグラフを実行（ONNX Runtime 1.30.0、出力はPythonとビット単位で一致）：p50 C++ / Python（各5回、バッテリー駆動、2026-11-20追加）</span></td><td class="num">0.0063 / 0.0088 ms</td></tr>
         </tbody>
       </table>
     </div>
