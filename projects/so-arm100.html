@@ -642,6 +642,36 @@ python eval_gap.py --ckpt runs/lift_scr_nominal/policy.pt --task lift --tag nomi
 python eval_gap.py --ckpt runs/lift_ft_dr/policy.pt       --task lift --tag dr      --jobs 8
 python compare_gap.py runs/gap_nominal.json runs/gap_dr.json
 python export_onnx.py --ckpt runs/lift_ft_dr/policy.pt --out runs/policy.onnx</code></pre>
+    <div class="stack prose" id="real2sim">
+      <h3><span lang="en">Fitting the servo to a real arm</span><span lang="ja">サーボを実機に合わせる</span></h3>
+      <p lang="en">Added 2026-11-20. A public recording of a real SO-100 arm (<code>lerobot/svla_so100_pickplace</code>, 50 episodes,
+        30 fps) logs the leader-arm command and the follower position every frame. <code>real_replay.py</code> feeds each real
+        command to the simulated arm and compares the two followers joint by joint; <code>fit_real2sim.py</code> fits the joint
+        zero offsets first, then the servo gain, damping ratio, armature and joint friction on episodes 0–9, and scores 40–49.</p>
+      <p lang="ja">2026-11-20追加。実機SO-100アームの公開記録（<code>lerobot/svla_so100_pickplace</code>、50エピソード、30 fps）には、
+        リーダーアームの指令とフォロワーの位置が毎フレーム記録されています。<code>real_replay.py</code>は実機の指令を1つずつシミュレーションのアームに与え、
+        2つのフォロワーを関節ごとに比較します。<code>fit_real2sim.py</code>はまず関節のゼロ点オフセットを、次にサーボのゲイン、減衰比、アーマチュア、関節摩擦を
+        エピソード0〜9でフィットし、40〜49で評価します。</p>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th><span lang="en">held-out episodes 40–49</span><span lang="ja">ホールドアウトのエピソード40〜49</span></th><th class="num"><span lang="en">mean error, deg</span><span lang="ja">平均誤差（度）</span></th></tr></thead>
+        <tbody>
+          <tr><td><span lang="en">model defaults, mid-range zero offsets</span><span lang="ja">モデルの既定値、範囲中央のゼロ点</span></td><td class="num">0.370</td></tr>
+          <tr><td><span lang="en">fitted zero offsets</span><span lang="ja">ゼロ点をフィット</span></td><td class="num">0.349</td></tr>
+          <tr><td><span lang="en">fitted offsets and servo (gain 50 → 38.8, joint friction 0.1 → 0.25)</span><span lang="ja">ゼロ点とサーボをフィット（ゲイン50 → 38.8、関節摩擦0.1 → 0.25）</span></td><td class="num">0.294</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack prose">
+      <p lang="en">Refit on single episodes, the real joint friction spans 0.22–0.28, outside the training randomisation range
+        (0.05–0.2). Made into a held-out cell (<code>real_fit</code>), it costs little: scripted expert lift 0.97, PPO lift 0.996
+        nominal-trained and 0.992 DR fine-tuned. Limits: one public recording, not my arm; passive damping came out 0.20, 0.018 and
+        0.11 in three runs, so this data does not identify it.</p>
+      <p lang="ja">エピソードごとに単独でフィットし直すと、実機の関節摩擦は0.22〜0.28で、学習時のランダム化範囲（0.05〜0.2）の外にあります。
+        これをheld-outセル（<code>real_fit</code>）にしても影響は小さく、スクリプトのエキスパートのliftは0.97、PPOのliftはnominal学習で0.996、
+        DRでのファインチューニング後で0.992です。限界：自分のアームではなく公開記録1つだけです。受動減衰は3回の実行で0.20、0.018、0.11となり、このデータでは決まりません。</p>
+    </div>
   </div>
 </section>
 

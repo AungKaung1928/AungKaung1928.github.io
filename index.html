@@ -267,10 +267,12 @@
                         <ul class="project-points" lang="en">
                             <li>One MuJoCo bench (four tasks, scripted IK expert, six held-out physics settings) feeds three policy repos: curriculum PPO, imitation (BC, DAgger, ACT) and a language-conditioned policy</li>
                             <li>Language tested on held-out paraphrases and unseen task–colour pairs, SmolVLA-base as reference</li>
+                            <li>Servo fitted to a public real SO-100 recording: held-out joint error 0.370 → 0.294°, and the real joint friction sits outside the training randomisation range</li>
                         </ul>
                         <ul class="project-points" lang="ja">
                             <li>1つのMuJoCoベンチ（4タスク、scripted IK expert、6種のheld-out physics）の上に3つのpolicyリポジトリ：curriculum PPO、imitation learning（BC・DAgger・ACT）、language-conditioned policy</li>
                             <li>言語指示はheld-outの言い換え文と未学習のタスク×色の組み合わせで検証。参照はSmolVLA-base</li>
+                            <li>実機SO-100の公開記録にサーボをフィット：held-outの関節誤差 0.370 → 0.294°。実機の関節摩擦は学習時のランダム化範囲の外</li>
                         </ul>
                         <p class="project-result">ACT <b>0.77</b> <span lang="en">lift from the camera (expert 0.93) vs BC 0.05, DAgger 0.14</span><span lang="ja">カメラ入力でのlift成功率（expert 0.93）vs BC 0.05、DAgger 0.14</span> · <span lang="en">DR fine-tune halves the held-out drop</span><span lang="ja">DR fine-tuneでheld-out低下が半減</span> 0.120 → 0.056</p>
                         <p class="project-limit" lang="en">RL result is one training seed. The language policy is measured and weak: 0.11 on seen pairs, 0.03 on unseen, encoder ablation inside noise.</p>

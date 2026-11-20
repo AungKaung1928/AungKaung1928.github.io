@@ -144,6 +144,13 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    laggy, noisy, small) each outside the randomised range, one evaluation
    protocol of 100 episodes x 5 seeds, a LeRobot v3 dataset recorder. A test
    caught a latency-buffer off-by-one that delayed every command one step.
+   Real2sim (2026-11-20): the simulated servo was fitted to a public real
+   SO-100 recording (lerobot/svla_so100_pickplace, 50 episodes, 30 fps):
+   held-out joint error 0.370 -> 0.349 (zero offsets) -> 0.294 deg (servo gain
+   50 -> 38.8, joint friction 0.1 -> 0.25). Real friction 0.22-0.28 per episode
+   is outside the training randomisation range; as a held-out cell it barely
+   matters (expert lift 0.97, PPO lift 0.996 / 0.992). Public data, not his own
+   arm; passive damping not identifiable.
    RL: PPO with a reach -> push -> lift curriculum (promotion at rolling
    success 0.8 / 0.8 / 0.6), nominal vs full randomisation, evaluated on the
    held-out cells, checkpoints proven bit-exact on resume, ONNX export.
