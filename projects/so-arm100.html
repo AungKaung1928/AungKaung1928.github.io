@@ -1004,10 +1004,26 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
         Dry-runモードでは、同じ特徴キーを持つスタブを相手にobservationの対応付けを検証するため、ダウンロードなしでテストスイートがこれをカバーできます。</p>
       <p lang="en">Measured over 10 episodes per task: <strong>reach 0.00, push 0.00, lift 0.00, pick_place 0.00</strong>, 0 of 40 as expected. One 50-step action
         chunk takes 3.16 s at the median (p90 3.30 s, n = 130) on 8 CPU threads, 64 times the
-        50 ms control period: on CPU a 500M-parameter VLA is not a real-time controller, whatever it scores after fine-tuning.</p>
+        50 ms control period: in this setup (three cameras, FP32) a 500M-parameter VLA on CPU is not a real-time controller.</p>
       <p lang="ja">タスクあたり10 episodeで計測した結果は<strong>reach 0.00、push 0.00、lift 0.00、pick_place 0.00</strong>で、予想どおり40回中0回でした。
         50 stepのaction chunk 1つの生成に、CPU 8スレッドで中央値3.16秒（p90 3.30秒、n = 130）かかり、50 msの制御周期の64倍です。
-        CPU上では、500Mパラメータ規模のVLAは、fine-tune後のスコアがどうであれリアルタイムのコントローラーにはなりません。</p>
+        この構成（カメラ3台、FP32）では、CPU上の500Mパラメータ規模のVLAはリアルタイムのコントローラーにはなりません。</p>
+      <h3 id="edge"><span lang="en">SmolVLA-base on a laptop CPU</span><span lang="ja">ノートPCのCPUでSmolVLA-base</span></h3>
+      <p lang="en">One 50-action chunk covers 2.5 s at 20 Hz. With three 512 px cameras, PyTorch FP32 needs
+        3.8 s and OpenVINO FP32 3.0 s per chunk (same process, calls interleaved; outputs match to 2.4e-6), so
+        neither keeps up. Half of the time is the vision encoder. With one camera the chunk drops to 1.8 s in
+        PyTorch, 1.4 s in OpenVINO FP32 and 0.73 s in OpenVINO with INT8 weights (p99 0.94 s). The INT8
+        output differs from FP32 by up to 0.09, so whether it is safe needs a closed-loop test on a fine-tuned
+        model; this base model scores 0 here, so it cannot show a drop. For scale, the 695k-parameter ACT policy
+        runs in 0.62 ms in ONNX Runtime. Intel Core Ultra 5 225H, 4 threads, not a Jetson.</p>
+      <p lang="ja">50アクションのチャンクは20 Hzで2.5秒分です。512 pxのカメラ3台では、1チャンクにPyTorch FP32で3.8秒、OpenVINO FP32で3.0秒かかり（同一プロセスで交互に計測、出力差2.4e-6）、どちらも間に合いません。
+        時間の約半分はビジョンエンコーダーです。カメラ1台にすると、PyTorchで1.8秒、OpenVINO FP32で1.4秒、INT8重みのOpenVINOで0.73秒（p99 0.94秒）になります。
+        INT8の出力はFP32と最大0.09ずれるため、安全かどうかはfine-tune済みモデルでの閉ループ評価が必要です。このベースモデルはここで0点なので、低下を示せません。
+        比較として、69.5万パラメータのACTはONNX Runtimeで0.62 msです。Intel Core Ultra 5 225H、4スレッドでの計測で、Jetsonではありません。</p>
+      <div class="tablewrap"><table><thead><tr><th><span lang="en">1 camera, 512 px</span><span lang="ja">カメラ1台、512 px</span></th><th class="num">p50 ms</th><th class="num"><span lang="en">max diff vs PyTorch</span><span lang="ja">PyTorchとの最大差</span></th></tr></thead>
+        <tbody><tr><td>PyTorch FP32</td><td class="num">1,848</td><td class="num">0</td></tr>
+        <tr><td>OpenVINO FP32</td><td class="num">1,398</td><td class="num">2.1e-6</td></tr>
+        <tr class="hl"><td><span lang="en">OpenVINO INT8 weights</span><span lang="ja">OpenVINO INT8重み</span></td><td class="num">733</td><td class="num">0.093</td></tr></tbody></table></div>
       <h3><span lang="en">The LoRA gate</span><span lang="ja">LoRAの可否判定</span></h3>
       <p lang="en">Before proposing a fine-tune, measure whether one step of it is affordable. The gate builds a decoder
         with SmolVLM-256M's language-model shape (hidden 576, 30 layers, 9 heads, MLP 1536), attaches rank-8
