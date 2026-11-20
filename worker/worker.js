@@ -151,6 +151,8 @@ Projects — four current, all robot learning on CPU, plus four earlier ones.
    is outside the training randomisation range; as a held-out cell it barely
    matters (expert lift 0.97, PPO lift 0.996 / 0.992). Public data, not his own
    arm; passive damping not identifiable.
+   CI replays held-out real episode 40 on every push and fails above 0.37 deg
+   (measured 0.345; a wrong gain or a 2-frame delay gives 0.61-0.76).
    RL: PPO with a reach -> push -> lift curriculum (promotion at rolling
    success 0.8 / 0.8 / 0.6), nominal vs full randomisation, evaluated on the
    held-out cells, checkpoints proven bit-exact on resume, ONNX export.
