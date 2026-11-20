@@ -1004,10 +1004,10 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
         Dry-runモードでは、同じ特徴キーを持つスタブを相手にobservationの対応付けを検証するため、ダウンロードなしでテストスイートがこれをカバーできます。</p>
       <p lang="en">Measured over 10 episodes per task: <strong>reach 0.00, push 0.00, lift 0.00, pick_place 0.00</strong>, 0 of 40 as expected. One 50-step action
         chunk takes 3.16 s at the median (p90 3.30 s, n = 130) on 8 CPU threads, 64 times the
-        50 ms control period: in this setup (three cameras, FP32) a 500M-parameter VLA on CPU is not a real-time controller.</p>
+        50 ms control period: in this setup (three cameras, FP32) a 450M-parameter VLA on CPU is not a real-time controller.</p>
       <p lang="ja">タスクあたり10 episodeで計測した結果は<strong>reach 0.00、push 0.00、lift 0.00、pick_place 0.00</strong>で、予想どおり40回中0回でした。
         50 stepのaction chunk 1つの生成に、CPU 8スレッドで中央値3.16秒（p90 3.30秒、n = 130）かかり、50 msの制御周期の64倍です。
-        この構成（カメラ3台、FP32）では、CPU上の500Mパラメータ規模のVLAはリアルタイムのコントローラーにはなりません。</p>
+        この構成（カメラ3台、FP32）では、CPU上の450Mパラメータ規模のVLAはリアルタイムのコントローラーにはなりません。</p>
       <h3 id="edge"><span lang="en">SmolVLA-base on a laptop CPU</span><span lang="ja">ノートPCのCPUでSmolVLA-base</span></h3>
       <p lang="en">One 50-action chunk covers 2.5 s at 20 Hz. With three 512 px cameras, PyTorch FP32 needs
         3.8 s and OpenVINO FP32 3.0 s per chunk (same process, calls interleaved; outputs match to 2.4e-6), so
