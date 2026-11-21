@@ -99,26 +99,6 @@ window.addEventListener('scroll', () => {
 window.addEventListener('resize', onScroll, { passive: true });
 onScroll();
 
-/* ── Scroll reveal ───────────────────────────────────────────────── */
-/* The hiding rule lives behind html.reveal-ready, so if JS never runs
- * the content stays visible instead of disappearing. */
-
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-if ('IntersectionObserver' in window && !reduced) {
-    root.classList.add('reveal-ready');
-
-    const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            entry.target.classList.add('in');
-            observer.unobserve(entry.target);
-        }
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
-
-    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-}
-
 /* ── GitHub overview ─────────────────────────────────────────────── */
 /* repos.json is written by the Pages workflow on every deploy and once a
  * day, so the visitor's browser never calls the GitHub API (no rate limit,

@@ -782,20 +782,6 @@ footer {
 .footer-top { color: var(--ink-3); text-decoration: none; transition: color 0.18s; }
 .footer-top:hover { color: var(--accent); }
 
-/* ── Scroll reveal (opt-in: the class is added by script.js) ─────── */
-
-html.reveal-ready .reveal {
-    opacity: 0;
-    transform: translateY(16px);
-}
-
-html.reveal-ready .reveal.in {
-    opacity: 1;
-    transform: none;
-    transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
 /* Compact index: every project not shown as a card gets one line, so none is hidden behind a click. */
 .more-title { font-size: 1rem; font-weight: 600; color: var(--ink); margin: 2.5rem 0 0.5rem; }
 
@@ -885,7 +871,6 @@ html.reveal-ready .reveal.in {
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
     }
-    html.reveal-ready .reveal { opacity: 1; transform: none; }
 }
 
 @media print {
