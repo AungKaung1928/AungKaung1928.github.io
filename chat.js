@@ -41,7 +41,7 @@ const TOPICS = [
         id: 'greeting',
         k: ['hi', 'hello', 'hey', 'yo', 'howdy', 'good morning', 'good evening', 'good afternoon'],
         weight: 0.5,
-        a: "Hi — I answer questions about Aung Kaung Myat's robotics work: background, stack, projects, how he works and contact; say \"what can I ask you?\" for the list.",
+        a: "Hi. I answer questions about Aung Kaung Myat's robotics work: his projects, his skills and how he works.",
     },
     {
         id: 'who',
@@ -788,14 +788,11 @@ const NOT_COVERED = {
     a: "That is not published on this page and I do not guess about it. Employers, dates, location, visa, salary, university and availability are all absent. Email him directly: " + EMAIL,
 };
 
-const FALLBACK =
-    "I did not catch that. I cover his robotics work only: background, stack, projects, how he works, contact.\n\n" +
-    "Try \"explain each project\", \"how does he work\" or \"what are the gaps\" — or open the topics list in the header.";
 
 const OFF_TOPIC_RE = /\b(recipe|weather|joke|poem|bitcoin|crypto|football|movie|song|translate|homework|write me|code for me|stock|news)\b/;
 
 const OFF_TOPIC =
-    "I only answer questions about Aung Kaung Myat's robotics work — background, stack, projects, contact.";
+    "That is outside what I know. I only answer questions about Aung Kaung Myat's robotics work: projects, skills, how he works and how to reach him.";
 
 /* ── Matching ────────────────────────────────────────────────────── */
 
@@ -843,7 +840,8 @@ function scoreTopics(q) {
 function localAnswer(raw) {
     const q = raw.toLowerCase();
     const brief = !DETAIL_RE.test(q);
-    const scored = scoreTopics(q);
+    let scored = scoreTopics(q);
+    if (!scored.length) scored = scoreTopics(fixTypos(q));
 
     // Drop the greeting once any real topic also matched.
     const real = scored.filter((s) => s.t.id !== 'greeting');
@@ -854,7 +852,7 @@ function localAnswer(raw) {
             return { text: NOT_COVERED.a };
         }
         if (OFF_TOPIC_RE.test(q)) return { text: OFF_TOPIC };
-        return { text: FALLBACK };
+        return { text: '', miss: true };
     }
 
     const top = picked[0];
@@ -873,7 +871,178 @@ function localAnswer(raw) {
         parts.push(second.t.a);
     }
 
-    return { text: parts.join('\n\n') };
+    return { text: parts.join('\n\n'), topic: top.t.id, brief };
+}
+
+/* Typo tolerance: a word one edit away from a known keyword (5+ letters)
+ * is read as that keyword, so "projetcs" still finds the projects. */
+const VOCAB = [...new Set(TOPICS.flatMap((t) => t.k)
+    .map((k) => k.replace(/^!/, ''))
+    .filter((k) => /^[a-z]{5,}$/.test(k)))];
+
+function oneEdit(a, b) {
+    if (a === b) return true;
+    if (Math.abs(a.length - b.length) > 1) return false;
+    let i = 0;
+    while (i < a.length && a[i] === b[i]) i++;
+    if (a.length === b.length) {
+        return a.slice(i + 1) === b.slice(i + 1)                                   // substitution
+            || (a[i] === b[i + 1] && a[i + 1] === b[i] && a.slice(i + 2) === b.slice(i + 2));  // swap
+    }
+    const [lo, hi] = a.length < b.length ? [a, b] : [b, a];
+    return lo.slice(i) === hi.slice(i + 1);                                         // insertion / deletion
+}
+
+function fixTypos(q) {
+    return q.replace(/[a-z]{5,}/g, (w) => VOCAB.find((k) => oneEdit(w, k)) || w);
+}
+
+/* ── Conversation ────────────────────────────────────────────────────
+ * Sits in front of the matcher. It notices a stuck visitor ("what do I
+ * ask?", "I don't get it"), a "simpler" or "more" follow-up, thanks, and
+ * repeated misses, remembers the last topic, and offers a few tappable
+ * next questions only at those moments, never after a normal answer.
+ * Pure: no DOM here. Every reply is { text, hints? }.
+ * ------------------------------------------------------------------ */
+
+/* Same facts as the answers above, in everyday words. */
+const PLAIN = {
+    who: "He writes software for real robots at work. In his own time he teaches robots skills inside a simulator, then checks with numbers whether the learned skill beats a simple hand-written method.",
+    projects: "Four main projects, in everyday words: a small two-legged robot that learns to keep its balance; a faster C++ version of that robot's simulator; a robot arm that learns to lift a cube, by trial and error, by copying demonstrations and from text instructions; and a camera model that finds objects piled on a table. Each one is compared with a simple method that does not learn.",
+    duck: "A 25 cm two-legged robot learns to stay upright inside a simulator, by trial and error. It scores 344.8 out of 500, where a hand-tuned controller scores 175.8. Higher is better.",
+    cpp: "He rewrote the biped's simulator in C++ so training runs faster. It gives exactly the same numbers as the Python version, down to the last bit, and runs about twice as fast with 8 workers.",
+    arm: "A simulated robot arm learns to lift a cube from a camera image. Copying demonstrations with a method that plans short chunks of motion works 77% of the time; copying one step at a time works 5%.",
+    detection: "A camera model that finds objects piled on a table, trained only on computer-made images. Its accuracy score is 0.911, where 1.0 is perfect and a classic method gets 0.532. A compressed version needs 1.38 ms per image on one CPU core.",
+    pose: "A small neural network reads where a cube sits from one camera image, with a typical error of 0.59 mm. A classic image-processing method gets 1.91 mm.",
+    rl: "He wrote a well-known learning algorithm (PPO) from scratch and tested it on a balancing pole, next to a controller worked out by hand. The same code now trains the biped and the arm.",
+    simtoreal: "Sim-to-real means a skill learned in a simulator still works on a real robot. He tests it by changing the simulator's physics and checking whether the skill survives. Results are mixed and all published: it helped the arm and hurt the biped. Nothing has run on a real robot yet.",
+    workstyle: "He builds a simple method first and makes it as good as he can. Only when a learned method beats it does the result count. Failed experiments are published too.",
+};
+
+/* Tappable next questions: the label is sent, the topic is answered. */
+const HINTS = {
+    who: 'Who is he, in one line?',
+    projects: 'What has he built?',
+    duck: 'The balancing biped',
+    arm: 'The robot arm',
+    detection: 'The object detector',
+    cpp: 'Why rewrite it in C++?',
+    simtoreal: 'What is sim-to-real?',
+    workstyle: 'How does he work?',
+    stack: 'Which tools does he use?',
+    gaps: 'What are his gaps?',
+    contact: 'How do I reach him?',
+};
+const STARTERS = ['who', 'projects', 'workstyle', 'simtoreal', 'stack', 'contact', 'gaps'];
+const RELATED = {
+    who: ['projects', 'workstyle'],
+    projects: ['duck', 'arm', 'detection'],
+    duck: ['cpp', 'simtoreal', 'arm'],
+    cpp: ['duck', 'workstyle'],
+    arm: ['simtoreal', 'detection'],
+    detection: ['arm', 'workstyle'],
+    pose: ['arm', 'detection'],
+    rl: ['duck', 'arm'],
+    simtoreal: ['arm', 'gaps'],
+    workstyle: ['projects', 'gaps'],
+    gaps: ['contact', 'projects'],
+};
+
+const INTENT = {
+    stuck: /\b(what (do|should|can|could) i (ask|say|type)|what (to|should i) ask|idk|i (do ?n'?t|dont) know|dunno|no idea|not sure|where (do i|to) start|what now|any ideas?)\b|^\s*(\?+|hm+|huh|uh+|um+|what)\s*[?!.]*\s*$|何を聞|ヘルプ|わからない|分からない/i,
+    simpler: /\b(simpler|simply|plain (english|words)|eli5|layman|too (long|technical|complex)|(do ?n'?t|dun|dont|didn'?t) (get|understand)|confus\w*|what does (that|it|this) mean|lost me)\b|わかりにくい|簡単に/i,
+    more: /^\s*(more|tell me more|go on|continue|and|next|keep going|then|what else|elaborate)\s*[?!.]*\s*$/i,
+    thanks: /^\s*(thanks?( you)?|thx|ty|cool|nice|great|ok(ay)?|got it|awesome|perfect|good)\s*[!.]*\s*$|ありがとう/i,
+};
+
+const STUCK_OPEN = [
+    "Easy start: ask what he builds, or name one project. Answers are short; add \"detail\" for the long version.",
+    "No wrong questions here. Most people start with his projects, then ask how one of them works.",
+    "Think of this as his robotics CV that you can talk to. Tap one below, or ask in your own words.",
+];
+const MISS_OPEN = [
+    "Not sure I followed that one.",
+    "That one slipped past me.",
+    "I don't have an answer for that.",
+];
+const THANKS_OPEN = ['Glad it helped.', 'Sure.', 'Anytime.'];
+
+function newContext() {
+    return { last: null, lastBrief: true, seen: new Set(), misses: 0, turn: 0 };
+}
+
+const topicById = (id) => TOPICS.find((t) => t.id === id);
+const rotate = (list, n) => list[n % list.length];
+
+/* Up to three questions the visitor has not asked yet, related ones first. */
+function hintsFor(ctx, base, max = 3) {
+    const out = [];
+    const add = (id) => {
+        if (out.length < max && id !== base && HINTS[id] && !out.some((h) => h.topic === id)) {
+            out.push({ label: HINTS[id], topic: id });
+        }
+    };
+    const order = [...(RELATED[base] || []), ...STARTERS.slice(ctx.turn % STARTERS.length), ...STARTERS];
+    order.filter((id) => !ctx.seen.has(id)).forEach(add);
+    order.forEach(add);   // everything asked already: offer the best ones again
+    return out;
+}
+
+function answered(ctx, topic, brief, text) {
+    ctx.last = topic.id;
+    ctx.lastBrief = brief;
+    ctx.seen.add(topic.id);
+    ctx.misses = 0;
+    return { text: text || (!brief && topic.deep ? topic.deep : topic.a) };
+}
+
+function converse(raw, ctx, forcedTopic) {
+    ctx.turn += 1;
+    const q = String(raw).toLowerCase();
+    const brief = !DETAIL_RE.test(q);
+
+    if (forcedTopic && topicById(forcedTopic)) return answered(ctx, topicById(forcedTopic), brief);
+
+    if (INTENT.simpler.test(q) && ctx.last) {
+        const t = topicById(ctx.last);
+        ctx.misses = 0;
+        const text = PLAIN[t.id] ? 'In simpler words:\n\n' + PLAIN[t.id] : 'Short version:\n\n' + t.a;
+        return { text, hints: hintsFor(ctx, t.id, 2) };
+    }
+    if (INTENT.more.test(q) && ctx.last) {
+        const t = topicById(ctx.last);
+        if (ctx.lastBrief && t.deep) return answered(ctx, t, false);
+        const next = hintsFor(ctx, t.id, 1)[0];
+        if (next) return answered(ctx, topicById(next.topic), true);
+    }
+    if (INTENT.thanks.test(q)) {
+        return { text: rotate(THANKS_OPEN, ctx.turn) + ' Anything else?', hints: hintsFor(ctx, ctx.last, 2) };
+    }
+
+    const local = localAnswer(raw);
+    if (local.topic === 'help' || (local.miss && (INTENT.stuck.test(q) || INTENT.simpler.test(q)))) {
+        ctx.misses = 0;
+        return { text: rotate(STUCK_OPEN, ctx.turn), hints: hintsFor(ctx, null) };
+    }
+    if (local.topic === 'greeting') return { text: local.text, hints: hintsFor(ctx, null) };
+    if (local.topic) return answered(ctx, topicById(local.topic), local.brief, local.text);
+    if (!local.miss) return { text: local.text };   // honest "not on this page" / off-topic
+
+    ctx.misses += 1;
+    if (ctx.misses === 1) {
+        return {
+            text: rotate(MISS_OPEN, ctx.turn) + ' I know his robotics work: projects, skills, how he works and how to reach him.',
+            hints: hintsFor(ctx, null),
+        };
+    }
+    if (ctx.misses === 2) {
+        return { text: "Let me keep it simple instead.\n\n" + PLAIN.who, hints: hintsFor(ctx, 'who') };
+    }
+    ctx.misses = 0;   // start the cycle again, so a fourth miss is not this text twice
+    return {
+        text: "This may be beyond what I know. For anything not on this page, email him: " + EMAIL,
+        hints: hintsFor(ctx, 'contact', 2),
+    };
 }
 
 /* ── Answer rendering ────────────────────────────────────────────── */
@@ -1309,7 +1478,12 @@ function addTyping() {
     return el;
 }
 
+/* What the conversation layer remembers (last topic, misses, what was
+ * asked); fresh for every conversation shown. */
+let convo = newContext();
+
 function renderLog() {
+    convo = newContext();
     log.innerHTML = '';
     liveRegion.textContent = '';
     const c = active();
@@ -1367,7 +1541,30 @@ function setPhase(p) {
     delBtn.disabled = working;
 }
 
-async function showBot(text) {
+/* Tappable next questions under the newest answer only; not saved to history. */
+function clearHints() {
+    log.querySelectorAll('.chat-hints').forEach((n) => n.remove());
+}
+
+function addHints(hints) {
+    const row = document.createElement('div');
+    row.className = 'chat-hints';
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Suggested questions');
+    for (const h of hints) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chat-hint';
+        b.id = `chat-hint-${h.topic}`;
+        b.textContent = h.label;
+        b.addEventListener('click', () => ask(h.label, h.topic));
+        row.appendChild(b);
+    }
+    log.appendChild(row);
+    if (nearBottom()) scrollLog();
+}
+
+async function showBot(text, hints) {
     record('bot', text);
     const el = addMsg('', 'bot');
 
@@ -1385,15 +1582,17 @@ async function showBot(text) {
     // Announced once, complete — streaming into a live region would read
     // the answer out word by word.
     liveRegion.textContent = text;
+    if (hints && hints.length) addHints(hints);
 }
 
-async function run(text) {
+async function run(text, forcedTopic) {
     try {
         setPhase('thinking');
+        clearHints();
         record('user', text);
         addMsg(text, 'user');
 
-        const local = localAnswer(text);
+        const local = converse(text, convo, forcedTopic);
         let reply = local.text;
         let fellBack = false;
 
@@ -1415,7 +1614,8 @@ async function run(text) {
             dots.remove();
         }
 
-        await showBot(reply);
+        // Hints come from the local layer; a live endpoint answer goes without.
+        await showBot(reply, CHAT_ENDPOINT && !fellBack ? null : local.hints);
 
         if (fellBack) {
             const note = 'Live assistant unreachable — answered from the local profile instead.';
@@ -1428,7 +1628,7 @@ async function run(text) {
     }
 }
 
-async function ask(raw) {
+async function ask(raw, forcedTopic) {
     const text = String(raw).trim();
     if (!text) return;
 
@@ -1438,7 +1638,7 @@ async function ask(raw) {
     if (pending) { try { await pending; } catch (e) {} }
     if (phase !== 'idle') return;
 
-    pending = run(text);
+    pending = run(text, forcedTopic);
     try { await pending; } catch (e) { console.warn('chat failed:', e); } finally { pending = null; }
 }
 

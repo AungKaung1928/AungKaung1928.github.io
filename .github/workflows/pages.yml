@@ -36,6 +36,7 @@ jobs:
       - name: Check the site
         run: |
           node tools/check-kb.js
+          node tools/check-chat.js
           node tools/check-links.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
