@@ -32,7 +32,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <a href="../index.html">← Aung Kaung Myat</a><span class="sb-sep">/</span><a href="./"><span lang="en">Walkthroughs</span><span lang="ja">プロジェクト解説</span></a>
   <div class="sb-tools">
     <a class="sb-repo" href="https://github.com/AungKaung1928/mujoco-clutter-detect" target="_blank" rel="noopener"><span lang="en">Repository ↗</span><span lang="ja">リポジトリ ↗</span></a>
-    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" data-set-lang="en" aria-pressed="true">EN</button><button type="button" data-set-lang="ja" aria-pressed="false">日本語</button></div>
+    <div class="lang-switch" role="group" aria-label="Language / 言語"><button type="button" id="lang-en" data-set-lang="en" aria-pressed="true">EN</button><button type="button" id="lang-ja" data-set-lang="ja" aria-pressed="false">日本語</button></div>
     <button class="sb-theme" id="theme-toggle" type="button" aria-label="Toggle dark mode" title="Light / dark"><svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
   </div>
 </div></div>
@@ -74,7 +74,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
     <a href="#edge"><span lang="en">INT8 &amp; pruning</span><span lang="ja">INT8とpruning</span></a>
     <a href="#limits"><span lang="en">Limits</span><span lang="ja">限界</span></a>
     <a href="#run" data-depth="deep"><span lang="en">Running it</span><span lang="ja">実行方法</span></a>
-      <button type="button" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+      <button type="button" id="jump-toggle" class="jump-toggle" aria-expanded="false"><span class="off"><span lang="en">Full walkthrough</span><span lang="ja">全文を表示</span></span><span class="on"><span lang="en">Key sections only</span><span lang="ja">要点のみ</span></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
   </div>
 </nav>
 
@@ -1463,7 +1463,7 @@ python edge_curve.py --out out/edge_curve.png                        # step 6c, 
 </section>
 
 </main>
-<div class="wrap deep-note"><button type="button"><span lang="en">Read the full walkthrough — 7 more sections ↓</span><span lang="ja">全文を読む — 残り7セクション ↓</span></button></div>
+<div class="wrap deep-note"><button type="button" id="deep-note-toggle"><span lang="en">Read the full walkthrough — 7 more sections ↓</span><span lang="ja">全文を読む — 残り7セクション ↓</span></button></div>
 
 <hr class="rule">
 <footer class="wrap">
