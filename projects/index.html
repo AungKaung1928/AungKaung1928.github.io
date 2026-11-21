@@ -40,7 +40,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
   <div class="wrap head-inner">
     <div class="eyebrow"><span lang="en">Project walkthroughs</span><span lang="ja">プロジェクト解説</span></div>
     <h1><span lang="en">How these projects actually work</span><span lang="ja">各プロジェクトの仕組みと計測結果</span></h1>
-    <p class="deck" lang="en">One page per project. Each opens with a visual summary and five key points; the full walkthrough — every file, every measurement, what the result does not prove — sits behind one toggle.</p>
+    <p class="deck" lang="en">One page per project. Each opens with a visual summary and five key points; the full walkthrough (every file, every measurement, what the result does not prove) sits behind one toggle.</p>
     <p class="deck" lang="ja">1プロジェクト1ページ。冒頭は図と5つの要点で、全文（全ファイル・全計測・結果から言えないこと）は1つのボタンの先にあります。</p>
   </div>
 </header>
@@ -136,7 +136,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         <div class="card-body">
           <div class="card-top"><h3>PPO Against LQR</h3>
             <span class="repo">ppo-from-scratch</span></div>
-          <p lang="en">The same cart-pole solved by LQR and by a from-scratch PPO. Sixteen seeds, four ablations and a permutation test decide where the learned policy is genuinely better — and where it is not.</p>
+          <p lang="en">The same cart-pole solved by LQR and by a from-scratch PPO. Sixteen seeds, four ablations and a permutation test decide where the learned policy is genuinely better, and where it is not.</p>
           <p lang="ja">同じcart-poleをLQRとゼロから実装したPPOで解く。16 seeds、4つのablation、permutation testで、学習policyが本当に優れている点とそうでない点を判定。</p>
           <p class="result">16 / 16 seeds · <span lang="en">one training run</span><span lang="ja">学習1回</span> 11.4 s · LQR <span lang="en">needs 0 samples</span><span lang="ja">はサンプル不要</span></p>
           <div class="tech"><span>PyTorch CPU</span><span>PPO / GAE</span><span>LQR</span><span>MuJoCo</span></div>
@@ -194,7 +194,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         <div class="card-body">
           <div class="card-top"><h3>Watching a Robot Fleet</h3>
             <span class="repo">fleet_monitoring_ws</span></div>
-          <p lang="en">Three simulated robots publish position; Kafka carries it to two readers — one stores every row, one raises an alert when a robot stops. The whole fleet is one YAML file, proven end to end in CI.</p>
+          <p lang="en">Three simulated robots publish position; Kafka carries it to two readers: one stores every row, one raises an alert when a robot stops. The whole fleet is one YAML file, proven end to end in CI.</p>
           <p lang="ja">3台のシミュレーションロボットが位置をpublishし、Kafkaが2つの受信側へ届けます。1つは全行を保存、もう1つは停止を検知してアラート。フリート全体は1つのYAMLで定義し、CIでend-to-endに検証。</p>
           <p class="result">3 robots · 2 databases · CI 4 / 4 · <span lang="en">smoke run</span><span lang="ja">smoke test</span> 369 rows / 25 s</p>
           <div class="tech"><span>ROS 2 Humble</span><span>Apache Kafka</span><span>QuestDB</span><span>PostgreSQL</span><span>Docker</span></div>
