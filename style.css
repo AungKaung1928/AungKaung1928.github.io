@@ -28,6 +28,7 @@
     --on-accent:     #ffffff;
 
     --grid-dot:      rgba(0, 95, 115, 0.10);
+    --bar-base:      #76848f;
     --shadow-sm:     0 1px 2px rgba(16, 32, 42, 0.05);
     --shadow-md:     0 8px 28px -12px rgba(16, 32, 42, 0.22);
 
@@ -57,6 +58,7 @@ html.dark-mode {
     --on-accent:     #071a22;
 
     --grid-dot:      rgba(53, 189, 216, 0.09);
+    --bar-base:      #6b7a8c;
     --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md:     0 8px 28px -12px rgba(0, 0, 0, 0.7);
 }
@@ -402,6 +404,25 @@ html.dark-mode .moon-icon { display: block; }
 .featured-num b { font-size: 1.5em; font-weight: 700; color: var(--ink); }
 
 .featured-line { font-size: 0.86rem; color: var(--ink-2); max-width: 34ch; }
+
+/* Result against its baseline on one shared scale per project. Accent = this work, neutral = baseline;
+ * every bar carries its label and value as text, so colour is never the only cue. */
+.cmp {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.3rem 0.6rem;
+    align-items: center;
+    max-width: 19rem;
+    margin: 0.5rem 0 0.6rem;
+    font-size: 0.74rem;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+}
+
+.cmp-track { display: block; height: 6px; }
+.cmp-bar { display: block; height: 100%; min-width: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
+.cmp-bar.is-base { background: var(--bar-base); }
+.cmp-val { text-align: right; }
 
 .hero-visual { display: flex; align-items: flex-start; justify-content: center; }
 
