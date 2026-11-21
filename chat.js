@@ -24,15 +24,11 @@ const DETAIL_RE = /\b(detail|details|detailed|in depth|in-depth|more|elaborate|e
  * a     — short answer, used when the visitor asks for "short" or "brief"
  * deep  — long answer; this is the default, because a thorough reply is
  *         what someone opening the widget is actually after
- * next  — follow-up questions offered as chips after this answer
- * label — shown in the "Topics" menu; `ask` is what that chip sends
  * ------------------------------------------------------------------ */
 
 const TOPICS = [
     {
         id: 'help',
-        label: 'What can I ask?',
-        ask: 'What can I ask you?',
         k: ['help', 'topics', 'menu', 'options', '!what can i ask', '!what can you', 'commands', 'guide'],
         weight: 1.4,
         a: "Ask about: background · skills · projects · how he works · contact.\n" +
@@ -40,20 +36,15 @@ const TOPICS = [
            "The numbers behind them, and which numbers do not exist.\n" +
            "Role fit, gaps, email.\n" +
            "Add \"detail\" to any question for the long version.",
-        next: ['Explain each project', 'What numbers can he back up?', 'Does he do machine learning?', 'How do I contact him?'],
     },
     {
         id: 'greeting',
-        label: null,
         k: ['hi', 'hello', 'hey', 'yo', 'howdy', 'good morning', 'good evening', 'good afternoon'],
         weight: 0.5,
         a: "Hi — I answer questions about Aung Kaung Myat's robotics work: background, stack, projects, how he works and contact; say \"what can I ask you?\" for the list.",
-        next: ['Who is he?', 'What is his experience?', 'Explain each project', 'How do I contact him?'],
     },
     {
         id: 'who',
-        label: 'Who is he?',
-        ask: 'Who is Aung Kaung Myat?',
         k: ['who', 'about him', '!about aung', 'background', 'yourself', 'introduce', 'bio', 'summary', 'profile', 'himself'],
         a: "Robotics software engineer; the day job is ROS2, C++ and LiDAR perception on real mobile robots. The projects here are personal robot-learning work: trained in simulation, measured against a classical baseline, exported to ONNX. Direction: physical AI, sim-to-real transfer, legged locomotion.",
         deep: "## Short version\n" +
@@ -64,12 +55,9 @@ const TOPICS = [
            "Every learned result on this page is reported next to a hand-written method that was measured first. The cube-pose project refits its OpenCV baseline until it is genuinely competitive before claiming the CNN wins. The PPO project reports that its learned policy has a smaller basin of attraction than the LQR controller it is compared to. That is unusual, and it is deliberate.\n\n" +
            "## Where he is going\n" +
            "Physical AI: sim-to-real transfer, legged locomotion, and perception in unstructured environments. The robot-learning track exists to build exactly that, one measured block at a time.",
-        next: ['What is his experience?', 'What is he aiming for?', 'What is his stack?', 'Explain each project'],
     },
     {
         id: 'experience',
-        label: 'Experience',
-        ask: 'What is his experience?',
         k: ['experience', 'exp', 'years', 'career', 'worked', 'work history', 'job', 'jobs', 'role', 'roles', 'seniority', 'senior', 'junior', 'employment', 'history', 'professional'],
         a: "Early career. Professionally: ROS2 systems on autonomous mobile robots, perception and deployment onto real hardware, in C++ and Python on Linux. Personally: eight robot-learning projects, all trained and measured on CPU only. Employers and dates are not on the page; email " + EMAIL + ".",
         deep: "## Level\n" +
@@ -87,12 +75,9 @@ const TOPICS = [
            "There is no GPU in any of this. The whole robot-learning track was designed around an 8-thread CPU budget, which is why the projects lead with feasibility measurements and small architectures rather than with scale.\n\n" +
            "## What is not on this page\n" +
            "Employers, dates, and specific role scope. Email " + EMAIL + " for the CV.",
-        next: ['Explain each project', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'goal',
-        label: 'Career direction',
-        ask: 'What is he aiming for?',
         k: ['goal', 'goals', 'focus', 'future', 'direction', '!physical ai', 'aiming', 'aim', 'next', 'looking for', 'interested', 'ambition', 'want'],
         a: "Target: Physical AI Engineer, shipping learned behaviour onto real machines. Three pieces: sim-to-real transfer, legged locomotion, perception outside a staged scene. The robot-learning track on this page is the route there, one measured block at a time; ROS2 stays as the deployment layer.",
         deep: "## Now\n" +
@@ -106,12 +91,9 @@ const TOPICS = [
            "- Perception in unstructured environments, where the scene is not staged and the data is not clean\n\n" +
            "## Why the portfolio looks the way it does\n" +
            "Each block closes on a number. The augmentation ablation in the detection project exists because \"we added augmentation\" is not a result; +0.0007 mAP is. That habit is the whole point — sim-to-real is decided by measurements, not by descriptions.",
-        next: ['What is his stack?', 'What about sim-to-real transfer?', 'Tell me about the Microduck balance project', 'How do I contact him?'],
     },
     {
         id: 'languages',
-        label: 'C++ or Python?',
-        ask: 'C++ or Python — which does he use?',
         k: ['language', 'languages', '!python', 'coding', 'programming', 'code', 'linux', 'os', '!which language'],
         a: "Both. C++17 for anything per step or per frame: the threaded MuJoCo backend (CMake, pybind11) and the MoveIt2 reachability validator. Python for the learning side: PyTorch models, MuJoCo environments, training, evaluation. Rule: real-time and edge code in C++, research and orchestration in Python.",
         deep: "## The split\n" +
@@ -127,12 +109,9 @@ const TOPICS = [
            "Training in Python does not mean serving in Python. The learned projects export to ONNX and re-measure the full task metric through ONNX Runtime, which is the step that lets a C++ node run the same weights on a robot. In the detection project that export turned a 3.87 ms eager forward pass into 1.20 ms end to end, and step 6 takes the same graph to INT8 for a one-thread budget.\n\n" +
            "## Beyond the two\n" +
            "PyTorch and ONNX Runtime for models, OpenCV and PCL for vision and point clouds, CMake for the C++ build, Docker for packaging. Every current repository ships a Dockerfile and a GitHub Actions workflow that runs its tests.",
-        next: ['What is his stack?', 'Does he do machine learning?', 'How does he deploy and package his work?', 'What is his experience?'],
     },
     {
         id: 'stack',
-        label: 'Full technical stack',
-        ask: 'What is his technical stack?',
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
         a: "ROS2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL. MuJoCo, Gazebo.",
         deep: "## Core\n" +
@@ -153,12 +132,9 @@ const TOPICS = [
            "LQR solved by iterating the Riccati recursion by hand in the earlier cart-pole project, PD and PID controllers measured as baselines, state machines, and path planning. The state-machine part is underrated: reliable robot behaviour is mostly a well-designed FSM with real recovery states.\n" +
            "## Infrastructure\n" +
            "Docker, GitHub Actions CI on every current repository, Kafka, QuestDB, ONNX Runtime. Enough to stand up a fleet and to ship a model, not only to train one.",
-        next: ['Explain each project', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'C++ or Python?'],
     },
     {
         id: 'detection',
-        label: 'Tabletop Clutter Detector, INT8 on One Thread',
-        ask: 'Tell me about the clutter detection project',
         k: ['!clutter', '!detector', '!detection', '!object detection', '!map', '!coco', '!anchor-free', '!anchor free', '!centernet', '!heatmap', '!bounding box', '!occlusion', '!segmentation', '!augmentation', '!ablation', '!int8', '!quantisation', '!quantization', '!quantised', '!quantized', '!pruning', '!prune', '!edge ai', '!edge-ai', '!one thread', '!single thread'],
         a: "Anchor-free detector for 3–6 overlapping objects on a table, labels from the renderer's segmentation buffer.\n" +
            "mAP@[.5:.95] 0.911 vs a fitted classical 0.532; static INT8 1.38 ms on one thread at mAP 0.9097 (-0.0010).\n" +
@@ -190,12 +166,9 @@ const TOPICS = [
            "A one-thread x86 latency is not a Jetson latency; the ordering of the graphs is expected to carry to an ARM core with TensorRT, the ratios are not, and the page says so.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-clutter-detect",
-        next: ['Tell me about the C++ MuJoCo backend', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'rl',
-        label: 'PPO vs LQR on Cart-Pole',
-        ask: 'Tell me about the PPO project',
         k: ['!ppo', '!rl', '!reinforcement learning', '!policy gradient', '!lqr', '!riccati', '!cart-pole', '!cartpole', '!gae', '!advantage', '!seeds', '!permutation test', '!from scratch', '!optimal control'],
         a: "Earlier work: cart-pole solved twice, LQR derived by hand and PPO from first principles; that loop now trains the Microduck and the arm.\n" +
            "PPO: median 62,144 steps to threshold over 16 seeds, IQR [60,442, 63,448]; LQR costs zero samples.\n" +
@@ -216,12 +189,9 @@ const TOPICS = [
            "Searched on seeds 100 to 103, disjoint from the reported seeds 0 to 15. Tuning on the seeds you then report is the most common quiet mistake in an RL repository.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/ppo-from-scratch",
-        next: ['Tell me about the Microduck balance project', 'Tell me about the SO-ARM100 projects', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'duck',
-        label: 'Microduck Balance and Push Recovery',
-        ask: 'Tell me about the Microduck balance project',
         k: ['!microduck', '!duck', '!biped', '!bipedal', '!walking', '!walk', '!locomotion', '!gait', '!legged', '!servo', '!servos', '!balance', '!push recovery', '!recover', '!observation contract', '!cpu only', '!no gpu', '!reward'],
         a: "Balance-and-recover PPO policy for a 25 cm, 14-servo biped in CPU MuJoCo; 48-dim observation, sensor-reported values only.\n" +
            "After 50M steps PPO scores 344.8 ± 2.9 of 500 vs the PD controller's 175.8 ± 0.2.\n" +
@@ -248,12 +218,9 @@ const TOPICS = [
            "One graph from the 48-dim observation to the action with the normaliser folded in, verified to 2.4e-06 against PyTorch on 1,000 rollout observations, 0.033 ms p99 on one thread, 0.2% of the 20 ms control period.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/microduck-rl",
-        next: ['Tell me about the C++ MuJoCo backend', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
     },
     {
         id: 'cpp',
-        label: 'Threaded C++ MuJoCo Backend, Bit-Identical',
-        ask: 'Tell me about the C++ MuJoCo backend',
         k: ['!c++', '!cpp', '!c++17', '!bit-identical', '!bit identical', '!bit-exact', '!thread', '!threads', '!threaded', '!multithreading', '!pybind', '!pybind11', '!cmake', '!sanitizer', '!sanitizers', '!asan', '!tsan', '!vector environment', '!vector env', '!backend', '!vecenv', '!numpy'],
         a: "The Microduck environment in C++17 on threads (pybind11, CMake), drop-in for the Python training script.\n" +
            "6,275 of 6,275 observations bit-identical to Python; 1.9–2.0x the Python processes at 8 workers; CI under ASan, UBSan, TSan.\n" +
@@ -283,12 +250,9 @@ const TOPICS = [
            "- Wall-clock for 50M steps: 3.1 hours against about 4.4 on seed 0, 1.41x over the first 25M and 1.45x over the second (seeds 1 and 2: 1.25x), less than the 2x under random actions because the policy forward pass and the update are single-threaded on the same critical path; the one training process sat at 470% CPU with eight environment threads\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-vecenv-cpp",
-        next: ['Tell me about the Microduck balance project', 'C++ or Python — which does he use?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'arm',
-        label: 'SO-ARM100 Manipulation with RL, Imitation and Language',
-        ask: 'Tell me about the SO-ARM100 projects',
         k: ['!so-arm100', '!so arm', '!so-arm', '!arm', '!manipulation', '!grasp', '!imitation', '!imitation learning', '!behaviour cloning', '!behavior cloning', '!dagger', '!act', '!action chunking', '!vla', '!language', '!language-conditioned', '!lerobot', '!smolvla', '!curriculum', '!minilm', '!lora', '!bench', '!scripted expert'],
         a: "One MuJoCo bench for the SO-ARM100 arm (four tasks, six held-out physics cells) feeds RL, imitation and language.\n" +
            "Action chunking lifts 0.77 vs cloning 0.05 (expert 0.93); randomised RL fine-tune halves the held-out drop, 0.120 to 0.056.\n" +
@@ -317,12 +281,9 @@ const TOPICS = [
            "https://github.com/AungKaung1928/so-arm100-rl\n" +
            "https://github.com/AungKaung1928/so-arm100-il\n" +
            "https://github.com/AungKaung1928/so-arm100-vla",
-        next: ['What about sim-to-real transfer?', 'Tell me about the Microduck balance project', 'Does he do machine learning?', 'What are the gaps in his experience?'],
     },
     {
         id: 'pose',
-        label: 'Cube Pose Regression CNN',
-        ask: 'Tell me about the cube pose project',
         k: ['!cube', '!pose', '!pose estimation', '!pose regression', '!soft-argmax', '!soft argmax', '!keypoint', '!regression', '!baseline', '!classical cv', '!hsv', '!sub-millimetre', '!sub millimeter'],
         a: "Earlier: planar cube pose (x, y, yaw) from one 128x128 render; its soft-argmax head is the front end of the SO-ARM100 image policies.\n" +
            "0.59 mm median error from 27k parameters vs a refitted OpenCV baseline at 1.91 mm.\n" +
@@ -345,12 +306,9 @@ const TOPICS = [
            "Exported to ONNX and proven, not just exported: maximum absolute output difference against PyTorch plus the full task metrics recomputed through ONNX Runtime. 0.23 ms on one thread against 0.65 ms in eager PyTorch on eight.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/mujoco-cube-pose-cnn",
-        next: ['Tell me about the clutter detection project', 'Does he do machine learning?', 'What numbers can he back up?', 'Explain each project'],
     },
     {
         id: 'manipulation',
-        label: 'MoveIt2 Pick & Place',
-        ask: 'Tell me about the MoveIt2 pick and place project',
         k: ['!moveit', '!moveit2', 'manipulator', 'pick', 'place', '!panda', '!franka', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof', '!reachability', '!validator', '!fsm', '!pick and place', '!pick-and-place'],
         a: "Earlier ROS2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt2 with OMPL fallback.\n" +
            "No accuracy or success-rate figure was measured; HSV on synthetic frames. Walkthrough: projects/moveit-pickplace.html",
@@ -376,12 +334,9 @@ const TOPICS = [
            "The repository carries an explicit honest-simulation note: HSV detection on synthetic frames with exact geometric back-projection is not robustness to real-sensor noise. There is no positioning-accuracy figure and no success-rate figure, because neither was measured.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/moveit_pickplace_demo",
-        next: ['Explain each project', 'How does he handle failure and recovery?', 'How deep is his ROS2 knowledge?', 'How do I contact him?'],
     },
     {
         id: 'fleet',
-        label: 'Fleet Monitoring System',
-        ask: 'Tell me about the fleet monitoring project',
         k: ['fleet', '!kafka', '!docker', 'container', 'containerized', 'containerised', '!telemetry', 'database', '!questdb', 'postgres', '!postgresql', 'infra', 'infrastructure', 'monitoring', 'dashboard', 'multi-robot', 'multi robot', '!turtlebot', '!turtlebot3', 'devops', 'time-series', 'time series', 'scale'],
         a: "Earlier infrastructure work: multi-robot telemetry, ROS2 topics into Kafka, Kafka into QuestDB, a dashboard over the PostgreSQL wire protocol; several TurtleBot3 in Gazebo, all in Docker.\n" +
            "No throughput figure was measured. Walkthrough: projects/fleet-monitoring.html",
@@ -402,12 +357,9 @@ const TOPICS = [
            "It is deliberately the last project on the page. The main line of work is robot learning and manipulation; this one exists because a robotics team eventually needs someone who can stand up the observability layer, and it is the only project here that proves he can.\n" +
            "## Repository\n" +
            "https://github.com/AungKaung1928/fleet_monitoring_ws",
-        next: ['Explain each project', 'How does he deploy and package his work?', 'What is his stack?', 'How do I contact him?'],
     },
     {
         id: 'ml',
-        label: 'ML / deep learning',
-        ask: 'Does he do machine learning?',
         k: ['ml', '!machine learning', '!deep learning', 'dl', 'neural', '!pytorch', '!cnn', 'ai', 'model', 'models', 'training', 'train', 'inference', 'vision', '!onnx', '!onnx runtime', '!network', '!architecture'],
         a: "Yes. Every current project trains a PyTorch model against a hand-written baseline measured first: Microduck PPO 344.8 vs PD 175.8 of 500; arm RL, imitation and language policies; detector mAP 0.911 vs 0.532, then INT8. Earlier: cube-pose CNN 0.59 mm, PPO vs LQR over 16 seeds. CPU only, no publications.",
         deep: "## What is actually here\n" +
@@ -428,20 +380,14 @@ const TOPICS = [
            "No CUDA anywhere. Everything runs inside an 8-thread CPU budget, which is why the architectures are small and why every project opens by measuring whether it is feasible at all.\n" +
            "## The honest framing\n" +
            "Applied robot learning with unusually careful measurement, not an ML research record. No publications, no large-scale training, no benchmark leaderboard.",
-        next: ['Tell me about the SO-ARM100 projects', 'What about sim-to-real transfer?', 'What numbers can he back up?', 'What are the gaps in his experience?'],
     },
     {
         id: 'control',
-        label: 'Control & simulation',
-        ask: 'What control and simulation experience does he have?',
         k: ['control', 'controller', '!pid', '!state machine', 'fsm', '!gazebo', '!mujoco', 'simulation', 'simulator', 'sim', '!rviz', 'motion control', '!synthetic data'],
         a: "Control: PD and PID measured as baselines (the Microduck PD controller is scored over 20 seeds before training), LQR by iterating the Riccati recursion by hand, state machines, path planning, a scripted IK expert on the arm. Simulation: MuJoCo for the learning work, Gazebo for ROS2, RViz; labels from the renderer.",
-        next: ['Tell me about the PPO project', 'Does he do machine learning?', 'What about sim-to-real transfer?', 'Explain each project'],
     },
     {
         id: 'navigation',
-        label: 'Navigation & SLAM',
-        ask: 'What is his navigation and SLAM experience?',
         k: ['navigation', 'navigate', '!nav2', '!slam', '!amcl', '!cartographer', '!localization', '!localisation', 'mapping', '!costmap', 'path planning', 'planner', 'autonomous mobile'],
         a: "Professional work, not portfolio work: Nav2, SLAM, AMCL and Cartographer on autonomous mobile robots at the day job. No navigation project on this page; what is shown instead is 7-DOF arm planning with MoveIt2 and OMPL. For the scope of that work, email " + EMAIL + ".",
         deep: "## The stack he uses professionally\n" +
@@ -455,12 +401,9 @@ const TOPICS = [
            "Planning on a 7-DOF arm: OMPL as the sampling planner, Cartesian paths preferred where a straight line exists, constraint-based execution, and trajectory retiming for velocity scaling. Different problem, same underlying discipline.\n" +
            "## What to ask\n" +
            "Which platforms, which environments, and whether the work was simulation or hardware: " + EMAIL,
-        next: ['Tell me about the MoveIt2 pick and place project', 'What is his stack?', 'What is his experience?', 'How do I contact him?'],
     },
     {
         id: 'projects',
-        label: 'The projects',
-        ask: 'Explain each project',
         k: ['project', 'projects', 'portfolio', 'built', 'build', 'repo', 'repos', 'repository', 'github', 'work on', 'works on', 'showcase', 'made', 'demos'],
         weight: 0.9,
         a: "Four current projects, all robot learning on CPU: Microduck biped (PPO 344.8 vs PD 175.8 of 500), C++ MuJoCo backend (6,275 of 6,275 bit-identical, 1.9–2.0x), SO-ARM100 arm (chunking 0.77 vs cloning 0.05), clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms). Earlier: PPO vs LQR, cube pose CNN, MoveIt2, fleet.",
@@ -501,31 +444,22 @@ const TOPICS = [
            "- Fleet Monitoring System — ROS2 to Kafka to QuestDB, containerised, several TurtleBot3 in Gazebo. https://github.com/AungKaung1928/fleet_monitoring_ws\n\n" +
            "## Why these four\n" +
            "Legs, simulation infrastructure, hands and eyes: a locomotion policy, the C++ backend under it, arm manipulation by three methods, and a detector taken to an edge budget. Each has a full written walkthrough linked from its card, and so do the four earlier projects.",
-        next: ['What is his strongest project?', 'Tell me about the Microduck balance project', 'What numbers can he back up?', 'How do I contact him?'],
     },
     {
         id: 'strongest',
-        label: 'Strongest work',
-        ask: 'What is his strongest project?',
         k: ['!strongest', 'best', 'favourite', 'favorite', 'impressive', 'highlight', 'proudest', 'standout', 'stand out', '!why hire', '!why him', '!hire him', '!should we hire', '!worth hiring', '!good fit', 'differentiator', 'unique'],
         weight: 1.2,
         a: "Depends on the role. Best complete result: the clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms on one thread). Most exacting engineering: the C++ backend (6,275 of 6,275 bit-identical, then 2x). Closest to his direction: the Microduck biped. Widest coverage: the SO-ARM100 bench, the least measured of the four.",
-        next: ['Explain each project', 'What are the gaps in his experience?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'contact',
-        label: 'Contact',
-        ask: 'How do I contact him?',
         k: ['contact', 'email', 'mail', 'reach', 'hire', 'hiring', 'recruit', 'recruiter', '!linkedin', 'cv', '!resume', 'talk', '!get in touch', 'available', 'availability', 'opportunity', 'opportunities', 'interview', 'apply'],
         a: "Email: " + EMAIL + "\n" +
            "GitHub: github.com/AungKaung1928\n" +
            "LinkedIn: linked in the Contact section above",
-        next: ['What is his experience?', 'Explain each project', 'What is his stack?', 'Who is he?'],
     },
     {
         id: 'ros2',
-        label: 'ROS2 depth',
-        ask: 'How deep is his ROS2 knowledge?',
         k: ['!ros2', '!ros', '!humble', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
         a: "ROS2 Humble in C++ and Python. On this page: the MoveIt2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
         deep: "## The version and the languages\n" +
@@ -541,12 +475,9 @@ const TOPICS = [
            "No real-time executors, no DDS QoS tuning, no micro-ROS. Ask by email if that is what the role needs.\n" +
            "## Why the portfolio leans away from ROS2 now\n" +
            "Deliberately. The target role is Physical AI Engineer — learned behaviour on real machines — not ROS2 integration. ROS2 is the deployment layer for that, and it is represented here by the earlier closed-loop pick-and-place system and the fleet pipeline rather than by the current cards.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'C++ or Python?', 'What roles is he a fit for?', 'How does he debug robot problems?'],
     },
     {
         id: 'simtoreal',
-        label: 'Sim-to-real',
-        ask: 'What about sim-to-real transfer?',
         k: ['!sim-to-real', '!sim to real', '!sim2real', '!reality gap', '!domain gap', '!simulation to reality', '!real world', '!transfer', '!domain randomisation', '!domain randomization', '!system identification', '!does it work on real hardware'],
         weight: 1.3,
         a: "His stated differentiator, measured rather than described: Microduck domain randomisation on held-out physics came out negative (a crouch); the arm's randomised fine-tune halved the held-out drop, 0.120 to 0.056; augmentation on the detector bought +0.0007 mAP. Missing: no policy has run on hardware, there is no robot.",
@@ -566,20 +497,14 @@ const TOPICS = [
            "- No residual or hybrid policy work published yet\n" +
            "## The next step that would prove it\n" +
            "For the Microduck that table now exists, and it came out against randomisation: robust to backlash, collapsed on rollers, upright less everywhere. The next proof is a reward that pays height only when upright, re-run the same way. The arm has the same kind of held-out table, measured on one training seed: a randomised fine-tune halves the mean success drop, 0.120 to 0.056, almost all of it on 3 steps of action latency, and the slippery cell in it turned out to test nothing.",
-        next: ['Tell me about the Microduck balance project', 'Tell me about the SO-ARM100 projects', 'What are the gaps in his experience?', 'What is he aiming for?'],
     },
     {
         id: 'legged',
-        label: 'Legged robotics',
-        ask: 'What legged robotics experience does he have?',
         k: ['!legged robotics', '!quadruped', '!quadrupedal', '!four-legged', '!four legged', '!walking robot', '!dog robot', '!humanoid'],
         a: "Microduck Balance and Push Recovery: a balance-and-recover policy for a 25 cm, 737 g, 14-servo open-source biped in MuJoCo; PD baseline 175.2 ± 3.1 of 500, PPO 344.8 after 50M steps. Not a walking gait, no physical robot, and domain randomisation made it worse. A first step towards legged locomotion.",
-        next: ['Tell me about the Microduck balance project', 'What about sim-to-real transfer?', 'What is he aiming for?', 'What are the gaps in his experience?'],
     },
     {
         id: 'hardware',
-        label: 'Robots & sensors',
-        ask: 'Which robots and sensors has he worked with?',
         k: ['!hardware', '!real robot', '!real robots', '!physical robot', '!physical hardware', '!which robots', '!what robots', '!robot platforms', '!platforms', '!actuator', '!actuators', '!motor', '!motors', '!sensor suite', '!sensors used', '!sensor stack', '!on real hardware'],
         a: "Platforms on this page, all simulated: Microduck biped (25 cm, 737 g, 14 servos), SO-ARM100 5-joint arm, Franka Panda 7-DOF, several TurtleBot3 in Gazebo. Sensors: LiDAR, IMU, camera with sensor fusion; PCL and OpenCV. Real hardware is professional work, not published here; email " + EMAIL + ".",
         deep: "## Platforms\n" +
@@ -596,12 +521,9 @@ const TOPICS = [
            "The About section states that his professional work covers deployment on real hardware. The page does not name those robots, so neither will I.\n" +
            "## What to ask him directly\n" +
            "Which physical platforms, at what scale, and for how long — email " + EMAIL + " for that.",
-        next: ['What about sim-to-real transfer?', 'Explain each project', 'What numbers can he back up?', 'How do I contact him?'],
     },
     {
         id: 'reliability',
-        label: 'Failure handling',
-        ask: 'How does he handle failure and recovery?',
         k: ['!reliability', '!reliable', '!robust', '!robustness', '!recovery', '!recover', '!fallback', '!failure', '!failures', '!fail', '!safety', '!safe', '!error handling', '!graceful', '!edge case', '!edge cases', '!unattended', '!production ready', '!production-ready'],
         weight: 1.1,
         a: "Failure paths are designed in: the MoveIt2 project validates reachability before planning, falls back from Cartesian to OMPL RRTConnect, checks the action server at startup, homes on planning failure. In measurements: unsolved RL runs count as budget plus one; nulls and corrections stay visible. Kafka decouples fleet.",
@@ -622,12 +544,9 @@ const TOPICS = [
            "Kafka decouples producers from consumers so a slow consumer buffers instead of dropping telemetry, and the whole stack is containerised, which removes the class of failures that begin with \"it worked on my machine\".\n" +
            "## The underlying habit\n" +
            "Design the failure path first, make the failure observable, and give the system a defined next move. A results table gets the same treatment as a robot.",
-        next: ['Tell me about the MoveIt2 pick and place project', 'What numbers can he back up?', 'How does he debug robot problems?', 'How does he work?'],
     },
     {
         id: 'metrics',
-        label: 'The numbers',
-        ask: 'What numbers can he back up?',
         k: ['!metric', '!metrics', '!accuracy', '!success rate', '!numbers', '!measured', '!measurable', '!benchmark', '!benchmarks', '!precision', '!latency', '!throughput', '!fps', '!proof', '!evidence', '!quantify', '!quantified', '!results'],
         a: "mAP 0.911 vs classical 0.532, INT8 1.38 ms on one thread; cube pose 0.59 mm vs 1.91 mm; PPO median 62,144 steps over 16 seeds; Microduck PPO 344.8 vs PD 175.8 of 500; C++ backend 6,275 of 6,275 bit-identical, 12,327 vs 6,385 steps/s; arm chunking 0.77 vs cloning 0.05. Not measured: hardware, MoveIt2 accuracy, fleet.",
         deep: "## The numbers, with their mechanism attached\n" +
@@ -650,12 +569,9 @@ const TOPICS = [
            "- No hardware measurements of any kind, because no project has run on hardware\n" +
            "## How to verify\n" +
            "Every project is public on github.com/AungKaung1928 and every card links to a full written walkthrough. Each repository ships the script that produces its numbers, a test suite, a Dockerfile and a CI workflow that runs the tests.",
-        next: ['Tell me about the clutter detection project', 'What are the gaps in his experience?', 'How does he handle failure and recovery?', 'How do I contact him?'],
     },
     {
         id: 'deployment',
-        label: 'Deployment & packaging',
-        ask: 'How does he deploy and package his work?',
         k: ['!deploy', '!deployment', '!deploying', '!packaging', '!containerised', '!containerized', '!reproducible', '!ship', '!shipping', '!export', '!ci', '!cd', '!build system', '!setup', '!install', '!run it', '!devops', '!edge'],
         a: "Models export to ONNX, verified by recomputing the full task metric through ONNX Runtime: detector 3.87 ms eager to 1.20 ms at 8 threads, static INT8 1.38 ms on one thread; policies export with the normaliser folded in. Every current repo ships a Dockerfile and GitHub Actions CI; C++ adds sanitizers. Not done: Jetson.",
         deep: "## Model deployment\n" +
@@ -676,12 +592,9 @@ const TOPICS = [
            "- No cross-compilation or Jetson image building\n" +
            "- No TensorRT or GPU inference work, because there is no GPU\n" +
            "Email " + EMAIL + " if a role depends on any of those.",
-        next: ['Does he do machine learning?', 'Tell me about the fleet monitoring project', 'C++ or Python?', 'What are the gaps in his experience?'],
     },
     {
         id: 'debug',
-        label: 'How he debugs',
-        ask: 'How does he debug robot problems?',
         k: ['!debug', '!debugging', '!troubleshoot', '!troubleshooting', '!diagnose', '!root cause', '!failure analysis', '!goes wrong', '!something breaks', '!find bugs', '!fix bugs', '!observability', '!monitoring health'],
         a: "Two habits: verify the layer underneath before blaming the algorithm (cart-pole dynamics checked 13 ways before any RL, labels drawn back onto images, mAP tested before a detector existed); make silent failures observable (action-server checks at startup, throughput re-measured on the training loop itself).",
         deep: "## First principle — verify the layer underneath\n" +
@@ -699,12 +612,9 @@ const TOPICS = [
            "Recovery to a home state after a failed plan, a fallback planner when the preferred one fails, unsolved runs entered at budget plus one. Debugging is easier when the system's response to failure is deterministic instead of improvised.\n" +
            "## Where the hardware instinct comes in\n" +
            "When a robot misbehaves the candidate list starts with mounting, frames, controller limits and timing, then the algorithm. That ordering is what saves the days most people lose.",
-        next: ['How does he handle failure and recovery?', 'What numbers can he back up?', 'How does he work?', 'What is his experience?'],
     },
     {
         id: 'kinematics',
-        label: 'Maths & control theory',
-        ask: 'What is his maths and control theory background?',
         k: ['!kinematics', '!inverse kinematics', '!forward kinematics', '!dynamics', '!maths', '!mathematics', '!math background', '!linear algebra', '!transform math', '!rotation', '!quaternion', '!quaternions', '!frames math', '!control theory', '!riccati', '!statistics'],
         a: "Control theory applied: LQR by iterating the discrete Riccati recursion, no scipy. Geometry: a 7-DOF redundant arm with constraints and retiming, pinhole back-projection onto a known plane. Statistics: median and IQR over 16 seeds, two-sided permutation tests, hyperparameters on disjoint seeds. Degree: not on the page.",
         deep: "## Control theory\n" +
@@ -725,12 +635,9 @@ const TOPICS = [
            "- Aggregate error floors computed properly: a per-sample pixel quantisation is not a floor on a median over N samples\n" +
            "## Not on this page\n" +
            "University, degree specifics and coursework. Email " + EMAIL + " for that.",
-        next: ['Tell me about the PPO project', 'What numbers can he back up?', 'Tell me about the MoveIt2 pick and place project', 'How does he work?'],
     },
     {
         id: 'gaps',
-        label: 'Limits & gaps',
-        ask: 'What are the gaps in his experience?',
         k: ['!weakness', '!weaknesses', '!gap', '!gaps', '!limitation', '!limitations', '!missing', '!concern', '!concerns', '!red flag', '!red flags', '!downside', '!risk', '!risks', '!not done', '!blind spot', '!what he cannot', '!honest assessment'],
         weight: 1.2,
         a: "Early career. Everything runs in simulation; nothing transferred to hardware. No GPU work: no CUDA, TensorRT or distributed training. Most results are one training seed; the language policy is weak and Microduck domain randomisation came out negative. Largest model 380,631 parameters. Employers, dates: not on the page.",
@@ -751,12 +658,9 @@ const TOPICS = [
            "An early-career engineer with unusually good scientific hygiene, aimed deliberately at physical AI, who has built the method but not yet the hardware result. If the role can supply the robot, that gap closes fast. If the role needs someone who has already shipped a policy onto a machine, it does not.\n" +
            "## What to ask him\n" +
            "Real-hardware scope, employers and dates, and the state of the open runs: " + EMAIL,
-        next: ['What is his strongest project?', 'What about sim-to-real transfer?', 'What roles is he a fit for?', 'How do I contact him?'],
     },
     {
         id: 'fit',
-        label: 'Role fit',
-        ask: 'What roles is he a fit for?',
         k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
         a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS2 robotics software with MoveIt2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
         deep: "## Where he lines up well\n" +
@@ -775,12 +679,9 @@ const TOPICS = [
            "Early-career robot-learning engineer with unusually rigorous measurement habits and a working ROS2 deployment layer, aimed squarely at physical AI, missing the hardware half of sim-to-real.\n" +
            "## Next step\n" +
            "Email " + EMAIL + " for the CV, availability and role scope — none of that is published here.",
-        next: ['What are the gaps in his experience?', 'What is his strongest project?', 'What is he aiming for?', 'How do I contact him?'],
     },
     {
         id: 'workstyle',
-        label: 'How he works',
-        ask: 'How does he work?',
         k: ['!how does he work', '!work style', '!workstyle', '!approach', '!process', '!methodology', '!philosophy', '!principles', '!way of working', '!engineering approach', '!habits', '!standards', '!code quality'],
         a: "Four habits: build the baseline first and make it hard to beat (the cube-pose OpenCV baseline was refit to 1.91 mm before the CNN's 0.59 mm counted); publish the null and the correction (+0.0007 mAP, five throughput revisions); measure before committing (every project opens with a gate); C++ per frame, Python for ML.",
         deep: "## Baseline first, and make it hard to beat\n" +
@@ -799,7 +700,6 @@ const TOPICS = [
            "The learning track runs as blocks: pose regression, then detection, then reinforcement learning, then the biped, the C++ backend under it, and the arm. Each closes on a measurement and each one's result is the starting point of the next — the soft-argmax head from block 1 is the front end of the arm's image policies, and the PPO loop from block 3 trains the biped and the arm.\n" +
            "## Written down\n" +
            "Every project has a full written walkthrough on this site explaining the architecture, every source file, the measurements and what the result does not prove.",
-        next: ['What numbers can he back up?', 'How does he handle failure and recovery?', 'What is his strongest project?', 'Explain each project'],
     },
 ];
 
@@ -882,55 +782,11 @@ for (const t of TOPICS) {
     if (!t.deep && DEEP_EXTRA[t.id]) t.deep = DEEP_EXTRA[t.id];
 }
 
-/* Topics menu layout. Any labelled topic missing here is appended under
- * "More", so adding a topic above never silently drops it from the menu. */
-const TOPIC_GROUPS = [
-    { name: 'Background', ids: ['help', 'who', 'experience', 'goal', 'kinematics'] },
-    { name: 'Skills', ids: ['stack', 'ml', 'languages', 'ros2', 'control', 'navigation', 'deployment'] },
-    { name: 'Projects', ids: ['projects', 'duck', 'cpp', 'arm', 'detection', 'rl', 'pose', 'manipulation', 'fleet', 'metrics', 'hardware'] },
-    { name: 'Approach', ids: ['workstyle', 'reliability', 'debug', 'simtoreal', 'legged'] },
-    { name: 'Hiring', ids: ['strongest', 'fit', 'gaps', 'contact'] },
-];
-
-/* Rotated four at a time when a conversation starts, so the widget does not
- * look like it only knows four questions. */
-const STARTERS = [
-    'Who is Aung Kaung Myat?',
-    'What is his experience?',
-    'Explain each project',
-    'What is his technical stack?',
-    'Does he do machine learning?',
-    'Tell me about the Microduck balance project',
-    'Tell me about the C++ MuJoCo backend',
-    'Tell me about the SO-ARM100 projects',
-    'Tell me about the clutter detection project',
-    'Tell me about the PPO project',
-    'Tell me about the cube pose project',
-    'Tell me about the MoveIt2 pick and place project',
-    'Tell me about the fleet monitoring project',
-    'What about sim-to-real transfer?',
-    'What numbers can he back up?',
-    'How deep is his ROS2 knowledge?',
-    'C++ or Python — which does he use?',
-    'What is his maths and control theory background?',
-    'Which robots and sensors has he worked with?',
-    'How does he handle failure and recovery?',
-    'How does he debug robot problems?',
-    'What are the gaps in his experience?',
-    'What roles is he a fit for?',
-    'What is his strongest project?',
-    'How does he work?',
-    'How do I contact him?',
-];
-
 /* Questions the page genuinely cannot answer — say so instead of guessing. */
 const NOT_COVERED = {
     k: ['salary', 'pay', 'rate', 'age', 'old', 'married', 'visa', 'sponsor', 'relocate', 'relocation', 'remote', 'onsite', 'on-site', 'notice period', 'start date', 'address', 'phone', 'live', 'lives', 'located', 'location', 'city', 'country', 'nationality', 'citizenship', 'university', 'school', 'degree', 'graduated', 'gpa', 'certification', 'certificate', 'employer', 'employers', 'company', 'companies', 'references', 'hobby', 'hobbies', 'family', 'religion', 'politics', 'japanese', 'english level'],
     a: "That is not published on this page and I do not guess about it. Employers, dates, location, visa, salary, university and availability are all absent. Email him directly: " + EMAIL,
-    next: ['What is his experience?', 'What is his stack?', 'Explain each project', 'How do I contact him?'],
 };
-
-const FALLBACK_NEXT = ['What can I ask you?', 'Who is he?', 'Explain each project', 'What roles is he a fit for?'];
 
 const FALLBACK =
     "I did not catch that. I cover his robotics work only: background, stack, projects, how he works, contact.\n\n" +
@@ -995,17 +851,17 @@ function localAnswer(raw) {
 
     if (!picked.length) {
         if (NOT_COVERED.k.some((kw) => hits(q, kw))) {
-            return { text: NOT_COVERED.a, next: NOT_COVERED.next };
+            return { text: NOT_COVERED.a };
         }
-        if (OFF_TOPIC_RE.test(q)) return { text: OFF_TOPIC, next: FALLBACK_NEXT };
-        return { text: FALLBACK, next: FALLBACK_NEXT };
+        if (OFF_TOPIC_RE.test(q)) return { text: OFF_TOPIC };
+        return { text: FALLBACK };
     }
 
     const top = picked[0];
 
     // A weak single hit that also looks like an off-page question: be honest.
     if (top.score < 5 && NOT_COVERED.k.some((kw) => hits(q, kw))) {
-        return { text: NOT_COVERED.a, next: NOT_COVERED.next };
+        return { text: NOT_COVERED.a };
     }
 
     const parts = [!brief && top.t.deep ? top.t.deep : top.t.a];
@@ -1013,16 +869,11 @@ function localAnswer(raw) {
     // Multi-topic question ("stack and projects") — add a comparable runner-up.
     const second = picked[1];
     if (second && second.score >= top.score * 0.6 && second.t.id !== 'greeting') {
-        // Short form for the runner-up: two long answers stacked is a wall,
-        // and the follow-up chips can take the visitor to the long version.
+        // Short form for the runner-up: two long answers stacked is a wall.
         parts.push(second.t.a);
     }
 
-    // Follow-ups: the top topic's, minus anything it just answered.
-    const answered = new Set(picked.slice(0, 2).map((s) => s.t.ask));
-    const next = (top.t.next ?? FALLBACK_NEXT).filter((s) => !answered.has(s)).slice(0, 3);
-
-    return { text: parts.join('\n\n'), next: next.length ? next : FALLBACK_NEXT };
+    return { text: parts.join('\n\n') };
 }
 
 /* ── Answer rendering ────────────────────────────────────────────── */
@@ -1245,11 +1096,6 @@ panel.innerHTML = `
             <span class="chat-sub" data-ui="sub">Answers come from this page only</span>
         </div>
         <div class="chat-actions">
-            <button id="chat-topics-btn" class="chat-icon-btn" aria-label="All topics" aria-expanded="false" title="All topics">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                    <line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="17" x2="14" y2="17"></line>
-                </svg>
-            </button>
             <button id="chat-new" class="chat-icon-btn" aria-label="New conversation" title="New conversation">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" aria-hidden="true">
                     <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
@@ -1267,12 +1113,8 @@ panel.innerHTML = `
         <select id="chat-convo" aria-label="Conversation history"></select>
         <button id="chat-del" class="chat-icon-btn" aria-label="Delete this conversation" tabindex="-1"></button>
     </div>
-    <div id="chat-topics" hidden>
-        <div class="chat-topics-body"></div>
-    </div>
     <div id="chat-log" role="log"></div>
     <p id="chat-live" class="chat-sr" aria-live="polite"></p>
-    <div class="chat-suggestions"></div>
     <div class="chat-input-row">
         <textarea id="chat-input" rows="1" maxlength="500" placeholder="Ask a question…" aria-label="Your question"></textarea>
         <button id="chat-send" aria-label="Send" title="Send">
@@ -1287,7 +1129,7 @@ panel.innerHTML = `
 
 /* ── Interface language ──────────────────────────────────────────── */
 /* The chrome follows the site's EN / 日本語 switch. The knowledge base is
- * English, so the Japanese opening line says so. */
+ * English, so the Japanese placeholder says so. */
 
 const UI = {
     en: {
@@ -1295,24 +1137,12 @@ const UI = {
         sub: 'From this page only',
         placeholder: 'Ask a question…',
         fab: 'Ask about this portfolio',
-        opening: 'Projects, stack, or how he works.',
-        starters: [
-            ['The projects', 'Explain each project'],
-            ['How he works', 'How does he work?'],
-            ['Robots & sensors', 'Which robots and sensors has he worked with?'],
-        ],
     },
     ja: {
         title: 'ポートフォリオについて質問',
         sub: 'このページの内容のみ',
-        placeholder: '質問を入力…',
+        placeholder: '質問を入力（回答は英語）',
         fab: 'ポートフォリオについて質問',
-        opening: 'プロジェクト・技術・進め方について。回答は英語。',
-        starters: [
-            ['プロジェクト', 'Explain each project'],
-            ['進め方', 'How does he work?'],
-            ['ロボットとセンサー', 'Which robots and sensors has he worked with?'],
-        ],
     },
 };
 
@@ -1335,10 +1165,6 @@ const log = panel.querySelector('#chat-log');
 const liveRegion = panel.querySelector('#chat-live');
 const input = panel.querySelector('#chat-input');
 const sendBtn = panel.querySelector('#chat-send');
-const suggestionBar = panel.querySelector('.chat-suggestions');
-const topicsPane = panel.querySelector('#chat-topics');
-const topicsBody = panel.querySelector('.chat-topics-body');
-const topicsBtn = panel.querySelector('#chat-topics-btn');
 const convoSelect = panel.querySelector('#chat-convo');
 const newBtn = panel.querySelector('#chat-new');
 const delBtn = panel.querySelector('#chat-del');
@@ -1349,9 +1175,7 @@ const reducedMotion = typeof matchMedia === 'function'
 /* ── Conversation store ──────────────────────────────────────────── */
 /* Kept in localStorage so a visitor who comes back still has what they
  * asked. Conversation shape:
- *   { id, title, messages: [{ role: 'user'|'bot'|'error', text }], next: [] }
- * `next` is the follow-up chip set, stored so switching conversations
- * restores the whole view rather than half of it. */
+ *   { id, title, messages: [{ role: 'user'|'bot'|'error', text }] } */
 
 const STORE_KEY = 'akm-chat-v1';
 const MAX_CONVOS = 20;
@@ -1393,7 +1217,6 @@ function loadStore() {
                     role: m.role === 'user' ? 'user' : m.role === 'error' ? 'error' : 'bot',
                     text: m.text,
                 })),
-            next: Array.isArray(c.next) ? c.next.filter((s) => typeof s === 'string').slice(0, 4) : [],
         }));
 
     activeId = conversations.some((c) => c.id === data.activeId)
@@ -1486,81 +1309,13 @@ function addTyping() {
     return el;
 }
 
-function renderSuggestions(items) {
-    suggestionBar.innerHTML = '';
-    if (!items || !items.length) return;
-    for (const s of items) {
-        const label = typeof s === 'string' ? s : s.label;
-        const q = typeof s === 'string' ? s : s.ask;
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.textContent = label;
-        b.addEventListener('click', () => { ask(q); });
-        suggestionBar.appendChild(b);
-    }
-}
-
-function setSuggestions(items) {
-    const c = active();
-    if (c) { c.next = (items || []).map((s) => (typeof s === 'string' ? s : s.ask)); saveStore(); }
-    renderSuggestions(items);
-}
-
 function renderLog() {
     log.innerHTML = '';
     liveRegion.textContent = '';
     const c = active();
-    if (!c) { renderSuggestions([]); return; }
+    if (!c) return;
     for (const m of c.messages) addMsg(m.text, m.role, true);
-    renderSuggestions(c.next);
     scrollLog();
-}
-
-/* ── Topics menu ─────────────────────────────────────────────────── */
-
-function buildTopicsMenu() {
-    topicsBody.innerHTML = '';
-
-    const byId = new Map(TOPICS.filter((t) => t.label && t.ask).map((t) => [t.id, t]));
-    const groups = TOPIC_GROUPS.map((g) => ({
-        name: g.name,
-        items: g.ids.map((id) => byId.get(id)).filter(Boolean),
-    }));
-    for (const g of groups) for (const t of g.items) byId.delete(t.id);
-    if (byId.size) groups.push({ name: 'More', items: [...byId.values()] });
-
-    for (const g of groups) {
-        if (!g.items.length) continue;
-
-        const head = document.createElement('p');
-        head.className = 'chat-topics-title';
-        head.textContent = g.name;
-        topicsBody.appendChild(head);
-
-        const row = document.createElement('div');
-        row.className = 'chat-topics-list';
-        for (const t of g.items) {
-            const b = document.createElement('button');
-            b.type = 'button';
-            b.textContent = t.label;
-            b.addEventListener('click', () => { closeTopics(); ask(t.ask); });
-            row.appendChild(b);
-        }
-        topicsBody.appendChild(row);
-    }
-}
-
-function closeTopics() {
-    topicsPane.hidden = true;
-    topicsBtn.setAttribute('aria-expanded', 'false');
-}
-
-/* ── Starter chips ───────────────────────────────────────────────── */
-/* Three, fixed, in the interface language. Each sends its English question
- * so the match against the knowledge base is exact. */
-
-function starterSet() {
-    return UI[uiLang()].starters.map(([label, ask]) => ({ label, ask }));
 }
 
 /* ── Endpoint mode ───────────────────────────────────────────────── */
@@ -1635,11 +1390,8 @@ async function showBot(text) {
 async function run(text) {
     try {
         setPhase('thinking');
-        const hint = log.querySelector('.chat-empty');
-        if (hint) hint.remove();
         record('user', text);
         addMsg(text, 'user');
-        setSuggestions([]);
 
         const local = localAnswer(text);
         let reply = local.text;
@@ -1670,7 +1422,6 @@ async function run(text) {
             record('error', note);
             addMsg(note, 'error');
         }
-        setSuggestions(local.next);
     } finally {
         setPhase('idle');
         if (panel.classList.contains('open')) input.focus();
@@ -1681,7 +1432,7 @@ async function ask(raw) {
     const text = String(raw).trim();
     if (!text) return;
 
-    // A chip pressed mid-answer finishes that answer first, so the log
+    // A question sent mid-answer finishes that answer first, so the log
     // never has two things typing into it.
     if (streamCtl) streamCtl.finish();
     if (pending) { try { await pending; } catch (e) {} }
@@ -1689,16 +1440,6 @@ async function ask(raw) {
 
     pending = run(text);
     try { await pending; } catch (e) { console.warn('chat failed:', e); } finally { pending = null; }
-}
-
-/* An empty conversation shows one quiet hint and three chips, no bot bubble. */
-function greet() {
-    const t = UI[uiLang()];
-    const el = document.createElement('p');
-    el.className = 'chat-empty';
-    el.textContent = t.opening;
-    log.appendChild(el);
-    setSuggestions(starterSet());
 }
 
 function submit() {
@@ -1726,7 +1467,7 @@ function newConversation(force) {
     }
     if (streamCtl) streamCtl.finish();
 
-    const fresh = { id: newId(), title: null, messages: [], next: [] };
+    const fresh = { id: newId(), title: null, messages: [] };
     conversations.unshift(fresh);
     if (conversations.length > MAX_CONVOS) conversations.length = MAX_CONVOS;
     activeId = fresh.id;
@@ -1734,7 +1475,7 @@ function newConversation(force) {
     renderConvoOptions();
     renderLog();
     saveStore();
-    greet();
+    input.focus();
 }
 
 let confirmTimer = 0;
@@ -1777,8 +1518,7 @@ function switchConversation(id) {
     activeId = id;
     renderLog();
     saveStore();
-    if (!active().messages.length) greet();
-    else input.focus();
+    input.focus();
 }
 
 /* ── Panel ───────────────────────────────────────────────────────── */
@@ -1792,17 +1532,14 @@ function toggle(open) {
     if (willOpen) {
         const c = active();
         if (!c) newConversation(true);
-        else if (!c.messages.length) greet();
         input.focus();
     } else {
         resetConfirm();
-        closeTopics();
         fab.focus();
     }
 }
 
 loadStore();
-buildTopicsMenu();
 applyChatLang();
 document.addEventListener('langchange', applyChatLang);
 if (conversations.length) {
@@ -1817,12 +1554,6 @@ newBtn.addEventListener('click', () => newConversation(false));
 delBtn.addEventListener('click', onDelete);
 convoSelect.addEventListener('change', () => switchConversation(convoSelect.value));
 
-topicsBtn.addEventListener('click', () => {
-    const show = topicsPane.hidden;
-    topicsPane.hidden = !show;
-    topicsBtn.setAttribute('aria-expanded', String(show));
-});
-
 input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
 });
@@ -1836,6 +1567,5 @@ document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     if (streamCtl) { streamCtl.finish(); return; }
     if (delBtn.classList.contains('confirm')) { resetConfirm(); return; }
-    if (!topicsPane.hidden) { closeTopics(); return; }
     if (panel.classList.contains('open')) toggle(false);
 });
