@@ -3,6 +3,8 @@ name: Deploy static site to Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '17 21 * * *'   # 06:17 JST: refresh repos.json
   workflow_dispatch:
 
 permissions:
@@ -23,6 +25,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Snapshot public repositories
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "users/${{ github.repository_owner }}/repos?per_page=100&type=owner" \
+            --jq '.[] | select((.fork or .private) | not) | {name, language, stars: .stargazers_count, pushed_at}' \
+            | jq -s '.' > repos.json
+          test "$(jq length repos.json)" -gt 0
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
