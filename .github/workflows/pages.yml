@@ -33,6 +33,10 @@ jobs:
             --jq '.[] | select((.fork or .private) | not) | {name, language, stars: .stargazers_count, pushed_at}' \
             | jq -s '.' > repos.json
           test "$(jq length repos.json)" -gt 0
+      - name: Check the site
+        run: |
+          node tools/check-kb.js
+          node tools/check-links.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
