@@ -15,9 +15,6 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a2624a'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
 (function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
 try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
@@ -263,28 +260,28 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         <rect x="0" y="0" width="760" height="250" fill="#faf8f6"/>
         <!-- table -->
         <line x1="60" y1="200" x2="700" y2="200" stroke="#1f1b18" stroke-width="2"/>
-        <text x="60" y="221" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">table plane, z = 0</text>
+        <text x="60" y="221" font-family="ui-monospace, monospace" font-size="11" fill="#7a7066">table plane, z = 0</text>
         <!-- base -->
         <rect x="86" y="176" width="26" height="24" fill="#d6cec6" stroke="#1f1b18" stroke-width="1.2"/>
-        <text x="70" y="243" font-family="JetBrains Mono, monospace" font-size="11" fill="#4b433d">panda_link0</text>
+        <text x="70" y="243" font-family="ui-monospace, monospace" font-size="11" fill="#4b433d">panda_link0</text>
         <!-- camera -->
         <rect x="330" y="46" width="52" height="30" rx="3" fill="#a2624a"/>
         <polygon points="382,54 400,46 400,76 382,68" fill="#7a4632"/>
-        <text x="300" y="38" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#7a4632">camera_link · 0.40, 0.00, 0.80 m</text>
+        <text x="300" y="38" font-family="ui-monospace, monospace" font-size="11.5" fill="#7a4632">camera_link · 0.40, 0.00, 0.80 m</text>
         <!-- frustum -->
         <polygon points="356,76 160,200 552,200" fill="#a2624a" fill-opacity="0.07" stroke="#e2cabd" stroke-width="1"/>
         <!-- optical axis -->
         <line x1="356" y1="76" x2="356" y2="200" stroke="#7a4632" stroke-width="1" stroke-dasharray="4 4"/>
-        <text x="362" y="140" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a4632">h = 0.80 m</text>
+        <text x="362" y="140" font-family="ui-monospace, monospace" font-size="11" fill="#7a4632">h = 0.80 m</text>
         <!-- ball -->
         <circle cx="470" cy="192" r="9" fill="#a2624a" stroke="#7a4632" stroke-width="1.2"/>
         <line x1="356" y1="76" x2="470" y2="192" stroke="#a2624a" stroke-width="1.6"/>
-        <text x="452" y="176" font-family="JetBrains Mono, monospace" font-size="11" fill="#1f1b18">ball</text>
+        <text x="452" y="176" font-family="ui-monospace, monospace" font-size="11" fill="#1f1b18">ball</text>
         <!-- annotation -->
-        <text x="500" y="106" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4b433d">w&#8347; = c&#8347; + (u − c&#8339;)·h / f&#8339;</text>
-        <text x="500" y="124" font-family="JetBrains Mono, monospace" font-size="11.5" fill="#4b433d">w&#8339; = c&#8339; − (v − c&#8340;)·h / f&#8340;</text>
-        <text x="500" y="146" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">one pixel → one world point,</text>
-        <text x="500" y="162" font-family="JetBrains Mono, monospace" font-size="11" fill="#7a7066">because z is assumed to be 0</text>
+        <text x="500" y="106" font-family="ui-monospace, monospace" font-size="11.5" fill="#4b433d">w&#8347; = c&#8347; + (u − c&#8339;)·h / f&#8339;</text>
+        <text x="500" y="124" font-family="ui-monospace, monospace" font-size="11.5" fill="#4b433d">w&#8339; = c&#8339; − (v − c&#8340;)·h / f&#8340;</text>
+        <text x="500" y="146" font-family="ui-monospace, monospace" font-size="11" fill="#7a7066">one pixel → one world point,</text>
+        <text x="500" y="162" font-family="ui-monospace, monospace" font-size="11" fill="#7a7066">because z is assumed to be 0</text>
       </svg>
       <figcaption lang="en">The whole depth problem, solved by an assumption. A single camera cannot measure distance —
         a pixel corresponds to a <em>ray</em>, not a point. Assuming every ball sits on the table (z = 0) turns

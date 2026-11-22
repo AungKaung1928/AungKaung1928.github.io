@@ -15,9 +15,6 @@
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e1420" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%236a6fa8'/><text x='16' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'>A</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <script>
 (function(d){var l,t;try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
 try{if(l)localStorage.setItem('lang',l);else l=localStorage.getItem('lang');t=localStorage.getItem('theme')}catch(e){}
@@ -392,8 +389,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           <rect x="70" y="86" width="52" height="52" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
           <circle cx="180" cy="112" r="26" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
           <rect x="230" y="130" width="44" height="44" fill="#6a6fa8" fill-opacity=".22" stroke="#6a6fa8"/>
-          <text x="26" y="220" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">same size regardless of position · flat</text>
-          <text x="26" y="235" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">separable by blob-finding</text>
+          <text x="26" y="220" font-family="ui-monospace, monospace" font-size="10.5" fill="#6f7186">same size regardless of position · flat</text>
+          <text x="26" y="235" font-family="ui-monospace, monospace" font-size="10.5" fill="#6f7186">separable by blob-finding</text>
 
           <text x="400" y="24" font-family="Archivo, sans-serif" font-size="12" font-weight="600" fill="#191a22">Tilted 39° — occlusion and perspective return</text>
           <rect x="400" y="42" width="290" height="160" fill="#ffffff" stroke="#d0d0de"/>
@@ -401,8 +398,8 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           <circle cx="530" cy="84" r="18" fill="#6a6fa8" fill-opacity=".18" stroke="#6a6fa8"/>
           <rect x="486" y="120" width="66" height="60" fill="#6a6fa8" fill-opacity=".30" stroke="#4a4f83"/>
           <circle cx="556" cy="148" r="32" fill="#6a6fa8" fill-opacity=".30" stroke="#4a4f83"/>
-          <text x="400" y="220" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">far objects smaller · near ones hide far ones</text>
-          <text x="400" y="235" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#6f7186">silhouettes change with yaw</text>
+          <text x="400" y="220" font-family="ui-monospace, monospace" font-size="10.5" fill="#6f7186">far objects smaller · near ones hide far ones</text>
+          <text x="400" y="235" font-family="ui-monospace, monospace" font-size="10.5" fill="#6f7186">silhouettes change with yaw</text>
         </svg>
         <figcaption lang="en">The overhead camera is kept in the scene anyway — it is the only view with an exact
           pixel↔world map, so it verifies the labels and supplies the world coordinates later blocks need.
