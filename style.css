@@ -218,6 +218,13 @@ footer { border-top: 1px solid var(--border); padding-block: 2rem; font-size: 0.
     .skill-row { grid-template-columns: minmax(0, 1fr); }
 }
 
+/* Phones: the first project card starts on the first screen (390x844) */
+@media (max-width: 480px) {
+    .hero { padding-block: 1.5rem 2rem; }
+    #projects { padding-top: 2rem; }
+    .section-head { margin-bottom: 1.25rem; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after { transition: none !important; animation: none !important; }
