@@ -37,6 +37,7 @@ jobs:
           node tools/check-chat.js
           node tools/check-links.js
           node tools/check-contrast.js
+          node tools/check-scroll.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
