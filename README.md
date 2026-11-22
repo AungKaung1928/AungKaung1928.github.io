@@ -12,7 +12,7 @@ Requires Python 3 (local server) and Node (checks). No build step: plain HTML, C
 git clone <this repo URL>
 cd AungKaung1928.github.io
 python3 -m http.server 8000      # open http://localhost:8000
-node tools/check-kb.js && node tools/check-chat.js && node tools/check-links.js   # the checks CI runs
+node tools/check-kb.js && node tools/check-chat.js && node tools/check-links.js && node tools/check-contrast.js   # the checks CI runs
 ```
 
 `check-links.js` reads `repos.json`, which CI writes from the GitHub API before deploy (`.github/workflows/pages.yml`).
