@@ -311,7 +311,7 @@ html.full .deep-note{display:none}
 .viz text{fill:var(--ink2);font-size:12px}
 .viz .lbl{font-weight:600;fill:var(--ink)}
 .viz .lbl.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.viz .mut{fill:var(--muted);font-size:11px}
+.viz .mut{fill:var(--muted);font-size:12px}
 .viz .dot{fill:var(--accent);stroke:var(--bg);stroke-width:2}
 .viz .dot.ref{fill:var(--line2)}
 .viz .dot.neg{fill:var(--bad)}
