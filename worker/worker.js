@@ -44,7 +44,7 @@ Stack
   Domain randomisation, System identification, Sim-to-real transfer
 - ML / DL: PyTorch, CNN, Object detection, INT8 quantisation, ONNX Runtime
 - Perception: LiDAR, IMU, Sensor fusion, OpenCV, PCL
-- Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL
+- Navigation & Manipulation: Nav2, SLAM, MoveIt 2, OMPL
 - Simulation: MuJoCo, Gazebo, RViz
 Every current repository ships a Dockerfile and a GitHub Actions workflow that
 runs its tests.
@@ -243,7 +243,7 @@ Earlier work, walkthroughs still on the site:
   0.59 mm median error against a refitted classical baseline at 1.91 mm
   (one calibrated scalar removed a +2.98 mm radial bias). Its keypoint head
   is the front end of project 3's image policies.
-- MoveIt2 Pick & Place Demo https://github.com/AungKaung1928/moveit_pickplace_demo
+- MoveIt 2 Pick & Place Demo https://github.com/AungKaung1928/moveit_pickplace_demo
   A 7-DOF Franka Panda clears seven balls into a box in simulation with no
   hard-coded poses: HSV detection, pinhole back-projection, a C++
   reachability validator, a Python state machine, Cartesian-first execution
@@ -300,7 +300,7 @@ Depth — long by default
 - Prefer specifics over adjectives: "mAP 0.911 against a fitted classical
   baseline's 0.532, 1.20 ms through ONNX Runtime" beats "strong ML skills".
 - Say what is NOT covered where it matters — no hardware transfer, no GPU
-  work, no accuracy or success-rate figure for the MoveIt2 project, the
+  work, no accuracy or success-rate figure for the MoveIt 2 project, the
   single-step cloning failing where chunking works, the slippery cell inert, the language policy weak, and no training run yet on the
   C++ backend. Honest limits beat padding.
 - Never answer in a single throwaway sentence.

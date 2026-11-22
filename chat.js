@@ -50,7 +50,7 @@ const TOPICS = [
         deep: "## Short version\n" +
            "Robotics software engineer, working on real mobile robots professionally — ROS 2, C++, navigation and LiDAR perception. This page is his personal work: learned perception and control, built on ROS 2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
            "## What he actually builds\n" +
-           "Four current projects, all robot learning on a laptop with no GPU: a balance-and-recover policy for a small biped, a C++17 simulation backend proven bit-identical to its Python reference, one MuJoCo bench for the SO-ARM100 arm feeding a reinforcement-learning, an imitation and a language-conditioned policy, and a tabletop detector taken down to INT8 on one CPU thread. Four earlier projects sit behind them: PPO written from scratch against LQR, a cube-pose CNN, a closed-loop MoveIt2 pick-and-place stack on a Franka Panda, and a containerised multi-robot telemetry pipeline. The PPO loop and the keypoint head from the earlier work are reused in the current one.\n\n" +
+           "Four current projects, all robot learning on a laptop with no GPU: a balance-and-recover policy for a small biped, a C++17 simulation backend proven bit-identical to its Python reference, one MuJoCo bench for the SO-ARM100 arm feeding a reinforcement-learning, an imitation and a language-conditioned policy, and a tabletop detector taken down to INT8 on one CPU thread. Four earlier projects sit behind them: PPO written from scratch against LQR, a cube-pose CNN, a closed-loop MoveIt 2 pick-and-place stack on a Franka Panda, and a containerised multi-robot telemetry pipeline. The PPO loop and the keypoint head from the earlier work are reused in the current one.\n\n" +
            "## The habit worth noticing\n" +
            "Every learned result on this page is reported next to a hand-written method that was measured first. The cube-pose project refits its OpenCV baseline until it is genuinely competitive before claiming the CNN wins. The PPO project reports that its learned policy has a smaller basin of attraction than the LQR controller it is compared to. That is unusual, and it is deliberate.\n\n" +
            "## Where he is going\n" +
@@ -63,13 +63,13 @@ const TOPICS = [
         deep: "## Level\n" +
            "Early career, and honest about it. What he has is depth in a narrow band rather than a long list of years.\n\n" +
            "## What the day job looks like\n" +
-           "ROS 2 systems work: autonomous mobile robots, perception pipelines, and getting software onto physical machines. C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt2 as the working toolset.\n\n" +
+           "ROS 2 systems work: autonomous mobile robots, perception pipelines, and getting software onto physical machines. C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt 2 as the working toolset.\n\n" +
            "## What the projects prove\n" +
            "- Microduck Balance and Push Recovery — a PPO policy for a 14-servo biped, with the reward rebuilt from measurement and a PD baseline it has to beat\n" +
            "- Threaded C++ MuJoCo Backend, Bit-Identical — the same environment in C++17 on threads, 6,275 of 6,275 observations identical to the Python one, about 2x its throughput at 8 workers\n" +
            "- SO-ARM100 Manipulation with RL, Imitation and Language — one bench, three ways of learning the same arm tasks, one evaluation protocol\n" +
            "- Tabletop Clutter Detector, INT8 on One Thread — an anchor-free detector, COCO mAP implemented from scratch, then quantised and pruned for a one-thread latency budget\n" +
-           "Earlier: PPO vs LQR on Cart-Pole, Cube Pose Regression CNN, MoveIt2 Pick & Place Demo, Fleet Monitoring System.\n\n" +
+           "Earlier: PPO vs LQR on Cart-Pole, Cube Pose Regression CNN, MoveIt 2 Pick & Place Demo, Fleet Monitoring System.\n\n" +
            "Together they cover model, policy, simulation backend, and the infrastructure around them.\n\n" +
            "## The constraint worth knowing about\n" +
            "There is no GPU in any of this. The whole robot-learning track was designed around an 8-thread CPU budget, which is why the projects lead with feasibility measurements and small architectures rather than with scale.\n\n" +
@@ -83,7 +83,7 @@ const TOPICS = [
         deep: "## Now\n" +
            "Two tracks, run in parallel:\n" +
            "- Robot learning on CPU — a biped balance policy, arm manipulation by RL, imitation and language, a detector quantised to INT8, and a C++ simulation backend proven bit-identical to its Python reference\n" +
-           "- ROS 2 systems — MoveIt2 manipulation, Nav2, perception, and the infrastructure around a fleet, from the day job and the earlier projects\n\n" +
+           "- ROS 2 systems — MoveIt 2 manipulation, Nav2, perception, and the infrastructure around a fleet, from the day job and the earlier projects\n\n" +
            "## Next\n" +
            "Physical AI — getting learned behaviour to run on real machines. Three pieces:\n" +
            "- Sim-to-real transfer: closing the gap between a policy that works in simulation and one that survives hardware. Domain randomisation, system identification, and residual policies are the method, not the buzzwords\n" +
@@ -95,13 +95,13 @@ const TOPICS = [
     {
         id: 'languages',
         k: ['language', 'languages', '!python', 'coding', 'programming', 'code', 'linux', 'os', '!which language'],
-        a: "Both. C++17 for anything per step or per frame: the threaded MuJoCo backend (CMake, pybind11) and the MoveIt2 reachability validator. Python for the learning side: PyTorch models, MuJoCo environments, training, evaluation. Rule: real-time and edge code in C++, research and orchestration in Python.",
+        a: "Both. C++17 for anything per step or per frame: the threaded MuJoCo backend (CMake, pybind11) and the MoveIt 2 reachability validator. Python for the learning side: PyTorch models, MuJoCo environments, training, evaluation. Rule: real-time and edge code in C++, research and orchestration in Python.",
         deep: "## The split\n" +
            "- C++ — production nodes, real-time paths, anything performance-critical or destined for an edge device\n" +
            "- Python — model training, simulation, evaluation, orchestration\n" +
            "- Linux throughout; ROS 2 as the runtime for the systems side\n\n" +
            "## Where that shows in the projects\n" +
-           "- MoveIt2 Pick & Place Demo — mixed. The workspace validator that filters unreachable targets is C++ because it runs on every detection; the finite state machine that sequences grasps is Python because the value there is orchestration, not throughput\n" +
+           "- MoveIt 2 Pick & Place Demo — mixed. The workspace validator that filters unreachable targets is C++ because it runs on every detection; the finite state machine that sequences grasps is Python because the value there is orchestration, not throughput\n" +
            "- Threaded C++ MuJoCo Backend — C++17, CMake, pybind11. One model per environment, N environments on T threads, tested under AddressSanitizer, UndefinedBehaviorSanitizer and ThreadSanitizer in CI. Written to be the same environment to the bit, then measured at about 2x the Python processes\n" +
            "- Microduck Balance and Push Recovery, SO-ARM100 Manipulation, Tabletop Clutter Detector, and the earlier PPO vs LQR and Cube Pose projects — Python with PyTorch, NumPy and MuJoCo\n" +
            "- Fleet Monitoring System — Python. Glue between ROS 2, Kafka and QuestDB, where iteration speed beats microseconds\n\n" +
@@ -113,7 +113,7 @@ const TOPICS = [
     {
         id: 'stack',
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
-        a: "ROS 2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL. MuJoCo, Gazebo.",
+        a: "ROS 2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt 2, OMPL. MuJoCo, Gazebo.",
         deep: "## Core\n" +
            "ROS 2 (Humble), C++17, Python, Linux, CMake. ROS 2 is the runtime for the systems side; the learning code is Python until it is exported, and the one C++ project is a simulation backend that the Python training script runs on unchanged.\n" +
            "## Robot Learning\n" +
@@ -125,7 +125,7 @@ const TOPICS = [
            "## Perception\n" +
            "LiDAR, IMU and camera, fused. OpenCV for image work — used both as a tool and as the baseline the learned models have to beat. PCL for point clouds.\n" +
            "## Manipulation\n" +
-           "MoveIt2 for motion planning and execution, OMPL as the sampling planner, trajectory planning and motion control on a 7-DOF arm including post-planning retiming for velocity scaling.\n" +
+           "MoveIt 2 for motion planning and execution, OMPL as the sampling planner, trajectory planning and motion control on a 7-DOF arm including post-planning retiming for velocity scaling.\n" +
            "## Navigation\n" +
            "Nav2, SLAM, AMCL and Cartographer — the professional side of the work rather than the portfolio side.\n" +
            "## Control\n" +
@@ -310,9 +310,9 @@ const TOPICS = [
     {
         id: 'manipulation',
         k: ['!moveit', '!moveit2', 'manipulator', 'pick', 'place', '!panda', '!franka', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof', '!reachability', '!validator', '!fsm', '!pick and place', '!pick-and-place'],
-        a: "Earlier ROS 2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt2 with OMPL fallback.\n" +
+        a: "Earlier ROS 2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt 2 with OMPL fallback.\n" +
            "No accuracy or success-rate figure was measured; HSV on synthetic frames. Walkthrough: projects/moveit-pickplace.html",
-        deep: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS 2, Franka Panda\n" +
+        deep: "## MoveIt 2 Pick & Place Demo — Python, C++, MoveIt 2, ROS 2, Franka Panda\n" +
            "A closed perception-to-execution loop on a 7-DOF arm, in simulation.\n" +
            "## The loop\n" +
            "1. A scene manager holds ground truth and publishes it on a latched topic\n" +
@@ -389,7 +389,7 @@ const TOPICS = [
     {
         id: 'navigation',
         k: ['navigation', 'navigate', '!nav2', '!slam', '!amcl', '!cartographer', '!localization', '!localisation', 'mapping', '!costmap', 'path planning', 'planner', 'autonomous mobile'],
-        a: "Professional work, not portfolio work: Nav2, SLAM, AMCL and Cartographer on autonomous mobile robots at the day job. No navigation project on this page; what is shown instead is 7-DOF arm planning with MoveIt2 and OMPL. For the scope of that work, email " + EMAIL + ".",
+        a: "Professional work, not portfolio work: Nav2, SLAM, AMCL and Cartographer on autonomous mobile robots at the day job. No navigation project on this page; what is shown instead is 7-DOF arm planning with MoveIt 2 and OMPL. For the scope of that work, email " + EMAIL + ".",
         deep: "## The stack he uses professionally\n" +
            "- Nav2 — the planning and control stack: global and local planners, behaviour trees, recovery behaviours\n" +
            "- SLAM for building maps, with Cartographer among the tools\n" +
@@ -406,7 +406,7 @@ const TOPICS = [
         id: 'projects',
         k: ['project', 'projects', 'portfolio', 'built', 'build', 'repo', 'repos', 'repository', 'github', 'work on', 'works on', 'showcase', 'made', 'demos'],
         weight: 0.9,
-        a: "Four current projects, all robot learning on CPU: Microduck biped (PPO 344.8 vs PD 175.8 of 500), C++ MuJoCo backend (6,275 of 6,275 bit-identical, 1.9–2.0x), SO-ARM100 arm (chunking 0.77 vs cloning 0.05), clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms). Earlier: PPO vs LQR, cube pose CNN, MoveIt2, fleet.",
+        a: "Four current projects, all robot learning on CPU: Microduck biped (PPO 344.8 vs PD 175.8 of 500), C++ MuJoCo backend (6,275 of 6,275 bit-identical, 1.9–2.0x), SO-ARM100 arm (chunking 0.77 vs cloning 0.05), clutter detector (mAP 0.911 vs 0.532, INT8 1.38 ms). Earlier: PPO vs LQR, cube pose CNN, MoveIt 2, fleet.",
         deep: "Four current projects and four earlier ones. All of the current work is robot learning, trained and measured on CPU only.\n\n" +
            "## 1 · Microduck Balance and Push Recovery — Python, MuJoCo, PyTorch, ONNX\n" +
            "A balance-and-recover policy for a 25 cm, 14-servo biped with no GPU in the stack.\n" +
@@ -440,7 +440,7 @@ const TOPICS = [
            "## Earlier work\n" +
            "- PPO vs LQR on Cart-Pole — PPO from first principles, 16 seeds, permutation-tested ablations, and a conclusion against the learned method. Its PPO loop trains projects 1 and 3. https://github.com/AungKaung1928/ppo-from-scratch\n" +
            "- Cube Pose Regression CNN — 0.59 mm median error from a 27k-parameter soft-argmax head, against a refitted classical baseline. Its keypoint head is the front end of project 3's image policies. https://github.com/AungKaung1928/mujoco-cube-pose-cnn\n" +
-           "- MoveIt2 Pick & Place Demo — a closed camera-to-grasp loop on a 7-DOF Franka Panda with no hard-coded poses. https://github.com/AungKaung1928/moveit_pickplace_demo\n" +
+           "- MoveIt 2 Pick & Place Demo — a closed camera-to-grasp loop on a 7-DOF Franka Panda with no hard-coded poses. https://github.com/AungKaung1928/moveit_pickplace_demo\n" +
            "- Fleet Monitoring System — ROS 2 to Kafka to QuestDB, containerised, several TurtleBot3 in Gazebo. https://github.com/AungKaung1928/fleet_monitoring_ws\n\n" +
            "## Why these four\n" +
            "Legs, simulation infrastructure, hands and eyes: a locomotion policy, the C++ backend under it, arm manipulation by three methods, and a detector taken to an edge budget. Each has a full written walkthrough linked from its card, and so do the four earlier projects.",
@@ -461,12 +461,12 @@ const TOPICS = [
     {
         id: 'ros2',
         k: ['!ros2', '!ros', '!humble', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
-        a: "ROS 2 Humble in C++ and Python. On this page: the MoveIt2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
+        a: "ROS 2 Humble in C++ and Python. On this page: the MoveIt 2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
         deep: "## The version and the languages\n" +
            "ROS 2 Humble, C++ and Python, on Linux. C++ for nodes that run per frame or per detection; Python where iteration speed and async orchestration matter more.\n" +
            "## Where the depth shows on this page\n" +
            "- Topic contracts between nodes: scene ground truth on a latched topic, rendered frames, detected objects, validated targets, and a scene-update channel that hides a ball once it is picked. Each stage is replaceable without touching the others\n" +
-           "- Actions: the MoveIt2 project verifies its action server before commanding anything, and drives MoveGroup asynchronously with an explicit completion event rather than blocking\n" +
+           "- Actions: the MoveIt 2 project verifies its action server before commanding anything, and drives MoveGroup asynchronously with an explicit completion event rather than blocking\n" +
            "- Service quirks handled rather than worked around: the Humble Cartesian-path service has no velocity-scaling field, so the trajectory is retimed after planning\n" +
            "- Language split inside one package, justified per node\n" +
            "## Where the deeper ROS 2 work actually lives\n" +
@@ -526,7 +526,7 @@ const TOPICS = [
         id: 'reliability',
         k: ['!reliability', '!reliable', '!robust', '!robustness', '!recovery', '!recover', '!fallback', '!failure', '!failures', '!fail', '!safety', '!safe', '!error handling', '!graceful', '!edge case', '!edge cases', '!unattended', '!production ready', '!production-ready'],
         weight: 1.1,
-        a: "Failure paths are designed in: the MoveIt2 project validates reachability before planning, falls back from Cartesian to OMPL RRTConnect, checks the action server at startup, homes on planning failure. In measurements: unsolved RL runs count as budget plus one; nulls and corrections stay visible. Kafka decouples fleet.",
+        a: "Failure paths are designed in: the MoveIt 2 project validates reachability before planning, falls back from Cartesian to OMPL RRTConnect, checks the action server at startup, homes on planning failure. In measurements: unsolved RL runs count as budget plus one; nulls and corrections stay visible. Kafka decouples fleet.",
         deep: "## In the robot code\n" +
            "- The reachability validator is a filter placed before the planner, so an impossible target is a rejected message rather than a planning failure. Failing early is cheaper than failing loudly\n" +
            "- Cartesian-first with OMPL RRTConnect as fallback: the preferred motion is the predictable one, and the sampling planner is what happens when the preferred motion is unavailable\n" +
@@ -548,7 +548,7 @@ const TOPICS = [
     {
         id: 'metrics',
         k: ['!metric', '!metrics', '!accuracy', '!success rate', '!numbers', '!measured', '!measurable', '!benchmark', '!benchmarks', '!precision', '!latency', '!throughput', '!fps', '!proof', '!evidence', '!quantify', '!quantified', '!results'],
-        a: "mAP 0.911 vs classical 0.532, INT8 1.38 ms on one thread; cube pose 0.59 mm vs 1.91 mm; PPO median 62,144 steps over 16 seeds; Microduck PPO 344.8 vs PD 175.8 of 500; C++ backend 6,275 of 6,275 bit-identical, 12,327 vs 6,385 steps/s; arm chunking 0.77 vs cloning 0.05. Not measured: hardware, MoveIt2 accuracy, fleet.",
+        a: "mAP 0.911 vs classical 0.532, INT8 1.38 ms on one thread; cube pose 0.59 mm vs 1.91 mm; PPO median 62,144 steps over 16 seeds; Microduck PPO 344.8 vs PD 175.8 of 500; C++ backend 6,275 of 6,275 bit-identical, 12,327 vs 6,385 steps/s; arm chunking 0.77 vs cloning 0.05. Not measured: hardware, MoveIt 2 accuracy, fleet.",
         deep: "## The numbers, with their mechanism attached\n" +
            "A figure without its method is decoration, so each one comes with how it was obtained.\n" +
            "- **mAP@[.5:.95] 0.911** — Tabletop Clutter Detector, 380,631 parameters, 25 epochs, 34 minutes on 8 CPU threads. The comparison point is a classical pipeline refitted with a score, at 0.532. The metric itself is implemented from scratch and unit-tested, and the val split was touched exactly once\n" +
@@ -564,7 +564,7 @@ const TOPICS = [
            "- **27,011 bare physics steps per second** at 8 threads in C++, reproduced within 1% by a second sweep\n" +
            "## What is deliberately absent\n" +
            "- More training seeds for the main policies: the Microduck runs, the C++-backend run and the SO-ARM100 RL, imitation and language policies are one training run each, and their ± is over evaluation seeds; the Cart-Pole comparison (16 seeds) and the imitation scaling curve (3) are the exceptions\n" +
-           "- No positioning accuracy and no success rate for the earlier MoveIt2 project. Neither was measured, so neither is claimed\n" +
+           "- No positioning accuracy and no success rate for the earlier MoveIt 2 project. Neither was measured, so neither is claimed\n" +
            "- No end-to-end throughput figure for the telemetry pipeline\n" +
            "- No hardware measurements of any kind, because no project has run on hardware\n" +
            "## How to verify\n" +
@@ -662,7 +662,7 @@ const TOPICS = [
     {
         id: 'fit',
         k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
-        a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS 2 robotics software with MoveIt2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
+        a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS 2 robotics software with MoveIt 2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
         deep: "## Where he lines up well\n" +
            "- Robot learning, junior to mid — a biped policy, arm manipulation by RL, imitation and language, a detector, each with a measured baseline under it, metrics implemented from scratch, and ONNX deployment. On a team with hardware, the missing half of sim-to-real closes quickly\n" +
            "- Simulation and training infrastructure — a threaded C++17 environment proven bit-identical to its Python reference, sanitizer-clean, with benchmarks that carry their own stability verdicts\n" +
@@ -718,7 +718,7 @@ const DEEP_EXTRA = {
         "- The full stack, or any layer of it\n" +
         "- Robot learning: PPO, imitation learning, language-conditioned policies, reward design, domain randomisation, system identification\n" +
         "- ML / DL: PyTorch, CNNs, object detection, INT8 quantisation, ONNX Runtime\n" +
-        "- C++17 (a threaded simulation backend), ROS 2 depth, MoveIt2 and Nav2\n" +
+        "- C++17 (a threaded simulation backend), ROS 2 depth, MoveIt 2 and Nav2\n" +
         "- Simulation: MuJoCo, Gazebo, RViz, synthetic data\n" +
         "## Projects\n" +
         "- The four current projects together, or any one by name; the four earlier ones too\n" +
@@ -771,7 +771,7 @@ const DEEP_EXTRA = {
         "- Threaded C++ MuJoCo Backend, Bit-Identical: https://github.com/AungKaung1928/mujoco-vecenv-cpp\n" +
         "- SO-ARM100 Manipulation with RL, Imitation and Language: https://github.com/AungKaung1928/so-arm100-rl, with so-arm100-sim, so-arm100-il and so-arm100-vla beside it\n" +
         "- Tabletop Clutter Detector, INT8 on One Thread: https://github.com/AungKaung1928/mujoco-clutter-detect\n" +
-        "- Earlier: PPO vs LQR on Cart-Pole https://github.com/AungKaung1928/ppo-from-scratch · Cube Pose Regression CNN https://github.com/AungKaung1928/mujoco-cube-pose-cnn · MoveIt2 Pick & Place Demo https://github.com/AungKaung1928/moveit_pickplace_demo · Fleet Monitoring System https://github.com/AungKaung1928/fleet_monitoring_ws\n" +
+        "- Earlier: PPO vs LQR on Cart-Pole https://github.com/AungKaung1928/ppo-from-scratch · Cube Pose Regression CNN https://github.com/AungKaung1928/mujoco-cube-pose-cnn · MoveIt 2 Pick & Place Demo https://github.com/AungKaung1928/moveit_pickplace_demo · Fleet Monitoring System https://github.com/AungKaung1928/fleet_monitoring_ws\n" +
         "## Walkthroughs\n" +
         "Every project has a full written walkthrough on this site, linked from its card — architecture, every source file, the measurements, and what the result does not prove.\n" +
         "## What to include if you are hiring\n" +
