@@ -453,7 +453,7 @@ WHERE NOT EXISTS (
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">A malformed message arrives</span><span lang="ja">不正なメッセージの到着</span></h4>
+        <h3><span lang="en">A malformed message arrives</span><span lang="ja">不正なメッセージの到着</span></h3>
         <p lang="en">Parsing is a single function that raises on anything unexpected. The caller catches it, forwards the raw
           bytes plus the error text to <code>robot_odom_dlq</code>, logs a running count, and carries on. The poison
           message is inspectable afterwards; the consumer does not die.</p>
@@ -466,7 +466,7 @@ WHERE NOT EXISTS (
           consumerがクラッシュしました。dead-letterの経路は、そこから生まれた修正です。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">A database or the bus is not up yet</span><span lang="ja">データベースやバスがまだ起動していない</span></h4>
+        <h3><span lang="en">A database or the bus is not up yet</span><span lang="ja">データベースやバスがまだ起動していない</span></h3>
         <p lang="en">Every connection helper retries instead of failing: Kafka thirty times at two-second intervals, QuestDB and
           Postgres twenty times at three. Services can be started in any order, and a slow container start is not a
           crash.</p>
@@ -474,7 +474,7 @@ WHERE NOT EXISTS (
           サービスはどの順番で起動してもよく、コンテナの起動が遅くてもクラッシュにはなりません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">The QuestDB socket dies mid-run</span><span lang="ja">実行中にQuestDBのsocketが切れる</span></h4>
+        <h3><span lang="en">The QuestDB socket dies mid-run</span><span lang="ja">実行中にQuestDBのsocketが切れる</span></h3>
         <p lang="en">The writer holds a raw TCP socket for the line protocol. A write that raises <code>BrokenPipeError</code> or
           <code>OSError</code> triggers a reconnect and one retry of that same line, so a database restart costs at most
           a reading rather than the process.</p>
@@ -483,7 +483,7 @@ WHERE NOT EXISTS (
           最大でデータ1件で、プロセスは落ちません。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">The stack is "started" but not ready</span><span lang="ja">「起動した」が、まだ準備できていない</span></h4>
+        <h3><span lang="en">The stack is "started" but not ready</span><span lang="ja">「起動した」が、まだ準備できていない</span></h3>
         <p lang="en">Every container declares a healthcheck and the stack is brought up with <code>--wait</code>, which blocks
           until they pass. Nothing in the scripts or CI sleeps for an arbitrary number of seconds and hopes.</p>
         <p lang="ja">すべてのコンテナがhealthcheckを宣言しており、スタックは<code>--wait</code>付きで起動されるため、healthcheckが通るまで待機します。
@@ -549,7 +549,7 @@ WHERE NOT EXISTS (
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">The simulator has never been watched running</span><span lang="ja">シミュレーターの動作を目視確認したことがない</span></h4>
+        <h3><span lang="en">The simulator has never been watched running</span><span lang="ja">シミュレーターの動作を目視確認したことがない</span></h3>
         <p lang="en">The launch file has been validated by inspection only — the three-robot fleet has not been brought up in
           Gazebo and RViz and observed. Every claim on this page about the data pipeline is backed by a test; the
           claims about the simulation layer are backed by code review and nothing else.</p>
@@ -558,7 +558,7 @@ WHERE NOT EXISTS (
           コードレビューだけです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">Nothing is measured for speed</span><span lang="ja">速度は何も計測していない</span></h4>
+        <h3><span lang="en">Nothing is measured for speed</span><span lang="ja">速度は何も計測していない</span></h3>
         <p lang="en">There is no latency figure from robot to database, no throughput ceiling, and no answer to how many robots
           this handles. The Kafka topic is single-partition with one consumer per group; partitioning by robot
           identifier is designed but not built, and the "50+ robots" question is open.</p>
@@ -567,7 +567,7 @@ WHERE NOT EXISTS (
           「50台以上」に対応できるかは未解決のままです。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">One detector, one rule</span><span lang="ja">検知器は1つ、ルールも1つ</span></h4>
+        <h3><span lang="en">One detector, one rule</span><span lang="ja">検知器は1つ、ルールも1つ</span></h3>
         <p lang="en">Position variance catches a robot that has stopped. It does not catch a robot moving wrongly, a velocity
           spike, or a robot that has gone silent — dropout detection needs a timer over absence of messages, which is a
           different structure and is not written.</p>
@@ -575,14 +575,14 @@ WHERE NOT EXISTS (
           途絶の検知にはメッセージが来ないことを監視するタイマーが必要で、構造が異なるため実装していません。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">Three simulated robots, no hardware</span><span lang="ja">シミュレーション上の3台のみ、実機なし</span></h4>
+        <h3><span lang="en">Three simulated robots, no hardware</span><span lang="ja">シミュレーション上の3台のみ、実機なし</span></h3>
         <p lang="en">No physical robot has ever connected to this pipeline. The message schema is what a ROS 2 odometry topic
           provides, so a real robot would fit — but that has not been demonstrated here.</p>
         <p lang="ja">このパイプラインに実機のロボットを接続したことは一度もありません。メッセージスキーマはROS 2のodometry topicが提供するものなので、
           実機でも適合するはずですが、ここでは実証していません。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4><span lang="en">The producer is Python</span><span lang="ja">producerがPython製</span></h4>
+        <h3><span lang="en">The producer is Python</span><span lang="ja">producerがPython製</span></h3>
         <p lang="en">The odometry bridge is a Python ROS 2 node. For a node in the hot path of every robot's sensor stream, C++
           with <code>librdkafka</code> is the correct language, and rewriting it with a latency comparison against the
           Python version is the first item on the project's own list.</p>

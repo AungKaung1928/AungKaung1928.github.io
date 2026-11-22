@@ -587,7 +587,7 @@ range 12 600 – 13 800 across the band</code></pre>
   <div class="sec-head"><span class="sec-num">05</span><h2><span lang="en">Three things about the model that changed the plan</span><span lang="ja">計画を変えたモデルの3つの性質</span></h2><p class="sec-sub" lang="en">Three properties of the robot model that forced the plan to change.</p><p class="sec-sub" lang="ja">ロボットモデルの3つの性質が、計画の変更を余儀なくさせました。</p></div>
   <div class="findings">
     <div class="finding"><span class="fnum">01</span><div class="fbody">
-      <h4><span lang="en">On the <code>walk</code> model, only the feet can touch the ground</span><span lang="ja"><code>walk</code>モデルでは、地面に触れられるのは足だけ</span></h4>
+      <h3><span lang="en">On the <code>walk</code> model, only the feet can touch the ground</span><span lang="ja"><code>walk</code>モデルでは、地面に触れられるのは足だけ</span></h3>
       <p lang="en">MuJoCo lets two geometries collide only if one's <code>contype</code> shares a bit with the other's
         <code>conaffinity</code>. In the walking model the floor is 1/1 and the two foot geometries are 1/1 —
         but <strong>every other body and limb geometry is 2/2</strong>. Two and one share no bits, so the trunk,
@@ -613,7 +613,7 @@ range 12 600 – 13 800 across the band</code></pre>
         <em>決定：タスクには<code>groundcontact</code>を使う。</em></p>
     </div></div>
     <div class="finding"><span class="fnum">02</span><div class="fbody">
-      <h4><span lang="en">The backlash variant renumbers the state vector — and it is the evaluation model</span><span lang="ja">backlashモデルは状態ベクトルの番号を変える — しかもそれが評価用モデル</span></h4>
+      <h3><span lang="en">The backlash variant renumbers the state vector — and it is the evaluation model</span><span lang="ja">backlashモデルは状態ベクトルの番号を変える — しかもそれが評価用モデル</span></h3>
       <div class="tablewrap"><table>
         <thead><tr><th><span lang="en">Variant</span><span lang="ja">モデル</span></th><th class="num">nq</th><th class="num">nv</th><th class="num"><span lang="en">Passive joints</span><span lang="ja">受動関節</span></th><th><span lang="en">Action space</span><span lang="ja">Action空間</span></th></tr></thead>
         <tbody>
@@ -638,7 +638,7 @@ range 12 600 – 13 800 across the band</code></pre>
         ここではすべて<code>common.actuated_qpos_index()</code>を経由し、インデックスの間隔はテストで確認しています。</p>
     </div></div>
     <div class="finding"><span class="fnum">03</span><div class="fbody">
-      <h4><span lang="en">Joint friction is the parameter the hardware people disagree about by 6.7×</span><span lang="ja">関節の摩擦は、ハードウェア担当者の間で6.7倍も食い違うパラメータ</span></h4>
+      <h3><span lang="en">Joint friction is the parameter the hardware people disagree about by 6.7×</span><span lang="ja">関節の摩擦は、ハードウェア担当者の間で6.7倍も食い違うパラメータ</span></h3>
       <p lang="en">The upstream properties file ships four fitted actuator classes for the <em>same</em> servo — different
         people, different benches, all left in the file.</p>
       <p lang="ja">本家のプロパティファイルには、<em>同じ</em>サーボに対してフィットしたアクチュエータクラスが4つ入っています。人も計測台も異なり、そのすべてがファイルに残されています。</p>
@@ -883,7 +883,7 @@ range 12 600 – 13 800 across the band</code></pre>
       27件の契約テストはすべて通っていました。それでもレビューで5つの不具合が見つかりました。いずれも表に出ないもので、現在はすべて修正済みです。修正がなければ失敗するテストも追加しています。</p>
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">The observation mixed two instants</span><span lang="ja">Observationに2つの時刻が混在していた</span></h4>
+        <h3><span lang="en">The observation mixed two instants</span><span lang="ja">Observationに2つの時刻が混在していた</span></h3>
         <p lang="en"><code>mj_step</code> integrates position and velocity to t+1 but leaves sensor data and body
           positions at t — so the gyro was 2 ms older than the joint angles beside it. Every number was
           plausible. Measured, it was 0.054 rad/s on the gyro and 1.4 mm on trunk height against a 30 mm reward
@@ -897,7 +897,7 @@ range 12 600 – 13 800 across the band</code></pre>
           何かを読む前に<code>mj_forward</code>を呼ぶことで修正しました。throughputの7 %を消費しますが、これはオーバーヘッドではなく正しさのためのコストです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">The reset clamp never executed</span><span lang="ja">Reset時のクランプが一度も実行されていなかった</span></h4>
+        <h3><span lang="en">The reset clamp never executed</span><span lang="ja">Reset時のクランプが一度も実行されていなかった</span></h3>
         <p lang="en"><code>np.clip(qpos[idx], lo, hi, out=qpos[idx])</code> with an integer index array writes into a
           <em>temporary copy</em> — fancy indexing does not produce a view. Latent at the default initialisation
           noise, because the tightest joint sits 0.297 rad clear of its limit. At the larger noise step 4 will
@@ -908,7 +908,7 @@ range 12 600 – 13 800 across the band</code></pre>
           step 4で使う大きなノイズでは、14関節中2関節が可動域から0.086 radはみ出した状態で始まり、t = 0でMuJoCoが制限のインパルスを加えます。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">The done flag carried no truncation information</span><span lang="ja">doneフラグにtruncationの情報がなかった</span></h4>
+        <h3><span lang="en">The done flag carried no truncation information</span><span lang="ja">doneフラグにtruncationの情報がなかった</span></h3>
         <p lang="en">Every episode ends on the step limit and none on a terminal state. A stock GAE loop zeroes the
           bootstrap at <code>done</code>, which at γ = 0.99 corrupts the value target about a hundred steps back
           into a 250-step episode. The training curve still goes up. This is the same bug the previous project
@@ -918,7 +918,7 @@ range 12 600 – 13 800 across the band</code></pre>
           このトラックの前のプロジェクトで、環境の設計段階から起こり得ないようにしたのとまったく同じバグです。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">A dead worker reported nothing useful</span><span lang="ja">落ちたworkerが役に立つ情報を何も出さなかった</span></h4>
+        <h3><span lang="en">A dead worker reported nothing useful</span><span lang="ja">落ちたworkerが役に立つ情報を何も出さなかった</span></h3>
         <p lang="en">A worker that died gave the parent a bare <code>EOFError</code> naming neither the worker nor the
           cause, and bad environment arguments failed the same way out of the constructor. The child's traceback
           does reach stderr — but in a redirected training log it is nowhere near the failure.</p>
@@ -926,7 +926,7 @@ range 12 600 – 13 800 across the band</code></pre>
           子プロセスのtracebackはstderrには出ますが、リダイレクトした学習ログの中では、失敗箇所から遠く離れた場所に埋もれてしまいます。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4><span lang="en">Stepping before resetting produced a valid-looking, push-free episode</span><span lang="ja">Resetせずにstepすると、正常に見えるpushなしのepisodeができていた</span></h4>
+        <h3><span lang="en">Stepping before resetting produced a valid-looking, push-free episode</span><span lang="ja">Resetせずにstepすると、正常に見えるpushなしのepisodeができていた</span></h3>
         <p lang="en">And the vector environment's constructor raising a validation error emitted an unrelated
           <code>AttributeError</code> from its destructor on top of it. One test in this repository was doing
           exactly the first thing and discarding the result.</p>

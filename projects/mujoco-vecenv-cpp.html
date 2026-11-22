@@ -368,7 +368,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
   <div class="stack">
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">numpy does not add fourteen numbers left to right</span><span lang="ja">numpyは14個の数を左から順には足さない</span></h4>
+        <h3><span lang="en">numpy does not add fourteen numbers left to right</span><span lang="ja">numpyは14個の数を左から順には足さない</span></h3>
         <p lang="en">The reward takes <code>np.mean</code> over the fourteen joints. For arrays of 8 to 128 elements numpy's
           reduction keeps eight partial sums and combines them as a tree. Measured on 20,000 random 14-vectors: a
           sequential loop matched <code>np.mean</code> on 15,831; a tree starting from the identity 0 matched on
@@ -382,7 +382,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
           C++のテストでは、2つの順序で確実に結果が変わる入力を与えます。<code>{1e16, 1×7, -1e16, 0×5}</code>は逐次加算では0、ツリーでは6になります。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">Python's <code>x ** 2</code> is <code>pow(x, 2.0)</code>, not <code>x * x</code></span><span lang="ja">Pythonの<code>x ** 2</code>は<code>x * x</code>ではなく<code>pow(x, 2.0)</code></span></h4>
+        <h3><span lang="en">Python's <code>x ** 2</code> is <code>pow(x, 2.0)</code>, not <code>x * x</code></span><span lang="ja">Pythonの<code>x ** 2</code>は<code>x * x</code>ではなく<code>pow(x, 2.0)</code></span></h3>
         <p lang="en">Python routes a float power through the C library's <code>pow</code>. Measured on 2,000,000 random
           doubles, <code>pow(x, 2.0)</code> and <code>x * x</code> differ in 1,621 of them. The v1 height term uses
           the power operator. GCC folds <code>pow(x, 2.0)</code> into a multiply unless stopped, so
@@ -392,7 +392,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
           <code>np::py_pow</code>では指数を<code>volatile</code>経由で渡し、ライブラリ呼び出しを強制しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">The observation scale is float32, the raw values are float64</span><span lang="ja">observationのスケールはfloat32、生の値はfloat64</span></h4>
+        <h3><span lang="en">The observation scale is float32, the raw values are float64</span><span lang="ja">observationのスケールはfloat32、生の値はfloat64</span></h3>
         <p lang="en">The Python side multiplies a float64 array by a float32 constant table. numpy promotes the constant, so
           the product is <code>raw * double(float32(0.05))</code>, and <code>double(0.05f)</code> is
           0.05000000074505806, not 0.05. The C++ scale table is built from the float32 literals and widened the
@@ -401,7 +401,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
           <code>double(0.05f)</code>は0.05ではなく0.05000000074505806です。C++のスケールテーブルもfloat32リテラルから作り、同じように拡張しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">A second <code>mj_forward</code> is not a no-op</span><span lang="ja">2回目の<code>mj_forward</code>は何もしない処理ではない</span></h4>
+        <h3><span lang="en">A second <code>mj_forward</code> is not a no-op</span><span lang="ja">2回目の<code>mj_forward</code>は何もしない処理ではない</span></h3>
         <p lang="en">The Python reset calls <code>mj_forward</code> once on the keyframe and a second time only after
           applying initial noise. Running the forward pass twice on an unchanged state lands a few units in the
           last place elsewhere, because the constraint solver warm-starts from the previous acceleration. The C++
@@ -482,7 +482,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
       ThreadSanitizerが本領を発揮するのはスレッド数非依存のテストで、共有されたactionやobservationのバッファで競合があればビルドが失敗します。</p>
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en"><code>mujoco.h</code> does not compile under AddressSanitizer in C++</span><span lang="ja"><code>mujoco.h</code>はC++ではAddressSanitizer下でコンパイルできない</span></h4>
+        <h3><span lang="en"><code>mujoco.h</code> does not compile under AddressSanitizer in C++</span><span lang="ja"><code>mujoco.h</code>はC++ではAddressSanitizer下でコンパイルできない</span></h3>
         <p lang="en">MuJoCo's header includes <code>mjsan.h</code>, written for building MuJoCo itself under ASan. When the
           compiler defines <code>__SANITIZE_ADDRESS__</code> it declares inline helpers with an attribute syntax
           g++ rejects in a C++ translation unit. This repo links the prebuilt, uninstrumented library and never
@@ -494,7 +494,7 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
           すべてのファイルがこの1つのラッパー経由でMuJoCoをincludeするようにしました。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">MuJoCo's XML compiler has its own thread pool</span><span lang="ja">MuJoCoのXMLコンパイラは独自のスレッドプールを持つ</span></h4>
+        <h3><span lang="en">MuJoCo's XML compiler has its own thread pool</span><span lang="ja">MuJoCoのXMLコンパイラは独自のスレッドプールを持つ</span></h3>
         <p lang="en"><code>mj_loadXML</code> spawns a pool inside the prebuilt library. ThreadSanitizer cannot see the
           synchronisation inside code it did not instrument, so it reports the pool's internal mutex as a race.
           <code>tests/cpp/tsan.supp</code> contains one line, <code>race:libmujoco</code>, and nothing this repo

@@ -890,11 +890,11 @@ set_domain_id = SetEnvironmentVariable('ROS_DOMAIN_ID', LaunchConfiguration('dom
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">Building and running it</span><span lang="ja">ビルドと実行</span></h2><p class="sec-sub" lang="en">Dependencies, the build command, and what a correct run looks like on screen.</p><p class="sec-sub" lang="ja">依存関係、ビルドコマンド、そして正しく動いたときの画面の様子です。</p></div>
   <div class="stack">
     <div class="stack prose">
-      <h4><span lang="en">System dependencies</span><span lang="ja">システムの依存関係</span></h4>
+      <h3 class="h4"><span lang="en">System dependencies</span><span lang="ja">システムの依存関係</span></h3>
       <pre><code>sudo apt install ros-humble-moveit ros-humble-ros2-control \
     ros-humble-ros2-controllers ros-humble-moveit-ros-move-group \
     ros-humble-moveit-planners-ompl</code></pre>
-      <h4><span lang="en">Build</span><span lang="ja">ビルド</span></h4>
+      <h3 class="h4"><span lang="en">Build</span><span lang="ja">ビルド</span></h3>
       <pre><code>mkdir -p ~/moveit_project_ws/src
 cd ~/moveit_project_ws/src
 git clone https://github.com/AungKaung1928/moveit_pickplace_demo.git .
@@ -903,7 +903,7 @@ cd ~/moveit_project_ws
 rosdep install --from-paths src --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash</code></pre>
-      <h4><span lang="en">Run</span><span lang="ja">実行</span></h4>
+      <h3 class="h4"><span lang="en">Run</span><span lang="ja">実行</span></h3>
       <pre><code>ros2 launch simple_moveit_demo smart_pick_place.launch.py</code></pre>
       <p lang="en"><code>--symlink-install</code> links Python sources into the install space instead of copying them,
         so editing a node does not require a rebuild. <code>rosdep</code> reads every

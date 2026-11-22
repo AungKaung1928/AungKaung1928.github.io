@@ -752,14 +752,14 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
   <div class="sec-head"><span class="sec-num">10</span><h2><span lang="en">What the numbers actually say</span><span lang="ja">数値が実際に示していること</span></h2><p class="sec-sub" lang="en">Reading those results honestly — where the gain came from, and where it did not.</p><p class="sec-sub" lang="ja">結果を正直に読み解きます。改善がどこから来て、どこから来ていないのか。</p></div>
   <div class="findings">
     <div class="finding"><span class="fnum">01</span><div class="fbody">
-      <h4><span lang="en">A wrong prior fails silently, and its own metric hides it</span><span lang="ja">誤ったpriorは黙って失敗し、自身の指標がそれを隠す</span></h4>
+      <h3><span lang="en">A wrong prior fails silently, and its own metric hides it</span><span lang="ja">誤ったpriorは黙って失敗し、自身の指標がそれを隠す</span></h3>
       <p lang="en">"The cube is red" misses 89 % of <code>hard</code> while its accuracy on the surviving 11 % looks
         unchanged. Detection rate and accuracy must always be reported together, or the failure is invisible.</p>
       <p lang="ja">「立方体は赤い」というpriorは<code>hard</code>の89 %を見逃しますが、検出できた11 %での精度は変わらないように見えます。
         検出率と精度は常にセットで報告しなければ、失敗が見えません。</p>
     </div></div>
     <div class="finding"><span class="fnum">02</span><div class="fbody">
-      <h4><span lang="en">Robustness to appearance randomisation was free — and classical</span><span lang="ja">見た目のランダム化への頑健性はタダで、しかも古典的手法で得られた</span></h4>
+      <h3><span lang="en">Robustness to appearance randomisation was free — and classical</span><span lang="ja">見た目のランダム化への頑健性はタダで、しかも古典的手法で得られた</span></h3>
       <p lang="en">Swapping "red" for "most saturated thing on a near-grey table" gives 100 % detection on <code>hard</code>
         with the same error as <code>easy</code>. Domain-randomisation robustness is therefore <em>not</em> what
         justified the network here. Picking a better hand-written feature was cheaper, and it worked.</p>
@@ -768,7 +768,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
         より良い手書きの特徴を選ぶ方が安上がりで、しかもうまくいきました。</p>
     </div></div>
     <div class="finding"><span class="fnum">03</span><div class="fbody">
-      <h4><span lang="en">Half the network's apparent win was calibration, not perception</span><span lang="ja">ネットワークの見かけの勝ちの半分は、認識ではなくcalibrationだった</span></h4>
+      <h3><span lang="en">Half the network's apparent win was calibration, not perception</span><span lang="ja">ネットワークの見かけの勝ちの半分は、認識ではなくcalibrationだった</span></h3>
       <p lang="en">Fitting one scalar on the train split takes the baseline from 3.41 mm to 1.91 mm — 53 % of the gap,
         closed by a single number. Building the strong baseline second would have inflated the network's result
         by roughly 2×.</p>
@@ -776,7 +776,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
         強いbaselineを後回しにしていたら、ネットワークの成果は約2×に水増しされていたはずです。</p>
     </div></div>
     <div class="finding"><span class="fnum">04</span><div class="fbody">
-      <h4><span lang="en">What the network genuinely wins is the tail</span><span lang="ja">ネットワークが本当に勝っているのはtail</span></h4>
+      <h3><span lang="en">What the network genuinely wins is the tail</span><span lang="ja">ネットワークが本当に勝っているのはtail</span></h3>
       <p lang="en">After calibration the baseline's <em>median</em> yaw error (0.19°) is slightly better than the network's
         (0.21°) — <code>minAreaRect</code> is near-exact on a clean mask. But its p95 is 1.66° against 0.66°, and
         p95 position is 2.89 mm against 1.32 mm. The classical method fails rarely and badly; the network fails
@@ -787,7 +787,7 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
         重要なのはtailの数値です。</p>
     </div></div>
     <div class="finding"><span class="fnum">05</span><div class="fbody">
-      <h4><span lang="en">The architectural prior beat the parameter count</span><span lang="ja">パラメータ数より、アーキテクチャのpriorが効いた</span></h4>
+      <h3><span lang="en">The architectural prior beat the parameter count</span><span lang="ja">パラメータ数より、アーキテクチャのpriorが効いた</span></h3>
       <p lang="en">Flatten head: 130 k parameters, 1.70 ms, 0.75 mm. Soft-argmax head: 27 k parameters, 0.65 ms, 0.59 mm
         with a better tail. <strong>5× smaller, 2.6× faster, and more accurate.</strong> Handing the network a
         coordinate beats making it learn what a coordinate is from a flattened grid.</p>
@@ -796,13 +796,13 @@ yaw  = mod(radians(-ang), pi/2)                # image v grows down → sign fli
         ネットワークに座標そのものを渡す方が勝ります。</p>
     </div></div>
     <div class="finding"><span class="fnum">06</span><div class="fbody">
-      <h4><span lang="en">The classical method is still 11× faster</span><span lang="ja">それでも古典的手法は11×速い</span></h4>
+      <h3><span lang="en">The classical method is still 11× faster</span><span lang="ja">それでも古典的手法は11×速い</span></h3>
       <p lang="en">0.06 ms against 0.65 ms per image. If 1.9 mm is inside tolerance, the network is the wrong engineering
         choice regardless of being three times more accurate.</p>
       <p lang="ja">1枚あたり0.06 ms対0.65 msです。1.9 mmが許容範囲内であれば、精度が3倍高くても、ネットワークはエンジニアリング上の誤った選択です。</p>
     </div></div>
     <div class="finding"><span class="fnum">07</span><div class="fbody">
-      <h4><span lang="en">The runtime mattered more than the model</span><span lang="ja">モデルより実行ランタイムの方が効いた</span></h4>
+      <h3><span lang="en">The runtime mattered more than the model</span><span lang="ja">モデルより実行ランタイムの方が効いた</span></h3>
       <p lang="en">Identical weights, identical outputs: PyTorch eager needs 0.65 ms on eight threads; ONNX Runtime needs
         0.23 ms on <em>one</em> and 0.12 ms on eight. That is ~2.8× faster on one eighth of the cores, with
         nothing about the network changed. Before optimising an architecture for edge latency, check whether the

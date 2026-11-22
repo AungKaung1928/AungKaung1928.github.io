@@ -79,7 +79,7 @@ h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0;color:var(--ink)}
 h1{font-size:clamp(1.95rem,5vw,3.05rem);line-height:1.1;letter-spacing:-.028em;font-weight:700}
 h2{font-size:clamp(1.3rem,2.8vw,1.7rem);line-height:1.22;letter-spacing:-.02em;font-weight:650}
 h3{font-size:1.06rem;line-height:1.35;letter-spacing:-.01em;font-weight:620}
-h4{font-size:.95rem;font-weight:620}
+h4,h3.h4{font-size:.95rem;font-weight:620}
 p{margin:0}
 a{color:var(--accent-deep);text-underline-offset:.16em;text-decoration-thickness:.06em}
 a:hover{color:var(--accent)}
@@ -242,6 +242,7 @@ ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
 .finding:last-child{border-bottom:0}
 .finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
 .finding h4{margin-bottom:6px}
+.finding .fbody>h3{font-size:.95rem;font-weight:620;margin-bottom:6px}
 .finding p{font-size:.93rem;color:var(--ink2)}
 .finding .fbody{display:flex;flex-direction:column;gap:8px;min-width:0}
 @media (max-width:560px){.finding{grid-template-columns:1fr;gap:6px}}

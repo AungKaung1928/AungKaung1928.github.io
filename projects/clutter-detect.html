@@ -693,7 +693,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">A repair applied to something that is not broken is damage</span><span lang="ja">壊れていないものへの修正は破壊になる</span></h4>
+        <h3><span lang="en">A repair applied to something that is not broken is damage</span><span lang="ja">壊れていないものへの修正は破壊になる</span></h3>
         <p lang="en"><code>bgsub</code> alone leaves a <em>bimodal</em> error distribution: 47.3 % of objects recovered at
           IoU ≥ 0.9, and 38.6 % below 0.5 because touching objects merge into one region. The obvious fix —
           distance-transform watershed — made things <em>worse</em> when applied to every region.</p>
@@ -718,7 +718,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           それはそもそも見当違いの軸だったからです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">A wrong prior still returns an answer</span><span lang="ja">誤った前提でも答えは返ってくる</span></h4>
+        <h3><span lang="en">A wrong prior still returns an answer</span><span lang="ja">誤った前提でも答えは返ってくる</span></h3>
         <p lang="en">Global Otsu thresholding on greyscale is a reasonable-looking method: objects and table differ in
           brightness, so split the histogram. Under <code>easy</code> it scores 0.446. Under <code>hard</code>,
           where table value is uniform(0.25, 0.85) and object value uniform(0.45, 1.0), the two distributions
@@ -731,7 +731,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           それでもエラーは一度も出ませんでした。毎回maskを返し、クラスごとの数値も「壊れた検出器」ではなく「弱い検出器」のように見えました。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">Classification is the bottleneck, not localisation</span><span lang="ja">ボトルネックは位置推定ではなく分類</span></h4>
+        <h3><span lang="en">Classification is the bottleneck, not localisation</span><span lang="ja">ボトルネックは位置推定ではなく分類</span></h3>
         <p lang="en">On <code>hard</code>, class-agnostic AP50 is <strong>0.823</strong> against class-aware AP50
           <strong>0.698</strong>. The boxes are in the right place; the label on them is wrong 15 % of the time.
           Per class: sphere 0.695, cylinder 0.510, box <strong>0.391</strong>. A sphere's silhouette is a circle
@@ -744,7 +744,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           28 pxでは線形のルールで扱えるほどの情報が残りません。この差こそ学習ベースの特徴抽出器が埋めるべきもので、今回それを想定ではなく計測で示しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">Occlusion is where the classical pipeline stops, not degrades</span><span lang="ja">occlusionで古典的パイプラインは「劣化」ではなく「停止」する</span></h4>
+        <h3><span lang="en">Occlusion is where the classical pipeline stops, not degrades</span><span lang="ja">occlusionで古典的パイプラインは「劣化」ではなく「停止」する</span></h3>
         <p lang="en">Recall at IoU 0.5 by visible fraction: <strong>0.785</strong> above 0.9 visibility,
           <strong>0.348</strong> between 0.5 and 0.9, and <strong>0.000</strong> below 0.5. Not a slope — a
           cliff. A partially hidden object has the wrong silhouette, so every shape feature it produces is wrong
@@ -871,7 +871,7 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">The classification gap closed — which the baseline predicted</span><span lang="ja">分類の差は解消された（baselineから予測した通り）</span></h4>
+        <h3><span lang="en">The classification gap closed — which the baseline predicted</span><span lang="ja">分類の差は解消された（baselineから予測した通り）</span></h3>
         <p lang="en">Per-class AP: box 0.391 → <strong>0.914</strong>, cylinder 0.510 → 0.910, sphere 0.695 → 0.908. The
           spread across classes collapses from <strong>0.304 to 0.006</strong>. The learned extractor does not
           just score higher, it scores <em>evenly</em> — the class that was hardest for hand-designed features
@@ -881,7 +881,7 @@ off = 1×1 conv → 2 channels</code></pre>
           手設計の特徴量で最も難しかったクラスが、今では最も簡単なクラスと区別がつきません。これは学習前に明言していた予測です。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">The occlusion cliff is gone — with a caveat that matters more than the number</span><span lang="ja">occlusionの崖は消えた（ただし数値以上に重要な注意点あり）</span></h4>
+        <h3><span lang="en">The occlusion cliff is gone — with a caveat that matters more than the number</span><span lang="ja">occlusionの崖は消えた（ただし数値以上に重要な注意点あり）</span></h3>
         <p lang="en">Recall at IoU 0.5 by visible fraction: ≥0.9 → 0.785 becomes 1.000; 0.5–0.9 → 0.348 becomes 0.999;
           &lt;0.5 → <strong>0.000 becomes 0.910</strong>. A centre heatmap has no coupling to the silhouette —
           the centre of a half-occluded object is still a centre, and the size head regresses the full extent
@@ -897,7 +897,7 @@ off = 1×1 conv → 2 channels</code></pre>
           強いocclusion全般に対する頑健性の証拠ではありません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">Localisation is essentially exact, and AP75 is where it shows</span><span lang="ja">位置推定はほぼ厳密で、それはAP75に表れる</span></h4>
+        <h3><span lang="en">Localisation is essentially exact, and AP75 is where it shows</span><span lang="ja">位置推定はほぼ厳密で、それはAP75に表れる</span></h3>
         <p lang="en">AP75 0.9896 against AP50 0.9899 — a gap of 0.0003. The baseline lost 0.134 between the same two
           thresholds. The metric's shift table gives the reading: a uniform 4 px error leaves AP50 at 1.000 while
           mAP has already fallen to 0.464, so AP50 alone cannot see localisation. The offset head is what buys
@@ -909,7 +909,7 @@ off = 1×1 conv → 2 channels</code></pre>
           これはstride 4での量子化誤差、つまりoffset headが打ち消すべき量そのものです。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">The learned detector is slower, not faster</span><span lang="ja">学習ベースの検出器は速くない（遅い）</span></h4>
+        <h3><span lang="en">The learned detector is slower, not faster</span><span lang="ja">学習ベースの検出器は速くない（遅い）</span></h3>
         <p lang="en">3.87 ms against 2.02 ms, single image, PyTorch eager, decode included. Worth stating plainly because
           the convenient story would be that the network wins on every axis, and it does not. Step 5 was set up
           to find out whether that was the architecture or the runtime.</p>
@@ -917,7 +917,7 @@ off = 1×1 conv → 2 channels</code></pre>
           はっきり書いておきます。step 5は、この差がアーキテクチャによるものかruntimeによるものかを確かめるために設計しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4><span lang="en">Small objects still cost, in the expected direction</span><span lang="ja">小さい物体は依然として不利（予想通りの方向）</span></h4>
+        <h3><span lang="en">Small objects still cost, in the expected direction</span><span lang="ja">小さい物体は依然として不利（予想通りの方向）</span></h3>
         <p lang="en">By size tercile: 0.805 (&lt;25.5 px), 0.854 (25.5–31.9 px), 0.884 (&gt;31.9 px). IoU is scale-relative,
           so a fixed pixel error costs a small box more. Output stride 4 means centres quantise to 4 px cells,
           which is 16 % of a 25 px object and 9 % of a 43 px one. The offset head removes most of that; the
@@ -973,7 +973,7 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">The gap is appearance, and it is a cliff, not a slope</span><span lang="ja">差の原因は外観で、緩やかな低下ではなく崖</span></h4>
+        <h3><span lang="en">The gap is appearance, and it is a cliff, not a slope</span><span lang="ja">差の原因は外観で、緩やかな低下ではなく崖</span></h3>
         <p lang="en">A detector trained on fixed appearance scores 0.90 on what it saw and <strong>0.15</strong> when the
           table colour and the light move. Detection rate falls to 0.29 — it does not misclassify seven objects in
           ten, it fails to <em>see</em> them. Nothing about the geometry, the camera, the shapes or the sizes
@@ -985,7 +985,7 @@ off = 1×1 conv → 2 channels</code></pre>
           まさにこの形で現実世界に出会います。しかも失敗は静かで、エラーは出ず、矩形が欠けるだけです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">Photometric augmentation recovers half the gap and stops</span><span lang="ja">photometric augmentationは差の半分を取り戻し、そこで止まる</span></h4>
+        <h3><span lang="en">Photometric augmentation recovers half the gap and stops</span><span lang="ja">photometric augmentationは差の半分を取り戻し、そこで止まる</span></h3>
         <p lang="en">0.147 → 0.521, still 0.35 short of simply training on <code>hard</code> (0.874). The mechanism is
           visible in what each one varies. Augmentation perturbs the <em>whole image</em> with one brightness, one
           contrast, one gamma, one channel gain — a global nuisance model. The randomiser gives every object its
@@ -998,7 +998,7 @@ off = 1×1 conv → 2 channels</code></pre>
           ランダム化は外乱そのものをサンプリングします。誰も書き下していない変動に向けてaugmentationすることはできません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">Geometric augmentation does nothing across the gap</span><span lang="ja">geometric augmentationはこの差に対して効果なし</span></h4>
+        <h3><span lang="en">Geometric augmentation does nothing across the gap</span><span lang="ja">geometric augmentationはこの差に対して効果なし</span></h3>
         <p lang="en">0.147 → 0.181, within the noise of a single seed. Flip and translation add placement diversity, and
           placement was never the problem — the two regimes share one camera and one placement distribution. An
           augmentation only buys invariance along the axis it perturbs. Worth stating because the default recipe
@@ -1008,7 +1008,7 @@ off = 1×1 conv → 2 channels</code></pre>
           よくあるレシピはすべてを同時に適用するため、どれが効いたのか説明できなくなります。だからこそ明記しておく価値があります。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">On top of the randomiser, photometric augmentation buys nothing</span><span lang="ja">ランダム化に上乗せしたphotometric augmentationは効果なし</span></h4>
+        <h3><span lang="en">On top of the randomiser, photometric augmentation buys nothing</span><span lang="ja">ランダム化に上乗せしたphotometric augmentationは効果なし</span></h3>
         <p lang="en"><code>hard/none</code> 0.8735 against <code>hard/photo</code> 0.8742: <strong>+0.0007</strong>, for
           33 % more training time. The randomiser already covers the axis photometric augmentation would add.
           Every hour spent on an augmentation pipeline for a randomised simulator is an hour spent on nothing.</p>
@@ -1022,7 +1022,7 @@ off = 1×1 conv → 2 channels</code></pre>
           6000枚のデータセットとしては予想通りの方向です。反転とずらしは追加の配置であり、ランダム化では配置は6000回しかサンプリングされないからです。</p>
       </div></div>
       <div class="finding"><span class="fnum">05</span><div class="fbody">
-        <h4><span lang="en">The randomised model transfers to the fixed regime for free</span><span lang="ja">ランダム化したモデルは固定regimeにそのまま転移する</span></h4>
+        <h3><span lang="en">The randomised model transfers to the fixed regime for free</span><span lang="ja">ランダム化したモデルは固定regimeにそのまま転移する</span></h3>
         <p lang="en"><code>hard/none</code> loses <strong>0.005</strong> going to <code>easy</code>.
           <code>easy/none</code> loses <strong>0.75</strong> going the other way. That asymmetry is the entire
           argument for domain randomisation: the randomised distribution <em>contains</em> the fixed one, so a
@@ -1034,7 +1034,7 @@ off = 1×1 conv → 2 channels</code></pre>
           その必要もありませんでした。</p>
       </div></div>
       <div class="finding"><span class="fnum">06</span><div class="fbody">
-        <h4><span lang="en">More data does not close an appearance gap</span><span lang="ja">データを増やしても外観の差は埋まらない</span></h4>
+        <h3><span lang="en">More data does not close an appearance gap</span><span lang="ja">データを増やしても外観の差は埋まらない</span></h3>
         <p lang="en">The full-budget <code>easy/none</code> model saw 75 % more images and 67 % more epochs and gained
           +0.027 on <code>easy</code> — and only +0.033 on <code>hard</code>, from 0.147 to 0.180. Coverage of the
           distribution is what transfers, not the number of samples drawn from the wrong one. When a model fails
@@ -1098,7 +1098,7 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">The runtime is worth 2.7× at eight threads — and 1.4× at one</span><span lang="ja">runtimeの効果は8スレッドで2.7倍、1スレッドでは1.4倍</span></h4>
+        <h3><span lang="en">The runtime is worth 2.7× at eight threads — and 1.4× at one</span><span lang="ja">runtimeの効果は8スレッドで2.7倍、1スレッドでは1.4倍</span></h3>
         <p lang="en">The previous project found ONNX Runtime on <em>one</em> thread beating PyTorch eager on <em>eight</em>.
           That does not repeat here. The difference is the model: that network was 27 k parameters with a 16×16
           output, so per-op dispatch overhead was most of the time and a runtime that removes overhead removes
@@ -1114,7 +1114,7 @@ off = 1×1 conv → 2 channels</code></pre>
           計算律速になるとスレッド数の割り当てがエンジンと同じくらい重要になる。</strong>以前の数値は正しく、その一般化が誤っていたということです。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">Four threads is the knee, and eight is worse for eager</span><span lang="ja">4スレッドが変曲点で、eagerは8スレッドの方が遅い</span></h4>
+        <h3><span lang="en">Four threads is the knee, and eight is worse for eager</span><span lang="ja">4スレッドが変曲点で、eagerは8スレッドの方が遅い</span></h3>
         <p lang="en">ONNX Runtime: 3.69 → 1.12 → 1.01 ms for 1 → 4 → 8 threads. 3.3× from the first four, 10 % from the
           next four. PyTorch eager on 8 threads (2.75) is <em>slower</em> than on 4 (2.54) — thread
           oversubscription on a batch-1 forward costs more than the parallelism returns. A node given 4 cores gets
@@ -1129,7 +1129,7 @@ off = 1×1 conv → 2 channels</code></pre>
           「実際に割り当てられるコア数で検出器はどれだけ速いか」です。その答えはbaselineのどちら側にもなり得ます。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">Decode is 15 % of the end-to-end latency at the best setting</span><span lang="ja">最良の設定ではdecodeがend-to-end latencyの15 %を占める</span></h4>
+        <h3><span lang="en">Decode is 15 % of the end-to-end latency at the best setting</span><span lang="ja">最良の設定ではdecodeがend-to-end latencyの15 %を占める</span></h3>
         <p lang="en">0.18 ms against 1.01 ms of model, and it does not shrink with the runtime. On a small, fast model the
           post-processing stops being free — any deployment budget that lists only the forward pass is
           under-reporting by that much.</p>
@@ -1137,7 +1137,7 @@ off = 1×1 conv → 2 channels</code></pre>
           forward passだけを計上したデプロイ時の時間見積もりは、その分だけ過小になります。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">The first measurement was discarded, and why is the most reusable finding here</span><span lang="ja">最初の計測値は破棄した。その理由がここで最も応用の利く知見</span></h4>
+        <h3><span lang="en">The first measurement was discarded, and why is the most reusable finding here</span><span lang="ja">最初の計測値は破棄した。その理由がここで最も応用の利く知見</span></h3>
         <p lang="en">Step 5 first ran unattended immediately after the 96-minute ablation and recorded ONNX-8t
           <strong>1.225 ms</strong> and eager-8t <strong>3.773 ms</strong>. Same weights, same code, same box,
           re-run idle the next morning: <strong>1.014</strong> and <strong>2.750</strong> — 17 % and 27 % faster.
@@ -1279,7 +1279,7 @@ off = 1×1 conv → 2 channels</code></pre>
 
     <div class="findings">
       <div class="finding"><span class="fnum">01</span><div class="fbody">
-        <h4><span lang="en">Static INT8 turns the one-thread loss into a win as model time, and takes nothing measurable with it</span><span lang="ja">static INT8はモデル時間では1スレッドでの負けを勝ちに変え、計測可能な損失はない</span></h4>
+        <h3><span lang="en">Static INT8 turns the one-thread loss into a win as model time, and takes nothing measurable with it</span><span lang="ja">static INT8はモデル時間では1スレッドでの負けを勝ちに変え、計測可能な損失はない</span></h3>
         <p lang="en">fp32 through ONNX Runtime: 3.57 ms on one thread. Static INT8: 1.38 ms, a 2.6× cut, under the classical
           pipeline's 2.13 ms, but those two numbers come from different sessions. Timed together in one process
           (200 images, 10 interleaved rounds), classical took 1.80 ms, INT8 1.56 ms as a model and 1.94 ms end to
@@ -1294,7 +1294,7 @@ off = 1×1 conv → 2 channels</code></pre>
           半分未満しか見えない物体へのrecallも同じ53物体で0.910のままでした。step 5で1コアでは達成できなかった数値を、ネットワークではなく演算方式を変えることで達成しました。</p>
       </div></div>
       <div class="finding"><span class="fnum">02</span><div class="fbody">
-        <h4><span lang="en">Two of three calibration methods produce the same graph, and the elaborate one loses</span><span lang="ja">3つのcalibration手法のうち2つは同じグラフを生成し、凝った手法は負ける</span></h4>
+        <h3><span lang="en">Two of three calibration methods produce the same graph, and the elaborate one loses</span><span lang="ja">3つのcalibration手法のうち2つは同じグラフを生成し、凝った手法は負ける</span></h3>
         <p lang="en">MinMax and Entropy do not merely give the same mAP to four decimals: the two output files have the same
           SHA-256. The entropy histograms were built, and took four times as long, but the KL search kept the full
           range on all 21 quantized activations, which is what bounded activations without heavy tails give you. Percentile 99.99 costs 0.0048, five times the
@@ -1314,7 +1314,7 @@ off = 1×1 conv → 2 channels</code></pre>
           結果として言えるのはこの比であり、行間の10 %未満の差は結果とは言えません。</p>
       </div></div>
       <div class="finding"><span class="fnum">03</span><div class="fbody">
-        <h4><span lang="en">Dynamic quantisation was expected to buy no speed; on one thread it bought half</span><span lang="ja">dynamic quantisationは速度向上なしと予想したが、1スレッドでは時間が半分になった</span></h4>
+        <h3><span lang="en">Dynamic quantisation was expected to buy no speed; on one thread it bought half</span><span lang="ja">dynamic quantisationは速度向上なしと予想したが、1スレッドでは時間が半分になった</span></h3>
         <p lang="en">3.57 ms to 1.82 ms on one thread, a 2.0× cut, but 1.54 ms on four threads against fp32's 1.52: nothing.
           The integer convolution kernels the dynamic path runs did the single-thread work faster and did not scale
           with threads, while the static QDQ graph did both. The paragraph written before the run said dynamic
@@ -1327,7 +1327,7 @@ off = 1×1 conv → 2 channels</code></pre>
           修正された予測も記録の一部なので、リポジトリには予想と計測結果の両方を残しています。</p>
       </div></div>
       <div class="finding"><span class="fnum">04</span><div class="fbody">
-        <h4><span lang="en">Pruning is the wrong tool for this network</span><span lang="ja">このネットワークにpruningは不適切</span></h4>
+        <h3><span lang="en">Pruning is the wrong tool for this network</span><span lang="ja">このネットワークにpruningは不適切</span></h3>
         <p lang="en">Removing 25 % of the channels took 28 % of the multiply-accumulates and 20 % of the one-thread latency
           (3.57 to 2.84 ms), and cost 0.019 mAP after three fine-tune epochs. Removing 50 % took 53 % of the MACs and
           32 % of the latency (2.42 ms) and cost 0.065. Latency falls slower than the arithmetic because narrow

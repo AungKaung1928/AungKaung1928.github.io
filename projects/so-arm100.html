@@ -388,14 +388,14 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         これはデモンストレーターかつ基準であり、実機アームで動かせるコントローラーではありません。動作させるまでに2つの問題を解決する必要がありました。</p>
     </div>
     <div class="findings">
-      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4><span lang="en">The grasp is ambiguous by 180 degrees</span><span lang="ja">把持には180度の曖昧さがある</span></h4>
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h3><span lang="en">The grasp is ambiguous by 180 degrees</span><span lang="ja">把持には180度の曖昧さがある</span></h3>
         <p lang="en">A parallel jaw closing along yaw θ is the same grasp as θ + π, but only one of the two may be inside
           the wrist-roll limit from where the arm currently is. Both branches are solved, the better one wins,
           and the choice is held for the whole episode so the wrist does not flip halfway through the
           approach.</p>
         <p lang="ja">ヨー角θ方向に閉じる平行ジョーの把持は、θ + πと同じ把持です。しかし現在のアームの姿勢からは、どちらか一方しか手首ロールの可動範囲に入らない場合があります。
           両方のブランチを解いて良い方を採用し、接近の途中で手首が反転しないよう、その選択をepisode全体で保持します。</p></div></div>
-      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4><span lang="en">Position servos sag, so the loop had to be closed</span><span lang="ja">位置サーボが垂れるため、ループを閉じる必要があった</span></h4>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h3><span lang="en">Position servos sag, so the loop had to be closed</span><span lang="ja">位置サーボが垂れるため、ループを閉じる必要があった</span></h3>
         <p lang="en">The actuators are plain PD with no gravity compensation. The arm settles 1 to 2 cm from the pose IK
           asked for, more under a weakened <code>kp</code>. The expert integrates the Cartesian error near each
           waypoint and shifts its IK target by it, with anti-windup, and only once the arm has stopped slewing.
@@ -491,7 +491,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
         学習率のアニーリング、更新ごとに8つのfork環境で各128 stepを収集します。ここでは、cart-poleでは必要にならなかった点が2つ出てきます。</p>
     </div>
     <div class="findings">
-      <div class="finding"><span class="fnum">1</span><div class="fbody"><h4><span lang="en">Two kinds of episode end</span><span lang="ja">2種類のepisode終了</span></h4>
+      <div class="finding"><span class="fnum">1</span><div class="fbody"><h3><span lang="en">Two kinds of episode end</span><span lang="ja">2種類のepisode終了</span></h3>
         <p lang="en">These tasks <em>terminate</em> on success, where there is no future to bootstrap, and
           <em>truncate</em> on the step limit, where there is: the value of the state the episode stopped in,
           which the vector env carries as <code>terminal_obs</code>. Treating a truncation as a termination
@@ -501,7 +501,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           一方step上限では<em>truncation</em>となり、bootstrapすべき値があります。episodeが止まった状態の価値で、vector envが<code>terminal_obs</code>として引き渡します。
           Truncationをterminationとして扱うとこのbootstrapがゼロになり、各step上限の手前およそ1/(1−γ) ≈ 100 stepにわたって価値の目標値が壊れます。
           両方を1回ずつ含む4 stepのテストケースを手計算で検証しています。</p></div></div>
-      <div class="finding"><span class="fnum">2</span><div class="fbody"><h4><span lang="en">A running observation normaliser, frozen for evaluation</span><span lang="ja">評価時に固定するobservationのrunning normaliser</span></h4>
+      <div class="finding"><span class="fnum">2</span><div class="fbody"><h3><span lang="en">A running observation normaliser, frozen for evaluation</span><span lang="ja">評価時に固定するobservationのrunning normaliser</span></h3>
         <p lang="en">The 25-d state mixes radians, metres and a scaled velocity, and the per-group RMS spans more than an
           order of magnitude. A Welford running mean and variance is updated from rollouts and then frozen at
           evaluation and export, so the policy that is measured is the policy that was trained. Actions are
