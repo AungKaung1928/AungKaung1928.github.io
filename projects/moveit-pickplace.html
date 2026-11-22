@@ -97,7 +97,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 <line class="grid" x1="0" y1="82" x2="520" y2="82"/>
 <text x="4" y="109" class="lbl">OpenCV</text>
 <text x="4" y="125" class="mut">python</text>
-<rect class="box" x="136" y="90" width="230" height="44" rx="4"><title>vision_detector (python): HSV red mask (two hue windows), contours ≥ 400 px², moment centroid, pinhole back-projection onto the table plane z = 0</title></rect>
+<rect class="box" x="136" y="90" width="244" height="44" rx="4"><title>vision_detector (python): HSV red mask (two hue windows), contours ≥ 400 px², moment centroid, pinhole back-projection onto the table plane z = 0</title></rect>
 <text x="146" y="108" class="lbl num">vision_detector</text>
 <text x="146" y="125" class="mut" lang="en">HSV red mask → contours → centroid → z = 0</text><text x="146" y="125" class="mut" lang="ja">HSV赤マスク → 輪郭 → 重心 → z = 0</text>
 <path class="arrow" d="M184 134V168"><title>/detected_objects · MarkerArray — one sphere marker per red blob</title></path>
@@ -124,7 +124,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
 <line class="grid" x1="0" y1="316" x2="520" y2="316"/>
 <text x="4" y="343" class="lbl">MoveIt 2</text>
 <text x="4" y="359" class="mut" lang="en">OMPL · ros2_control</text><text x="4" y="359" class="mut" lang="ja">OMPL・ros2_control</text>
-<rect class="box" x="232" y="324" width="230" height="44" rx="4"><title>move_group (MoveIt 2): Cartesian path accepted at fraction ≥ 0.95, otherwise OMPL RRTConnect; executes on ros2_control mock_components</title></rect>
+<rect class="box" x="232" y="324" width="250" height="44" rx="4"><title>move_group (MoveIt 2): Cartesian path accepted at fraction ≥ 0.95, otherwise OMPL RRTConnect; executes on ros2_control mock_components</title></rect>
 <text x="242" y="342" class="lbl num">move_group</text>
 <text x="242" y="359" class="mut" lang="en">Cartesian ≥ 0.95 → OMPL fallback · mock HW</text><text x="242" y="359" class="mut" lang="ja">Cartesian ≥ 0.95 → OMPL fallback・mock駆動</text>
 <path class="arrow" d="M430 268H496V34H336"><title>/scene_object_updates · String — remove:ball_n after each grasp; the camera stops drawing that ball, so the next frame has one ball fewer</title></path>
