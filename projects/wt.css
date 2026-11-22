@@ -129,9 +129,9 @@ header.top{border-bottom:1px solid var(--line);
   background:linear-gradient(180deg,var(--accent-soft) 0%,var(--bg) 82%)}
 .head-inner{padding-block:clamp(32px,6.5vw,62px) 30px;display:flex;flex-direction:column;gap:18px}
 .deck{font-size:clamp(1.02rem,2.1vw,1.16rem);color:var(--ink2);max-width:66ch;line-height:1.62}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.02em;padding:4px 9px;
-  border:1px solid var(--accent-line);color:var(--accent-deep);background:var(--bg);border-radius:100px}
+.chips{display:flex;flex-wrap:wrap;row-gap:4px}
+.chip{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.02em;color:var(--ink2)}
+.chip:not(:last-child)::after{content:"·";padding-inline:.6em;color:var(--muted)}
 .factgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0 20px;margin-top:4px}
 .fact{border-top:1px solid var(--line);padding:10px 0 12px;display:flex;flex-direction:column;gap:4px;margin:0}
 .fact dt{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
