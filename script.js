@@ -59,93 +59,27 @@ window.addEventListener('storage', (e) => {
     if (e.key === 'lang') syncLang();
 });
 
-/* ── Scroll progress + active section ────────────────────────────── */
+/* ── Active section in the nav ───────────────────────────────────── */
 
-const progressBar = document.getElementById('progress-bar');
-const scrollPercentage = document.getElementById('scroll-percentage');
 const sections = [...document.querySelectorAll('main section[id]')];
 const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
-
 let ticking = false;
 
 function onScroll() {
-    const scrollTop = window.scrollY;
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = scrollable > 0 ? Math.min(100, Math.round((scrollTop / scrollable) * 100)) : 0;
-
-    progressBar.style.width = pct + '%';
-    scrollPercentage.textContent = pct + '%';
-    // The badge is noise at the very top of the page.
-    scrollPercentage.style.opacity = scrollTop < 80 ? '0' : '1';
-
     // Active section: the last one whose top has passed the header.
     let current = sections[0]?.id ?? '';
     for (const s of sections) {
         if (s.getBoundingClientRect().top <= 120) current = s.id;
     }
     for (const link of navLinks) {
-        const on = link.getAttribute('href').slice(1) === current;
-        if (on) link.setAttribute('aria-current', 'true');
+        if (link.getAttribute('href').slice(1) === current) link.setAttribute('aria-current', 'true');
         else link.removeAttribute('aria-current');
     }
-
     ticking = false;
 }
 
 window.addEventListener('scroll', () => {
     if (!ticking) { ticking = true; requestAnimationFrame(onScroll); }
 }, { passive: true });
-
 window.addEventListener('resize', onScroll, { passive: true });
 onScroll();
-
-/* ── GitHub overview ─────────────────────────────────────────────── */
-/* repos.json is written by the Pages workflow on every deploy and once a
- * day, so the visitor's browser never calls the GitHub API (no rate limit,
- * no third-party request). Without the file the section keeps its heading
- * and the link to the profile. */
-
-function renderRepos(repos) {
-    const table = document.getElementById('gh-table');
-    const summary = document.getElementById('gh-summary');
-    if (!table || !summary || !Array.isArray(repos) || !repos.length) return;
-
-    const byPush = [...repos].sort((a, b) => String(b.pushed_at).localeCompare(String(a.pushed_at)));
-    const stars = repos.reduce((n, r) => n + (r.stars || 0), 0);
-    const day = (iso) => String(iso).slice(0, 10);
-
-    const texts = {
-        en: `${repos.length} public repositories · ${stars} stars · last push ${day(byPush[0].pushed_at)} · refreshed daily`,
-        ja: `公開リポジトリ ${repos.length} · スター ${stars} · 最終push ${day(byPush[0].pushed_at)} · 毎日更新`,
-    };
-    for (const lang of ['en', 'ja']) {
-        const span = document.createElement('span');
-        span.lang = lang;
-        span.textContent = texts[lang];
-        summary.appendChild(span);
-    }
-
-    const body = table.tBodies[0];
-    for (const r of byPush.slice(0, 8)) {
-        const row = body.insertRow();
-        const link = document.createElement('a');
-        link.href = `https://github.com/AungKaung1928/${encodeURIComponent(r.name)}`;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.textContent = r.name;
-        row.insertCell().appendChild(link);
-        row.insertCell().textContent = r.language || '';
-        for (const value of [r.stars || 0, day(r.pushed_at)]) {
-            const cell = row.insertCell();
-            cell.className = 'num';
-            cell.textContent = value;
-        }
-    }
-    summary.hidden = false;
-    table.hidden = false;
-}
-
-fetch('repos.json')
-    .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
-    .then(renderRepos)
-    .catch((err) => console.warn('repos.json not loaded:', err));
