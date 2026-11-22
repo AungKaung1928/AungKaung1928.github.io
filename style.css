@@ -80,6 +80,20 @@ html[data-lang="ja"] body [lang="en"] { display: none !important; }
 html[data-lang="ja"] body { line-height: 1.8; }
 html[data-lang="ja"] :is(p, li) { word-break: auto-phrase; line-break: strict; }
 
+/* ── Scroll progress ──────────────────────────────────────────────── */
+.progress-track { position: absolute; left: 0; bottom: -1px; width: 100%; height: 2px; overflow: hidden; pointer-events: none; }
+#progress-bar { height: 100%; width: 0; background: var(--accent); transition: width 0.08s linear; }
+#scroll-percentage {
+    position: fixed; left: 22px; bottom: 22px; z-index: 40;
+    padding: 5px 10px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--bg-alpha);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    color: var(--ink-3); font-family: var(--mono); font-size: 0.75rem; font-weight: 500;
+    font-variant-numeric: tabular-nums; pointer-events: none;
+    opacity: 0; transition: opacity 0.25s ease;
+}
+#scroll-percentage.is-visible { opacity: 1; }
+
 /* ── Header ─────────────────────────────────────────────────────── */
 header {
     position: sticky; top: 0; z-index: 50;
@@ -211,5 +225,5 @@ footer { border-top: 1px solid var(--border); padding-block: 2rem; font-size: 0.
 }
 
 @media print {
-    header, #chat-fab, #chat-panel, .skip-link { display: none !important; }
+    header, #chat-fab, #chat-panel, .skip-link, #scroll-percentage { display: none !important; }
 }

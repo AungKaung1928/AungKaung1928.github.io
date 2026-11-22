@@ -59,13 +59,24 @@ window.addEventListener('storage', (e) => {
     if (e.key === 'lang') syncLang();
 });
 
-/* ── Active section in the nav ───────────────────────────────────── */
+/* ── Scroll progress (bar under the header + % badge) and active section ── */
 
+const progressBar = document.getElementById('progress-bar');
+const scrollPercentage = document.getElementById('scroll-percentage');
 const sections = [...document.querySelectorAll('main section[id]')];
 const navLinks = [...document.querySelectorAll('nav a[href^="#"]')];
 let ticking = false;
 
 function onScroll() {
+    const scrollTop = window.scrollY;
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = scrollable > 0 ? Math.min(100, Math.round((scrollTop / scrollable) * 100)) : 0;
+    if (progressBar) progressBar.style.width = pct + '%';
+    if (scrollPercentage) {
+        scrollPercentage.textContent = pct + '%';
+        scrollPercentage.classList.toggle('is-visible', scrollTop >= 80);   // noise at the very top
+    }
+
     // Active section: the last one whose top has passed the header.
     let current = sections[0]?.id ?? '';
     for (const s of sections) {
