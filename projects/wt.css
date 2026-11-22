@@ -296,6 +296,7 @@ html.full .deep-note{display:none}
 .glance-visual{min-width:0;display:flex;flex-direction:column;gap:10px}
 .glance-visual .vtitle{font-family:var(--disp);font-size:.95rem;font-weight:620}
 .glance-visual .vsub{font-size:.82rem;color:var(--muted);margin-top:-6px}
+@media (max-width:600px){.glance-visual{overflow-x:auto;overscroll-behavior-x:contain}.glance-visual .viz{min-width:480px}}
 .keypoints{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
 .keypoints li{display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:.93rem;line-height:1.5;color:var(--ink2)}
 .keypoints li b{font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--accent);
