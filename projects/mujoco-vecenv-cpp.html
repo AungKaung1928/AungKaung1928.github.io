@@ -54,7 +54,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
       <div class="fact"><dt>PPO, 50M steps</dt><dd><em>339.4</em> vs 348.1 <span lang="en">of 500 · 3 seeds each</span><span lang="ja">（500点満点）· 各3 seeds</span> · 3.1 h vs 3.8–4.4 h</dd></div>
       <div class="fact"><dt>C++ vs Python, 8 workers</dt><dd><em>1.9–2.0×</em> env-steps/s</dd></div>
       <div class="fact"><dt><span lang="en">Full env, 8 threads</span><span lang="ja">環境全体・8スレッド</span></dt><dd>20,287 burst · 13.3–16.2k sustained</dd></div>
-      <div class="fact"><dt><span lang="en">Tests</span><span lang="ja">テスト</span></dt><dd><span lang="en">34 C++ cases · 41 Python tests</span><span lang="ja">C++ 34ケース · Python 41テスト</span></dd></div>
+      <div class="fact"><dt><span lang="en">Tests</span><span lang="ja">テスト</span></dt><dd><span lang="en">35 C++ cases · 55 Python tests</span><span lang="ja">C++ 35ケース · Python 55テスト</span></dd></div>
       <div class="fact"><dt>CI</dt><dd>Release + ASan/UBSan + TSan</dd></div>
     </dl>
   </div>
@@ -114,7 +114,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
       <li><b>01</b><span lang="en"><strong>Bit-identical to the Python environment.</strong> 6,275 of 6,275 observations, 0 reward diffs over 25 episodes with no tolerance; CI reruns it on every push against a pinned commit of the Python repo.</span><span lang="ja"><strong>Python環境とビット単位で一致。</strong>25 episodesで6,275個中6,275個のobservationが一致、reward差0、許容誤差なし。CIがpushごとに、Pythonリポジトリの固定コミットに対して再実行。</span></li>
       <li><b>02</b><span lang="en"><strong>1.9–2.0× the Python processes at 8 workers.</strong> 12,327 vs 6,385 env-steps/s under identical random actions, above the 1.3× the README set as the bar; the full environment alone runs 20,287 burst and 13,300–16,200 sustained over six minutes.</span><span lang="ja"><strong>8 workerでPythonプロセスの1.9〜2.0倍。</strong>同一のランダムactionで12,327対6,385 env-steps/s。READMEが定めた基準1.3×を上回る。環境単体では20,287 burst、6分間のsustainedで13,300〜16,200。</span></li>
       <li><b>03</b><span lang="en"><strong>Trains a similar policy, faster.</strong> The C++ runs used a joint-velocity penalty 21× weaker (fixed 2026-11-21, retrain pending). The 50M-step PPO run takes 3.1 h here vs 3.8–4.4 h; 339.4 ± 2.3 vs 348.1 ± 8.1 of 500 over 3 seeds, no backend difference in return or survival, and the same step-size failure and fix reproduce.</span><span lang="ja"><strong>同等のpolicyをより速く学習。</strong>C++側はjoint速度ペナルティが21分の1でした（2026-11-21修正、再学習は未実施）。50M stepのPPO学習は3.8〜4.4時間に対して3.1時間。3 seedsで500点中339.4 ± 2.3対348.1 ± 8.1、returnにもsurvivalにもbackend間の差なし。同じstep sizeの失敗と対処も再現。</span></li>
-      <li><b>04</b><span lang="en"><strong>34 C++ cases, 41 Python tests, three sanitizers.</strong> CI builds Release plus ASan/UBSan and TSan; four arithmetic details (numpy's pairwise sum, <code>pow</code>, float32 widening, solver warm-start) decided the last bit.</span><span lang="ja"><strong>C++ 34ケース、Python 41テスト、3つのsanitizer。</strong>CIはReleaseに加えASan/UBSanとTSanでビルド。最終ビットを決めたのは4つの演算の細部（numpyのpairwise sum、<code>pow</code>、float32の拡張、ソルバーのwarm-start）。</span></li>
+      <li><b>04</b><span lang="en"><strong>35 C++ cases, 55 Python tests, three sanitizers.</strong> CI builds Release plus ASan/UBSan and TSan; four arithmetic details (numpy's pairwise sum, <code>pow</code>, float32 widening, solver warm-start) decided the last bit.</span><span lang="ja"><strong>C++ 35ケース、Python 55テスト、3つのsanitizer。</strong>CIはReleaseに加えASan/UBSanとTSanでビルド。最終ビットを決めたのは4つの演算の細部（numpyのpairwise sum、<code>pow</code>、float32の拡張、ソルバーのwarm-start）。</span></li>
       <li class="neg"><b>05</b><span lang="en"><strong>Scaling stalls at 45% — the chip, not the processes.</strong> Thread efficiency at 8 workers matches the Python processes' 42%, and the Python environment delivers about 6,400 env-steps/s, half the 13,300 its project had budgeted. Equality is proven on one machine, one compiler, one C library.</span><span lang="ja"><strong>スケーリングは効率45%で頭打ち — 原因はプロセスではなくチップ。</strong>8 workerでのスレッド効率はPythonプロセスの42%と同水準。Python環境は約6,400 env-steps/sで、同プロジェクトが見積もった13,300の半分。一致の証明は1台のマシン・1つのコンパイラ・1つのCライブラリでのもの。</span></li>
     </ul>
   </div>
@@ -279,14 +279,14 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           <tr><td>bench/compare.py</td><td class="num">120</td>
             <td><span lang="en">Python processes against C++ threads, alternating backend every window so a machine that
               changes state biases both the same way.</span><span lang="ja">PythonプロセスとC++スレッドの比較。windowごとにbackendを交互に切り替え、マシンの状態変化が両者に同じように効くようにしています。</span></td></tr>
-          <tr><td>tests/cpp/*.cpp</td><td class="num">665</td>
-            <td><span lang="en">34 doctest cases, 417,482 assertions: environment contract, DR apply/restore, RNG determinism and
+          <tr><td>tests/cpp/*.cpp</td><td class="num">641</td>
+            <td><span lang="en">35 doctest cases, 417,484 assertions: environment contract, DR apply/restore, RNG determinism and
               moments, the numpy summation order on an input where the orders provably differ, thread-count
-              independence, N threaded envs equal N sequential ones.</span><span lang="ja">doctest 34ケース、417,482アサーション。環境のcontract、DRの適用と復元、乱数の決定性とモーメント、加算順序で確実に結果が変わる入力でのnumpy加算順序、
+              independence, N threaded envs equal N sequential ones.</span><span lang="ja">doctest 35ケース、417,484アサーション。環境のcontract、DRの適用と復元、乱数の決定性とモーメント、加算順序で確実に結果が変わる入力でのnumpy加算順序、
               スレッド数への非依存性、N個のスレッド実行環境とN個の逐次実行環境の一致。</span></td></tr>
-          <tr><td>tests/py/*.py</td><td class="num">249</td>
-            <td><span lang="en">41 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
-              internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</span><span lang="ja">pytest 41テスト。一致ケース、pushをずらしたときの感度チェック、numpyの内部状態に対するPCG64の検証、バージョン一致、差し替えクラスのshape・dtype・infoキー。</span></td></tr>
+          <tr><td>tests/py/*.py</td><td class="num">426</td>
+            <td><span lang="en">55 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
+              internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</span><span lang="ja">pytest 55テスト。一致ケース、pushをずらしたときの感度チェック、numpyの内部状態に対するPCG64の検証、バージョン一致、差し替えクラスのshape・dtype・infoキー。</span></td></tr>
           <tr><td>CMakeLists.txt · .github/workflows/ci.yml · verify.sh · Dockerfile</td><td class="num">91 · 68 · 84 · 28</td>
             <td><span lang="en">Build (asks Python where the MuJoCo wheel is, links its <code>libmujoco.so</code>), three CI jobs,
               the one-command local check, and a container that runs it.</span><span lang="ja">ビルド（MuJoCo wheelの場所をPythonに問い合わせ、その<code>libmujoco.so</code>をリンク）、3つのCIジョブ、1コマンドで済むローカル検証、それを実行するコンテナ。</span></td></tr>
@@ -470,14 +470,14 @@ ce = vecenv_cpp.Env(make_config(**kw), s); o_cpp = ce.reset(params)
 <section id="san" data-depth="deep">
   <div class="sec-head"><span class="sec-num">07</span><h2><span lang="en">Sanitizers and CI</span><span lang="ja">SanitizerとCI</span></h2><p class="sec-sub" lang="en">Three CI jobs, and two things about MuJoCo's prebuilt library that had to be worked around to run them.</p><p class="sec-sub" lang="ja">3つのCIジョブと、それを動かすために回避が必要だったMuJoCoビルド済みライブラリの2つの問題。</p></div>
   <div class="stack prose">
-    <p lang="en">CI runs three jobs on every push. The first builds Release, runs the 34 C++ cases, the 41 Python tests
+    <p lang="en">CI runs three jobs on every push. The first builds Release, runs the 35 C++ cases, the 55 Python tests
       and the equality report against the Python repository at a pinned commit, after fetching the robot
       assets from their upstream (they are Creative Commons BY-SA-NC and are never committed). The second and
       third rebuild the C++ suite under <code>-fsanitize=address,undefined</code> and under
       <code>-fsanitize=thread</code>. The thread-count independence test is the one ThreadSanitizer exists
       for: a race on the shared action or observation buffers would fail the build.</p>
     <p lang="ja">CIはpushごとに3つのジョブを実行します。1つ目はロボットのアセットをupstreamから取得したうえで（Creative Commons BY-SA-NCのためコミットしません）、
-      Releaseビルドを行い、C++ 34ケース、Python 41テスト、そして固定コミットのPythonリポジトリに対する一致レポートを実行します。
+      Releaseビルドを行い、C++ 35ケース、Python 55テスト、そして固定コミットのPythonリポジトリに対する一致レポートを実行します。
       2つ目と3つ目は、C++スイートを<code>-fsanitize=address,undefined</code>と<code>-fsanitize=thread</code>でそれぞれ再ビルドします。
       ThreadSanitizerが本領を発揮するのはスレッド数非依存のテストで、共有されたactionやobservationのバッファで競合があればビルドが失敗します。</p>
     <div class="findings">
