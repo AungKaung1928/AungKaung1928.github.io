@@ -212,11 +212,11 @@ section:last-of-type{border-bottom:0}
 @media (max-width:640px){.vs{grid-template-columns:1fr}}
 
 /* ── tables ─────────────────────────────────────────────────────── */
-.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+.tablewrap{overflow-x:auto;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
 table{border-collapse:collapse;width:100%;font-size:var(--fs-small);min-width:520px}
 th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 thead th{font-family:var(--sans);font-size:var(--fs-label);letter-spacing:.08em;text-transform:uppercase;
-  color:var(--muted);background:var(--paper);font-weight:600}
+  color:var(--muted);font-weight:600}
 tbody tr:last-child td{border-bottom:0}
 tbody tr:nth-child(even){background:var(--stripe)}
 td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:var(--fs-small)}
