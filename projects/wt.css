@@ -161,10 +161,9 @@ section:last-of-type{border-bottom:0}
 .stack-lg{display:flex;flex-direction:column;gap:26px}
 
 /* ── callouts ───────────────────────────────────────────────────── */
-.note{border:1px solid var(--line);border-left:3px solid var(--line2);background:var(--paper);
-  padding:14px 16px;display:flex;flex-direction:column;gap:7px;border-radius:0 6px 6px 0}
-.note.key{border-left-color:var(--accent);background:var(--accent-soft)}
-.note.warnbox{border-left-color:var(--warn);background:var(--warn-soft)}
+.note{border-left:3px solid var(--line2);padding:2px 0 2px 16px;display:flex;flex-direction:column;gap:7px}
+.note.key{border-left-color:var(--accent)}
+.note.warnbox{border-left-color:var(--warn)}
 .note-label{font-family:var(--mono);font-size:var(--fs-label);letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);font-weight:600}
 .note.key .note-label{color:var(--accent-deep)}
