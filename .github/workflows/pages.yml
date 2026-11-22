@@ -38,6 +38,7 @@ jobs:
           node tools/check-links.js
           node tools/check-contrast.js
           node tools/check-scroll.js
+          node tools/check-hero.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

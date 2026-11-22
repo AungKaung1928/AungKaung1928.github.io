@@ -132,8 +132,8 @@ html.dark-mode .moon-icon { display: block; }
 .hero-text { display: grid; gap: 1.25rem; min-width: 0; }
 .eyebrow { font-family: var(--mono); font-size: 0.8125rem; color: var(--accent); letter-spacing: 0.02em; }
 .hero-name {
-    font-size: clamp(2.75rem, 1.2rem + 6.4vw, 6.25rem);
-    line-height: 0.95; letter-spacing: -0.045em; font-weight: 650; color: var(--ink);
+    font-size: clamp(2rem, 1.4rem + 2.2vw, 3.25rem);   /* medium (his ask 2026-11-22): was up to 6.25rem; CI tools/check-hero.js caps it */
+    line-height: 1.1; letter-spacing: -0.03em; font-weight: 650; color: var(--ink);
 }
 .hero-role { font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); letter-spacing: -0.02em; color: var(--ink); }
 .hero-desc { max-width: 34em; color: var(--ink-2); }
