@@ -41,6 +41,7 @@ jobs:
           node tools/check-hero.js
           node tools/check-readme.js
           node tools/check-names.js
+          node tools/check-og.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
