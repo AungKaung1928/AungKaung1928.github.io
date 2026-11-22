@@ -96,6 +96,14 @@
   }
   addEventListener('pageshow', function (e) { if (e.persisted) sync(); });
   addEventListener('storage', function (e) { if (e.key === 'theme' || e.key === 'lang') sync(); });
+  // A chart box that scrolls sideways (phones, wt.css) must be reachable by keyboard; elsewhere it is not a tab stop.
+  function chartFocus() {
+    document.querySelectorAll('.glance-visual').forEach(function (el) {
+      if (el.scrollWidth > el.clientWidth + 1) el.tabIndex = 0; else el.removeAttribute('tabindex');
+    });
+  }
+  addEventListener('resize', chartFocus);
+  chartFocus();
   showTheme();
   setLang(root.getAttribute('data-lang'), false);
 })();
