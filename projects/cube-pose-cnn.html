@@ -324,7 +324,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               overhead projection and draws a marker. If the markers do not land on the cubes, the label
               convention is wrong — and every number produced afterwards would be consistently, silently wrong.</span><span lang="ja">ラベルの検証。各正解ラベルを真上カメラの解析的な射影でピクセル空間に戻し、マーカーを描きます。
               マーカーが立方体の上に乗らなければラベルの規約が間違っており、その後に出る数値はすべて、一貫して、気づかれないまま間違うことになります。</span></td></tr>
-          <tr><td>baseline_cv.py</td><td class="num">101</td>
+          <tr><td>baseline_cv.py</td><td class="num">104</td>
             <td><span lang="en">Classical baseline, two variants. <code>--method red</code> is a fixed hue window — the naive
               prior "the cube is red". <code>--method sat</code> keeps anything sufficiently saturated — the
               weaker, more honest prior "the cube is the most colourful thing on a near-grey table". Both then
@@ -333,7 +333,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               <code>--method sat</code>は十分に彩度の高いものをすべて残します。「グレーに近いテーブル上で最も色鮮やかなものが立方体」という、
               より弱く、より正直なpriorです。その後はどちらも、モルフォロジーのopening → 最大輪郭 → 面積の下限 → モーメントによる重心＋
               <code>minAreaRect</code>の角度 → ワールド単位への変換、と処理します。</span></td></tr>
-          <tr><td>baseline_v2.py</td><td class="num">60</td>
+          <tr><td>baseline_v2.py</td><td class="num">64</td>
             <td><span lang="en">The fair baseline. Runs the same detector over the <em>train</em> split, fits one scalar radial
               correction by least squares, applies it unchanged to validation. One learned parameter against the
               network's 27 000.</span><span lang="ja">公平なbaseline。同じ検出器を<em>train</em>に対して実行し、半径方向の補正スカラー1つを最小二乗で求め、
@@ -348,7 +348,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               <em>final</em> epoch and selects on nothing.</span><span lang="ja">学習ループ。4つのtargetを共通のスケールに正規化し、SmoothL1 loss、AdamW（2e-3、cosine schedule）、batch 64、40 epoch、
               augmentationなしで学習します。このマシンではCPU温度センサーが読めないため、epochごとのthroughputを出力し、
               20 %を超える低下が続くと警告します。報告するのは<em>最終</em>epochで、epochの選択は一切行いません。</span></td></tr>
-          <tr><td>export_onnx.py</td><td class="num">100</td>
+          <tr><td>export_onnx.py</td><td class="num">103</td>
             <td><span lang="en">Exports to ONNX and then proves the export three ways: max absolute tensor difference on a real
               batch, the full task metrics recomputed through ONNX Runtime, and batch-1 latency at both 1 and 8
               threads.</span><span lang="ja">ONNXにexportし、3つの方法で正しさを確認します。実データのbatchでのテンソルの最大絶対差、
@@ -357,7 +357,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
             <td><span lang="en">Tier-1 tests. The yaw fold, the projection and the metric checked against values derived on
               paper. Needs no dataset and no weights — it runs from a fresh clone in seconds.</span><span lang="ja">Tier 1のテスト。yawの折り返し、射影、評価指標を、紙の上で導いた値と照合します。データセットも重みも不要で、
               cloneした直後から数秒で実行できます。</span></td></tr>
-          <tr><td>verify.sh</td><td class="num">55</td>
+          <tr><td>verify.sh</td><td class="num">68</td>
             <td><span lang="en">Reproduces the README's claims from a clean checkout, cheapest tier first. Pins
               <code>MUJOCO_GL</code> and the thread count because both change the numbers, and skips the data
               tiers with instructions rather than failing when <code>data/</code> is absent.</span><span lang="ja">クリーンなcheckoutからREADMEの主張を再現します。軽いtierから順に実行します。

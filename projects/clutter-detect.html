@@ -226,7 +226,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               every class and every appearance — unused slots are parked 10 m away, outside both fields of view.</span><span lang="ja">MuJoCoのシーン。1.5 mのテーブル平面、照明1つ、カメラ2台、jointを持たない静的な物体スロット6つで構成されます。
               形状・サイズ・色・姿勢はすべて<code>mjModel</code>のフィールドなので、1つのXMLで全クラス・全外観を表現できます。
               使わないスロットは10 m離れた、両カメラの視野外に退避させます。</span></td></tr>
-          <tr><td>gen_dataset.py</td><td class="num">239</td>
+          <tr><td>gen_dataset.py</td><td class="num">365</td>
             <td><span lang="en">Renders the four splits. Rejection-samples object positions at least 0.075 m apart, writes shape
               and colour into the model, renders RGB, renders again with segmentation enabled, converts each
               instance mask to a tight box, and computes <code>visible_frac</code> with a pruned second pass.</span><span lang="ja">4つのsplitをレンダリングします。物体位置を0.075 m以上離れるようrejection samplingし、形状と色をモデルに書き込み、
@@ -289,12 +289,12 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               whose 3×3 max-pool <em>is</em> the entire non-maximum suppression.</span><span lang="ja">アーキテクチャとターゲットのencoding。Gaussian半径、Gaussian splatting、encode、focal loss、
               regression head用のmasked L1、encoder–decoderネットワーク、そしてdecode関数です。decode内の3×3 max-poolが、
               non-maximum suppressionの<em>すべて</em>を担います。</span></td></tr>
-          <tr><td>train_det.py</td><td class="num">273</td>
+          <tr><td>train_det.py</td><td class="num">274</td>
             <td><span lang="en">The training loop. Holds 1500 images out of <em>train</em> as a tune split so validation is
               touched exactly once, at the end. Adam + OneCycle, 25 epochs, 34 minutes at 112–128 img/s on
               8 threads. Contains the photometric and geometric augmentation implementations.</span><span lang="ja">学習ループ。<em>train</em>から1500枚をtune用splitとして取り分け、validationには最後に一度だけ触れるようにしています。
               Adam + OneCycle、25 epoch、8スレッドで112–128 img/s、所要34分。photometricおよびgeometric augmentationの実装も含みます。</span></td></tr>
-          <tr><td>test_detector.py</td><td class="num">106</td>
+          <tr><td>test_detector.py</td><td class="num">133</td>
             <td><span lang="en">Proves <code>encode</code> and <code>decode</code> are exact inverses <em>before</em> any
               training. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
               place. Also measures worst-case centre error at 2.00 px, which at stride 4 is exactly the
@@ -310,7 +310,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               pipeline through ONNX Runtime and scores it with the same <code>ap.py</code>, and times model,
               decode, and end-to-end at 1, 4 and 8 threads.</span><span lang="ja">batch 1固定でexportし、headごとの最大絶対誤差を確認します。さらに検出パイプライン全体をONNX Runtimeで再実行して
               同じ<code>ap.py</code>で評価し、モデル・decode・end-to-endの時間を1、4、8スレッドで計測します。</span></td></tr>
-          <tr><td>quantize.py</td><td class="num">213</td>
+          <tr><td>quantize.py</td><td class="num">232</td>
             <td><span lang="en">Static INT8 through ONNX Runtime in QDQ form, U8S8, per-channel weights; MinMax, Percentile and
               Entropy calibration on 200 training images, plus a dynamic row for contrast. Scores every graph end
               to end with <code>ap.py</code> and times it at 1 and 4 threads with the load average recorded.</span><span lang="ja">ONNX Runtimeによるstatic INT8（QDQ形式、U8S8、per-channelの重み）。学習画像200枚でMinMax・Percentile・Entropyの
@@ -321,7 +321,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               slices every consumer's input channels to match, fine-tunes with step 3's losses, exports, and
               optionally quantises the result.</span><span lang="ja">BatchNormのγでchannelを順位付けし、物理的に幅の狭いネットワークを構築して、残ったweightをコピーします。
               後段の入力channelもすべて対応するようスライスし、step 3と同じlossでfine-tuneしてexportします。結果をさらに量子化することもできます。</span></td></tr>
-          <tr><td>edge_curve.py</td><td class="num">102</td>
+          <tr><td>edge_curve.py</td><td class="num">121</td>
             <td><span lang="en">Draws mAP against one-thread latency for every graph the two scripts wrote, with the classical
               pipeline as a dashed line.</span><span lang="ja">上記2つのスクリプトが出力した全グラフについて、1スレッドlatencyに対するmAPを描画します。古典的パイプラインは破線で示します。</span></td></tr>
           <tr><td>test_edge.py</td><td class="num">148</td>

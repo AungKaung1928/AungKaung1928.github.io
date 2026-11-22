@@ -252,11 +252,11 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               and a box check that refuses to start on a busy machine.</span><span lang="ja">Step 3。以前のcart-poleプロジェクトのPPOループに、ベクトル化したrollout、policyの一部としてのWelford方式running normaliser、
               truncation bootstrap、正確に再開できるchunk単位のcheckpoint、速度が最初の5回の更新より20%下がったら知らせるthroughputモニタ、
               マシンが混んでいると開始を拒否するチェックを加えたものです。</span></td></tr>
-          <tr><td>metrics.py</td><td class="num">90</td>
+          <tr><td>metrics.py</td><td class="num">104</td>
             <td><span lang="en">Return, survival, recovery and time-to-recover, defined once. Training-time evaluation and
               <code>eval_policy.py</code> both import it, so the curve and the final table cannot disagree.</span><span lang="ja">Return、survival、recovery、復帰時間を一か所で定義します。学習中の評価と<code>eval_policy.py</code>の両方がこれをimportするため、
               学習曲線と最終的な表が食い違うことはありません。</span></td></tr>
-          <tr><td>eval_policy.py</td><td class="num">91</td>
+          <tr><td>eval_policy.py</td><td class="num">93</td>
             <td><span lang="en">100 episodes × 5 seeds, deterministic mean actions, the PD controller on the same seeds, on any
               model variant. Episode <em>j</em> of seed <em>s</em> is reset with <code>s·100000 + j</code>, so any
               row can be replayed.</span><span lang="ja">100 episodes × 5 seeds、決定論的な平均action、同じseedでのPD controller、任意のモデルで評価します。
@@ -268,7 +268,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               values captured once so nothing compounds; <code>restore()</code> is exact.</span><span lang="ja">Step 4。ランダム化の範囲は、恣意的に選ばずモデルから取ります。5つのサーボパラメータはそれぞれ4つのフィットの最小値〜最大値、
               質量±15%、床の摩擦0.6–1.2×、latency 0–2 step、初期ノイズ最大0.3 rad、センサーノイズは本家が宣言した大きさ。
               公称値は一度だけ記録するため変化が累積せず、<code>restore()</code>で正確に元に戻ります。</span></td></tr>
-          <tr><td>eval_gap.py</td><td class="num">62</td>
+          <tr><td>eval_gap.py</td><td class="num">71</td>
             <td><span lang="en">Runs a nominal-trained and a DR-trained policy on the training model and both held-out models and
               writes the gap table.</span><span lang="ja">公称モデルで学習したpolicyとDRで学習したpolicyを、学習用モデルと2つのheld-outモデルで動かし、差分の表を出力します。</span></td></tr>
           <tr><td>export_onnx.py</td><td class="num">140</td>
@@ -301,7 +301,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           <tr><td>test_model.py · test_env.py</td><td class="num">161 · 263</td>
             <td><span lang="en">The MJCF contract and the twenty-seven environment checks, including the one that rebuilds the
               observation from its five sources and asserts a bit-for-bit match.</span><span lang="ja">MJCFの契約テストと、環境の27項目のチェック。observationを5つのソースから組み直し、ビット単位で一致することを確認するテストも含みます。</span></td></tr>
-          <tr><td>test_reward.py</td><td class="num">133</td>
+          <tr><td>test_reward.py</td><td class="num">135</td>
             <td><span lang="en">Pins two v1 episode returns to the last decimal so the 108.7 baseline stays reproducible; checks
               that v2 has a height gradient everywhere below standing and v1 has none near the floor; checks the
               v2 weight set from measurement; checks that sensor noise touches only the gyro.</span><span lang="ja">v1の2つのepisode returnを最後の桁まで固定し、108.7のbaselineが再現できる状態を保ちます。v2には立位より下のあらゆる高さで勾配があり、
