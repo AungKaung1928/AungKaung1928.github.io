@@ -299,9 +299,9 @@ html.full .deep-note{display:none}
 .keypoints{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
 .keypoints li{display:grid;grid-template-columns:26px 1fr;gap:10px;font-size:.93rem;line-height:1.5;color:var(--ink2)}
 .keypoints li b{font-family:var(--mono);font-size:var(--fs-label);font-weight:600;color:var(--accent);
-  border:1px solid var(--accent-line);border-radius:5px;height:22px;display:inline-flex;align-items:center;justify-content:center}
+  padding-top:.2em}
 .keypoints li strong{color:var(--ink);font-weight:620}
-.keypoints li.neg b{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,transparent)}
+.keypoints li.neg b{color:var(--bad)}
 /* chart primitives (inline SVG, drawn with tokens so both themes work) */
 .viz{width:100%;height:auto;display:block;font-family:var(--sans)}
 .viz .bar{fill:var(--accent)}
