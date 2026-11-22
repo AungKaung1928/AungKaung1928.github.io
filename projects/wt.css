@@ -235,8 +235,8 @@ ol.tight li::marker{color:var(--accent);font-family:var(--mono);font-size:.85em}
 .pair dt{font-family:var(--mono);font-size:.78rem;color:var(--accent-deep);padding-top:.22em}
 .pair dd{margin:0;color:var(--ink2)}
 @media (max-width:560px){.pair{grid-template-columns:1fr;gap:2px 0}.pair dd{margin-bottom:10px}}
-.findings{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:6px}
-.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.findings{display:flex;flex-direction:column;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.finding{display:grid;grid-template-columns:auto 1fr;gap:0 16px;padding:16px 0;border-bottom:1px solid var(--line)}
 .finding:last-child{border-bottom:0}
 .finding .fnum{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--accent);padding-top:.2em}
 .finding h4{margin-bottom:6px}
