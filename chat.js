@@ -46,9 +46,9 @@ const TOPICS = [
     {
         id: 'who',
         k: ['who', 'about him', '!about aung', 'background', 'yourself', 'introduce', 'bio', 'summary', 'profile', 'himself'],
-        a: "Robotics software engineer; the day job is ROS2, C++ and LiDAR perception on real mobile robots. The projects here are personal robot-learning work: trained in simulation, measured against a classical baseline, exported to ONNX. Direction: physical AI, sim-to-real transfer, legged locomotion.",
+        a: "Robotics software engineer; the day job is ROS 2, C++ and LiDAR perception on real mobile robots. The projects here are personal robot-learning work: trained in simulation, measured against a classical baseline, exported to ONNX. Direction: physical AI, sim-to-real transfer, legged locomotion.",
         deep: "## Short version\n" +
-           "Robotics software engineer, working on real mobile robots professionally — ROS2, C++, navigation and LiDAR perception. This page is his personal work: learned perception and control, built on ROS2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
+           "Robotics software engineer, working on real mobile robots professionally — ROS 2, C++, navigation and LiDAR perception. This page is his personal work: learned perception and control, built on ROS 2 and PyTorch, with a measured classical baseline under every learned result.\n\n" +
            "## What he actually builds\n" +
            "Four current projects, all robot learning on a laptop with no GPU: a balance-and-recover policy for a small biped, a C++17 simulation backend proven bit-identical to its Python reference, one MuJoCo bench for the SO-ARM100 arm feeding a reinforcement-learning, an imitation and a language-conditioned policy, and a tabletop detector taken down to INT8 on one CPU thread. Four earlier projects sit behind them: PPO written from scratch against LQR, a cube-pose CNN, a closed-loop MoveIt2 pick-and-place stack on a Franka Panda, and a containerised multi-robot telemetry pipeline. The PPO loop and the keypoint head from the earlier work are reused in the current one.\n\n" +
            "## The habit worth noticing\n" +
@@ -59,11 +59,11 @@ const TOPICS = [
     {
         id: 'experience',
         k: ['experience', 'exp', 'years', 'career', 'worked', 'work history', 'job', 'jobs', 'role', 'roles', 'seniority', 'senior', 'junior', 'employment', 'history', 'professional'],
-        a: "Early career. Professionally: ROS2 systems on autonomous mobile robots, perception and deployment onto real hardware, in C++ and Python on Linux. Personally: eight robot-learning projects, all trained and measured on CPU only. Employers and dates are not on the page; email " + EMAIL + ".",
+        a: "Early career. Professionally: ROS 2 systems on autonomous mobile robots, perception and deployment onto real hardware, in C++ and Python on Linux. Personally: eight robot-learning projects, all trained and measured on CPU only. Employers and dates are not on the page; email " + EMAIL + ".",
         deep: "## Level\n" +
            "Early career, and honest about it. What he has is depth in a narrow band rather than a long list of years.\n\n" +
            "## What the day job looks like\n" +
-           "ROS2 systems work: autonomous mobile robots, perception pipelines, and getting software onto physical machines. C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt2 as the working toolset.\n\n" +
+           "ROS 2 systems work: autonomous mobile robots, perception pipelines, and getting software onto physical machines. C++ and Python on Linux, with Nav2, SLAM, PCL and MoveIt2 as the working toolset.\n\n" +
            "## What the projects prove\n" +
            "- Microduck Balance and Push Recovery — a PPO policy for a 14-servo biped, with the reward rebuilt from measurement and a PD baseline it has to beat\n" +
            "- Threaded C++ MuJoCo Backend, Bit-Identical — the same environment in C++17 on threads, 6,275 of 6,275 observations identical to the Python one, about 2x its throughput at 8 workers\n" +
@@ -79,11 +79,11 @@ const TOPICS = [
     {
         id: 'goal',
         k: ['goal', 'goals', 'focus', 'future', 'direction', '!physical ai', 'aiming', 'aim', 'next', 'looking for', 'interested', 'ambition', 'want'],
-        a: "Target: Physical AI Engineer, shipping learned behaviour onto real machines. Three pieces: sim-to-real transfer, legged locomotion, perception outside a staged scene. The robot-learning track on this page is the route there, one measured block at a time; ROS2 stays as the deployment layer.",
+        a: "Target: Physical AI Engineer, shipping learned behaviour onto real machines. Three pieces: sim-to-real transfer, legged locomotion, perception outside a staged scene. The robot-learning track on this page is the route there, one measured block at a time; ROS 2 stays as the deployment layer.",
         deep: "## Now\n" +
            "Two tracks, run in parallel:\n" +
            "- Robot learning on CPU — a biped balance policy, arm manipulation by RL, imitation and language, a detector quantised to INT8, and a C++ simulation backend proven bit-identical to its Python reference\n" +
-           "- ROS2 systems — MoveIt2 manipulation, Nav2, perception, and the infrastructure around a fleet, from the day job and the earlier projects\n\n" +
+           "- ROS 2 systems — MoveIt2 manipulation, Nav2, perception, and the infrastructure around a fleet, from the day job and the earlier projects\n\n" +
            "## Next\n" +
            "Physical AI — getting learned behaviour to run on real machines. Three pieces:\n" +
            "- Sim-to-real transfer: closing the gap between a policy that works in simulation and one that survives hardware. Domain randomisation, system identification, and residual policies are the method, not the buzzwords\n" +
@@ -99,12 +99,12 @@ const TOPICS = [
         deep: "## The split\n" +
            "- C++ — production nodes, real-time paths, anything performance-critical or destined for an edge device\n" +
            "- Python — model training, simulation, evaluation, orchestration\n" +
-           "- Linux throughout; ROS2 as the runtime for the systems side\n\n" +
+           "- Linux throughout; ROS 2 as the runtime for the systems side\n\n" +
            "## Where that shows in the projects\n" +
            "- MoveIt2 Pick & Place Demo — mixed. The workspace validator that filters unreachable targets is C++ because it runs on every detection; the finite state machine that sequences grasps is Python because the value there is orchestration, not throughput\n" +
            "- Threaded C++ MuJoCo Backend — C++17, CMake, pybind11. One model per environment, N environments on T threads, tested under AddressSanitizer, UndefinedBehaviorSanitizer and ThreadSanitizer in CI. Written to be the same environment to the bit, then measured at about 2x the Python processes\n" +
            "- Microduck Balance and Push Recovery, SO-ARM100 Manipulation, Tabletop Clutter Detector, and the earlier PPO vs LQR and Cube Pose projects — Python with PyTorch, NumPy and MuJoCo\n" +
-           "- Fleet Monitoring System — Python. Glue between ROS2, Kafka and QuestDB, where iteration speed beats microseconds\n\n" +
+           "- Fleet Monitoring System — Python. Glue between ROS 2, Kafka and QuestDB, where iteration speed beats microseconds\n\n" +
            "## The deployment answer\n" +
            "Training in Python does not mean serving in Python. The learned projects export to ONNX and re-measure the full task metric through ONNX Runtime, which is the step that lets a C++ node run the same weights on a robot. In the detection project that export turned a 3.87 ms eager forward pass into 1.20 ms end to end, and step 6 takes the same graph to INT8 for a one-thread budget.\n\n" +
            "## Beyond the two\n" +
@@ -113,15 +113,15 @@ const TOPICS = [
     {
         id: 'stack',
         k: ['stack', 'skill', 'skills', 'tech', 'technology', 'technologies', 'tools', 'toolset', 'know', 'knows', 'good at', 'expertise', 'competencies', 'capable'],
-        a: "ROS2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL. MuJoCo, Gazebo.",
+        a: "ROS 2 (Humble), C++17, Python, Linux, Docker, CMake. Robot learning: PPO, imitation, language policies, domain randomisation, system identification. ML: PyTorch, CNN, detection, INT8, ONNX Runtime. Perception: LiDAR, IMU, sensor fusion, OpenCV, PCL. Navigation & Manipulation: Nav2, SLAM, MoveIt2, OMPL. MuJoCo, Gazebo.",
         deep: "## Core\n" +
-           "ROS2 (Humble), C++17, Python, Linux, CMake. ROS2 is the runtime for the systems side; the learning code is Python until it is exported, and the one C++ project is a simulation backend that the Python training script runs on unchanged.\n" +
+           "ROS 2 (Humble), C++17, Python, Linux, CMake. ROS 2 is the runtime for the systems side; the learning code is Python until it is exported, and the one C++ project is a simulation backend that the Python training script runs on unchanged.\n" +
            "## Robot Learning\n" +
            "PPO implemented from scratch — advantage estimation, ratio clipping and normalisation each ablated rather than assumed, then reused for the biped and for the arm with a reach-push-lift curriculum. Imitation learning on the arm: behaviour cloning, DAgger with a shadow expert, and an ACT-style action-chunking policy, with a dataset-size scaling curve. A language-conditioned multitask policy scored on held-out paraphrases and on task-colour pairs never seen together. Reward design as an explicit artefact: the Microduck project measures each reward term's contribution against a hand-written controller before training starts, and rebuilt the reward when three of four penalties turned out to be inert. Domain randomisation with ranges taken from measured servo fits, and held-out physics that sits outside those ranges, are the sim-to-real method.\n" +
            "## ML / DL\n" +
            "PyTorch throughout. CNNs for object detection and keypoints, with architecture treated as a decision to justify: a spatial soft-argmax head beat a generic flatten head at a fifth of the parameters. ONNX Runtime for export, verified by recomputing the whole task metric through it, not by checking that a file exists. Static INT8 quantisation in QDQ form with per-channel weights and calibration on the training split, structured channel pruning with a short fine-tune, and a one-thread mAP-versus-latency curve.\n" +
            "## Simulation\n" +
-           "MuJoCo for the learning work — scene generation, segmentation-buffer labels, and physics for control. Gazebo for the ROS2 side. RViz for visualising what a pipeline actually produced. Synthetic data generation is a first-class part of every learned project, because the label comes out of the renderer rather than out of a human.\n" +
+           "MuJoCo for the learning work — scene generation, segmentation-buffer labels, and physics for control. Gazebo for the ROS 2 side. RViz for visualising what a pipeline actually produced. Synthetic data generation is a first-class part of every learned project, because the label comes out of the renderer rather than out of a human.\n" +
            "## Perception\n" +
            "LiDAR, IMU and camera, fused. OpenCV for image work — used both as a tool and as the baseline the learned models have to beat. PCL for point clouds.\n" +
            "## Manipulation\n" +
@@ -310,9 +310,9 @@ const TOPICS = [
     {
         id: 'manipulation',
         k: ['!moveit', '!moveit2', 'manipulator', 'pick', 'place', '!panda', '!franka', '!gripper', '!ompl', 'trajectory', 'dof', 'kinematics', '7-dof', '!reachability', '!validator', '!fsm', '!pick and place', '!pick-and-place'],
-        a: "Earlier ROS2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt2 with OMPL fallback.\n" +
+        a: "Earlier ROS 2 work: a 7-DOF Franka Panda clears seven balls into a box with no hard-coded poses; camera, OpenCV detection, C++ reachability validator, Python state machine, MoveIt2 with OMPL fallback.\n" +
            "No accuracy or success-rate figure was measured; HSV on synthetic frames. Walkthrough: projects/moveit-pickplace.html",
-        deep: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS2, Franka Panda\n" +
+        deep: "## MoveIt2 Pick & Place Demo — Python, C++, MoveIt2, ROS 2, Franka Panda\n" +
            "A closed perception-to-execution loop on a 7-DOF arm, in simulation.\n" +
            "## The loop\n" +
            "1. A scene manager holds ground truth and publishes it on a latched topic\n" +
@@ -338,21 +338,21 @@ const TOPICS = [
     {
         id: 'fleet',
         k: ['fleet', '!kafka', '!docker', 'container', 'containerized', 'containerised', '!telemetry', 'database', '!questdb', 'postgres', '!postgresql', 'infra', 'infrastructure', 'monitoring', 'dashboard', 'multi-robot', 'multi robot', '!turtlebot', '!turtlebot3', 'devops', 'time-series', 'time series', 'scale'],
-        a: "Earlier infrastructure work: multi-robot telemetry, ROS2 topics into Kafka, Kafka into QuestDB, a dashboard over the PostgreSQL wire protocol; several TurtleBot3 in Gazebo, all in Docker.\n" +
+        a: "Earlier infrastructure work: multi-robot telemetry, ROS 2 topics into Kafka, Kafka into QuestDB, a dashboard over the PostgreSQL wire protocol; several TurtleBot3 in Gazebo, all in Docker.\n" +
            "No throughput figure was measured. Walkthrough: projects/fleet-monitoring.html",
-        deep: "## Fleet Monitoring System — Python, ROS2, Kafka, Docker\n" +
+        deep: "## Fleet Monitoring System — Python, ROS 2, Kafka, Docker\n" +
            "The infrastructure a fleet needs, rather than the software on one robot.\n" +
            "## The data path\n" +
-           "1. ROS2 topics carry telemetry from multiple robots\n" +
+           "1. ROS 2 topics carry telemetry from multiple robots\n" +
            "2. Kafka takes it as a message broker, decoupling producers from consumers\n" +
            "3. QuestDB stores it as time-series data\n" +
            "4. A real-time dashboard reads from QuestDB over the PostgreSQL wire protocol\n" +
            "## Why a broker at all\n" +
-           "ROS2's DDS transport is built for a robot, not for a datacentre. Kafka is the standard answer once telemetry has to leave the robot network, buffer, and be replayed. Choosing it shows he understands where the ROS2 boundary is.\n" +
+           "ROS 2's DDS transport is built for a robot, not for a datacentre. Kafka is the standard answer once telemetry has to leave the robot network, buffer, and be replayed. Choosing it shows he understands where the ROS 2 boundary is.\n" +
            "## Simulation scale\n" +
            "Multiple TurtleBot3 robots run simultaneously in Gazebo, so the pipeline is exercised with concurrent producers rather than a single stream.\n" +
            "## Deployment\n" +
-           "The whole stack is containerised with Docker — broker, database, dashboard and ROS2 nodes — which makes it reproducible instead of a machine-specific setup.\n" +
+           "The whole stack is containerised with Docker — broker, database, dashboard and ROS 2 nodes — which makes it reproducible instead of a machine-specific setup.\n" +
            "## How to weigh it\n" +
            "It is deliberately the last project on the page. The main line of work is robot learning and manipulation; this one exists because a robotics team eventually needs someone who can stand up the observability layer, and it is the only project here that proves he can.\n" +
            "## Repository\n" +
@@ -384,7 +384,7 @@ const TOPICS = [
     {
         id: 'control',
         k: ['control', 'controller', '!pid', '!state machine', 'fsm', '!gazebo', '!mujoco', 'simulation', 'simulator', 'sim', '!rviz', 'motion control', '!synthetic data'],
-        a: "Control: PD and PID measured as baselines (the Microduck PD controller is scored over 20 seeds before training), LQR by iterating the Riccati recursion by hand, state machines, path planning, a scripted IK expert on the arm. Simulation: MuJoCo for the learning work, Gazebo for ROS2, RViz; labels from the renderer.",
+        a: "Control: PD and PID measured as baselines (the Microduck PD controller is scored over 20 seeds before training), LQR by iterating the Riccati recursion by hand, state machines, path planning, a scripted IK expert on the arm. Simulation: MuJoCo for the learning work, Gazebo for ROS 2, RViz; labels from the renderer.",
     },
     {
         id: 'navigation',
@@ -441,7 +441,7 @@ const TOPICS = [
            "- PPO vs LQR on Cart-Pole — PPO from first principles, 16 seeds, permutation-tested ablations, and a conclusion against the learned method. Its PPO loop trains projects 1 and 3. https://github.com/AungKaung1928/ppo-from-scratch\n" +
            "- Cube Pose Regression CNN — 0.59 mm median error from a 27k-parameter soft-argmax head, against a refitted classical baseline. Its keypoint head is the front end of project 3's image policies. https://github.com/AungKaung1928/mujoco-cube-pose-cnn\n" +
            "- MoveIt2 Pick & Place Demo — a closed camera-to-grasp loop on a 7-DOF Franka Panda with no hard-coded poses. https://github.com/AungKaung1928/moveit_pickplace_demo\n" +
-           "- Fleet Monitoring System — ROS2 to Kafka to QuestDB, containerised, several TurtleBot3 in Gazebo. https://github.com/AungKaung1928/fleet_monitoring_ws\n\n" +
+           "- Fleet Monitoring System — ROS 2 to Kafka to QuestDB, containerised, several TurtleBot3 in Gazebo. https://github.com/AungKaung1928/fleet_monitoring_ws\n\n" +
            "## Why these four\n" +
            "Legs, simulation infrastructure, hands and eyes: a locomotion policy, the C++ backend under it, arm manipulation by three methods, and a detector taken to an edge budget. Each has a full written walkthrough linked from its card, and so do the four earlier projects.",
     },
@@ -461,20 +461,20 @@ const TOPICS = [
     {
         id: 'ros2',
         k: ['!ros2', '!ros', '!humble', '!rclcpp', '!rclpy', 'node', 'nodes', 'topics', '!colcon', '!launch file', 'interface', 'interfaces', '!action server', '!action servers', 'middleware', '!dds', '!workspace', '!package', '!packages'],
-        a: "ROS2 Humble in C++ and Python. On this page: the MoveIt2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
+        a: "ROS 2 Humble in C++ and Python. On this page: the MoveIt2 project's multi-node pipeline with topic contracts, C++ and Python nodes split on a real criterion, action-server checks at startup, a latched ground-truth topic. Professionally: Nav2, SLAM, AMCL on mobile robots. Not claimed: real-time executors, DDS QoS.",
         deep: "## The version and the languages\n" +
-           "ROS2 Humble, C++ and Python, on Linux. C++ for nodes that run per frame or per detection; Python where iteration speed and async orchestration matter more.\n" +
+           "ROS 2 Humble, C++ and Python, on Linux. C++ for nodes that run per frame or per detection; Python where iteration speed and async orchestration matter more.\n" +
            "## Where the depth shows on this page\n" +
            "- Topic contracts between nodes: scene ground truth on a latched topic, rendered frames, detected objects, validated targets, and a scene-update channel that hides a ball once it is picked. Each stage is replaceable without touching the others\n" +
            "- Actions: the MoveIt2 project verifies its action server before commanding anything, and drives MoveGroup asynchronously with an explicit completion event rather than blocking\n" +
            "- Service quirks handled rather than worked around: the Humble Cartesian-path service has no velocity-scaling field, so the trajectory is retimed after planning\n" +
            "- Language split inside one package, justified per node\n" +
-           "## Where the deeper ROS2 work actually lives\n" +
+           "## Where the deeper ROS 2 work actually lives\n" +
            "In the day job: Nav2, SLAM, AMCL and TF2 on autonomous mobile robots. That is professional experience and it is not demonstrated by a repository here, so it should be verified in conversation.\n" +
            "## What is not claimed\n" +
            "No real-time executors, no DDS QoS tuning, no micro-ROS. Ask by email if that is what the role needs.\n" +
-           "## Why the portfolio leans away from ROS2 now\n" +
-           "Deliberately. The target role is Physical AI Engineer — learned behaviour on real machines — not ROS2 integration. ROS2 is the deployment layer for that, and it is represented here by the earlier closed-loop pick-and-place system and the fleet pipeline rather than by the current cards.",
+           "## Why the portfolio leans away from ROS 2 now\n" +
+           "Deliberately. The target role is Physical AI Engineer — learned behaviour on real machines — not ROS 2 integration. ROS 2 is the deployment layer for that, and it is represented here by the earlier closed-loop pick-and-place system and the fleet pipeline rather than by the current cards.",
     },
     {
         id: 'simtoreal',
@@ -581,11 +581,11 @@ const TOPICS = [
            "- The detector was 1.9x slower than the classical pipeline in eager PyTorch and 1.8x faster through the runtime at 8 threads, and still slower at one thread. That last number is what step 6's INT8 quantisation and pruning exist to fix, on a one-thread mAP-versus-latency curve\n" +
            "- Policies export with the running observation normaliser folded into the ONNX graph, and a test proves the exported graph disagrees with the un-normalised network and agrees with the training-time path\n" +
            "## System deployment\n" +
-           "The Fleet Monitoring System runs as a Docker stack: Kafka as the broker, QuestDB as the time-series store, the dashboard, and the ROS2 nodes producing telemetry. Bringing it up is one operation.\n" +
+           "The Fleet Monitoring System runs as a Docker stack: Kafka as the broker, QuestDB as the time-series store, the dashboard, and the ROS 2 nodes producing telemetry. Bringing it up is one operation.\n" +
            "## Reproducibility as the actual test\n" +
            "Every repository ships the script that regenerates its numbers, and each states what to run and roughly how long it takes on CPU. Anyone reading can re-run the claim.\n" +
            "## The runtime environment\n" +
-           "Linux throughout, ROS2 Humble for the robot side, Python with PyTorch and MuJoCo for the learning side, ONNX Runtime as the serving layer. Nothing exotic, which is the point.\n" +
+           "Linux throughout, ROS 2 Humble for the robot side, Python with PyTorch and MuJoCo for the learning side, ONNX Runtime as the serving layer. Nothing exotic, which is the point.\n" +
            "## Build and CI\n" +
            "Every current repository has a Dockerfile (CPU-only images, tests run inside) and a GitHub Actions workflow. The C++ backend builds with CMake, links the MuJoCo library shipped inside the Python wheel so both sides use the same physics binary, and its CI rebuilds the suite under AddressSanitizer, UndefinedBehaviorSanitizer and ThreadSanitizer.\n" +
            "## What is not claimed\n" +
@@ -653,7 +653,7 @@ const TOPICS = [
            "## What that leaves genuinely strong\n" +
            "- Measurement discipline. Baselines refitted until they are competitive, metrics implemented and tested from scratch, null results published, corrections left on the page with the reason, and conclusions that go against the learned method when the data says so. This is rare and hard to fake\n" +
            "- End-to-end ownership: dataset generation, model, metric, ablation, export, latency — all of it, per project\n" +
-           "- A working ROS2 systems layer to deploy into, including a closed perception-to-execution loop on a 7-DOF arm\n" +
+           "- A working ROS 2 systems layer to deploy into, including a closed perception-to-execution loop on a 7-DOF arm\n" +
            "## How to read the combination\n" +
            "An early-career engineer with unusually good scientific hygiene, aimed deliberately at physical AI, who has built the method but not yet the hardware result. If the role can supply the robot, that gap closes fast. If the role needs someone who has already shipped a policy onto a machine, it does not.\n" +
            "## What to ask him\n" +
@@ -662,12 +662,12 @@ const TOPICS = [
     {
         id: 'fit',
         k: ['!role fit', '!fit for', '!which role', '!what role', '!what kind of role', '!suited', '!suitable for', '!right role', '!job type', '!position', '!positions', '!team fit', '!where would he fit'],
-        a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS2 robotics software with MoveIt2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
+        a: "Fits: Physical AI / robot learning engineer, junior to mid, on a team with hardware; perception engineering with a deployment path; ROS 2 robotics software with MoveIt2; robot infrastructure (telemetry, Docker). Poor fits: ML research, GPU or large-scale training, pure cloud or web, a shipped hardware policy today.",
         deep: "## Where he lines up well\n" +
            "- Robot learning, junior to mid — a biped policy, arm manipulation by RL, imitation and language, a detector, each with a measured baseline under it, metrics implemented from scratch, and ONNX deployment. On a team with hardware, the missing half of sim-to-real closes quickly\n" +
            "- Simulation and training infrastructure — a threaded C++17 environment proven bit-identical to its Python reference, sanitizer-clean, with benchmarks that carry their own stability verdicts\n" +
            "- Applied perception — object detection and pose regression taken all the way from synthetic data generation to a latency figure on the CPU budget a robot would have\n" +
-           "- ROS2 manipulation — a closed camera-to-grasp loop on a 7-DOF arm, with the language split between C++ and Python justified per node\n" +
+           "- ROS 2 manipulation — a closed camera-to-grasp loop on a 7-DOF arm, with the language split between C++ and Python justified per node\n" +
            "- Robot-adjacent infrastructure — Kafka, QuestDB, Docker, live dashboards. Useful on a team that has robots but no telemetry layer\n" +
            "## Where he would be the wrong hire\n" +
            "- ML research or applied-science roles measured in publications and leaderboard results\n" +
@@ -676,7 +676,7 @@ const TOPICS = [
            "- A senior or lead position requiring years of shipped hardware programmes\n" +
            "- A role needing an existing sim-to-real hardware result today\n" +
            "## The one-line version\n" +
-           "Early-career robot-learning engineer with unusually rigorous measurement habits and a working ROS2 deployment layer, aimed squarely at physical AI, missing the hardware half of sim-to-real.\n" +
+           "Early-career robot-learning engineer with unusually rigorous measurement habits and a working ROS 2 deployment layer, aimed squarely at physical AI, missing the hardware half of sim-to-real.\n" +
            "## Next step\n" +
            "Email " + EMAIL + " for the CV, availability and role scope — none of that is published here.",
     },
@@ -718,7 +718,7 @@ const DEEP_EXTRA = {
         "- The full stack, or any layer of it\n" +
         "- Robot learning: PPO, imitation learning, language-conditioned policies, reward design, domain randomisation, system identification\n" +
         "- ML / DL: PyTorch, CNNs, object detection, INT8 quantisation, ONNX Runtime\n" +
-        "- C++17 (a threaded simulation backend), ROS2 depth, MoveIt2 and Nav2\n" +
+        "- C++17 (a threaded simulation backend), ROS 2 depth, MoveIt2 and Nav2\n" +
         "- Simulation: MuJoCo, Gazebo, RViz, synthetic data\n" +
         "## Projects\n" +
         "- The four current projects together, or any one by name; the four earlier ones too\n" +
@@ -744,7 +744,7 @@ const DEEP_EXTRA = {
         "## Simulation — MuJoCo\n" +
         "The learning track's substrate. Scene generation with randomised hue, lighting and table shade; labels read from the segmentation buffer rather than annotated; 500 Hz physics with 50 Hz control for the biped; and throughput measured under sustained load because a 20-second burst misled three times.\n" +
         "## Simulation — Gazebo\n" +
-        "The ROS2 side: multiple TurtleBot3 robots simulated at once so the telemetry pipeline sees concurrent producers rather than a single stream.\n" +
+        "The ROS 2 side: multiple TurtleBot3 robots simulated at once so the telemetry pipeline sees concurrent producers rather than a single stream.\n" +
         "## Visualisation — RViz\n" +
         "Used as a measurement tool rather than a screenshot generator: raw and processed data displayed together so an effect is inspected rather than asserted.\n" +
         "## Synthetic data as a first-class artefact\n" +

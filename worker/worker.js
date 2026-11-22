@@ -17,11 +17,11 @@ const MAX_HISTORY_TURNS = 8;
 // Edit freely. Everything here is public information from the portfolio page.
 const PROFILE = `
 Aung Kaung Myat — Robotics Software Engineer.
-Professionally he works on real mobile robots: ROS2, C++, navigation, LiDAR
+Professionally he works on real mobile robots: ROS 2, C++, navigation, LiDAR
 perception and system integration. The projects below are personal work, not
 job work: robot learning trained in simulation on a laptop CPU, measured
 against a hand-written baseline that was built first, and exported to run on
-device. ROS2 and C++ for the systems layer, PyTorch for the learning. Early
+device. ROS 2 and C++ for the systems layer, PyTorch for the learning. Early
 career.
 
 Current focus: robot learning on CPU — a biped balance policy, arm
@@ -39,7 +39,7 @@ the models are small and why every project opens with a feasibility or
 verification measurement.
 
 Stack
-- Core: ROS2 (Humble), C++17, Python, Linux, Docker, CMake
+- Core: ROS 2 (Humble), C++17, Python, Linux, Docker, CMake
 - Robot Learning: PPO, Imitation learning, Language-conditioned policies,
   Domain randomisation, System identification, Sim-to-real transfer
 - ML / DL: PyTorch, CNN, Object detection, INT8 quantisation, ONNX Runtime
@@ -250,7 +250,7 @@ Earlier work, walkthroughs still on the site:
   with OMPL fallback. No positioning-accuracy or success-rate figure is
   claimed, because neither was measured.
 - Fleet Monitoring System https://github.com/AungKaung1928/fleet_monitoring_ws
-  ROS2 -> Kafka -> QuestDB telemetry for several TurtleBot3 in Gazebo,
+  ROS 2 -> Kafka -> QuestDB telemetry for several TurtleBot3 in Gazebo,
   containerised, dashboard over the PostgreSQL wire protocol.
 
 Every project has a full written walkthrough at
