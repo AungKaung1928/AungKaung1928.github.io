@@ -59,6 +59,7 @@ h1, h2, h3, p, ul { margin: 0; }
 ul { padding: 0; list-style: none; }
 b { color: var(--ink); font-weight: 600; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+::selection { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); }
 
 .container {
     width: 100%;
