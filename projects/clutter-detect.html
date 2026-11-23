@@ -230,7 +230,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               every class and every appearance — unused slots are parked 10 m away, outside both fields of view.</span><span lang="ja">MuJoCoのシーン。1.5 mのテーブル平面、照明1つ、カメラ2台、jointを持たない静的な物体スロット6つで構成されます。
               形状・サイズ・色・姿勢はすべて<code>mjModel</code>のフィールドなので、1つのXMLで全クラス・全外観を表現できます。
               使わないスロットは10 m離れた、両カメラの視野外に退避させます。</span></td></tr>
-          <tr><td>gen_dataset.py</td><td class="num">365</td>
+          <tr><td>gen_dataset.py</td><td class="num">375</td>
             <td><span lang="en">Renders the four splits. Rejection-samples object positions at least 0.075 m apart, writes shape
               and colour into the model, renders RGB, renders again with segmentation enabled, converts each
               instance mask to a tight box, and computes <code>visible_frac</code> with a pruned second pass.</span><span lang="ja">4つのsplitをレンダリングします。物体位置を0.075 m以上離れるようrejection samplingし、形状と色をモデルに書き込み、
@@ -253,7 +253,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               that cannot cross image boundaries, ignore semantics, per-class averaging with absent classes
               excluded rather than scored zero. Also size-stratified AP and recall-by-visibility.</span><span lang="ja">APの実装本体。0.50〜0.95の10個のIoU閾値、101点のrecallレベル、画像の境界をまたがないgreedyマッチング、
               ignoreの扱い、クラスごとの平均（存在しないクラスは0点ではなく除外）。サイズ別APと可視率別recallも実装しています。</span></td></tr>
-          <tr><td>test_ap.py</td><td class="num">125</td>
+          <tr><td>test_ap.py</td><td class="num">170</td>
             <td><span lang="en">Fifteen unit cases. Every expected value derived on paper — a test that records whatever the
               code printed last time proves only that the code is deterministic.</span><span lang="ja">15件のunit test。期待値はすべて手計算で導出しています。前回コードが出力した値をそのまま記録するテストでは、
               コードが決定的であることしか証明できないからです。</span></td></tr>
@@ -298,7 +298,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               touched exactly once, at the end. Adam + OneCycle, 25 epochs, 34 minutes at 112–128 img/s on
               8 threads. Contains the photometric and geometric augmentation implementations.</span><span lang="ja">学習ループ。<em>train</em>から1500枚をtune用splitとして取り分け、validationには最後に一度だけ触れるようにしています。
               Adam + OneCycle、25 epoch、8スレッドで112–128 img/s、所要34分。photometricおよびgeometric augmentationの実装も含みます。</span></td></tr>
-          <tr><td>test_detector.py</td><td class="num">133</td>
+          <tr><td>test_detector.py</td><td class="num">255</td>
             <td><span lang="en">Proves <code>encode</code> and <code>decode</code> are exact inverses <em>before</em> any
               training. This bug class does not crash — it trains to a low loss and puts the boxes in the wrong
               place. Also measures worst-case centre error at 2.00 px, which at stride 4 is exactly the
@@ -328,7 +328,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
           <tr><td>edge_curve.py</td><td class="num">121</td>
             <td><span lang="en">Draws mAP against one-thread latency for every graph the two scripts wrote, with the classical
               pipeline as a dashed line.</span><span lang="ja">上記2つのスクリプトが出力した全グラフについて、1スレッドlatencyに対するmAPを描画します。古典的パイプラインは破線で示します。</span></td></tr>
-          <tr><td>test_edge.py</td><td class="num">148</td>
+          <tr><td>test_edge.py</td><td class="num">183</td>
             <td><span lang="en">INT8 round trip, pruning at ratio 0 reproducing the original to 1e-5, and the MAC count against
               a hand count. Needs no data and no weights.</span><span lang="ja">INT8の往復変換、ratio 0のpruningが元のモデルを1e-5の精度で再現すること、MAC数と手計算の一致を確認します。データもweightも不要です。</span></td></tr>
         </tbody>

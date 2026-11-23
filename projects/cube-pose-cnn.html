@@ -315,7 +315,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               part of software rendering.</span><span lang="ja">MuJoCoのシーン。z = 0の平面、照明1つ、高さ0.45 mの真上カメラ1台（垂直画角45°、軸はワールド座標に一致）、
               free jointに付いた半辺0.03 mの箱で構成されます。ソフトウェアレンダリングで最も重いのはshadow mappingなので、
               影は無効にしています（<code>shadowsize="0"</code>）。</span></td></tr>
-          <tr><td>gen_dataset.py</td><td class="num">132</td>
+          <tr><td>gen_dataset.py</td><td class="num">136</td>
             <td><span lang="en">Renders the dataset. Samples x, y and yaw, writes them into <code>qpos</code>, mutates the
               cube/table colours and the light according to the regime, calls <code>mj_forward</code>, renders,
               and stores the image into a memory-mapped <code>.npy</code> array. Writes a
@@ -337,7 +337,7 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               <code>--method sat</code>は十分に彩度の高いものをすべて残します。「グレーに近いテーブル上で最も色鮮やかなものが立方体」という、
               より弱く、より正直なpriorです。その後はどちらも、モルフォロジーのopening → 最大輪郭 → 面積の下限 → モーメントによる重心＋
               <code>minAreaRect</code>の角度 → ワールド単位への変換、と処理します。</span></td></tr>
-          <tr><td>baseline_v2.py</td><td class="num">64</td>
+          <tr><td>baseline_v2.py</td><td class="num">62</td>
             <td><span lang="en">The fair baseline. Runs the same detector over the <em>train</em> split, fits one scalar radial
               correction by least squares, applies it unchanged to validation. One learned parameter against the
               network's 27 000.</span><span lang="ja">公平なbaseline。同じ検出器を<em>train</em>に対して実行し、半径方向の補正スカラー1つを最小二乗で求め、
@@ -357,11 +357,11 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               batch, the full task metrics recomputed through ONNX Runtime, and batch-1 latency at both 1 and 8
               threads.</span><span lang="ja">ONNXにexportし、3つの方法で正しさを確認します。実データのbatchでのテンソルの最大絶対差、
               ONNX Runtimeで再計算したタスク指標一式、そして1スレッドと8スレッドでのbatch 1のlatencyです。</span></td></tr>
-          <tr><td>test_common.py</td><td class="num">67</td>
+          <tr><td>test_common.py</td><td class="num">83</td>
             <td><span lang="en">Tier-1 tests. The yaw fold, the projection and the metric checked against values derived on
               paper. Needs no dataset and no weights — it runs from a fresh clone in seconds.</span><span lang="ja">Tier 1のテスト。yawの折り返し、射影、評価指標を、紙の上で導いた値と照合します。データセットも重みも不要で、
               cloneした直後から数秒で実行できます。</span></td></tr>
-          <tr><td>verify.sh</td><td class="num">68</td>
+          <tr><td>verify.sh</td><td class="num">70</td>
             <td><span lang="en">Reproduces the README's claims from a clean checkout, cheapest tier first. Pins
               <code>MUJOCO_GL</code> and the thread count because both change the numbers, and skips the data
               tiers with instructions rather than failing when <code>data/</code> is absent.</span><span lang="ja">クリーンなcheckoutからREADMEの主張を再現します。軽いtierから順に実行します。

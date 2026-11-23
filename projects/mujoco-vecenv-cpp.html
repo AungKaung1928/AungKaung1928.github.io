@@ -268,27 +268,27 @@ if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))d.classL
               and converters that accept its <code>DRConfig</code> dataclass and <code>DomainRandomizer</code>
               directly.</span><span lang="ja">差し替え用の部分。Pythonプロジェクトと同じコンストラクタ・stepシグネチャを持つ<code>VecEnv</code>クラスと、
               同プロジェクトの<code>DRConfig</code> dataclassや<code>DomainRandomizer</code>をそのまま受け取れる変換関数。</span></td></tr>
-          <tr><td>python/vecenv_cpp/contract.py</td><td class="num">79</td>
+          <tr><td>python/vecenv_cpp/contract.py</td><td class="num">84</td>
             <td><span lang="en">Runs one episode on both environments from the same drawn values and compares everything that
               comes back. Used by the pytest suite and by the report script.</span><span lang="ja">同じ抽選値から両環境で1 episodeを実行し、返ってきたものをすべて比較します。pytestスイートとレポートスクリプトの両方で使います。</span></td></tr>
-          <tr><td>scripts/contract_report.py</td><td class="num">63</td>
+          <tr><td>scripts/contract_report.py</td><td class="num">69</td>
             <td><span lang="en">The 25-episode equality table, written to <code>runs/contract.json</code>. Counts exact matches
               separately from within-tolerance matches so the two never blur.</span><span lang="ja">25 episodeの一致表を<code>runs/contract.json</code>に書き出します。完全一致と許容誤差内の一致を別々に数え、両者が混ざらないようにしています。</span></td></tr>
           <tr><td>scripts/ppo_cpp.py</td><td class="num">45</td>
             <td><span lang="en">Runs the Python project's <code>ppo.py</code> as <code>__main__</code> with <code>vecenv_cpp</code>
               installed under the module name <code>vec_env</code>. Nothing in the Python project changes.</span><span lang="ja"><code>vecenv_cpp</code>をモジュール名<code>vec_env</code>として差し込んだ状態で、Pythonプロジェクトの<code>ppo.py</code>を<code>__main__</code>として実行します。Pythonプロジェクト側は一切変更しません。</span></td></tr>
-          <tr><td>bench/bench_vecenv.cpp</td><td class="num">358</td>
+          <tr><td>bench/bench_vecenv.cpp</td><td class="num">359</td>
             <td><span lang="en">The benchmark, mirroring the Python project's protocol: bracketed sweep with reference windows,
               drift and trend guards, a sustained mode, and a <code>bare</code> mode that runs the physics alone.</span><span lang="ja">Pythonプロジェクトと同じ手順のベンチマーク。reference windowで挟んだsweep、driftとtrendのガード、sustainedモード、物理計算だけを回す<code>bare</code>モード。</span></td></tr>
           <tr><td>bench/compare.py</td><td class="num">120</td>
             <td><span lang="en">Python processes against C++ threads, alternating backend every window so a machine that
               changes state biases both the same way.</span><span lang="ja">PythonプロセスとC++スレッドの比較。windowごとにbackendを交互に切り替え、マシンの状態変化が両者に同じように効くようにしています。</span></td></tr>
-          <tr><td>tests/cpp/*.cpp</td><td class="num">641</td>
+          <tr><td>tests/cpp/*.cpp</td><td class="num">712</td>
             <td><span lang="en">35 doctest cases, 417,484 assertions: environment contract, DR apply/restore, RNG determinism and
               moments, the numpy summation order on an input where the orders provably differ, thread-count
               independence, N threaded envs equal N sequential ones.</span><span lang="ja">doctest 35ケース、417,484アサーション。環境のcontract、DRの適用と復元、乱数の決定性とモーメント、加算順序で確実に結果が変わる入力でのnumpy加算順序、
               スレッド数への非依存性、N個のスレッド実行環境とN個の逐次実行環境の一致。</span></td></tr>
-          <tr><td>tests/py/*.py</td><td class="num">426</td>
+          <tr><td>tests/py/*.py</td><td class="num">668</td>
             <td><span lang="en">55 pytest tests: the equality cases, the push-shift sensitivity check, PCG64 against numpy's
               internal state, version agreement, and the drop-in's shapes, dtypes and info keys.</span><span lang="ja">pytest 55テスト。一致ケース、pushをずらしたときの感度チェック、numpyの内部状態に対するPCG64の検証、バージョン一致、差し替えクラスのshape・dtype・infoキー。</span></td></tr>
           <tr><td>CMakeLists.txt · .github/workflows/ci.yml · verify.sh · Dockerfile</td><td class="num">91 · 68 · 84 · 28</td>
