@@ -1016,11 +1016,11 @@ nice -n 10 python eval_policy.py --ckpt runs/bc_act_lift.pt   --task lift:red --
         PyTorch, 1.4 s in OpenVINO FP32 and 0.73 s in OpenVINO with INT8 weights (p99 0.94 s). The INT8
         output differs from FP32 by up to 0.09, so whether it is safe needs a closed-loop test on a fine-tuned
         model; this base model scores 0 here, so it cannot show a drop. For scale, the 695k-parameter ACT policy
-        runs in 0.62 ms in ONNX Runtime on 1 thread (PyTorch 1.60 ms, OpenVINO 0.78 ms; so-arm100-il). Intel Core Ultra 5 225H, 4 threads, not a Jetson.</p>
+        runs in 0.77 ms (median) in ONNX Runtime on 1 thread (PyTorch 1.95 ms, OpenVINO 0.94 ms; so-arm100-il). Intel Core Ultra 5 225H, 4 threads, not a Jetson.</p>
       <p lang="ja">50アクションのチャンクは20 Hzで2.5秒分です。512 pxのカメラ3台では、1チャンクにPyTorch FP32で3.8秒、OpenVINO FP32で3.0秒かかり（同一プロセスで交互に計測、出力差2.4e-6）、どちらも間に合いません。
         時間の約半分はビジョンエンコーダーです。カメラ1台にすると、PyTorchで1.8秒、OpenVINO FP32で1.4秒、INT8重みのOpenVINOで0.73秒（p99 0.94秒）になります。
         INT8の出力はFP32と最大0.09ずれるため、安全かどうかはfine-tune済みモデルでの閉ループ評価が必要です。このベースモデルはここで0点なので、低下を示せません。
-        比較として、69.5万パラメータのACTは1スレッドのONNX Runtimeで0.62 ms（PyTorch 1.60 ms、OpenVINO 0.78 ms、so-arm100-il）です。Intel Core Ultra 5 225H、4スレッドでの計測で、Jetsonではありません。</p>
+        比較として、69.5万パラメータのACTは1スレッドのONNX Runtimeで0.77 ms（中央値、PyTorch 1.95 ms、OpenVINO 0.94 ms、so-arm100-il）です。Intel Core Ultra 5 225H、4スレッドでの計測で、Jetsonではありません。</p>
       <div class="tablewrap"><table><thead><tr><th><span lang="en">1 camera, 512 px</span><span lang="ja">カメラ1台、512 px</span></th><th class="num">p50 ms</th><th class="num"><span lang="en">max diff vs PyTorch</span><span lang="ja">PyTorchとの最大差</span></th></tr></thead>
         <tbody><tr><td>PyTorch FP32</td><td class="num">1,848</td><td class="num">0</td></tr>
         <tr><td>OpenVINO FP32</td><td class="num">1,398</td><td class="num">2.1e-6</td></tr>
